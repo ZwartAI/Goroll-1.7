@@ -9,6 +9,7 @@ import { LogSegments } from "@/components/app/LogSegments";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ItemEditor } from "@/components/app/ItemEditor";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
+import { DMConditionsCreator } from "@/components/app/ConditionsPanel";
 import { useState } from "react";
 
 export const Route = createFileRoute("/campaign/dm")({ component: DM });
@@ -80,7 +81,12 @@ function DM() {
         </div>
       )}
 
-      {tab === "create" && <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />}
+      {tab === "create" && (
+        <div className="space-y-4">
+          <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+          <DMConditionsCreator campaignId={campaign.id} players={players} />
+        </div>
+      )}
 
       {tab === "vault" && (
         <div className="space-y-2">
@@ -128,7 +134,7 @@ function DM() {
           onEdit={() => { setEditItem(selItem); setSelItem(null); }} />
       )}
       {editItem && (
-        <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-3" onClick={() => setEditItem(null)}>
+        <div className="fixed inset-0 bg-black/85 z-[70] flex items-center justify-center p-3" onClick={() => setEditItem(null)}>
           <div onClick={e => e.stopPropagation()}>
             <ItemEditor item={editItem} dm={dmCtx} campaignId={campaign.id} onClose={() => setEditItem(null)} />
           </div>
@@ -319,7 +325,7 @@ function ItemActions({ item, players, dm, campaignId, onClose, onEdit }: {
     onClose();
   }
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 z-[65] flex items-center justify-center p-4" onClick={onClose}>
       <div className="ornate-card p-4 max-w-sm w-full space-y-3" onClick={e=>e.stopPropagation()}>
         <h3 className="font-display text-lg" style={isEq ? { color: RARITY_COLOR[item.rarity as Rarity] } : undefined}>{item.name}</h3>
         <p className="text-xs text-muted-foreground">

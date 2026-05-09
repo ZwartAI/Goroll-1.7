@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MasterRouteImport } from './routes/master'
 import { Route as CampaignRouteImport } from './routes/campaign'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CampaignSpectatorRouteImport } from './routes/campaign.spectator'
@@ -19,6 +20,11 @@ import { Route as CampaignEquipmentRouteImport } from './routes/campaign.equipme
 import { Route as CampaignDmRouteImport } from './routes/campaign.dm'
 import { Route as CampaignAchievementsRouteImport } from './routes/campaign.achievements'
 
+const MasterRoute = MasterRouteImport.update({
+  id: '/master',
+  path: '/master',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampaignRoute = CampaignRouteImport.update({
   id: '/campaign',
   path: '/campaign',
@@ -68,6 +74,7 @@ const CampaignAchievementsRoute = CampaignAchievementsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/campaign': typeof CampaignRouteWithChildren
+  '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/campaign': typeof CampaignRouteWithChildren
+  '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/campaign': typeof CampaignRouteWithChildren
+  '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/campaign'
+    | '/master'
     | '/campaign/achievements'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/campaign'
+    | '/master'
     | '/campaign/achievements'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/campaign'
+    | '/master'
     | '/campaign/achievements'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -138,10 +150,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CampaignRoute: typeof CampaignRouteWithChildren
+  MasterRoute: typeof MasterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/master': {
+      id: '/master'
+      path: '/master'
+      fullPath: '/master'
+      preLoaderRoute: typeof MasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/campaign': {
       id: '/campaign'
       path: '/campaign'
@@ -235,6 +255,7 @@ const CampaignRouteWithChildren = CampaignRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CampaignRoute: CampaignRouteWithChildren,
+  MasterRoute: MasterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

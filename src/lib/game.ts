@@ -118,6 +118,7 @@ export type Session = {
   campaignId: string;
   characterId: string | null;
   role: Role;
+  isMaster?: boolean;
 };
 export const USER_KEY = "codice.user";
 export type StoredUser = { id: string; username: string };

@@ -46,6 +46,24 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       app_users: {
         Row: {
           created_at: string
@@ -114,6 +132,54 @@ export type Database = {
           owner_user_id?: string | null
         }
         Relationships: []
+      }
+      character_conditions: {
+        Row: {
+          catalog_id: string | null
+          character_id: string
+          created_at: string
+          damage_per_turn: number
+          icon: string
+          id: string
+          label: string
+          turns_left: number
+        }
+        Insert: {
+          catalog_id?: string | null
+          character_id: string
+          created_at?: string
+          damage_per_turn?: number
+          icon?: string
+          id?: string
+          label: string
+          turns_left?: number
+        }
+        Update: {
+          catalog_id?: string | null
+          character_id?: string
+          created_at?: string
+          damage_per_turn?: number
+          icon?: string
+          id?: string
+          label?: string
+          turns_left?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_conditions_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "condition_effects_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_conditions_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       characters: {
         Row: {
@@ -210,6 +276,47 @@ export type Database = {
           },
         ]
       }
+      condition_effects_catalog: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          damage_default: number
+          icon: string
+          id: string
+          is_damage: boolean
+          key: string
+          label: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          damage_default?: number
+          icon?: string
+          id?: string
+          is_damage?: boolean
+          key: string
+          label: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          damage_default?: number
+          icon?: string
+          id?: string
+          is_damage?: boolean
+          key?: string
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_effects_catalog_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           campaign_id: string
@@ -281,6 +388,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_attempts: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          failed_count: number
+          id: string
+          ip: string
+          last_failed_at: string | null
+          next_try_at: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          failed_count?: number
+          id?: string
+          ip: string
+          last_failed_at?: string | null
+          next_try_at?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          failed_count?: number
+          id?: string
+          ip?: string
+          last_failed_at?: string | null
+          next_try_at?: string | null
+        }
+        Relationships: []
       }
       logs: {
         Row: {
