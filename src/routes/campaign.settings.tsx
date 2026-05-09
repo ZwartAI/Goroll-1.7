@@ -19,7 +19,7 @@ function Settings() {
 
   async function save() {
     const changes: string[] = [];
-    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense"] as const).forEach(k => {
+    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense","damage_boost"] as const).forEach(k => {
       if ((character as any)[k] !== form[k]) changes.push(`${k}:${(character as any)[k]}→${form[k]}`);
     });
     await supabase.from("characters").update({
@@ -27,7 +27,8 @@ function Settings() {
       fue: +form.fue, des: +form.des, con: +form.con, int_stat: +form.int_stat, wis: +form.wis, car: +form.car,
       velocity: +form.velocity, initiative: +form.initiative,
       base_hp: +form.base_hp, base_defense: +form.base_defense,
-    }).eq("id", character!.id);
+      damage_boost: Math.max(0, +form.damage_boost || 0),
+    } as any).eq("id", character!.id);
     if (changes.length) {
       await pushLog(campaign!.id, [
         { t: "char", v: character!.name, color: character!.color },
@@ -78,6 +79,7 @@ function Settings() {
             {num("base_defense","Defensa base")}
             {num("velocity","Velocidad")}
             {num("initiative","Iniciativa")}
+            {num("damage_boost","Potenciación de daño")}
           </div>
         </div>
         <button className="btn-fantasy w-full" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={save}>Guardar cambios</button>

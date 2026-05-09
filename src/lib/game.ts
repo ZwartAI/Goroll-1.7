@@ -83,18 +83,22 @@ export const ITEM_CATEGORIES: { key: ItemCategory; label: string; icon: string }
 
 export function totals(character: Character, equipped: Item[]) {
   let defBonus = 0, hpBonus = 0, dmgBonus = 0;
+  let hasWeapon = false;
   for (const it of equipped) {
     if (isWeapon(it.slot as Slot)) {
       dmgBonus += it.damage_bonus;
+      hasWeapon = true;
     } else {
       defBonus += it.defense_bonus || RARITY_BONUS[it.rarity as Rarity].def;
       hpBonus  += it.hp_bonus     || RARITY_BONUS[it.rarity as Rarity].hp;
     }
   }
+  const boost = Math.max(0, ((character as any).damage_boost as number) || 0);
+  const damage = hasWeapon ? dmgBonus + boost : (boost > 0 ? boost : 0);
   return {
     defense: character.base_defense + defBonus,
     maxHp: character.base_hp + hpBonus,
-    damage: dmgBonus,
+    damage,
   };
 }
 
