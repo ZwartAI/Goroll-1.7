@@ -3,6 +3,7 @@ import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
+import { toastSaved } from "@/lib/saved";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
@@ -35,6 +36,7 @@ function Settings() {
         { t: "text", v: `editó sus estadísticas: ${changes.join(", ")}` },
       ]);
     }
+    toastSaved();
   }
 
   const num = (k: string, label: string) => (

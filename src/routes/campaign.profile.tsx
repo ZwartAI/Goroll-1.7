@@ -7,6 +7,7 @@ import { pushLog } from "@/lib/log";
 import { LogSegments } from "@/components/app/LogSegments";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
+import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { Settings, LogOut, Minus, Plus, Camera } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -165,6 +166,8 @@ function Profile() {
         {stat("car", "CAR")}
       </div>
       <div className="stat-pill mb-3 !text-[11px]"><span>Iniciativa</span><span className="text-[var(--gold)] font-bold">{fmtMod(character.initiative)}</span></div>
+
+      <ConditionsPanel character={character} campaignId={campaign.id} canEdit={true} />
 
       {/* Quick links */}
       <div className="grid grid-cols-3 gap-2 mb-4">
