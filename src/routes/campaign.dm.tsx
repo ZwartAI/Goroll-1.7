@@ -61,6 +61,7 @@ function DM() {
 
   return (
     <PageFrame>
+      <DMRequestGate campaignId={campaign.id} ownerUserId={(campaign as any).owner_user_id ?? null} />
       <header className="flex items-start justify-between gap-2 mb-3">
         <button onClick={logout} className="text-muted-foreground"><LogOut size={18}/></button>
         <div className="text-center">
