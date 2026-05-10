@@ -10,7 +10,7 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/campaign/inventory")({ component: Inventory });
 
-const MAX_SLOTS = 20;
+
 
 function Inventory() {
   const { character, items, characters, campaign, loading } = useGameData();
