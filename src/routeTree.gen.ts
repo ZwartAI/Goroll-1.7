@@ -20,6 +20,7 @@ import { Route as CampaignEquipmentRouteImport } from './routes/campaign.equipme
 import { Route as CampaignDmRouteImport } from './routes/campaign.dm'
 import { Route as CampaignBoostersRouteImport } from './routes/campaign.boosters'
 import { Route as CampaignAchievementsRouteImport } from './routes/campaign.achievements'
+import { Route as CampaignBoostersRouteImport } from './routes/campaign.boosters'
 
 const MasterRoute = MasterRouteImport.update({
   id: '/master',
@@ -281,13 +282,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
