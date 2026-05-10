@@ -5,6 +5,7 @@ import { PageFrame } from "@/components/app/Frame";
 import { LogOut } from "lucide-react";
 import { setSession, totals, type LogRow } from "@/lib/game";
 import { LogSegments } from "@/components/app/LogSegments";
+import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 
@@ -76,17 +77,15 @@ function Spectator() {
       )}
 
       {tab === "log" && (
-        <div className="ornate-card p-3 max-h-[70vh] overflow-y-auto space-y-2">
-          {logs.map((l: LogRow) => (
+        <LogList rows={logs} initial={20} maxH="max-h-[70vh]" empty="Sin movimientos aún."
+          renderRow={(l: LogRow) => (
             <div key={l.id} className={`text-sm bg-secondary/40 rounded px-3 py-2 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
               <LogSegments segments={l.segments as any}
                 onItem={openItemFromId}
                 onChar={(id) => setOpenChar(id)} />
               <p className="text-[10px] text-muted-foreground mt-1">{new Date(l.created_at).toLocaleTimeString()}</p>
             </div>
-          ))}
-          {!logs.length && <p className="text-center text-xs text-muted-foreground py-6">Sin movimientos aún.</p>}
-        </div>
+          )} />
       )}
 
       {tab === "achievements" && (

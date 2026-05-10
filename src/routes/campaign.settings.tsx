@@ -40,9 +40,9 @@ function Settings() {
   }
 
   const num = (k: string, label: string) => (
-    <label className="stat-pill">
-      <span>{label}</span>
-      <input type="number" className="w-16 bg-transparent text-right outline-none text-[var(--gold)]"
+    <label className="stat-pill gap-1 min-w-0">
+      <span className="truncate min-w-0 flex-1">{label}</span>
+      <input type="number" className="w-14 flex-shrink-0 bg-transparent text-right outline-none text-[var(--gold)]"
         value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} />
     </label>
   );

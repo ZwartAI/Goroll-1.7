@@ -134,16 +134,30 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">🪙</p><p className="font-display text-sm text-[var(--gold)]">{character.coins}</p></div>
         </div>
         {isEdit && (
-          <div className="grid grid-cols-4 gap-1">
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(-5)}>−5 ❤️</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(-1)}>−1 ❤️</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(1)}>+1 ❤️</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(5)}>+5 ❤️</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-5)}>−5 🪙</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-1)}>−1 🪙</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(1)}>+1 🪙</button>
-            <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(5)}>+5 🪙</button>
-          </div>
+          <>
+            <div className="grid grid-cols-4 gap-1">
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(-5)}>−5 ❤️</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(-1)}>−1 ❤️</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(1)}>+1 ❤️</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(5)}>+5 ❤️</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-5)}>−5 🪙</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-1)}>−1 🪙</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(1)}>+1 🪙</button>
+              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(5)}>+5 🪙</button>
+            </div>
+            <div className="stat-pill !text-xs gap-1">
+              <span className="truncate min-w-0 flex-1">🎒 Slots de mochila</span>
+              <button className="px-2 rounded bg-secondary border border-border" onClick={async () => {
+                const next = Math.max(1, ((character as any).backpack_slots ?? 12) - 1);
+                await supabase.from("characters").update({ backpack_slots: next } as any).eq("id", character!.id); reload();
+              }}>−</button>
+              <span className="w-8 text-center text-[var(--gold)] font-bold">{(character as any).backpack_slots ?? 12}</span>
+              <button className="px-2 rounded bg-secondary border border-border" onClick={async () => {
+                const next = Math.min(60, ((character as any).backpack_slots ?? 12) + 1);
+                await supabase.from("characters").update({ backpack_slots: next } as any).eq("id", character!.id); reload();
+              }}>+</button>
+            </div>
+          </>
         )}
         <div className="grid grid-cols-3 gap-1">
           {ATTR_KEYS.map(([k, l]) => {

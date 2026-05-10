@@ -6,6 +6,7 @@ import { SLOTS, RARITY_BONUS, RARITY_COLOR, RARITY_LABEL, ITEM_CATEGORIES, isWea
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog, type UndoAction } from "@/lib/log";
 import { LogSegments } from "@/components/app/LogSegments";
+import { LogList } from "@/components/app/LogList";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ItemEditor } from "@/components/app/ItemEditor";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
@@ -82,8 +83,8 @@ function DM() {
       </div>
 
       {tab === "log" && (
-        <div className="ornate-card p-3 max-h-[70vh] overflow-y-auto space-y-2">
-          {logs.map((l: LogRow) => (
+        <LogList rows={logs} initial={20} maxH="max-h-[70vh]"
+          renderRow={(l: LogRow) => (
             <div key={l.id} className={`text-sm bg-secondary/40 rounded px-3 py-2 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
               <LogSegments segments={l.segments as any}
                 onItem={openItemFromId}
@@ -101,9 +102,7 @@ function DM() {
                 )}
               </div>
             </div>
-          ))}
-          {!logs.length && <p className="text-center text-xs text-muted-foreground py-6">El log está vacío.</p>}
-        </div>
+          )} />
       )}
 
       {tab === "create" && (
@@ -118,6 +117,7 @@ function DM() {
               onClick={() => setCreatingBooster(true)}>
               <Plus size={14} className="inline" /> Nuevo potenciador
             </button>
+            <BulkBoosterImport campaignId={campaign.id} />
           </div>
         </div>
       )}
@@ -421,6 +421,55 @@ function ItemActions({ item, players, dm, campaignId, onClose, onEdit }: {
         <button className="btn-fantasy w-full" style={{ background: "var(--gradient-blood)" }} onClick={destroy}>Destruir</button>
         <button className="text-xs text-muted-foreground underline w-full" onClick={onClose}>Cerrar</button>
       </div>
+    </div>
+  );
+}
+
+const RARITY_ALIASES: Record<string, Rarity> = {
+  blanca: "white", blanco: "white", comun: "white", común: "white", common: "white", white: "white",
+  azul: "blue", rara: "blue", raro: "blue", blue: "blue",
+  morada: "purple", morado: "purple", purpura: "purple", púrpura: "purple", epica: "purple", épica: "purple", purple: "purple",
+  dorada: "gold", dorado: "gold", oro: "gold", legendaria: "gold", legendario: "gold", gold: "gold",
+};
+
+function BulkBoosterImport({ campaignId }: { campaignId: string }) {
+  const [busy, setBusy] = useState(false);
+  async function handleFile(file: File) {
+    setBusy(true);
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const rows: any[] = [];
+      const errors: string[] = [];
+      lines.forEach((line, idx) => {
+        const parts = line.split("/").map(p => p.trim());
+        if (parts.length < 4) { errors.push(`Línea ${idx + 1}: faltan campos`); return; }
+        const [name, rarityRaw, usesRaw, maxRaw] = parts;
+        const rarity = RARITY_ALIASES[rarityRaw.toLowerCase()];
+        if (!rarity) { errors.push(`Línea ${idx + 1}: rareza inválida "${rarityRaw}"`); return; }
+        const uses = parseInt(usesRaw, 10);
+        const max = parseInt(maxRaw, 10);
+        if (isNaN(uses) || isNaN(max)) { errors.push(`Línea ${idx + 1}: usos inválidos`); return; }
+        rows.push({
+          campaign_id: campaignId, name, rarity,
+          uses: Math.max(0, uses), max_uses: Math.max(1, max),
+          in_dm_vault: true, owner_character_id: null,
+        });
+      });
+      if (rows.length) {
+        const { error } = await (supabase as any).from("boosters").insert(rows);
+        if (error) toast.error(error.message);
+        else toast.success(`Creados ${rows.length} potenciadores`);
+      }
+      if (errors.length) toast.error(errors.slice(0, 3).join(" · "));
+    } finally { setBusy(false); }
+  }
+  return (
+    <div className="space-y-1 pt-2 border-t border-border">
+      <p className="text-[10px] text-muted-foreground">📄 Importar desde .txt — formato por línea: <code>Nombre / Rareza / Usos / Máx</code></p>
+      <input type="file" accept=".txt,text/plain" disabled={busy}
+        onChange={e => { const f = e.target.files?.[0]; if (f) { handleFile(f); e.target.value = ""; } }}
+        className="text-xs text-muted-foreground w-full file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-secondary file:text-foreground file:text-xs" />
     </div>
   );
 }

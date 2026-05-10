@@ -5,6 +5,7 @@ import { fmtMod, modifier, totals, setSession } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { LogSegments } from "@/components/app/LogSegments";
+import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
@@ -185,8 +186,8 @@ function Profile() {
 
       {/* Log */}
       <h2 className="font-display text-xs uppercase tracking-widest text-center mb-2 text-[var(--gold)]">📜 Log de la partida</h2>
-      <div className="ornate-card p-3 max-h-[40vh] overflow-y-auto space-y-2">
-        {logs.map(l => (
+      <LogList rows={logs} initial={20} maxH="max-h-[40vh]" empty="Sin actividad aún."
+        renderRow={(l: any) => (
           <div key={l.id} className={`text-xs bg-secondary/40 rounded px-2 py-1.5 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
             <LogSegments segments={l.segments as any}
               onItem={(id) => setOpenItem(id)}
@@ -196,9 +197,7 @@ function Profile() {
               }} />
             <p className="text-[9px] text-muted-foreground mt-0.5">{new Date(l.created_at).toLocaleTimeString()}</p>
           </div>
-        ))}
-        {!logs.length && <p className="text-center text-xs text-muted-foreground py-4">Sin actividad aún.</p>}
-      </div>
+        )} />
 
       {imgModal && (
         <ImageEditor character={character} onClose={() => setImgModal(false)} />

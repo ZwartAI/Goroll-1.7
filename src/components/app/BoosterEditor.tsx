@@ -100,7 +100,12 @@ export function BoosterActions({
     if (!character) return;
     const remaining = booster.uses - 1;
     if (remaining <= 0) {
-      await (supabase as any).from("boosters").delete().eq("id", booster.id);
+      // Last use: return card to DM vault refilled to max_uses
+      await (supabase as any).from("boosters").update({
+        uses: booster.max_uses,
+        owner_character_id: null,
+        in_dm_vault: true,
+      }).eq("id", booster.id);
     } else {
       await (supabase as any).from("boosters").update({ uses: remaining }).eq("id", booster.id);
     }

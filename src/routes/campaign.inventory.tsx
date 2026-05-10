@@ -10,7 +10,7 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/campaign/inventory")({ component: Inventory });
 
-const MAX_SLOTS = 20;
+
 
 function Inventory() {
   const { character, items, characters, campaign, loading } = useGameData();
@@ -95,10 +95,11 @@ function Inventory() {
     setSel(null); setTransferTo("");
   }
 
-  const slots = Array.from({ length: MAX_SLOTS }, (_, i) => owned[i] ?? null);
+  const maxSlots = (character as any).backpack_slots ?? 12;
+  const slots = Array.from({ length: maxSlots }, (_, i) => owned[i] ?? null);
 
   return (
-    <PageFrame title="Mochila" subtitle={`${owned.length}/${MAX_SLOTS} slots`} right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
+    <PageFrame title="Mochila" subtitle={`${owned.length}/${maxSlots} slots`} right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
       <div className="grid grid-cols-4 gap-2">
         {slots.map((it, i) => (
           <button key={i} onClick={() => it && setSel(it)}
