@@ -152,6 +152,7 @@ export type Database = {
           max_players: number
           name: string
           owner_user_id: string | null
+          single_dm_only: boolean
         }
         Insert: {
           created_at?: string
@@ -159,6 +160,7 @@ export type Database = {
           max_players?: number
           name: string
           owner_user_id?: string | null
+          single_dm_only?: boolean
         }
         Update: {
           created_at?: string
@@ -166,6 +168,7 @@ export type Database = {
           max_players?: number
           name?: string
           owner_user_id?: string | null
+          single_dm_only?: boolean
         }
         Relationships: []
       }
@@ -355,6 +358,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dm_join_requests: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          requester_user_id: string
+          requester_username: string
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          requester_user_id: string
+          requester_username: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          requester_user_id?: string
+          requester_username?: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: []
       }
       items: {
         Row: {
