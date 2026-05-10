@@ -300,7 +300,19 @@ function Home() {
         </div>
       )}
 
-      {step === "campaign" && user && (
+      {waitingReqId && campaign && (
+        <div className="ornate-card p-6 space-y-4 text-center">
+          <div className="text-5xl">⏳</div>
+          <h2 className="font-display text-lg text-[var(--gold)]">Esperando aprobación</h2>
+          <p className="text-sm text-muted-foreground">
+            Solicitaste unirte como Dungeon Master a <span className="text-foreground font-display">{campaign.name}</span>.
+            El DM original verá tu petición en cuanto entre.
+          </p>
+          <button className="btn-fantasy w-full" onClick={cancelCoDMRequest}>Cancelar solicitud</button>
+        </div>
+      )}
+
+      {!waitingReqId && step === "campaign" && user && (
         <div className="ornate-card p-5 space-y-4">
           <h2 className="text-center font-display text-lg">Tus campañas</h2>
           <input className="w-full rounded-md bg-input border border-border px-3 py-2 text-sm"
