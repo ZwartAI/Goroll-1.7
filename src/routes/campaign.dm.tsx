@@ -87,7 +87,10 @@ function DM() {
             <div key={l.id} className={`text-sm bg-secondary/40 rounded px-3 py-2 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
               <LogSegments segments={l.segments as any}
                 onItem={openItemFromId}
-                onChar={(id) => setOpenChar(id)} />
+                onChar={(id) => {
+                  if (!characters.find(c => c.id === id)) toast.error("Jugador no encontrado");
+                  else setOpenChar(id);
+                }} />
               <div className="flex justify-between items-center mt-1">
                 <p className="text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleTimeString()}</p>
                 {l.undo && !l.undone && (
