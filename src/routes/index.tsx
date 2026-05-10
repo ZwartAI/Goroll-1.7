@@ -333,6 +333,10 @@ function Home() {
                     placeholder="Nombre épico..." value={newCampaignName} onChange={e => setNewCampaignName(e.target.value)} />
                   <button className="btn-fantasy" onClick={createCampaign}>Crear</button>
                 </div>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <input type="checkbox" checked={singleDmOnly} onChange={e => setSingleDmOnly(e.target.checked)} />
+                  Solo un Dungeon Master en la campaña
+                </label>
               </div>
             </>
           )}
