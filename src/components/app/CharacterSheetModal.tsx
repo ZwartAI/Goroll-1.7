@@ -33,6 +33,17 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   }
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [characterId]);
 
+  // Realtime: refresh when this character, their items or achievements change
+  useEffect(() => {
+    const ch = (supabase as any).channel(`sheet:${characterId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "characters", filter: `id=eq.${characterId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `owner_character_id=eq.${characterId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "achievements", filter: `character_id=eq.${characterId}` }, () => reload())
+      .subscribe();
+    return () => { (supabase as any).removeChannel(ch); };
+    // eslint-disable-next-line
+  }, [characterId]);
+
   if (!character) return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <p className="text-muted-foreground">Cargando...</p>
@@ -88,6 +99,8 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
     if (!editor) return;
     const prev = { equipped: it.equipped };
     await supabase.from("items").update({ equipped: false }).eq("id", it.id);
+    const { clampHpForOwner } = await import("@/lib/hp");
+    await clampHpForOwner(character!.id);
     await pushLog(campaignId, [
       { t: "char", v: editor.name, color: editor.color, id: editor.id },
       { t: "text", v: "desequipó a" },
