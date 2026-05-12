@@ -83,9 +83,9 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
     await supabase.from("characters").update({ coins: next }).eq("id", character.id);
     await pushLog(campaignId, [
       { t: "char", v: editor.name, color: editor.color, id: editor.id },
-      { t: "text", v: `dio` },
-      { t: "coins", v: `${delta}` },
-      { t: "text", v: `a` },
+      { t: "text", v: delta >= 0 ? "dio" : "quitó" },
+      { t: "coins", v: `${Math.abs(delta)}` },
+      { t: "text", v: delta >= 0 ? "a" : "de" },
       { t: "char", v: character.name, color: character.color, id: character.id },
     ], { kind: "character.update", id: character.id, prev });
     reload();
