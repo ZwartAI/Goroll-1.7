@@ -159,7 +159,7 @@ function Page() {
 
   // DM view
   return (
-    <PageFrame title="Logros" subtitle="Administrador" right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
+    <PageFrame title="Logros" subtitle="Administrador" right={<Link to="/campaign/dm" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
       <div className="ornate-card p-6 text-center mb-4">
         <Trophy className="mx-auto text-[var(--gold)]" size={48} />
       </div>
