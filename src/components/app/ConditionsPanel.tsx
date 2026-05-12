@@ -284,14 +284,18 @@ export function DMConditionsCreator({
 
   return (
     <div className="ornate-card p-4 space-y-3">
-      <div className="flex gap-1">
+      <div className="grid grid-cols-3 gap-1">
         <button onClick={() => setTab("apply")}
-          className={`flex-1 text-xs py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Aplicar a jugadores
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Aplicar
         </button>
         <button onClick={() => setTab("new")}
-          className={`flex-1 text-xs py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Crear nuevo
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Crear
+        </button>
+        <button onClick={() => setTab("manage")}
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "manage" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Gestionar
         </button>
       </div>
 
