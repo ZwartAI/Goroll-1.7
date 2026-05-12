@@ -9,6 +9,7 @@ import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
+import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Settings, LogOut, Minus, Plus, Camera } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
