@@ -50,7 +50,7 @@ function Inventory() {
   async function unequip(it: Item) {
     await supabase.from("items").update({ equipped: false }).eq("id", it.id);
     const next = owned.filter(i => i.equipped && i.id !== it.id);
-    await syncHpAfter(next);
+    await syncHpAfter(next, false);
     await pushLog(campaign!.id, [{t:"char",v:character!.name,color:character!.color,id:character!.id},{t:"text",v:"se quitó"},{t:"item",v:it.name,rarity:it.rarity as Rarity,id:it.id}]);
     setSel(null);
   }
