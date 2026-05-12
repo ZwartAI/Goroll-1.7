@@ -212,7 +212,7 @@ export function DMConditionsCreator({
   players: Character[];
 }) {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
-  const [tab, setTab] = useState<"apply" | "new">("apply");
+  const [tab, setTab] = useState<"apply" | "new" | "manage">("apply");
   // new effect form
   const [label, setLabel] = useState("");
   const [icon, setIcon] = useState("✨");
