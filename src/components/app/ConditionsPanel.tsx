@@ -356,6 +356,27 @@ export function DMConditionsCreator({
           <button className="btn-fantasy w-full" onClick={createEffect}>Crear efecto</button>
         </>
       )}
+
+      {tab === "manage" && (
+        <div className="space-y-1 max-h-72 overflow-y-auto">
+          {catalog.length === 0 && <p className="text-xs text-muted-foreground">Sin efectos.</p>}
+          {catalog.map(c => (
+            <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5 text-xs">
+              <span>{c.icon}</span>
+              <span className="flex-1 truncate">{c.label}{c.is_damage ? ` 🩸${c.damage_default}` : ""}</span>
+              {c.campaign_id ? (
+                <button className="text-[10px] text-[var(--loss)] underline"
+                  onClick={async () => {
+                    if (!confirm(`¿Eliminar efecto "${c.label}"?`)) return;
+                    const { error } = await (supabase as any).from("condition_effects_catalog").delete().eq("id", c.id);
+                    if (error) toast.error(error.message);
+                    else { toastSaved("Efecto eliminado"); loadCat(); }
+                  }}>eliminar</button>
+              ) : <span className="text-[9px] text-muted-foreground">global</span>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
