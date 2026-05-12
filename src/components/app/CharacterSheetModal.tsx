@@ -22,29 +22,34 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [character, setCharacter] = useState<Character | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [achievements, setAchievements] = useState<{id:string;label:string;color:string}[]>([]);
+  const [boosters, setBoosters] = useState<Booster[]>([]);
 
   async function reload() {
-    const [a, b, c] = await Promise.all([
+    const [a, b, c, d] = await Promise.all([
       supabase.from("characters").select("*").eq("id", characterId).single(),
       supabase.from("items").select("*").eq("owner_character_id", characterId),
       supabase.from("achievements").select("*").eq("character_id", characterId),
+      (supabase as any).from("boosters").select("*").eq("owner_character_id", characterId),
     ]);
     if (a.data) setCharacter(a.data as Character);
     setItems((b.data || []) as Item[]);
     setAchievements((c.data || []) as any);
+    setBoosters((d.data || []) as Booster[]);
   }
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [characterId]);
 
-  // Realtime: refresh when this character, their items or achievements change
+  // Realtime: any change in this campaign's items/boosters can affect this view
+  // (player unequips & sends to DM → owner_character_id changes away from us).
   useEffect(() => {
     const ch = (supabase as any).channel(`sheet:${characterId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "characters", filter: `id=eq.${characterId}` }, () => reload())
-      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `owner_character_id=eq.${characterId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `campaign_id=eq.${campaignId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "boosters", filter: `campaign_id=eq.${campaignId}` }, () => reload())
       .on("postgres_changes", { event: "*", schema: "public", table: "achievements", filter: `character_id=eq.${characterId}` }, () => reload())
       .subscribe();
     return () => { (supabase as any).removeChannel(ch); };
     // eslint-disable-next-line
-  }, [characterId]);
+  }, [characterId, campaignId]);
 
   if (!character) return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4" onClick={onClose}>
