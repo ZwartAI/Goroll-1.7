@@ -22,7 +22,6 @@ function Profile() {
   const { campaign, character, characters, items, logs, loading } = useGameData();
   const nav = useNavigate();
   const [imgModal, setImgModal] = useState(false);
-  const [coinDelta, setCoinDelta] = useState<string>("");
   const [openChar, setOpenChar] = useState<string | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
 
