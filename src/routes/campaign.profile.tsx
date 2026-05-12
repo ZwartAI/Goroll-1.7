@@ -45,8 +45,7 @@ function Profile() {
     ], { kind: "character.update", id: character.id, prev });
   }
 
-  async function applyCoins() {
-    const n = parseInt(coinDelta, 10);
+  async function changeCoins(n: number) {
     if (!n || !character || !campaign) return;
     const next = Math.max(0, character.coins + n);
     const prev = { coins: character.coins };
@@ -57,7 +56,6 @@ function Profile() {
       { t: "coins", v: `${Math.abs(n)}` },
       { t: "text", v: `(${next})` },
     ], { kind: "character.update", id: character.id, prev });
-    setCoinDelta("");
   }
 
   function logout() { setSession(null); nav({ to: "/" }); }
