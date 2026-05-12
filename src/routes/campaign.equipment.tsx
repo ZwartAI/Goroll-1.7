@@ -32,7 +32,7 @@ function Equipment() {
   async function unequip(item: Item) {
     await supabase.from("items").update({ equipped: false }).eq("id", item.id);
     const next = owned.filter(i => i.equipped && i.id !== item.id);
-    await syncHpAfter(next);
+    await syncHpAfter(next, false);
     await pushLog(campaign!.id, [
       { t: "char", v: character!.name, color: character!.color, id: character!.id },
       { t: "text", v: "se quitó" },
@@ -44,7 +44,7 @@ function Equipment() {
     const cur = equipped(slot); if (cur) await supabase.from("items").update({ equipped: false }).eq("id", cur.id);
     await supabase.from("items").update({ equipped: true }).eq("id", item.id);
     const next = owned.filter(i => i.equipped && i.id !== cur?.id && i.id !== item.id).concat([{ ...item, equipped: true }]);
-    await syncHpAfter(next);
+    await syncHpAfter(next, false);
     await pushLog(campaign!.id, [
       { t: "char", v: character!.name, color: character!.color, id: character!.id },
       { t: "text", v: "se equipó" },
