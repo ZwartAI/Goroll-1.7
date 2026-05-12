@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
-import { totals, fmtMod, modifier, RARITY_COLOR, SLOTS, type Character, type Item, type Rarity } from "@/lib/game";
+import { totals, fmtMod, modifier, RARITY_COLOR, RARITY_LABEL, SLOTS, type Character, type Item, type Rarity } from "@/lib/game";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
+import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
+import type { Booster } from "@/components/app/BoosterCard";
 
 type Props = {
   characterId: string;
@@ -20,29 +22,34 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [character, setCharacter] = useState<Character | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [achievements, setAchievements] = useState<{id:string;label:string;color:string}[]>([]);
+  const [boosters, setBoosters] = useState<Booster[]>([]);
 
   async function reload() {
-    const [a, b, c] = await Promise.all([
+    const [a, b, c, d] = await Promise.all([
       supabase.from("characters").select("*").eq("id", characterId).single(),
       supabase.from("items").select("*").eq("owner_character_id", characterId),
       supabase.from("achievements").select("*").eq("character_id", characterId),
+      (supabase as any).from("boosters").select("*").eq("owner_character_id", characterId),
     ]);
     if (a.data) setCharacter(a.data as Character);
     setItems((b.data || []) as Item[]);
     setAchievements((c.data || []) as any);
+    setBoosters((d.data || []) as Booster[]);
   }
   useEffect(() => { reload(); /* eslint-disable-next-line */ }, [characterId]);
 
-  // Realtime: refresh when this character, their items or achievements change
+  // Realtime: any change in this campaign's items/boosters can affect this view
+  // (player unequips & sends to DM → owner_character_id changes away from us).
   useEffect(() => {
     const ch = (supabase as any).channel(`sheet:${characterId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "characters", filter: `id=eq.${characterId}` }, () => reload())
-      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `owner_character_id=eq.${characterId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `campaign_id=eq.${campaignId}` }, () => reload())
+      .on("postgres_changes", { event: "*", schema: "public", table: "boosters", filter: `campaign_id=eq.${campaignId}` }, () => reload())
       .on("postgres_changes", { event: "*", schema: "public", table: "achievements", filter: `character_id=eq.${characterId}` }, () => reload())
       .subscribe();
     return () => { (supabase as any).removeChannel(ch); };
     // eslint-disable-next-line
-  }, [characterId]);
+  }, [characterId, campaignId]);
 
   if (!character) return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -76,9 +83,9 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
     await supabase.from("characters").update({ coins: next }).eq("id", character.id);
     await pushLog(campaignId, [
       { t: "char", v: editor.name, color: editor.color, id: editor.id },
-      { t: "text", v: `dio` },
-      { t: "coins", v: `${delta}` },
-      { t: "text", v: `a` },
+      { t: "text", v: delta >= 0 ? "dio" : "quitó" },
+      { t: "coins", v: `${Math.abs(delta)}` },
+      { t: "text", v: delta >= 0 ? "a" : "de" },
       { t: "char", v: character.name, color: character.color, id: character.id },
     ], { kind: "character.update", id: character.id, prev });
     reload();
@@ -153,10 +160,10 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
               <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(-1)}>−1 ❤️</button>
               <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(1)}>+1 ❤️</button>
               <button className="btn-fantasy text-[10px]" onClick={() => adjustHp(5)}>+5 ❤️</button>
-              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-5)}>−5 🪙</button>
-              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(-1)}>−1 🪙</button>
-              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(1)}>+1 🪙</button>
-              <button className="btn-fantasy text-[10px]" onClick={() => adjustCoins(5)}>+5 🪙</button>
+            </div>
+            <div className="ornate-card p-2 text-center">
+              <p className="text-[9px] uppercase text-muted-foreground">🪙 Monedas</p>
+              <CoinsAdjuster onApply={adjustCoins} />
             </div>
             <div className="stat-pill !text-xs gap-1">
               <span className="truncate min-w-0 flex-1">🎒 Slots de mochila</span>
@@ -212,6 +219,34 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
                 <span style={it.category === "equipo" ? { color: RARITY_COLOR[it.rarity as Rarity] } : undefined}>{it.name}</span>
                 <RarityBadge rarity={it.rarity as Rarity} />
               </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">🃏 Potenciadores</p>
+          <div className="space-y-1">
+            {boosters.length === 0 && <p className="text-[10px] text-muted-foreground">Sin potenciadores.</p>}
+            {boosters.map(b => (
+              <div key={b.id} className="flex items-center justify-between text-xs ornate-card px-2 py-1"
+                style={{ borderColor: RARITY_COLOR[b.rarity as Rarity] }}>
+                <div className="flex-1">
+                  <span style={{ color: RARITY_COLOR[b.rarity as Rarity] }}>🃏 {b.name}</span>
+                  <span className="text-muted-foreground"> · {b.uses}/{b.max_uses}</span>
+                </div>
+                {isEdit && (
+                  <div className="flex gap-2">
+                    <button className="text-[10px] underline opacity-70" onClick={async () => {
+                      await (supabase as any).from("boosters").update({ owner_character_id: null, in_dm_vault: true, uses: b.max_uses }).eq("id", b.id);
+                      reload();
+                    }}>al vault</button>
+                    <button className="text-[10px] underline opacity-70 text-[var(--loss)]" onClick={async () => {
+                      if (!confirm(`¿Eliminar potenciador "${b.name}"?`)) return;
+                      await (supabase as any).from("boosters").delete().eq("id", b.id);
+                      reload();
+                    }}>eliminar</button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>

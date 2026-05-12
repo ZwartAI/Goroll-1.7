@@ -88,6 +88,23 @@ function DM() {
       </div>
 
       {tab === "log" && (
+        <>
+          <button
+            className="btn-fantasy w-full text-xs mb-2"
+            style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
+            onClick={async () => {
+              if (!confirm("¿Borrar TODO el historial del log de esta campaña? Esta acción no se puede deshacer.")) return;
+              const { error } = await supabase.from("logs").delete().eq("campaign_id", campaign.id);
+              if (error) toast.error(error.message);
+              else {
+                toast.success("Historial borrado");
+                await pushLog(campaign.id, [
+                  { t: "char", v: character.name, color: character.color, id: character.id },
+                  { t: "text", v: "limpió el historial del log." },
+                ]);
+              }
+            }}
+          >🗑️ Borrar historial</button>
         <LogList rows={logs} initial={20} maxH="max-h-[70vh]"
           renderRow={(l: LogRow) => (
             <div key={l.id} className={`text-sm bg-secondary/40 rounded px-3 py-2 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
@@ -108,6 +125,7 @@ function DM() {
               </div>
             </div>
           )} />
+        </>
       )}
 
       {tab === "create" && (

@@ -212,7 +212,7 @@ export function DMConditionsCreator({
   players: Character[];
 }) {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
-  const [tab, setTab] = useState<"apply" | "new">("apply");
+  const [tab, setTab] = useState<"apply" | "new" | "manage">("apply");
   // new effect form
   const [label, setLabel] = useState("");
   const [icon, setIcon] = useState("✨");
@@ -284,14 +284,18 @@ export function DMConditionsCreator({
 
   return (
     <div className="ornate-card p-4 space-y-3">
-      <div className="flex gap-1">
+      <div className="grid grid-cols-3 gap-1">
         <button onClick={() => setTab("apply")}
-          className={`flex-1 text-xs py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Aplicar a jugadores
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Aplicar
         </button>
         <button onClick={() => setTab("new")}
-          className={`flex-1 text-xs py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Crear nuevo
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Crear
+        </button>
+        <button onClick={() => setTab("manage")}
+          className={`text-[10px] py-1.5 rounded font-display ${tab === "manage" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          Gestionar
         </button>
       </div>
 
@@ -351,6 +355,27 @@ export function DMConditionsCreator({
           )}
           <button className="btn-fantasy w-full" onClick={createEffect}>Crear efecto</button>
         </>
+      )}
+
+      {tab === "manage" && (
+        <div className="space-y-1 max-h-72 overflow-y-auto">
+          {catalog.length === 0 && <p className="text-xs text-muted-foreground">Sin efectos.</p>}
+          {catalog.map(c => (
+            <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5 text-xs">
+              <span>{c.icon}</span>
+              <span className="flex-1 truncate">{c.label}{c.is_damage ? ` 🩸${c.damage_default}` : ""}</span>
+              {c.campaign_id ? (
+                <button className="text-[10px] text-[var(--loss)] underline"
+                  onClick={async () => {
+                    if (!confirm(`¿Eliminar efecto "${c.label}"?`)) return;
+                    const { error } = await (supabase as any).from("condition_effects_catalog").delete().eq("id", c.id);
+                    if (error) toast.error(error.message);
+                    else { toastSaved("Efecto eliminado"); loadCat(); }
+                  }}>eliminar</button>
+              ) : <span className="text-[9px] text-muted-foreground">global</span>}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

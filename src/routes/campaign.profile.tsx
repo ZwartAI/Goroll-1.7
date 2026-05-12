@@ -9,6 +9,7 @@ import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
+import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Settings, LogOut, Minus, Plus, Camera } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -21,7 +22,6 @@ function Profile() {
   const { campaign, character, characters, items, logs, loading } = useGameData();
   const nav = useNavigate();
   const [imgModal, setImgModal] = useState(false);
-  const [coinDelta, setCoinDelta] = useState<string>("");
   const [openChar, setOpenChar] = useState<string | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
 
@@ -45,8 +45,7 @@ function Profile() {
     ], { kind: "character.update", id: character.id, prev });
   }
 
-  async function applyCoins() {
-    const n = parseInt(coinDelta, 10);
+  async function changeCoins(n: number) {
     if (!n || !character || !campaign) return;
     const next = Math.max(0, character.coins + n);
     const prev = { coins: character.coins };
@@ -57,7 +56,6 @@ function Profile() {
       { t: "coins", v: `${Math.abs(n)}` },
       { t: "text", v: `(${next})` },
     ], { kind: "character.update", id: character.id, prev });
-    setCoinDelta("");
   }
 
   function logout() { setSession(null); nav({ to: "/" }); }
@@ -127,11 +125,8 @@ function Profile() {
           <div className="ornate-card p-2 text-center col-span-2">
             <p className="text-[9px] uppercase text-muted-foreground">🪙 Monedas</p>
             <p className="font-display text-base text-[var(--gold)]">{character.coins}</p>
-            <div className="flex gap-1 mt-1">
-              <input value={coinDelta} onChange={e => setCoinDelta(e.target.value.replace(/[^\-0-9]/g, ""))}
-                placeholder="±" inputMode="numeric"
-                className="flex-1 bg-input border border-border rounded px-1 py-0.5 text-[11px] text-center w-0" />
-              <button onClick={applyCoins} className="text-[10px] px-2 rounded bg-[var(--gold)] text-black font-display">OK</button>
+            <div className="mt-1">
+              <CoinsAdjuster onApply={changeCoins} />
             </div>
           </div>
         </div>

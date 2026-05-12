@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { mountGlobalClickSound } from "@/lib/sound";
 import { useGlobalBackground } from "@/lib/background";
+import { AppShell } from "@/components/app/AppShell";
 
 function NotFoundComponent() {
   return (
@@ -126,6 +127,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AppShell />
       <Outlet />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
