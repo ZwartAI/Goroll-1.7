@@ -68,38 +68,38 @@ export function BoosterEditor({
         <h3 className="font-display text-lg text-center">{booster ? "Editar potenciador" : "Nuevo potenciador"}</h3>
 
         <FieldRow label="ID">
-          <input className="input-field" placeholder="P-001" value={extId} onChange={e => setExtId(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="P-001" value={extId} onChange={e => setExtId(e.target.value)} />
         </FieldRow>
         <FieldRow label="Tipo">
-          <input className="input-field" placeholder="Información, Daño, Apoyo..." value={tipo} onChange={e => setTipo(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="Información, Daño, Apoyo..." value={tipo} onChange={e => setTipo(e.target.value)} />
         </FieldRow>
         <FieldRow label="Rareza">
-          <select className="input-field" value={rarity} onChange={e => setRarity(e.target.value as Rarity)} style={{ color }}>
+          <select className="w-full bg-input border border-border rounded px-3 py-2 text-sm" value={rarity} onChange={e => setRarity(e.target.value as Rarity)} style={{ color }}>
             {(["white","blue","purple","gold"] as Rarity[]).map(r =>
               <option key={r} value={r} style={{ color: "black" }}>{RARITY_LABEL[r]}</option>)}
           </select>
         </FieldRow>
         <FieldRow label="Nombre">
-          <input className="input-field" value={name} onChange={e => setName(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" value={name} onChange={e => setName(e.target.value)} />
         </FieldRow>
         <FieldRow label="Modo de lanzamiento">
-          <input className="input-field" placeholder="[Punto], [Entorno]..." value={modo} onChange={e => setModo(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="[Punto], [Entorno]..." value={modo} onChange={e => setModo(e.target.value)} />
         </FieldRow>
         <FieldRow label="Distancia">
-          <input className="input-field" placeholder="30 pies (6c)" value={dist} onChange={e => setDist(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="30 pies (6c)" value={dist} onChange={e => setDist(e.target.value)} />
         </FieldRow>
         <FieldRow label="Objetivos">
-          <input className="input-field" placeholder="1 criatura" value={obj} onChange={e => setObj(e.target.value)} />
+          <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="1 criatura" value={obj} onChange={e => setObj(e.target.value)} />
         </FieldRow>
         <FieldRow label="Dados a tirar">
           <div className="flex items-center gap-2">
-            <input className="input-field flex-1" placeholder="1d20 + mod SAB" value={dados} onChange={e => setDados(e.target.value)} />
+            <input className="flex-1 w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="1d20 + mod SAB" value={dados} onChange={e => setDados(e.target.value)} />
             <span className="text-[10px] font-mono px-2 py-1 rounded border whitespace-nowrap"
               style={{ borderColor: color, color }}>+{RARITY_DICE_BONUS[rarity]} rareza</span>
           </div>
         </FieldRow>
         <FieldRow label="Efecto o Condición">
-          <textarea className="input-field min-h-20" rows={3} value={efecto} onChange={e => setEfecto(e.target.value)} />
+          <textarea className="w-full bg-input border border-border rounded px-3 py-2 text-sm min-h-20" rows={3} value={efecto} onChange={e => setEfecto(e.target.value)} />
         </FieldRow>
 
         <div className="grid grid-cols-2 gap-2 pt-1">
