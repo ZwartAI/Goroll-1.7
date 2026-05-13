@@ -1,68 +1,133 @@
-# Plan: Realtime, Duplicados de Potenciadores, y Co-DM
+# Plan
 
-## 1. Realtime en todas las vistas
+## 1. Corrección UI móvil – botones "Unirme" fuera del recuadro
 
-**Problema:** Los cambios (HP, objetos, potenciadores, logs, condiciones) no se reflejan en tiempo real. Hay que recargar el perfil.
+**Archivo:** `src/routes/index.tsx` (pantalla de login/selección de campaña-personaje-rol).
 
-**Solución:** Crear un hook genérico `useRealtimeRefetch(campaignId, tables, callback)` y aplicarlo en todas las rutas principales:
-- `campaign.profile.tsx` — characters, items, character_conditions, achievements, logs, boosters
-- `campaign.dm.tsx` — characters, items, boosters, logs, character_conditions
-- `campaign.equipment.tsx`, `campaign.inventory.tsx`, `campaign.boosters.tsx`, `campaign.spectator.tsx`, `campaign.achievements.tsx` — sus tablas relevantes
-- `CharacterSheetModal.tsx` — refrescar datos del personaje abierto
+- Revisar el contenedor donde viven los botones rojos "Unirme" (jugador, DM, espectador). Probablemente usan `min-w` fijo o `flex` sin `flex-wrap`.
+- Aplicar `w-full`, `flex-wrap`, `gap` consistente y padding lateral para que en 558px (móvil) los botones se ajusten dentro del card.
+- Mantener la disposición horizontal actual en escritorio (`sm:` o `md:` breakpoints).
 
-Cada hook se suscribe a `postgres_changes` filtrando por `campaign_id` y vuelve a cargar el estado local cuando llega un cambio. Asegurar canales con nombres únicos (`realtime:{ruta}:{campaignId}`) y limpieza al desmontar.
+## 2. Botón de pantalla completa – reglas de visibilidad y posición
 
-**Migración:** Asegurar que `characters`, `items`, `boosters`, `logs`, `character_conditions`, `achievements`, `campaigns`, `campaign_members` están en `supabase_realtime` con `REPLICA IDENTITY FULL`.
+**Archivo:** `src/components/app/AppShell.tsx` y `src/routes/__root.tsx`.
 
-## 2. Eliminar potenciadores duplicados
+Reglas nuevas:
+- **Mostrar solo en**: 
+  - `/` (pantalla principal de login + selección de campaña/personaje)
+  - `/campaign/profile` (pantalla principal del personaje)
+- **En `/campaign/profile`**: mover el botón a la **izquierda**, justo al lado del botón "atrás" (que regresa al login). Hoy está flotante arriba-derecha y choca con otros íconos (mochila, etc.).
+- **En todas las demás rutas** (`/campaign/inventory`, `/campaign/equipment`, `/campaign/dm`, `/campaign/achievements`, `/campaign/boosters`, `/campaign/settings`, `/campaign/spectator`, `/master`): ocultar.
 
-En `campaign.dm.tsx`, dentro del tab de Potenciadores, añadir un botón **"Eliminar duplicados"** que:
-- Agrupa por `name` (case-insensitive trimmed)
-- Conserva el primero (el más antiguo) y borra el resto
-- Muestra confirmación previa con conteo de cuántos se eliminarán
-- Loguea la acción
+Implementación:
+- En `AppShell` leer `useLocation()` y renderizar `null` si la ruta no es `/` ni `/campaign/profile`.
+- Para `/campaign/profile`, renderizar el botón en modo "inline" (no flotante) – exponer una variante o un slot que `campaign.profile.tsx` coloque al lado del botón atrás. Lo más simple: añadir un componente `<FullscreenButton />` reutilizable que `campaign.profile.tsx` ponga junto al botón atrás, y que `AppShell` siga rindiendo solo en `/`.
 
-## 3. Sistema de Co-DM con aprobación
+## 3. Esquema de Potenciadores – nuevos campos
 
-**Migración SQL:**
-- Añadir `campaigns.single_dm_only BOOLEAN DEFAULT false`
-- Crear tabla `dm_join_requests`:
-  - `id`, `campaign_id`, `requester_user_id`, `requester_username` (snapshot), `status` ('pending'|'approved'|'rejected'), `created_at`, `resolved_at`
-- Habilitar realtime en ambas
+**Migración Supabase** (tabla `boosters`) – añadir columnas opcionales:
+- `external_id` text (el "ID" del archivo, p.ej. `P-001`)
+- `tipo` text
+- `modo_lanzamiento` text
+- `distancia` text
+- `objetivos` text
+- `dados` text (campo "Dados a tirar" sin el bonus)
+- `efecto` text
 
-**UI Crear campaña** (`master.tsx` o donde se crea): checkbox "Solo un Dungeon Master en la campaña".
+Mantener: `name`, `rarity`, `uses`, `max_uses`, `owner_character_id`, `campaign_id`, `in_dm_vault`.
 
-**Flujo de entrada como DM** (`campaign.tsx` o donde se hace join):
-1. Usuario selecciona "Entrar como DM" en una campaña existente.
-2. Si el usuario ES el `owner_user_id`, entra directo.
-3. Si NO es owner:
-   - Si `single_dm_only=true` → rechazo automático con toast.
-   - Si hay rechazo previo (<60s) → toast "Espera X segundos".
-   - Si no, crear `dm_join_requests` con `status='pending'`. Mostrar pantalla "Esperando aprobación del DM original" con polling/realtime.
-4. Cuando se aprueba → insertar en `campaign_members` con `role='dm'` y redirigir a `/campaign/dm`.
-5. Cuando se rechaza → toast y volver atrás. El cliente registra timestamp local de cooldown.
+Index único parcial: `(campaign_id, lower(external_id))` cuando `external_id` no es null, para hacer upsert por ID.
 
-**UI del DM original:**
-Componente global `DMRequestGate` montado en `campaign.dm.tsx` (y al cargar la app si el usuario tiene campañas como owner). Hace query de `dm_join_requests` con `status='pending'` para sus campañas. Si encuentra alguna, muestra **AlertDialog modal bloqueante** (no se puede cerrar) con:
-- Nombre de la campaña
-- Username del solicitante
-- Botones **Sí** / **No**
+## 4. Modal de Potenciador – rehacer
 
-El diálogo persiste entre sesiones porque la solicitud sigue pendiente en BD; cada vez que el DM entra, vuelve a aparecer hasta resolverla.
+**Archivo:** `src/components/app/BoosterEditor.tsx` (y `BoosterCard` para mostrar info nueva).
 
-**Bug "carga infinita al entrar como DM":** Probablemente `useGameData` no maneja el caso de un `app_user` distinto al `owner_user_id` que intenta cargar la vista de DM. Revisar `useGame.ts` y `campaign.tsx` para asegurar que tras aprobación el `campaign_members` con role='dm' permite cargar la vista. Mientras tanto, evitar el loop infinito mostrando la pantalla de "Esperando aprobación" en su lugar.
+Campos del modal (en orden):
+- ID (editable solo DM)
+- Tipo (editable solo DM)
+- Rareza (selector: Blanca/Azul/Morada/Dorada – editable solo DM)
+- Nombre (editable solo DM)
+- Modo de lanzamiento (editable solo DM)
+- Distancia (editable solo DM)
+- Objetivos (editable solo DM)
+- Dados a tirar (editable solo DM) — al lado, **chip no editable** que muestra `+3/+4/+5/+6` según rareza (Blanca=+3, Azul=+4, Morada=+5, Dorada=+6).
+- Efecto o Condición (textarea, editable solo DM)
+- Usos actuales / Usos máximos — **editable solo DM** (jugador los ve pero no los toca).
 
-## Orden de ejecución
+Permisos:
+- **DM**: todos los campos editables, botón Guardar, Transferir, Devolver a Vault, Eliminar. Sin botón "Usar".
+- **Jugador**: campos solo lectura. Botones Usar, Transferir, Tirar.
+- **Espectador**: solo lectura, sin botones de acción.
 
-1. Migración SQL (single_dm_only + dm_join_requests + realtime publications).
-2. Crear `src/hooks/useRealtimeRefetch.ts`.
-3. Aplicar hook a todas las rutas listadas + CharacterSheetModal.
-4. Botón "Eliminar duplicados" en tab Potenciadores del DM.
-5. Checkbox "Solo un DM" al crear campaña.
-6. Flujo de solicitud Co-DM en pantalla de selección de rol.
-7. Componente `DMRequestGate` en vista DM.
-8. Fix del loop de carga.
+Utility helper `rarityBonus(rarity)` → 3/4/5/6 (en `src/lib/game.ts`).
 
-## Archivos clave a modificar
-- **Nuevo:** `src/hooks/useRealtimeRefetch.ts`, `src/components/app/DMRequestGate.tsx`
-- **Editar:** `campaign.profile.tsx`, `campaign.dm.tsx`, `campaign.equipment.tsx`, `campaign.inventory.tsx`, `campaign.boosters.tsx`, `campaign.spectator.tsx`, `campaign.achievements.tsx`, `CharacterSheetModal.tsx`, `campaign.tsx`, `master.tsx`, `useGame.ts`
+## 5. Lógica de "Usar" potenciador
+
+Ya existe parcialmente. Confirmar/ajustar en `BoosterEditor`:
+1. `uses -= 1`
+2. Si `uses > 0` → permanece con el jugador.
+3. Si `uses === 0` → mover a Vault del DM (`owner_character_id = null`, `in_dm_vault = true`) **y restaurar `uses = max_uses`**, conservando el resto de campos (nombre, efecto, etc.).
+
+## 6. Parser de importación – XLSX + TXT nuevo
+
+**Archivo nuevo:** `src/lib/boosterImport.ts`.
+
+Dependencia: `xlsx` (SheetJS) – instalar con `bun add xlsx`.
+
+### XLSX
+- Leer hoja "Extra Skills - DND" si existe, si no la primera hoja.
+- Saltar fila 1 (título). Fila 2 = encabezados. Fila 3+ = datos.
+- Mapear encabezados (case-insensitive, sin tildes): `id`, `tipo`, `rareza`, `nombre`, `modo de lanzamiento`, `distancia`, `objetivos`, `dados a tirar`, `efecto o condicion` / `efecto ó condicion`.
+
+### TXT nuevo
+- Dividir por bloques separados por línea en blanco.
+- Cada línea: `Etiqueta: valor`. Parsear con regex case/tilde-insensitive.
+
+### Normalización rareza
+`Blanca→white, Azul→blue, Morada→purple, Dorada→gold`.
+
+### Validación + preview
+Modal de confirmación antes de importar:
+- Total detectados / nuevos / a actualizar / con error.
+- Lista de errores (campos mínimos faltantes: ID, Tipo, Rareza, Nombre, Efecto).
+
+### Upsert
+1. Buscar por `external_id` (mismo `campaign_id`).
+2. Si no, buscar por `lower(trim(name))` normalizado sin tildes.
+3. Si match → `update` (preservando `uses`, `max_uses` si ya fueron editados).
+4. Si no → `insert` con `uses=1, max_uses=1, in_dm_vault=true`.
+
+### Compatibilidad legacy
+- El parser TXT con "/" se elimina como entrada principal pero NO crashea: si detecta una línea con `/` y sin etiquetas reconocidas, la marca como error con mensaje "Formato antiguo no soportado, usa el nuevo formato por bloques".
+- Aceptar `.xlsx` y `.txt`. (`.docx` queda fuera por complejidad — lo menciono al usuario; si lo necesita podemos añadirlo después con `mammoth`.)
+
+## 7. UI de importación en panel DM
+
+**Archivo:** `src/routes/campaign.dm.tsx` (sección Boosters).
+
+- Reemplazar input actual `.txt` por input `accept=".xlsx,.txt"`.
+- Mostrar texto de ayuda con los dos formatos.
+- Tras parsear, mostrar modal preview con conteos y botón "Confirmar importación".
+
+## 8. Migración de datos existentes
+
+Los potenciadores ya creados con el formato viejo (solo `name`, `rarity`, `uses`, `max_uses`) seguirán funcionando — los nuevos campos son opcionales. El modal mostrará campos vacíos editables. No hay backfill automático: el DM puede reimportar el .xlsx para enriquecerlos (el upsert por nombre normalizado los rellenará).
+
+---
+
+## Archivos afectados
+
+- **Migración SQL** (nuevas columnas + índice único parcial)
+- `src/routes/index.tsx` (UI móvil botones Unirme)
+- `src/components/app/AppShell.tsx` (visibilidad fullscreen)
+- `src/routes/campaign.profile.tsx` (botón fullscreen inline al lado del atrás)
+- `src/lib/game.ts` (helper `rarityBonus`)
+- `src/lib/boosterImport.ts` (nuevo – parser xlsx/txt)
+- `src/components/app/BoosterEditor.tsx` (modal completo + permisos)
+- `src/components/app/BoosterCard.tsx` (mostrar tipo/ID si se quiere)
+- `src/routes/campaign.dm.tsx` (UI import + preview)
+- `package.json` (+ `xlsx`)
+
+## Confirmación
+
+¿Apruebas el plan o quieres que ajuste algo (por ejemplo soporte `.docx` ya, o que la importación borre potenciadores que ya no estén en el archivo)?
