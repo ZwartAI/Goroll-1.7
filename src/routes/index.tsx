@@ -373,11 +373,11 @@ function Home() {
           <div className="gem-divider" />
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">Crear nuevo personaje</p>
-            <div className="flex gap-2">
-              <input className="flex-1 rounded-md bg-input border border-border px-3 py-2 text-sm"
+            <div className="flex flex-wrap gap-2">
+              <input className="flex-1 min-w-0 basis-[12rem] rounded-md bg-input border border-border px-3 py-2 text-sm"
                 placeholder="Nombre del héroe..." value={newCharName} onChange={e => setNewCharName(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && createCharacter()} />
-              <button className="btn-fantasy" onClick={createCharacter}>Crear</button>
+              <button className="btn-fantasy shrink-0" onClick={createCharacter}>Crear</button>
             </div>
           </div>
           <button className="text-xs text-muted-foreground underline w-full text-center" onClick={() => setStep("campaign")}>← Otra campaña</button>
