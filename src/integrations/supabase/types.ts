@@ -113,34 +113,55 @@ export type Database = {
         Row: {
           campaign_id: string
           created_at: string
+          dados: string | null
+          distancia: string | null
+          efecto: string | null
+          external_id: string | null
           id: string
           in_dm_vault: boolean
           max_uses: number
+          modo_lanzamiento: string | null
           name: string
+          objetivos: string | null
           owner_character_id: string | null
           rarity: Database["public"]["Enums"]["item_rarity"]
+          tipo: string | null
           uses: number
         }
         Insert: {
           campaign_id: string
           created_at?: string
+          dados?: string | null
+          distancia?: string | null
+          efecto?: string | null
+          external_id?: string | null
           id?: string
           in_dm_vault?: boolean
           max_uses?: number
+          modo_lanzamiento?: string | null
           name: string
+          objetivos?: string | null
           owner_character_id?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
+          tipo?: string | null
           uses?: number
         }
         Update: {
           campaign_id?: string
           created_at?: string
+          dados?: string | null
+          distancia?: string | null
+          efecto?: string | null
+          external_id?: string | null
           id?: string
           in_dm_vault?: boolean
           max_uses?: number
+          modo_lanzamiento?: string | null
           name?: string
+          objetivos?: string | null
           owner_character_id?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
+          tipo?: string | null
           uses?: number
         }
         Relationships: []
