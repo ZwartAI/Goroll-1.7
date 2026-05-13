@@ -11,6 +11,7 @@ import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Settings, LogOut, Minus, Plus, Camera } from "lucide-react";
+import { FullscreenButton } from "@/components/app/AppShell";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -73,7 +74,10 @@ function Profile() {
   return (
     <PageFrame>
       <header className="flex items-start justify-between gap-2 mb-3">
-        <button onClick={logout} className="text-muted-foreground hover:text-foreground" aria-label="Salir"><LogOut size={18} /></button>
+        <div className="flex items-center gap-1.5">
+          <button onClick={logout} className="text-muted-foreground hover:text-foreground" aria-label="Salir"><LogOut size={18} /></button>
+          <FullscreenButton />
+        </div>
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{campaign.name}</p>
           <h1 className="font-display text-xl rune-glow">{character.name}</h1>
