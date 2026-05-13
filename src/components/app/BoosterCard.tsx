@@ -10,6 +10,13 @@ export type Booster = {
   owner_character_id: string | null;
   in_dm_vault: boolean;
   created_at: string;
+  external_id?: string | null;
+  tipo?: string | null;
+  modo_lanzamiento?: string | null;
+  distancia?: string | null;
+  objetivos?: string | null;
+  dados?: string | null;
+  efecto?: string | null;
 };
 
 export function BoosterCard({ b, onClick }: { b: Booster; onClick?: () => void }) {
