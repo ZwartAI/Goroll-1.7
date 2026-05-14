@@ -288,6 +288,7 @@ function DM() {
 
       {selItem && (
         <ItemActions item={selItem} players={players} dm={dmCtx} campaignId={campaign.id}
+          allItems={items} allCharacters={characters}
           onClose={() => setSelItem(null)}
           onEdit={() => { setEditItem(selItem); setSelItem(null); }} />
       )}
