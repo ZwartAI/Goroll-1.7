@@ -451,21 +451,33 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
   );
 }
 
-function ItemActions({ item, players, dm, campaignId, onClose, onEdit }: {
+function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, onClose, onEdit }: {
   item: Item;
   players: Character[];
   dm: { id: string; name: string; color: string };
   campaignId: string;
+  allItems: Item[];
+  allCharacters: Character[];
   onClose: () => void;
   onEdit: () => void;
 }) {
   const [target, setTarget] = useState("");
   const isEq = item.category === "equipo" || !item.category;
+  function oldMaxFor(ownerId: string | null | undefined): number | undefined {
+    if (!ownerId) return undefined;
+    const ch = allCharacters.find(c => c.id === ownerId);
+    if (!ch) return undefined;
+    const eq = allItems.filter(i => i.owner_character_id === ownerId && i.equipped);
+    // Lazy import to avoid extra top-level dep cycle
+    const { totals } = require("@/lib/game") as typeof import("@/lib/game");
+    return totals(ch, eq).maxHp;
+  }
   async function reclaim() {
     const prev = { owner_character_id: item.owner_character_id, in_dm_vault: item.in_dm_vault, equipped: item.equipped };
     const prevOwner = item.owner_character_id;
+    const oldMax = oldMaxFor(prevOwner);
     await supabase.from("items").update({ owner_character_id: dm.id, in_dm_vault: true, equipped: false }).eq("id", item.id);
-    await clampHpForOwner(prevOwner);
+    await clampHpForOwner(prevOwner, oldMax);
     await pushLog(campaignId, [
       {t:"char",v:dm.name,color:dm.color,id:dm.id},
       {t:"text",v:"reclamó"},
@@ -487,8 +499,9 @@ function ItemActions({ item, players, dm, campaignId, onClose, onEdit }: {
     const t = players.find(p => p.id === target);
     const prev = { owner_character_id: item.owner_character_id, in_dm_vault: item.in_dm_vault, equipped: item.equipped };
     const prevOwner = item.owner_character_id;
+    const oldMax = oldMaxFor(prevOwner);
     await supabase.from("items").update({ owner_character_id: target, in_dm_vault: false, equipped: false }).eq("id", item.id);
-    await clampHpForOwner(prevOwner);
+    await clampHpForOwner(prevOwner, oldMax);
     await pushLog(campaignId, [
       {t:"char",v:dm.name,color:dm.color,id:dm.id},{t:"text",v:"entregó"},
       {t:"item",v:item.name,rarity:item.rarity as Rarity,id:item.id},{t:"text",v:"a"},
