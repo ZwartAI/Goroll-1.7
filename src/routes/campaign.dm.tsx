@@ -538,13 +538,16 @@ function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, o
 
 function BulkBoosterImport({ campaignId }: { campaignId: string }) {
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
   async function handleFile(file: File) {
     setBusy(true);
+    setProgress({ done: 0, total: 0 });
     try {
       const { parseBoosterFile, normalizeName } = await import("@/lib/boosterImport");
       const { rows, errors } = await parseBoosterFile(file);
       if (errors.length) toast.error(`${errors.length} error(es): ${errors.slice(0,2).map(e=>`${e.where}: ${e.message}`).join(" · ")}`);
       if (!rows.length) return;
+      setProgress({ done: 0, total: rows.length });
 
       // Load existing for dedup
       const { data: existing } = await (supabase as any).from("boosters")
@@ -557,7 +560,8 @@ function BulkBoosterImport({ campaignId }: { campaignId: string }) {
       }
 
       let created = 0, updated = 0;
-      for (const r of rows) {
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
         const match = (r.external_id && byExt.get(r.external_id.toLowerCase()))
           || byName.get(normalizeName(r.name));
         const payload: any = {
@@ -578,12 +582,14 @@ function BulkBoosterImport({ campaignId }: { campaignId: string }) {
           });
           created++;
         }
+        setProgress({ done: i + 1, total: rows.length });
       }
       toast.success(`Importados: ${created} nuevos · ${updated} actualizados${errors.length ? ` · ${errors.length} con error` : ""}`);
     } catch (e: any) {
       toast.error(e?.message || "Error al importar");
-    } finally { setBusy(false); }
+    } finally { setBusy(false); setProgress({ done: 0, total: 0 }); }
   }
+  const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
   return (
     <div className="space-y-1 pt-2 border-t border-border">
       <p className="text-[10px] text-muted-foreground">
@@ -598,6 +604,18 @@ function BulkBoosterImport({ campaignId }: { campaignId: string }) {
       <input type="file" accept=".xlsx,.xls,.txt" disabled={busy}
         onChange={e => { const f = e.target.files?.[0]; if (f) { handleFile(f); e.target.value = ""; } }}
         className="text-xs text-muted-foreground w-full file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-secondary file:text-foreground file:text-xs" />
+      {busy && (
+        <div className="space-y-1 pt-2">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>Creando / Actualizando potenciadores…</span>
+            <span>{progress.total ? `${progress.done} / ${progress.total} (${pct}%)` : "Espere un momento…"}</span>
+          </div>
+          <div className="h-2 w-full rounded bg-secondary overflow-hidden border border-border">
+            <div className="h-full transition-all duration-150"
+              style={{ width: `${pct}%`, background: "var(--gradient-gold)" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
