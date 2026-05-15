@@ -265,6 +265,24 @@ export type Database = {
           },
         ]
       }
+      character_notes: {
+        Row: {
+          character_id: string
+          content: string
+          updated_at: string
+        }
+        Insert: {
+          character_id: string
+          content?: string
+          updated_at?: string
+        }
+        Update: {
+          character_id?: string
+          content?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       characters: {
         Row: {
           backpack_slots: number

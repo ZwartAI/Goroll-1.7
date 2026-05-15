@@ -119,6 +119,14 @@
   --gold: oklch(0.78 0.17 80);
   --blood: oklch(0.5 0.22 22);
 
+  /* Stat colors — muted/desaturated for readability over the wine card bg */
+  --stat-fue: oklch(0.72 0.14 25);    /* rojo tenue */
+  --stat-des: oklch(0.78 0.13 145);   /* verde tenue */
+  --stat-con: oklch(0.74 0.12 235);   /* azul tenue */
+  --stat-int: oklch(0.74 0.13 295);   /* morado tenue */
+  --stat-sab: oklch(0.85 0.13 90);    /* amarillo tenue */
+  --stat-car: oklch(0.80 0.12 350);   /* rosa tenue */
+
   --gradient-frame: linear-gradient(135deg, oklch(0.3 0.06 30), oklch(0.18 0.04 20));
   --gradient-gold:  linear-gradient(135deg, oklch(0.85 0.16 80), oklch(0.55 0.16 60));
   --gradient-blood: linear-gradient(135deg, oklch(0.55 0.22 27), oklch(0.3 0.15 25));

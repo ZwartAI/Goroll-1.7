@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CampaignSpectatorRouteImport } from './routes/campaign.spectator'
 import { Route as CampaignSettingsRouteImport } from './routes/campaign.settings'
 import { Route as CampaignProfileRouteImport } from './routes/campaign.profile'
+import { Route as CampaignNotesRouteImport } from './routes/campaign.notes'
 import { Route as CampaignInventoryRouteImport } from './routes/campaign.inventory'
 import { Route as CampaignEquipmentRouteImport } from './routes/campaign.equipment'
 import { Route as CampaignDmRouteImport } from './routes/campaign.dm'
@@ -49,6 +50,11 @@ const CampaignSettingsRoute = CampaignSettingsRouteImport.update({
 const CampaignProfileRoute = CampaignProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => CampaignRoute,
+} as any)
+const CampaignNotesRoute = CampaignNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => CampaignRoute,
 } as any)
 const CampaignInventoryRoute = CampaignInventoryRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
+  '/campaign/notes': typeof CampaignNotesRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/spectator': typeof CampaignSpectatorRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
+  '/campaign/notes': typeof CampaignNotesRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/spectator': typeof CampaignSpectatorRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
+  '/campaign/notes': typeof CampaignNotesRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/spectator': typeof CampaignSpectatorRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/campaign/dm'
     | '/campaign/equipment'
     | '/campaign/inventory'
+    | '/campaign/notes'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/spectator'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/campaign/dm'
     | '/campaign/equipment'
     | '/campaign/inventory'
+    | '/campaign/notes'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/spectator'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/campaign/dm'
     | '/campaign/equipment'
     | '/campaign/inventory'
+    | '/campaign/notes'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/spectator'
@@ -209,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignProfileRouteImport
       parentRoute: typeof CampaignRoute
     }
+    '/campaign/notes': {
+      id: '/campaign/notes'
+      path: '/notes'
+      fullPath: '/campaign/notes'
+      preLoaderRoute: typeof CampaignNotesRouteImport
+      parentRoute: typeof CampaignRoute
+    }
     '/campaign/inventory': {
       id: '/campaign/inventory'
       path: '/inventory'
@@ -253,6 +272,7 @@ interface CampaignRouteChildren {
   CampaignDmRoute: typeof CampaignDmRoute
   CampaignEquipmentRoute: typeof CampaignEquipmentRoute
   CampaignInventoryRoute: typeof CampaignInventoryRoute
+  CampaignNotesRoute: typeof CampaignNotesRoute
   CampaignProfileRoute: typeof CampaignProfileRoute
   CampaignSettingsRoute: typeof CampaignSettingsRoute
   CampaignSpectatorRoute: typeof CampaignSpectatorRoute
@@ -264,6 +284,7 @@ const CampaignRouteChildren: CampaignRouteChildren = {
   CampaignDmRoute: CampaignDmRoute,
   CampaignEquipmentRoute: CampaignEquipmentRoute,
   CampaignInventoryRoute: CampaignInventoryRoute,
+  CampaignNotesRoute: CampaignNotesRoute,
   CampaignProfileRoute: CampaignProfileRoute,
   CampaignSettingsRoute: CampaignSettingsRoute,
   CampaignSpectatorRoute: CampaignSpectatorRoute,

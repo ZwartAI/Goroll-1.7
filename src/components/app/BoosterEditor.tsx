@@ -6,6 +6,7 @@ import {
 } from "@/lib/game";
 import { toastSaved } from "@/lib/saved";
 import { toast } from "sonner";
+import { StatText } from "./StatText";
 import type { Booster } from "./BoosterCard";
 
 /* ─────────────────────────────── shared bits ─────────────────────────────── */
@@ -102,7 +103,9 @@ function FieldTile({ icon, label, value }: { icon: string; label: string; value?
       <span className="text-base mt-0.5" style={{ color: "var(--gold)" }}>{icon}</span>
       <div className="min-w-0 flex-1">
         <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{label}</p>
-        <p className="text-sm break-words">{value || <span className="text-muted-foreground italic">—</span>}</p>
+        <p className="text-sm break-words">
+          {value ? <StatText>{value}</StatText> : <span className="text-muted-foreground italic">—</span>}
+        </p>
       </div>
     </div>
   );
@@ -140,7 +143,9 @@ function BoosterDetails({ b }: { b: Booster }) {
             <span className="text-base mt-0.5" style={{ color: "var(--gold)" }}>🎲</span>
             <div className="min-w-0 flex-1">
               <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Dados a tirar</p>
-              <p className="text-sm break-words">{b.dados || <span className="text-muted-foreground italic">—</span>}</p>
+              <p className="text-sm break-words">
+                {b.dados ? <StatText>{b.dados}</StatText> : <span className="text-muted-foreground italic">—</span>}
+              </p>
             </div>
             <RarityBonusChip rarity={b.rarity as Rarity} />
           </div>
@@ -157,7 +162,7 @@ function BoosterDetails({ b }: { b: Booster }) {
 
       {b.efecto && (
         <SectionFrame icon="✒️" title="Efecto o Condición" color={color}>
-          <p className="text-sm italic text-center px-2 py-1 leading-relaxed">{b.efecto}</p>
+          <p className="text-sm italic text-center px-2 py-1 leading-relaxed"><StatText>{b.efecto}</StatText></p>
         </SectionFrame>
       )}
     </>

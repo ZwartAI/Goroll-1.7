@@ -5,6 +5,7 @@ import { totals, fmtMod, modifier, RARITY_COLOR, RARITY_LABEL, SLOTS, type Chara
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
+import { NotesEditor } from "@/components/app/NotesEditor";
 import type { Booster } from "@/components/app/BoosterCard";
 
 type Props = {
@@ -23,6 +24,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [items, setItems] = useState<Item[]>([]);
   const [achievements, setAchievements] = useState<{id:string;label:string;color:string}[]>([]);
   const [boosters, setBoosters] = useState<Booster[]>([]);
+  const [showNotes, setShowNotes] = useState(false);
 
   async function reload() {
     const [a, b, c, d] = await Promise.all([
@@ -262,7 +264,22 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             {!achievements.length && <p className="text-[10px] text-muted-foreground">Sin logros.</p>}
           </div>
         </div>
-        <button className="btn-fantasy w-full" onClick={onClose}>Regresar</button>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="btn-fantasy" onClick={() => setShowNotes(true)}
+            style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
+            📝 Ver notas
+          </button>
+          <button className="btn-fantasy" onClick={onClose}>Regresar</button>
+        </div>
+        {showNotes && character && (
+          <NotesEditor
+            characterId={character.id}
+            characterName={character.name}
+            characterColor={character.color}
+            readOnly={!isEdit}
+            onClose={() => setShowNotes(false)}
+          />
+        )}
       </div>
     </div>
   );
