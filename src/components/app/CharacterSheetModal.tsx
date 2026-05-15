@@ -5,6 +5,7 @@ import { totals, fmtMod, modifier, RARITY_COLOR, RARITY_LABEL, SLOTS, type Chara
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
+import { NotesEditor } from "@/components/app/NotesEditor";
 import type { Booster } from "@/components/app/BoosterCard";
 
 type Props = {
