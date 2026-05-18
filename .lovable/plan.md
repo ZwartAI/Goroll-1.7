@@ -1,40 +1,31 @@
-## Efecto de pulso al presionar botones (global)
+# Plan
 
-Añadir una animación sutil de "pulso luminoso" + un destello de color más claro al instante de presionar cualquier botón de la app, sin afectar la lógica ni el layout.
+## 1. Background tarda mucho en cargar
 
-### Alcance
-- Aplica a todos los botones que usan el componente `Button` (`src/components/ui/button.tsx`), que es el botón base de toda la app (menús, acciones, modales, etc.).
-- También cubre elementos con la clase utilitaria `.btn-press` por si hay botones nativos `<button>` sueltos que quieran adoptar el efecto.
-- No cambia variantes, tamaños, colores base ni comportamiento de los botones.
+Actualmente `useGlobalBackground` (en `src/lib/background.ts`) hace lo siguiente al entrar a la app:
 
-### Comportamiento visual
-1. **Pulso luminoso por fuera**: anillo suave que se expande desde el borde del botón y se desvanece (~450ms), usando el color primario con baja opacidad. Queda por fuera gracias a `box-shadow` (no recorta el layout, no empuja a otros elementos).
-2. **Aclarado instantáneo**: mientras está presionado (`:active`), el botón se aclara levemente mezclando blanco con el color base (`color-mix` con ~15%), volviendo a su tono normal al soltar.
-3. **Duración**: el pulso dura solo el instante del click; no se repite ni queda activo.
-4. **Accesibilidad**: respeta `prefers-reduced-motion` (sin pulso, solo el cambio leve de tono).
+1. Espera a que React monte.
+2. Hace una consulta a Supabase (`app_settings`) para obtener la URL.
+3. Solo después aplica `background-image` al `body`.
+4. La imagen original se sirve sin optimizar desde Supabase Storage, así que puede pesar varios MB.
 
-### Cambios técnicos
+Eso provoca un "flash" sin fondo de 1–3 segundos al abrir.
 
-**1. `src/styles.css`** — agregar:
-- Keyframe `button-pulse` (escala 1 → 1.04 del shadow, opacidad 0.6 → 0).
-- Clase utilitaria `.btn-press`:
-  - `:active` aplica `filter: brightness(1.15)` (o `background: color-mix(in oklch, currentColor 15%, var(--primary))` según variante) y dispara la animación `button-pulse` una vez.
-  - `box-shadow` con color `--primary` semitransparente como base del halo.
-- Bloque `@media (prefers-reduced-motion: reduce)` que desactiva la animación de pulso.
+### Cambios propuestos
 
-**2. `src/components/ui/button.tsx`** — añadir `btn-press` a `buttonVariants` base classes (junto a `inline-flex items-center ...`). Una sola línea, sin tocar variantes ni props.
+- **Cachear la URL en `localStorage`**: al obtenerla, guardarla; al cargar la app, aplicarla inmediatamente (síncrono, antes del fetch) para que el fondo aparezca al instante. Luego el fetch real actualiza si cambió.
+- **Precargar la imagen** con `<link rel="preload" as="image">` inyectado en cuanto se conozca la URL, para que el navegador la priorice.
+- **Servir una versión optimizada** desde Supabase usando los parámetros de transform (`?width=1600&quality=70&format=webp`) — reduce el peso del fondo de varios MB a ~150–300 KB.
+- **Mostrar un color/gradiente sólido de fondo** en `body` por defecto (en `src/styles.css`) para que nunca se vea "blanco" mientras carga la imagen.
 
-### Diagrama
+## 2. Quitar la etiqueta "Edit with Lovable"
 
-```text
-[ Button ]   ← estado normal
-   ↓ click
-[ Button ]●●●  ← halo expandiéndose hacia afuera + tono más claro
-   ↓ ~450ms
-[ Button ]   ← vuelve al estado normal
-```
+Esa etiqueta la inyecta Lovable automáticamente en sitios publicados. Se puede ocultar desde la configuración del proyecto (requiere plan Pro o superior).
 
-### Notas
-- Usa tokens semánticos (`--primary`) — sin colores hardcodeados.
-- Sin dependencias nuevas, sin cambios de lógica, sin cambios en rutas ni i18n.
-- Funciona automáticamente en todos los botones existentes al estar en el componente base.
+Al aprobar este plan, ocultaré el badge usando la herramienta de publicación. Si tu plan actual no es Pro, te lo aviso y no se aplica el cambio.
+
+## Archivos a tocar
+
+- `src/lib/background.ts` — cache en localStorage, preload, URL optimizada.
+- `src/styles.css` — color de fondo por defecto en `body`.
+- Configuración de publicación — `hide_badge: true`.
