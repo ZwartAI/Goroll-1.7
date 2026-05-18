@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toastSaved } from "@/lib/saved";
 import type { Campaign } from "@/lib/game";
+import { useT } from "@/lib/i18n";
 
 type Member = { id: string; user_id: string; role: "player" | "dm"; created_at: string };
 type AppUser = { id: string; username: string };
@@ -13,6 +14,7 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
   const [singleDmOnly, setSingleDmOnly] = useState<boolean>(!!(campaign as any).single_dm_only);
   const [lockNames, setLockNames] = useState<boolean>(!!(campaign as any).lock_character_names);
   const [busy, setBusy] = useState(false);
+  const { t } = useT();
 
   async function reload() {
     const { data } = await (supabase as any).from("campaign_members")
@@ -34,14 +36,14 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
     setBusy(true);
     try {
       await (supabase as any).from("campaign_members").update({ role: next }).eq("id", m.id);
-      toastSaved("Rol actualizado");
+      toastSaved(t("campaign.roleUpdated"));
       reload();
     } finally { setBusy(false); }
   }
 
   async function removeMember(m: Member) {
-    if (m.user_id === (campaign as any).owner_user_id) { toast.error("No puedes quitar al creador."); return; }
-    if (!confirm(`¿Quitar a ${users[m.user_id]?.username || "este usuario"} de la campaña?`)) return;
+    if (m.user_id === (campaign as any).owner_user_id) { toast.error(t("campaign.cantRemoveOwner")); return; }
+    if (!confirm(t("campaign.removeUserConfirm", { name: users[m.user_id]?.username || "—" }))) return;
     setBusy(true);
     try {
       await (supabase as any).from("campaign_members").delete().eq("id", m.id);
@@ -50,7 +52,7 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
         .select("id").eq("campaign_id", campaign.id).eq("user_id", m.user_id).eq("role", "dm");
       const ids = (chars || []).map((c: any) => c.id);
       if (ids.length) await (supabase as any).from("characters").delete().in("id", ids);
-      toastSaved("Usuario removido");
+      toastSaved(t("campaign.userRemoved"));
       reload();
     } finally { setBusy(false); }
   }
@@ -69,25 +71,25 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
 
   return (
     <div className="space-y-3">
-      <button onClick={onBack} className="text-xs underline text-muted-foreground">← Volver</button>
-      <h3 className="font-display text-lg text-center text-[var(--gold)]">Editar campaña</h3>
+      <button onClick={onBack} className="text-xs underline text-muted-foreground">← {t("common.back")}</button>
+      <h3 className="font-display text-lg text-center text-[var(--gold)]">{t("campaign.editTitle")}</h3>
       <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center">{campaign.name}</p>
 
       <div className="ornate-card p-3 space-y-2">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Reglas</p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("campaign.rules")}</p>
         <label className="flex items-center gap-2 text-xs cursor-pointer">
           <input type="checkbox" checked={singleDmOnly} onChange={e => setSingleDmOnly(e.target.checked)} />
-          Solo un Dungeon Master en la campaña
+          {t("home.singleDmLabel")}
         </label>
         <label className="flex items-center gap-2 text-xs cursor-pointer">
           <input type="checkbox" checked={lockNames} onChange={e => setLockNames(e.target.checked)} />
-          Bloquear edición del nombre de personaje
+          {t("campaign.lockNamesRule")}
         </label>
-        <button className="btn-fantasy w-full text-xs" disabled={busy} onClick={saveFlags}>Guardar reglas</button>
+        <button className="btn-fantasy w-full text-xs" disabled={busy} onClick={saveFlags}>{t("campaign.saveRules")}</button>
       </div>
 
       <div className="ornate-card p-3 space-y-2">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Usuarios en la campaña ({members.length})</p>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("campaign.usersInCampaign", { count: members.length })}</p>
         {members.map(m => {
           const u = users[m.user_id];
           const isOwner = m.user_id === owner;
@@ -97,30 +99,30 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
                 <div className="min-w-0">
                   <p className="font-display text-sm truncate">{u?.username || m.user_id.slice(0, 8)} {isOwner && "👑"}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {isOwner ? "Creador (DM permanente)" : m.role === "dm" ? "Co-Dungeon Master" : "Jugador"}
+                    {isOwner ? t("campaign.creatorPermanent") : m.role === "dm" ? t("campaign.coDM") : t("campaign.player")}
                   </p>
                 </div>
                 {!isOwner && (
                   <button onClick={() => removeMember(m)} disabled={busy}
-                    className="text-[10px] text-[var(--loss)] underline">Quitar</button>
+                    className="text-[10px] text-[var(--loss)] underline">{t("common.remove")}</button>
                 )}
               </div>
               {!isOwner && (
                 <div className="grid grid-cols-2 gap-1 mt-2">
                   <button
                     className={`text-[10px] py-1 rounded border ${m.role === "player" ? "bg-[var(--gold)] text-black border-transparent" : "border-border"}`}
-                    onClick={() => setRole(m, "player")} disabled={busy}>🗡️ Jugador</button>
+                    onClick={() => setRole(m, "player")} disabled={busy}>{t("campaign.playerBtn")}</button>
                   <button
                     className={`text-[10px] py-1 rounded border ${m.role === "dm" ? "bg-[var(--gold)] text-black border-transparent" : "border-border"}`}
-                    onClick={() => setRole(m, "dm")} disabled={busy || singleDmOnly}>👑 Co-DM</button>
+                    onClick={() => setRole(m, "dm")} disabled={busy || singleDmOnly}>{t("campaign.coDMBtn")}</button>
                 </div>
               )}
             </div>
           );
         })}
-        {!members.length && <p className="text-[10px] text-muted-foreground">Sin usuarios todavía.</p>}
+        {!members.length && <p className="text-[10px] text-muted-foreground">{t("campaign.noUsers")}</p>}
         {singleDmOnly && (
-          <p className="text-[9px] text-muted-foreground">⚠️ "Solo un DM" está activado: no puedes asignar Co-DMs.</p>
+          <p className="text-[9px] text-muted-foreground">{t("campaign.singleDmActive")}</p>
         )}
       </div>
     </div>

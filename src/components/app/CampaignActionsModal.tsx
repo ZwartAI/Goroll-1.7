@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Campaign } from "@/lib/game";
 import { CampaignMembersEditor } from "./CampaignMembersEditor";
 import { DeleteCampaignButton } from "./DeleteCampaignButton";
+import { useT } from "@/lib/i18n";
 
 type Props = {
   campaign: Campaign;
@@ -16,9 +17,10 @@ type Props = {
  * Modal that opens when the user picks a campaign from their list.
  * Shows 3 actions: Play, Edit (members & flags), Delete (owner only).
  */
-export function CampaignActionsModal({ campaign, currentUserId, role, onPlay, onClose, onDeleted }: Props) {
+export function CampaignActionsModal({ campaign, currentUserId, role: _role, onPlay, onClose, onDeleted }: Props) {
   const [view, setView] = useState<"menu" | "edit">("menu");
   const isOwner = (campaign as any).owner_user_id === currentUserId;
+  const { t } = useT();
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4" onClick={onClose}>
@@ -26,16 +28,16 @@ export function CampaignActionsModal({ campaign, currentUserId, role, onPlay, on
         {view === "menu" && (
           <>
             <h3 className="font-display text-lg text-center text-[var(--gold)]">{campaign.name}</h3>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center">¿Qué deseas hacer?</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center">{t("campaign.actionTitle")}</p>
 
             <button className="btn-fantasy w-full" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
               onClick={onPlay}>
-              ▶️ Jugar campaña
+              {t("campaign.play")}
             </button>
 
             {isOwner && (
               <button className="btn-fantasy w-full" onClick={() => setView("edit")}>
-                ⚙️ Editar campaña
+                {t("campaign.edit")}
               </button>
             )}
 
@@ -43,11 +45,11 @@ export function CampaignActionsModal({ campaign, currentUserId, role, onPlay, on
               <DeleteCampaignButton campaignId={campaign.id} campaignName={campaign.name} isOwner={isOwner} onDeleted={onDeleted} />
             )}
 
-            <button className="text-xs underline text-muted-foreground w-full text-center mt-1" onClick={onClose}>Cancelar</button>
+            <button className="text-xs underline text-muted-foreground w-full text-center mt-1" onClick={onClose}>{t("common.cancel")}</button>
 
             {!isOwner && (
               <p className="text-[10px] text-muted-foreground text-center mt-2">
-                Solo el creador original de la campaña puede editarla o eliminarla.
+                {t("campaign.notOwner")}
               </p>
             )}
           </>
