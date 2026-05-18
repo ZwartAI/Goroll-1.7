@@ -190,7 +190,7 @@ function DM() {
             <button
               className="flex-1 text-xs px-3 py-2 rounded border border-border"
               onClick={() => { setBoosterSelectMode(!boosterSelectMode); setBoosterSel(new Set()); }}
-            >{boosterSelectMode ? "Cancelar selección" : "☑️ Seleccionar"}</button>
+            >{boosterSelectMode ? t("dm.cancelSelect") : t("dm.selectMode")}</button>
             {boosterSelectMode && (
               <>
                 <button
@@ -200,25 +200,26 @@ function DM() {
                     if (boosterSel.size === visible.length) setBoosterSel(new Set());
                     else setBoosterSel(new Set(visible.map(b => b.id)));
                   }}
-                >{boosterSel.size === boosters.filter(b => !boosterSearch || b.name.toLowerCase().includes(boosterSearch.toLowerCase())).length && boosterSel.size > 0 ? "Ninguno" : "Todos"}</button>
+                >{boosterSel.size === boosters.filter(b => !boosterSearch || b.name.toLowerCase().includes(boosterSearch.toLowerCase())).length && boosterSel.size > 0 ? t("dm.none") : t("dm.all")}</button>
                 <button
                   className="text-xs px-3 py-2 rounded border border-destructive text-destructive disabled:opacity-50"
                   disabled={boosterSel.size === 0}
                   onClick={async () => {
                     const ids = [...boosterSel];
-                    if (!confirm(`¿Eliminar ${ids.length} potenciador(es)?`)) return;
+                    if (!confirm(t("dm.deleteBoostersConfirm", { n: ids.length }))) return;
                     const { error } = await (supabase as any).from("boosters").delete().in("id", ids);
                     if (error) toast.error(error.message);
                     else {
-                      toast.success(`${ids.length} eliminados`);
+                      toast.success(t("dm.deletedN", { n: ids.length }));
                       await pushLog(campaign.id, [
                         { t: "char", v: character.name, color: character.color, id: character.id },
-                        { t: "text", v: ` eliminó ${ids.length} potenciador(es).` },
+                        { t: "text", v: t("dm.deletedBoostersLog", { n: ids.length }) },
                       ]);
                       setBoosterSel(new Set()); setBoosterSelectMode(false);
                     }
                   }}
-                >🗑️ Eliminar ({boosterSel.size})</button>
+                >{t("dm.deleteN", { n: boosterSel.size })}</button>
+
               </>
             )}
           </div>
