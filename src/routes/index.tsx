@@ -13,6 +13,7 @@ import { CampaignActionsModal } from "@/components/app/CampaignActionsModal";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { Settings as SettingsIcon } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import goRollLogo from "@/assets/go-roll-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Vamos a Rolear · GoRoll" }] }),
@@ -280,10 +281,12 @@ function Home() {
       >
         <SettingsIcon size={14} />
       </button>
-      <div className="flex flex-col items-center gap-1 pt-4 text-center">
-        <div className="text-5xl">🎲</div>
-        <h1 className="font-display text-3xl font-black tracking-wider rune-glow">{t("home.titleTop")}</h1>
-        <p className="font-display text-4xl font-black tracking-[0.3em] text-[var(--gold)]">{t("home.titleBottom")}</p>
+      <div className="flex flex-col items-center pt-4 text-center">
+        <img
+          src={goRollLogo}
+          alt="Go Roll · Portal of Adventure"
+          className="w-56 max-w-[80%] h-auto drop-shadow-[0_0_24px_rgba(212,175,55,0.35)]"
+        />
       </div>
       <div className="gem-divider my-5" />
       {showAppSettings && <AppSettingsModal onClose={() => setShowAppSettings(false)} />}
