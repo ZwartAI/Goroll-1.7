@@ -338,66 +338,66 @@ export function BoosterEditor({
 
   return (
     <ModalShell onClose={onClose} color={color}>
-      <FancyHeader title="POTENCIADOR" name={name || "Nuevo potenciador"} color={color} />
+      <FancyHeader title={t("boosters.boosterLabel")} name={name || t("boosters.newBooster")} color={color} />
       <MetaChips extId={extId} tipo={tipo} rarity={rarity} />
 
       {/* Datos base */}
-      <SectionFrame icon="📜" title="Datos base" color={color}>
+      <SectionFrame icon="📜" title={t("boosters.baseData")} color={color}>
         <div className="grid grid-cols-2 gap-2">
-          <Field label="ID">
-            <input className="dm-input" value={extId} onChange={e => setExtId(e.target.value)} placeholder="P-001" />
+          <Field label={t("boosters.id")}>
+            <input className="dm-input" value={extId} onChange={e => setExtId(e.target.value)} placeholder={t("boosters.idPh")} />
           </Field>
-          <Field label="Tipo">
-            <input className="dm-input" value={tipo} onChange={e => setTipo(e.target.value)} placeholder="Información, Daño…" />
+          <Field label={t("boosters.type")}>
+            <input className="dm-input" value={tipo} onChange={e => setTipo(e.target.value)} placeholder={t("boosters.typePh")} />
           </Field>
-          <Field label="Rareza">
+          <Field label={t("boosters.rarity")}>
             <select className="dm-input" value={rarity} onChange={e => setRarity(e.target.value as Rarity)} style={{ color }}>
               {(["white","blue","purple","gold"] as Rarity[]).map(r =>
-                <option key={r} value={r} style={{ color: "black" }}>{RARITY_LABEL[r]}</option>)}
+                <option key={r} value={r} style={{ color: "black" }}>{t(`rarities.${r}`)}</option>)}
             </select>
           </Field>
-          <Field label="Nombre">
+          <Field label={t("boosters.name")}>
             <input className="dm-input" value={name} onChange={e => setName(e.target.value)} />
           </Field>
         </div>
       </SectionFrame>
 
       {/* Uso en juego */}
-      <SectionFrame icon="⚔️" title="Uso en juego" color={color}>
+      <SectionFrame icon="⚔️" title={t("boosters.inGameUse")} color={color}>
         <div className="grid grid-cols-2 gap-2">
-          <Field label="Modo de lanzamiento">
+          <Field label={t("boosters.castMode")}>
             <select className="dm-input" value={modo} onChange={e => setModo(e.target.value)}>
-              <option value="">— elegir —</option>
+              <option value="">{t("boosters.chooseOption")}</option>
               {["[Punto]", "[Entorno]", "[Cono]", "[Línea]", "[Área]", "[Toque]", "[Personal]"].map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </Field>
-          <Field label="Distancia">
-            <input className="dm-input" value={dist} onChange={e => setDist(e.target.value)} placeholder="30 pies (6c)" />
+          <Field label={t("boosters.distance")}>
+            <input className="dm-input" value={dist} onChange={e => setDist(e.target.value)} placeholder={t("boosters.distancePh")} />
           </Field>
-          <Field label="Objetivos / A quién aplica">
-            <input className="dm-input" value={obj} onChange={e => setObj(e.target.value)} placeholder="1 criatura" />
+          <Field label={t("boosters.targetsApply")}>
+            <input className="dm-input" value={obj} onChange={e => setObj(e.target.value)} placeholder={t("boosters.targetsPh")} />
           </Field>
-          <Field label="Dados a tirar">
+          <Field label={t("boosters.diceToRoll")}>
             <div className="flex items-center gap-2">
-              <input className="dm-input flex-1" value={dados} onChange={e => setDados(e.target.value)} placeholder="1d20 + mod SAB" />
+              <input className="dm-input flex-1" value={dados} onChange={e => setDados(e.target.value)} placeholder={t("boosters.dicePh")} />
               <RarityBonusChip rarity={rarity} />
             </div>
           </Field>
         </div>
         <div className="flex items-center gap-3 pt-1">
           <span className="text-base" style={{ color: "var(--gold)" }}>🧪</span>
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">Usos</span>
-          <label className="flex items-center gap-1 text-xs">Actual
+          <span className="text-xs uppercase tracking-widest text-muted-foreground">{t("boosters.uses")}</span>
+          <label className="flex items-center gap-1 text-xs">{t("boosters.current")}
             <input type="number" min={0} value={uses} onChange={e => setUses(+e.target.value)} className="dm-input w-16 text-center" />
           </label>
-          <label className="flex items-center gap-1 text-xs">Máx.
+          <label className="flex items-center gap-1 text-xs">{t("boosters.max")}
             <input type="number" min={1} value={maxUses} onChange={e => setMaxUses(+e.target.value)} className="dm-input w-16 text-center" />
           </label>
         </div>
       </SectionFrame>
 
       {/* Efecto */}
-      <SectionFrame icon="✦" title="Efecto o condición" color={color}>
+      <SectionFrame icon="✦" title={t("boosters.effectTitle")} color={color}>
         <div className="flex gap-2 items-start">
           <span className="text-base mt-1" style={{ color: "var(--gold)" }}>✒️</span>
           <textarea className="dm-input flex-1 min-h-20" rows={3} value={efecto} onChange={e => setEfecto(e.target.value)} />
@@ -405,29 +405,29 @@ export function BoosterEditor({
       </SectionFrame>
 
       {/* Gestión / Acciones */}
-      <SectionFrame icon="📦" title="Gestión / Acciones" color={color}>
+      <SectionFrame icon="📦" title={t("boosters.management")} color={color}>
         {booster && dm && (
           <>
             <select value={transferTo} onChange={e => setTransferTo(e.target.value)} className="dm-input w-full">
-              <option value="">— transferir a —</option>
-              <option value="__vault__">🏛️ Vault del DM</option>
+              <option value="">{t("boosters.transferOption")}</option>
+              <option value="__vault__">{t("boosters.dmVault")}</option>
               {(players || []).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <div className="grid grid-cols-2 gap-2">
-              <button className="btn-fantasy" disabled={!transferTo} onClick={transferDM}>⇄ Transferir</button>
-              <button className="btn-fantasy" onClick={reclaim}>🗄️ Retirar Potenciador</button>
+              <button className="btn-fantasy" disabled={!transferTo} onClick={transferDM}>{t("boosters.transfer")}</button>
+              <button className="btn-fantasy" onClick={reclaim}>{t("boosters.reclaim")}</button>
             </div>
           </>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <button className="btn-fantasy" onClick={onClose}>✕ Cancelar</button>
+          <button className="btn-fantasy" onClick={onClose}>{t("boosters.cancel")}</button>
           <button className="btn-fantasy"
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-            onClick={save}>💾 Guardar Cambios</button>
+            onClick={save}>{t("boosters.saveChanges")}</button>
         </div>
       </SectionFrame>
 
-      <button className="text-sm text-muted-foreground underline w-full" onClick={onClose}>Cerrar</button>
+      <button className="text-sm text-muted-foreground underline w-full" onClick={onClose}>{t("boosters.close")}</button>
 
       <style>{`.dm-input{width:100%;background:color-mix(in oklab,var(--input) 90%,black);border:1px solid color-mix(in oklab,var(--gold) 25%,transparent);border-radius:8px;padding:0.45rem 0.65rem;font-size:0.8rem;color:var(--foreground)}`}</style>
     </ModalShell>
