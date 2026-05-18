@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search } from "lucide-react";
-import { SLOTS, RARITY_BONUS, RARITY_COLOR, RARITY_LABEL, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
+import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog, type UndoAction } from "@/lib/log";
 import { clampHpForOwner } from "@/lib/hp";
@@ -267,7 +267,7 @@ function DM() {
               <div>
                 <p className="font-display" style={it.category === "equipo" ? { color: RARITY_COLOR[it.rarity as Rarity] } : undefined}>{it.name}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {it.category === "equipo" ? SLOTS.find(s=>s.key===it.slot)?.label : ITEM_CATEGORIES.find(c => c.key === it.category)?.label}
+                  {it.category === "equipo" ? t(`slots.${it.slot}`) : t(`categories.${it.category}`)}
                   {it.category !== "equipo" && (it.uses ?? 0) > 0 && ` · x${it.uses}`}
                 </p>
               </div>
@@ -419,7 +419,7 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
   return (
     <div className="ornate-card p-4 space-y-3">
       <select className="w-full bg-input border border-border rounded px-2 py-2 text-sm" value={category} onChange={e => setCategory(e.target.value as any)}>
-        {ITEM_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
+        {ITEM_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {tr(`categories.${c.key}`)}</option>)}
         <option value="monedas">{tr("dm.coins")}</option>
       </select>
       {!isCoins && (
@@ -429,11 +429,11 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
         <>
           <div className="grid grid-cols-2 gap-2">
             <select className="bg-input border border-border rounded px-2 py-2 text-sm" value={slot} onChange={e => setSlot(e.target.value as Slot)}>
-              {SLOTS.map(s => <option key={s.key} value={s.key}>{s.icon} {s.label}</option>)}
+              {SLOTS.map(s => <option key={s.key} value={s.key}>{s.icon} {tr(`slots.${s.key}`)}</option>)}
             </select>
             <select className="bg-input border border-border rounded px-2 py-2 text-sm" value={rarity} onChange={e => setRarity(e.target.value as Rarity)}
               style={{ color: RARITY_COLOR[rarity] }}>
-              {(["white","blue","purple","gold"] as Rarity[]).map(r => <option key={r} value={r} style={{ color: "black" }}>{RARITY_LABEL[r]}</option>)}
+              {(["white","blue","purple","gold"] as Rarity[]).map(r => <option key={r} value={r} style={{ color: "black" }}>{tr(`rarities.${r}`)}</option>)}
             </select>
           </div>
           {isWeapon(slot) ? (
@@ -533,7 +533,7 @@ function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, o
       <div className="ornate-card p-4 max-w-sm w-full space-y-3" onClick={e=>e.stopPropagation()}>
         <h3 className="font-display text-lg" style={isEq ? { color: RARITY_COLOR[item.rarity as Rarity] } : undefined}>{item.name}</h3>
         <p className="text-xs text-muted-foreground">
-          {isEq ? SLOTS.find(s=>s.key===item.slot)?.label : ITEM_CATEGORIES.find(c => c.key === item.category)?.label}
+          {isEq ? tr(`slots.${item.slot}`) : tr(`categories.${item.category}`)}
         </p>
         {isEq ? (
           <p className="text-sm">{isWeapon(item.slot as any) ? tr("equipment.damagePlus", { n: item.damage_bonus }) : tr("equipment.defHpPlus", { def: item.defense_bonus, hp: item.hp_bonus })}</p>

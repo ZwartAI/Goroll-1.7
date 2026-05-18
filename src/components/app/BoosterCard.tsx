@@ -1,4 +1,5 @@
-import { RARITY_COLOR, RARITY_LABEL, type Rarity } from "@/lib/game";
+import { RARITY_COLOR, type Rarity } from "@/lib/game";
+import { useT } from "@/lib/i18n";
 
 export type Booster = {
   id: string;
@@ -21,6 +22,7 @@ export type Booster = {
 
 export function BoosterCard({ b, onClick }: { b: Booster; onClick?: () => void }) {
   const color = RARITY_COLOR[b.rarity];
+  const { t } = useT();
   return (
     <button
       onClick={onClick}
@@ -31,10 +33,10 @@ export function BoosterCard({ b, onClick }: { b: Booster; onClick?: () => void }
         background: `linear-gradient(180deg, color-mix(in oklab, ${color} 18%, var(--card)), var(--card))`,
       }}
     >
-      <span className="text-[8px] uppercase tracking-widest" style={{ color }}>{RARITY_LABEL[b.rarity]}</span>
+      <span className="text-[8px] uppercase tracking-widest" style={{ color }}>{t(`rarities.${b.rarity}`)}</span>
       <span className="text-3xl">🃏</span>
       <span className="text-[10px] font-display leading-tight line-clamp-2 w-full" style={{ color }}>{b.name}</span>
-      <span className="text-[9px] text-muted-foreground">{b.uses}/{b.max_uses} usos</span>
+      <span className="text-[9px] text-muted-foreground">{b.uses}/{b.max_uses} {t("boosters.uses").toLowerCase()}</span>
     </button>
   );
 }
