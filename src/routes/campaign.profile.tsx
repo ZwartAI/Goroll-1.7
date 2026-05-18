@@ -15,6 +15,7 @@ import { Escenario } from "@/components/app/Escenario";
 import { User, LogOut, Minus, Plus, Camera, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
 import { MicToggle } from "@/components/app/MicToggle";
+import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { useVoice } from "@/lib/useVoice";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
