@@ -44,8 +44,9 @@ export function DeleteCampaignButton({ campaignId, campaignName, isOwner, onDele
       const { error } = await supabase.from("campaigns").delete().eq("id", campaignId);
       if (error) throw error;
       toast.success(`Campaña "${campaignName}" eliminada`);
-      setSession(null);
-      nav({ to: "/" });
+      setBusy(false);
+      setOpen(false);
+      onDeleted?.();
     } catch (e: any) {
       toast.error(e.message || "No se pudo eliminar la campaña");
       setBusy(false);
