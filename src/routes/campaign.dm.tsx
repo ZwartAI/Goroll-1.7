@@ -24,7 +24,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/campaign/dm")({ component: DM });
 
 function DM() {
-  const { character, characters, items, logs, campaign, onlineIds, loading } = useGameData();
+  const { character, characters, items, logs, campaign, onlineIds, loading, dmLabels, dmCharacterIds } = useGameData();
   const nav = useNavigate();
   const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "escenario">("log");
   const [selItem, setSelItem] = useState<Item | null>(null);
