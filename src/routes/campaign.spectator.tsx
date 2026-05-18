@@ -10,6 +10,7 @@ import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { BoosterPeek } from "@/components/app/BoosterEditor";
 import { Escenario } from "@/components/app/Escenario";
+import { useVoice } from "@/lib/useVoice";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/campaign/spectator")({ component: Spectator });
@@ -22,6 +23,7 @@ function Spectator() {
   const [openChar, setOpenChar] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [openBoosterId, setOpenBoosterId] = useState<string | null>(null);
+  const voice = useVoice(campaign?.id, null);
 
   if (loading || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("spectator.loading")}</p></PageFrame>;
 
@@ -61,6 +63,7 @@ function Spectator() {
           onOpenChar={(id) => setOpenChar(id)}
           onOpenItem={openItemFromId}
           onOpenBooster={(id) => setOpenBoosterId(id)}
+          speakingIds={voice.speakingIds}
         />
       )}
 

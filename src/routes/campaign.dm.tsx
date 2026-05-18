@@ -16,6 +16,8 @@ import { BoosterEditor } from "@/components/app/BoosterEditor";
 import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
 import { Escenario } from "@/components/app/Escenario";
+import { MicToggle } from "@/components/app/MicToggle";
+import { useVoice } from "@/lib/useVoice";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -38,6 +40,7 @@ function DM() {
   const [creatingBooster, setCreatingBooster] = useState(false);
   const [boosterSel, setBoosterSel] = useState<Set<string>>(new Set());
   const [boosterSelectMode, setBoosterSelectMode] = useState(false);
+  const voice = useVoice(campaign?.id, character?.id);
 
   useEffect(() => {
     if (!campaign) return;
@@ -81,7 +84,10 @@ function DM() {
           <h1 className="font-display text-xl rune-glow text-[var(--gold)]">👑 {character.name}</h1>
           <p className="text-xs text-muted-foreground">{t("dm.dungeonMaster")}</p>
         </div>
-        <Link to="/campaign/achievements" className="text-muted-foreground"><Trophy size={20}/></Link>
+        <div className="flex items-center gap-1.5">
+          <MicToggle enabled={voice.enabled} onToggle={voice.toggle} />
+          <Link to="/campaign/achievements" className="text-muted-foreground"><Trophy size={20}/></Link>
+        </div>
       </header>
       <div className="gem-divider mb-4"/>
 
@@ -301,6 +307,7 @@ function DM() {
             onOpenChar={(id) => setOpenChar(id)}
             onOpenItem={openItemFromId}
             onOpenBooster={openBoosterFromId}
+            speakingIds={voice.speakingIds}
           />
         </>
       )}

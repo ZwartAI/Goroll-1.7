@@ -14,6 +14,8 @@ import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
 import { User, LogOut, Minus, Plus, Camera, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
+import { MicToggle } from "@/components/app/MicToggle";
+import { useVoice } from "@/lib/useVoice";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -34,6 +36,8 @@ function Profile() {
   const [activeTab, setActiveTab] = useState<"personaje" | "escenario">("personaje");
   // When opened from Escenario tab (or from the log), force read-only sheet.
   const [openCharReadOnly, setOpenCharReadOnly] = useState(false);
+
+  const voice = useVoice(campaign?.id, character?.id);
 
   if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("profile.loading")}</p></PageFrame>;
 
@@ -104,7 +108,10 @@ function Profile() {
           <h1 className="font-display text-xl rune-glow">{character.name}</h1>
           <p className="text-xs text-muted-foreground">{character.race || t("profile.defaultRace")} / {character.class || t("profile.defaultClass")}</p>
         </div>
-        <Link to="/campaign/settings" className="text-muted-foreground hover:text-foreground" aria-label={t("profile.statsAria")}><User size={20} /></Link>
+        <div className="flex items-center gap-1.5">
+          <MicToggle enabled={voice.enabled} onToggle={voice.toggle} />
+          <Link to="/campaign/settings" className="text-muted-foreground hover:text-foreground" aria-label={t("profile.statsAria")}><User size={20} /></Link>
+        </div>
       </header>
       <div className="gem-divider mb-4" />
 
@@ -269,6 +276,7 @@ function Profile() {
           onOpenChar={(id) => openCharFromLog(id, true)}
           onOpenItem={(id) => setOpenItem(id)}
           onOpenBooster={(id) => setOpenBooster(id)}
+          speakingIds={voice.speakingIds}
         />
       )}
 
