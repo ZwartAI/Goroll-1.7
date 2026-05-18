@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMicSettings, sensitivityToThreshold } from "@/lib/micSettings";
+import { en } from "@/lib/locales/en";
+import { es } from "@/lib/locales/es";
 
 /**
  * Voice-activity presence over Supabase realtime broadcast.
@@ -20,6 +22,15 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
   const { settings: micSettings } = useMicSettings();
   const thresholdRef = useRef(sensitivityToThreshold(micSettings.sensitivity));
   const gainNodeRef = useRef<GainNode | null>(null);
+
+  const getMicAccessErrorMessage = useCallback(() => {
+    try {
+      const lang = localStorage.getItem("app:lang");
+      return lang === "en" ? en.micSettings.micAccessError : es.micSettings.micAccessError;
+    } catch {
+      return es.micSettings.micAccessError;
+    }
+  }, []);
 
   // Live-update threshold and gain without restarting the stream.
   useEffect(() => {
@@ -126,7 +137,7 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
         };
         raf = requestAnimationFrame(tick);
       } catch (e: any) {
-        toast.error(e?.message || "No se pudo acceder al micrófono");
+        toast.error(e?.message || getMicAccessErrorMessage());
         setEnabledState(false);
       }
     })();
@@ -148,7 +159,7 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, characterId, micSettings.noiseSuppression, micSettings.echoCancellation, micSettings.autoGainControl]);
+  }, [enabled, characterId, micSettings.noiseSuppression, micSettings.echoCancellation, micSettings.autoGainControl, getMicAccessErrorMessage]);
 
   const setEnabled = useCallback((v: boolean) => setEnabledState(v), []);
   const toggle = useCallback(() => setEnabledState(v => !v), []);
