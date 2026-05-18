@@ -1,4 +1,5 @@
-import { RARITY_COLOR, RARITY_LABEL, type Rarity } from "@/lib/game";
+import { RARITY_COLOR, type Rarity } from "@/lib/game";
+import { useT } from "@/lib/i18n";
 
 export type Booster = {
   id: string;
