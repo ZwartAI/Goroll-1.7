@@ -8,6 +8,7 @@ import { toastSaved } from "@/lib/saved";
 import { toast } from "sonner";
 import { StatText } from "./StatText";
 import type { Booster } from "./BoosterCard";
+import { useT } from "@/lib/i18n";
 
 /* ─────────────────────────────── shared bits ─────────────────────────────── */
 
