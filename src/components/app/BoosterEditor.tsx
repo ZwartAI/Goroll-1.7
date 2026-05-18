@@ -582,7 +582,7 @@ export function BoosterActions({
 }
 
 /* ─────────── BoosterPeek: open a booster by id (from log click) ─────────── */
-import { useEffect } from "react";
+
 
 export function BoosterPeek({
   boosterId, character, campaignId, players, onClose,
