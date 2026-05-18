@@ -10,6 +10,10 @@ type Props = {
   selfId?: string | null;
   onOpenChar: (id: string) => void;
   onOpenItem?: (id: string) => void;
+  /** Character IDs that belong to DM-role users — they are hidden from the players table. */
+  dmCharacterIds?: Set<string>;
+  /** Display overrides for DM/Co-DM names in the log. */
+  nameOverrides?: Record<string, { name: string; color: string }>;
   /** Show log under the players grid. Default true. */
   showLog?: boolean;
 };
@@ -18,10 +22,11 @@ type Props = {
  * Shared "Escenario" view: shows the party (online first, offline collapsible)
  * and an optional log of the scene below. Used by Player profile, DM, and Spectator.
  */
-export function Escenario({ characters, onlineIds, logs, selfId, onOpenChar, onOpenItem, showLog = true }: Props) {
+export function Escenario({ characters, onlineIds, logs, selfId, onOpenChar, onOpenItem, dmCharacterIds, nameOverrides, showLog = true }: Props) {
   const [openOffline, setOpenOffline] = useState(false);
-  const players = characters.filter(c => c.role !== "dm");
-  const online = players.filter(p => onlineIds.has(p.id) || p.id === selfId);
+  const dmSet = dmCharacterIds || new Set<string>();
+  const players = characters.filter(c => c.role !== "dm" && !dmSet.has(c.id));
+  const online = players.filter(p => (onlineIds.has(p.id) || p.id === selfId));
   const offline = players.filter(p => !onlineIds.has(p.id) && p.id !== selfId);
 
   return (
