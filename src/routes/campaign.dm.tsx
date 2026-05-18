@@ -40,6 +40,7 @@ function DM() {
   const [creatingBooster, setCreatingBooster] = useState(false);
   const [boosterSel, setBoosterSel] = useState<Set<string>>(new Set());
   const [boosterSelectMode, setBoosterSelectMode] = useState(false);
+  const voice = useVoice(campaign?.id, character?.id);
 
   useEffect(() => {
     if (!campaign) return;
