@@ -333,7 +333,7 @@ function Home() {
           >
             {/* Título */}
             <div
-              className="absolute text-center font-display text-[var(--gold)] tracking-[0.08em] whitespace-nowrap flex items-center justify-center gap-2"
+              className="absolute text-center font-display text-[var(--gold)] tracking-[0.08em] whitespace-nowrap flex items-center justify-center gap-2 mt-[10px]"
               style={{
                 top: "12%",
                 left: "0",
