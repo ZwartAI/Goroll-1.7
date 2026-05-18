@@ -5,6 +5,7 @@ import { toastSaved } from "@/lib/saved";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import type { Character } from "@/lib/game";
+import { useT } from "@/lib/i18n";
 
 type CatalogRow = {
   id: string;
@@ -38,6 +39,7 @@ export function ConditionsPanel({
   const [rows, setRows] = useState<ConditionRow[]>([]);
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [adding, setAdding] = useState(false);
+  const { t } = useT();
 
   async function reload() {
     const { data } = await (supabase as any).from("character_conditions")
@@ -68,7 +70,7 @@ export function ConditionsPanel({
       await supabase.from("characters").update({ current_hp: newHp }).eq("id", character.id);
       await pushLog(campaignId, [
         { t: "char", v: character.name, color: character.color, id: character.id },
-        { t: "text", v: `sufre ${c.icon} ${c.label}:` },
+        { t: "text", v: t("conditions.suffersLog", { icon: c.icon, label: c.label }) },
         { t: "loss", v: `-${c.damage_per_turn}` },
         { t: "text", v: `(${newHp})` },
       ], { kind: "character.update", id: character.id, prev });
@@ -77,7 +79,7 @@ export function ConditionsPanel({
       await (supabase as any).from("character_conditions").delete().eq("id", c.id);
       await pushLog(campaignId, [
         { t: "char", v: character.name, color: character.color, id: character.id },
-        { t: "text", v: `ya no está ${c.icon} ${c.label}.` },
+        { t: "text", v: t("conditions.noLonger", { icon: c.icon, label: c.label }) },
       ]);
     } else {
       await (supabase as any).from("character_conditions").update({ turns_left: next }).eq("id", c.id);
@@ -93,34 +95,34 @@ export function ConditionsPanel({
   return (
     <div className="ornate-card p-3 mb-3">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-display text-xs uppercase tracking-widest text-[var(--gold)]">✨ Efectos de condición</h2>
+        <h2 className="font-display text-xs uppercase tracking-widest text-[var(--gold)]">{t("conditions.title")}</h2>
         {canEdit && (
           <button className="text-[10px] text-[var(--gold)] underline inline-flex items-center gap-1"
             onClick={() => setAdding(true)}>
-            <Plus size={11} /> Aplicar
+            <Plus size={11} /> {t("conditions.apply")}
           </button>
         )}
       </div>
       <div className="space-y-1">
-        {rows.length === 0 && <p className="text-[10px] text-muted-foreground">Sin efectos activos.</p>}
+        {rows.length === 0 && <p className="text-[10px] text-muted-foreground">{t("conditions.none")}</p>}
         {rows.map(c => (
           <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5">
             <span className="text-base">{c.icon}</span>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-display truncate">{c.label}</p>
               {c.damage_per_turn > 0 && (
-                <p className="text-[9px] text-[var(--loss)]">−{c.damage_per_turn} ❤️ por turno</p>
+                <p className="text-[9px] text-[var(--loss)]">{t("conditions.perTurn", { n: c.damage_per_turn })}</p>
               )}
             </div>
             {canEdit && (
               <button onClick={() => removeCondition(c)}
-                className="text-muted-foreground hover:text-[var(--loss)]" aria-label="Quitar">
+                className="text-muted-foreground hover:text-[var(--loss)]" aria-label={t("conditions.remove")}>
                 <X size={12} />
               </button>
             )}
             <button onClick={() => tick(c)}
               className="text-[10px] px-2 py-1 rounded bg-[var(--gold)] text-black font-display min-w-[2.5rem]"
-              title="Restar 1 turno">
+              title={t("conditions.apply")}>
               {c.turns_left}t
             </button>
           </div>
@@ -152,13 +154,14 @@ export function ApplyConditionModal({
   const [pickId, setPickId] = useState<string>(catalog[0]?.id || "");
   const [turns, setTurns] = useState(3);
   const [damage, setDamage] = useState(0);
+  const { t } = useT();
 
   const picked = catalog.find(c => c.id === pickId);
   useEffect(() => { if (picked) setDamage(picked.damage_default); }, [pickId]);
 
   async function apply() {
-    if (!picked) return toast.error("Elige un efecto");
-    if (turns < 1) return toast.error("Turnos mínimo 1");
+    if (!picked) return toast.error(t("conditions.pickEffect"));
+    if (turns < 1) return toast.error(t("conditions.minTurns"));
     await (supabase as any).from("character_conditions").insert({
       character_id: characterId,
       catalog_id: picked.id,
@@ -167,10 +170,11 @@ export function ApplyConditionModal({
       turns_left: turns,
       damage_per_turn: picked.is_damage ? Math.max(0, damage) : 0,
     });
+    const extra = picked.is_damage && damage > 0 ? `, -${damage}/t` : "";
     await pushLog(campaignId, [
-      { t: "text", v: `Aplicado ${picked.icon} ${picked.label} (${turns}t${picked.is_damage && damage > 0 ? `, -${damage}/t` : ""}).` },
+      { t: "text", v: t("conditions.appliedLog", { icon: picked.icon, label: picked.label, turns, extra }) },
     ]);
-    toastSaved("Efecto aplicado");
+    toastSaved(t("conditions.appliedToast"));
     onApplied?.();
     onClose();
   }
@@ -178,26 +182,26 @@ export function ApplyConditionModal({
   return (
     <div className="fixed inset-0 bg-black/85 z-[70] flex items-center justify-center p-4" onClick={onClose}>
       <div className="ornate-card p-4 max-w-sm w-full space-y-3" onClick={e => e.stopPropagation()}>
-        <h3 className="font-display text-lg text-center">Aplicar efecto</h3>
+        <h3 className="font-display text-lg text-center">{t("conditions.modalTitle")}</h3>
         <select value={pickId} onChange={e => setPickId(e.target.value)}
           className="w-full bg-input border border-border rounded px-2 py-2 text-sm">
           {catalog.map(c => (
             <option key={c.id} value={c.id}>{c.icon} {c.label}{c.is_damage ? " 🩸" : ""}</option>
           ))}
         </select>
-        <label className="flex items-center justify-between text-sm">Turnos
+        <label className="flex items-center justify-between text-sm">{t("conditions.turns")}
           <input type="number" min={1} className="w-20 bg-input border border-border rounded px-2 py-1 text-right"
             value={turns} onChange={e => setTurns(Math.max(1, +e.target.value))} />
         </label>
         {picked?.is_damage && (
-          <label className="flex items-center justify-between text-sm">Daño por turno
+          <label className="flex items-center justify-between text-sm">{t("conditions.damagePerTurn")}
             <input type="number" min={0} className="w-20 bg-input border border-border rounded px-2 py-1 text-right"
               value={damage} onChange={e => setDamage(Math.max(0, +e.target.value))} />
           </label>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <button className="btn-fantasy" onClick={onClose}>Cancelar</button>
-          <button className="btn-fantasy" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={apply}>Aplicar</button>
+          <button className="btn-fantasy" onClick={onClose}>{t("common.cancel")}</button>
+          <button className="btn-fantasy" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={apply}>{t("conditions.apply")}</button>
         </div>
       </div>
     </div>
@@ -213,16 +217,15 @@ export function DMConditionsCreator({
 }) {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [tab, setTab] = useState<"apply" | "new" | "manage">("apply");
-  // new effect form
   const [label, setLabel] = useState("");
   const [icon, setIcon] = useState("✨");
   const [isDamage, setIsDamage] = useState(false);
   const [damageDefault, setDamageDefault] = useState(0);
-  // apply form
   const [pickId, setPickId] = useState("");
   const [turns, setTurns] = useState(3);
   const [damage, setDamage] = useState(0);
   const [targets, setTargets] = useState<string[]>([]);
+  const { t } = useT();
 
   async function loadCat() {
     const { data } = await (supabase as any).from("condition_effects_catalog")
@@ -237,7 +240,7 @@ export function DMConditionsCreator({
   useEffect(() => { if (picked) setDamage(picked.damage_default); }, [pickId]);
 
   async function createEffect() {
-    if (!label.trim()) return toast.error("Pon un nombre");
+    if (!label.trim()) return toast.error(t("conditions.putName"));
     const { error } = await (supabase as any).from("condition_effects_catalog").insert({
       campaign_id: campaignId,
       key: label.toLowerCase().replace(/\s+/g, "_"),
@@ -247,14 +250,14 @@ export function DMConditionsCreator({
       damage_default: isDamage ? Math.max(0, damageDefault) : 0,
     });
     if (error) return toast.error(error.message);
-    toastSaved("Efecto creado");
+    toastSaved(t("conditions.createdToast"));
     setLabel(""); setIcon("✨"); setIsDamage(false); setDamageDefault(0);
     loadCat();
   }
 
   async function applyToTargets() {
-    if (!picked) return toast.error("Elige un efecto");
-    if (!targets.length) return toast.error("Elige al menos un personaje");
+    if (!picked) return toast.error(t("conditions.pickEffect"));
+    if (!targets.length) return toast.error(t("conditions.pickAtLeastOne"));
     const rows = targets.map(charId => ({
       character_id: charId,
       catalog_id: picked.id,
@@ -268,13 +271,14 @@ export function DMConditionsCreator({
     for (const id of targets) {
       const ch = players.find(p => p.id === id);
       if (ch) {
+        const extra = picked.is_damage && damage > 0 ? `, -${damage}/t` : "";
         await pushLog(campaignId, [
           { t: "char", v: ch.name, color: ch.color, id: ch.id },
-          { t: "text", v: `recibe ${picked.icon} ${picked.label} (${turns}t${picked.is_damage && damage > 0 ? `, -${damage}/t` : ""}).` },
+          { t: "text", v: t("conditions.receivesLog", { icon: picked.icon, label: picked.label, turns, extra }) },
         ]);
       }
     }
-    toastSaved("Efectos aplicados");
+    toastSaved(t("conditions.appliedMulti"));
     setTargets([]);
   }
 
@@ -287,15 +291,15 @@ export function DMConditionsCreator({
       <div className="grid grid-cols-3 gap-1">
         <button onClick={() => setTab("apply")}
           className={`text-[10px] py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Aplicar
+          {t("conditions.creatorApply")}
         </button>
         <button onClick={() => setTab("new")}
           className={`text-[10px] py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Crear
+          {t("conditions.creatorCreate")}
         </button>
         <button onClick={() => setTab("manage")}
           className={`text-[10px] py-1.5 rounded font-display ${tab === "manage" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
-          Gestionar
+          {t("conditions.creatorManage")}
         </button>
       </div>
 
@@ -308,18 +312,18 @@ export function DMConditionsCreator({
             ))}
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <label className="flex items-center justify-between text-sm">Turnos
+            <label className="flex items-center justify-between text-sm">{t("conditions.turns")}
               <input type="number" min={1} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
                 value={turns} onChange={e => setTurns(Math.max(1, +e.target.value))} />
             </label>
             {picked?.is_damage && (
-              <label className="flex items-center justify-between text-sm">Daño/t
+              <label className="flex items-center justify-between text-sm">{t("conditions.damagePerTurn")}
                 <input type="number" min={0} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
                   value={damage} onChange={e => setDamage(Math.max(0, +e.target.value))} />
               </label>
             )}
           </div>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">Aplicar a:</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">{t("conditions.applyTo")}</p>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {players.map(p => (
               <label key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1 text-xs">
@@ -327,11 +331,11 @@ export function DMConditionsCreator({
                 <span style={{ color: p.color }} className="font-display">{p.name}</span>
               </label>
             ))}
-            {!players.length && <p className="text-xs text-muted-foreground">Sin jugadores.</p>}
+            {!players.length && <p className="text-xs text-muted-foreground">{t("conditions.noPlayers")}</p>}
           </div>
           <button className="btn-fantasy w-full" disabled={!targets.length}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-            onClick={applyToTargets}>Aplicar</button>
+            onClick={applyToTargets}>{t("conditions.apply")}</button>
         </>
       )}
 
@@ -341,25 +345,25 @@ export function DMConditionsCreator({
             <input className="w-16 bg-input border border-border rounded px-2 py-2 text-center text-lg"
               value={icon} onChange={e => setIcon(e.target.value)} maxLength={2} />
             <input className="flex-1 bg-input border border-border rounded px-3 py-2 text-sm"
-              placeholder="Nombre del efecto" value={label} onChange={e => setLabel(e.target.value)} />
+              placeholder={t("conditions.effectName")} value={label} onChange={e => setLabel(e.target.value)} />
           </div>
           <label className="flex items-center justify-between text-sm">
-            <span>¿Reduce vida por turno?</span>
+            <span>{t("conditions.reduceHpQ")}</span>
             <input type="checkbox" checked={isDamage} onChange={e => setIsDamage(e.target.checked)} />
           </label>
           {isDamage && (
-            <label className="flex items-center justify-between text-sm">Daño por turno (defecto)
+            <label className="flex items-center justify-between text-sm">{t("conditions.damageDefault")}
               <input type="number" min={0} className="w-20 bg-input border border-border rounded px-2 py-1 text-right"
                 value={damageDefault} onChange={e => setDamageDefault(Math.max(0, +e.target.value))} />
             </label>
           )}
-          <button className="btn-fantasy w-full" onClick={createEffect}>Crear efecto</button>
+          <button className="btn-fantasy w-full" onClick={createEffect}>{t("conditions.createBtn")}</button>
         </>
       )}
 
       {tab === "manage" && (
         <div className="space-y-1 max-h-72 overflow-y-auto">
-          {catalog.length === 0 && <p className="text-xs text-muted-foreground">Sin efectos.</p>}
+          {catalog.length === 0 && <p className="text-xs text-muted-foreground">{t("conditions.noEffects")}</p>}
           {catalog.map(c => (
             <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5 text-xs">
               <span>{c.icon}</span>
@@ -367,12 +371,12 @@ export function DMConditionsCreator({
               {c.campaign_id ? (
                 <button className="text-[10px] text-[var(--loss)] underline"
                   onClick={async () => {
-                    if (!confirm(`¿Eliminar efecto "${c.label}"?`)) return;
+                    if (!confirm(t("conditions.deleteConfirm", { label: c.label }))) return;
                     const { error } = await (supabase as any).from("condition_effects_catalog").delete().eq("id", c.id);
                     if (error) toast.error(error.message);
-                    else { toastSaved("Efecto eliminado"); loadCat(); }
-                  }}>eliminar</button>
-              ) : <span className="text-[9px] text-muted-foreground">global</span>}
+                    else { toastSaved(t("conditions.deletedToast")); loadCat(); }
+                  }}>{t("conditions.deleteEffect")}</button>
+              ) : <span className="text-[9px] text-muted-foreground">{t("conditions.global")}</span>}
             </div>
           ))}
         </div>
