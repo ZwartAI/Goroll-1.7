@@ -105,6 +105,7 @@ function Profile() {
         <div className="flex items-center gap-1.5">
           <button onClick={logout} className="text-muted-foreground hover:text-foreground" aria-label={t("profile.logoutAria")}><LogOut size={18} /></button>
           <FullscreenButton />
+          <MailboxButton />
         </div>
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{campaign.name}</p>
