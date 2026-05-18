@@ -17,6 +17,15 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
   const speakingRef = useRef(false);
   const lastSentRef = useRef(0);
   const timersRef = useRef<Map<string, any>>(new Map());
+  const { settings: micSettings } = useMicSettings();
+  const thresholdRef = useRef(sensitivityToThreshold(micSettings.sensitivity));
+  const gainNodeRef = useRef<GainNode | null>(null);
+
+  // Live-update threshold and gain without restarting the stream.
+  useEffect(() => {
+    thresholdRef.current = sensitivityToThreshold(micSettings.sensitivity);
+    if (gainNodeRef.current) gainNodeRef.current.gain.value = micSettings.gain;
+  }, [micSettings.sensitivity, micSettings.gain]);
 
   // Subscribe to the campaign voice channel.
   useEffect(() => {
