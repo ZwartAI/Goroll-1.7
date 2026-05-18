@@ -287,6 +287,7 @@ export const en: Dict = {
     velocity: "Speed",
     initiative: "Initiative",
     damageBoost: "Damage boost",
+    levelUpHint: "Level up when you've earned it",
     save: "Save changes",
     editedStatsLog: "edited their stats: {changes}",
     nameChangedTo: "changed their name to",
