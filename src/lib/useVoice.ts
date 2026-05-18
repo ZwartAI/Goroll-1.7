@@ -25,10 +25,10 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
 
   const getMicAccessErrorMessage = useCallback(() => {
     try {
-      const lang = localStorage.getItem("app:lang");
-      return lang === "en" ? en.micSettings.micAccessError : es.micSettings.micAccessError;
+        const lang = localStorage.getItem("app:lang");
+        return lang === "en" ? en.micSettings.micAccessError : es.micSettings.micAccessError;
     } catch {
-      return es.micSettings.micAccessError;
+        return en.micSettings.micAccessError;
     }
   }, []);
 
