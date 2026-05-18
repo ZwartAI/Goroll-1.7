@@ -18,7 +18,7 @@ export function CampaignActionsModal({ campaign, currentUserId, role, onPlay, on
  * Modal that opens when the user picks a campaign from their list.
  * Shows 3 actions: Play, Edit (members & flags), Delete (owner only).
  */
-export function CampaignActionsModal({ campaign, currentUserId, role, onPlay, onClose }: Props) {
+function _Inner({ campaign, currentUserId, role, onPlay, onClose, onDeleted }: Props) {
   const [view, setView] = useState<"menu" | "edit">("menu");
   const isOwner = (campaign as any).owner_user_id === currentUserId;
 
