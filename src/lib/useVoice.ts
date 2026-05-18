@@ -74,16 +74,23 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          audio: {
+            echoCancellation: micSettings.echoCancellation,
+            noiseSuppression: micSettings.noiseSuppression,
+            autoGainControl: micSettings.autoGainControl,
+          },
         });
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
         ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const src = ctx.createMediaStreamSource(stream);
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = micSettings.gain;
+        gainNodeRef.current = gainNode;
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 512;
-        src.connect(analyser);
+        src.connect(gainNode);
+        gainNode.connect(analyser);
         const data = new Uint8Array(analyser.fftSize);
-        const THRESHOLD = 0.045;
         let lastChange = 0;
 
         const tick = () => {
@@ -94,7 +101,7 @@ export function useVoice(campaignId: string | undefined, characterId: string | u
             sum += v * v;
           }
           const rms = Math.sqrt(sum / data.length);
-          const isSpeaking = rms > THRESHOLD;
+          const isSpeaking = rms > thresholdRef.current;
           const now = performance.now();
 
           // Hysteresis: switch off only after 350ms of silence.
