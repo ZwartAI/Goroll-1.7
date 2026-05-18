@@ -158,7 +158,7 @@ function DM() {
           <div className="flex items-center gap-2 ornate-card px-2 py-1">
             <Search size={14} className="text-muted-foreground" />
             <input value={boosterSearch} onChange={e => setBoosterSearch(e.target.value)}
-              placeholder="Buscar potenciador..." className="flex-1 bg-transparent outline-none text-sm" />
+              placeholder={t("dm.searchBooster")} className="flex-1 bg-transparent outline-none text-sm" />
           </div>
           <button
             className="btn-fantasy w-full text-xs"
