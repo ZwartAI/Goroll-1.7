@@ -461,6 +461,7 @@ export function BoosterActions({
   const [transferTo, setTransferTo] = useState("");
   const isDM = !!dm;
   const color = RARITY_COLOR[booster.rarity as Rarity];
+  const { t } = useT();
 
   async function pushBoosterLog(actor: Character, verb: string, trailing?: string) {
     const { pushLog } = await import("@/lib/log");
@@ -480,10 +481,10 @@ export function BoosterActions({
       await (supabase as any).from("boosters").update({
         uses: booster.max_uses, owner_character_id: null, in_dm_vault: true,
       }).eq("id", booster.id);
-      await pushBoosterLog(character, "usó el potenciador", "(último)");
+      await pushBoosterLog(character, t("boosters.usedBoosterLog"), t("boosters.lastSuffix"));
     } else {
       await (supabase as any).from("boosters").update({ uses: remaining }).eq("id", booster.id);
-      await pushBoosterLog(character, "usó el potenciador", `(${remaining} restantes)`);
+      await pushBoosterLog(character, t("boosters.usedBoosterLog"), t("boosters.remainingSuffix", { n: remaining }));
     }
     onClose();
   }
@@ -494,7 +495,7 @@ export function BoosterActions({
       owner_character_id: transferTo, in_dm_vault: false,
     }).eq("id", booster.id);
     const target = players.find(p => p.id === transferTo);
-    await pushBoosterLog(character, `cedió el potenciador a ${target?.name ?? "?"}`);
+    await pushBoosterLog(character, t("boosters.yieldedLog", { name: target?.name ?? "?" }));
     toastSaved();
     onClose();
   }
@@ -511,9 +512,9 @@ export function BoosterActions({
       detail = `→ [${rolls.join(", ")}] +${RARITY_DICE_BONUS[booster.rarity as Rarity]} = ${total}`;
     } else {
       const r = 1 + Math.floor(Math.random() * 20);
-      detail = `→ d20 = ${r} (+${RARITY_DICE_BONUS[booster.rarity as Rarity]} rareza = ${r + RARITY_DICE_BONUS[booster.rarity as Rarity]})`;
+      detail = `→ d20 = ${r} (+${RARITY_DICE_BONUS[booster.rarity as Rarity]} ${t("boosters.rarityBonusShort")} = ${r + RARITY_DICE_BONUS[booster.rarity as Rarity]})`;
     }
-    await pushBoosterLog(character, `tiró el potenciador ${detail}`);
+    await pushBoosterLog(character, t("boosters.rolledLog", { detail }));
     toast.success(detail);
   }
 
@@ -526,7 +527,7 @@ export function BoosterActions({
 
   return (
     <ModalShell onClose={onClose} color={color}>
-      <FancyHeader title="POTENCIADOR" name={booster.name} color={color} />
+      <FancyHeader title={t("boosters.boosterLabel")} name={booster.name} color={color} />
       <MetaChips extId={booster.external_id} tipo={booster.tipo} rarity={booster.rarity as Rarity} />
       <BoosterDetails b={booster} />
 
@@ -536,15 +537,15 @@ export function BoosterActions({
             <button className="btn-fantasy w-full text-base py-3 flex items-center justify-center gap-2"
               disabled={booster.uses <= 0}
               onClick={() => setConfirmUse(true)}>
-              ✦ Usar
+              {t("boosters.use")}
             </button>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              <button className="btn-fantasy" onClick={() => setConfirmUse(false)}>Cancelar</button>
+              <button className="btn-fantasy" onClick={() => setConfirmUse(false)}>{t("boosters.cancelPlain")}</button>
               <button className="btn-fantasy"
                 style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
                 onClick={useBooster}>
-                Sí, usar
+                {t("boosters.confirmUse")}
               </button>
             </div>
           )}
@@ -552,19 +553,19 @@ export function BoosterActions({
             <div>
               <select value={transferTo} onChange={e => setTransferTo(e.target.value)}
                 className="w-full bg-input border border-border rounded px-2 py-2 text-xs mb-1">
-                <option value="">— a quién —</option>
+                <option value="">{t("boosters.pickRecipient")}</option>
                 {players.filter(p => p.id !== character.id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <button className="btn-fantasy w-full" disabled={!transferTo} onClick={transferPlayer}>⇄ Transferir</button>
+              <button className="btn-fantasy w-full" disabled={!transferTo} onClick={transferPlayer}>{t("boosters.transfer")}</button>
             </div>
             <button className="btn-fantasy h-full flex items-center justify-center gap-2" onClick={rollBooster}>
-              ➤ Tirar Potenciador
+              {t("boosters.rollBooster")}
             </button>
           </div>
         </div>
       )}
 
-      <button className="text-sm text-muted-foreground underline w-full" onClick={onClose}>Cerrar</button>
+      <button className="text-sm text-muted-foreground underline w-full" onClick={onClose}>{t("boosters.close")}</button>
     </ModalShell>
   );
 }
