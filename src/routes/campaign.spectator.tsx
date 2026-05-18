@@ -9,6 +9,8 @@ import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { Escenario } from "@/components/app/Escenario";
+import { useT } from "@/lib/i18n";
+
 
 export const Route = createFileRoute("/campaign/spectator")({ component: Spectator });
 
