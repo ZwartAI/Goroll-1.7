@@ -11,7 +11,7 @@ import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
-import { User, LogOut, Minus, Plus, Camera } from "lucide-react";
+import { User, LogOut, Minus, Plus, Camera, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ function Profile() {
   const nav = useNavigate();
   const { t } = useT();
   const [imgModal, setImgModal] = useState(false);
+  const [hpModal, setHpModal] = useState(false);
   const [openChar, setOpenChar] = useState<string | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"personaje" | "escenario">("personaje");
@@ -190,12 +191,19 @@ function Profile() {
               </div>
               <span className="font-display text-xs">{character.current_hp}/{stats.maxHp}</span>
             </div>
-            <div className="flex gap-1 mt-2 justify-center">
-              <button className="btn-fantasy !py-1 !px-2 !text-[10px]" onClick={() => changeHp(-5)}><Minus size={10} className="inline"/>5</button>
-              <button className="btn-fantasy !py-1 !px-2 !text-[10px]" onClick={() => changeHp(-1)}><Minus size={10} className="inline"/>1</button>
-              <button className="btn-fantasy !py-1 !px-2 !text-[10px]" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={() => changeHp(1)}><Plus size={10} className="inline"/>1</button>
-              <button className="btn-fantasy !py-1 !px-2 !text-[10px]" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={() => changeHp(5)}><Plus size={10} className="inline"/>5</button>
-            </div>
+            <button
+              onClick={() => setHpModal(true)}
+              aria-label={t("profile.modifyHpAria")}
+              className="btn-fantasy w-full mt-2 flex items-center justify-center gap-2 font-display tracking-wider"
+              style={{
+                background: "linear-gradient(135deg, oklch(0.72 0.18 350), oklch(0.55 0.20 350))",
+                color: "white",
+                boxShadow: "0 6px 18px -8px oklch(0.55 0.20 350 / 0.6)",
+              }}
+            >
+              <HeartPulse size={16} />
+              <span>{t("profile.modifyHp")}</span>
+            </button>
           </div>
 
           {/* Atributos */}
@@ -212,20 +220,26 @@ function Profile() {
 
           <ConditionsPanel character={character} campaignId={campaign.id} canEdit={true} />
 
-          {/* Quick links */}
+          {/* Quick links — icon left, text right */}
           <div className="grid grid-cols-3 gap-2 mb-2">
-            <Link to="/campaign/equipment" className="btn-fantasy text-center">{t("profile.quickEquip")}</Link>
-            <Link to="/campaign/inventory" className="btn-fantasy text-center" style={{ background: "linear-gradient(135deg, oklch(0.5 0.15 195), oklch(0.3 0.1 195))" }}>{t("profile.quickInv")}</Link>
-            <Link to="/campaign/achievements" className="btn-fantasy text-center" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>{t("profile.quickAch")}</Link>
+            <Link to="/campaign/equipment" className="btn-fantasy flex items-center justify-center gap-1.5">
+              <Sword size={14} /><span>{t("profile.quickEquip")}</span>
+            </Link>
+            <Link to="/campaign/inventory" className="btn-fantasy flex items-center justify-center gap-1.5" style={{ background: "linear-gradient(135deg, oklch(0.5 0.15 195), oklch(0.3 0.1 195))" }}>
+              <Backpack size={14} /><span>{t("profile.quickInv")}</span>
+            </Link>
+            <Link to="/campaign/achievements" className="btn-fantasy flex items-center justify-center gap-1.5" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
+              <Trophy size={14} /><span>{t("profile.quickAch")}</span>
+            </Link>
           </div>
           <div className="grid grid-cols-2 gap-2 mb-4">
-            <Link to="/campaign/boosters" className="btn-fantasy text-center"
+            <Link to="/campaign/boosters" className="btn-fantasy flex items-center justify-center gap-1.5"
               style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
-              {t("profile.quickBoost")}
+              <Sparkles size={14} /><span>{t("profile.quickBoost")}</span>
             </Link>
-            <Link to="/campaign/notes" className="btn-fantasy text-center"
+            <Link to="/campaign/notes" className="btn-fantasy flex items-center justify-center gap-1.5"
               style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
-              {t("profile.quickNotes")}
+              <NotebookPen size={14} /><span>{t("profile.quickNotes")}</span>
             </Link>
           </div>
 
@@ -256,6 +270,14 @@ function Profile() {
 
       {imgModal && (
         <ImageEditor character={character} onClose={() => setImgModal(false)} />
+      )}
+      {hpModal && (
+        <HpModal
+          current={character.current_hp}
+          max={stats.maxHp}
+          onApply={async (d) => { await changeHp(d); }}
+          onClose={() => setHpModal(false)}
+        />
       )}
       {openChar && (
         <CharacterSheetModal characterId={openChar} campaignId={campaign.id}
@@ -346,6 +368,115 @@ function ImageEditor({ character, onClose }: { character: any; onClose: () => vo
           <button className="btn-fantasy flex-1" onClick={onClose}>{t("common.cancel")}</button>
           <button className="btn-fantasy flex-1" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={save}>{t("common.save")}</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function HpModal({
+  current, max, onApply, onClose,
+}: {
+  current: number;
+  max: number;
+  onApply: (delta: number) => Promise<void> | void;
+  onClose: () => void;
+}) {
+  const { t } = useT();
+  const [subVal, setSubVal] = useState("");
+  const [addVal, setAddVal] = useState("");
+  const sub = parseInt(subVal, 10);
+  const add = parseInt(addVal, 10);
+
+  async function quick(delta: number) {
+    await onApply(delta);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="ornate-card p-4 max-w-xs w-full space-y-4" onClick={e => e.stopPropagation()}>
+        <h3 className="font-display text-lg text-center flex items-center justify-center gap-2">
+          <HeartPulse size={18} className="text-[oklch(0.72_0.18_350)]" />
+          {t("profile.hpModalTitle")}
+        </h3>
+        <p className="text-center text-xs text-muted-foreground -mt-2">
+          {current}/{max}
+        </p>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center mb-1">
+            {t("profile.hpQuickAdjust")}
+          </p>
+          <div className="grid grid-cols-4 gap-1">
+            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]" onClick={() => quick(-5)}>
+              <Minus size={11} className="inline" />5
+            </button>
+            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]" onClick={() => quick(-1)}>
+              <Minus size={11} className="inline" />1
+            </button>
+            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]"
+              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+              onClick={() => quick(1)}>
+              <Plus size={11} className="inline" />1
+            </button>
+            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]"
+              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+              onClick={() => quick(5)}>
+              <Plus size={11} className="inline" />5
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center mb-1">
+            {t("profile.hpExact")}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <input
+                type="number" min={1} inputMode="numeric"
+                value={subVal}
+                onChange={e => setSubVal(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder={t("profile.hpAmountPh")}
+                className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
+              />
+              <button
+                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
+                style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
+                disabled={!sub || sub <= 0}
+                onClick={async () => {
+                  if (!sub || sub <= 0) return;
+                  await onApply(-sub);
+                  setSubVal("");
+                }}
+              >
+                <Minus size={11} /> {t("profile.hpSubtract")}
+              </button>
+            </div>
+            <div className="space-y-1">
+              <input
+                type="number" min={1} inputMode="numeric"
+                value={addVal}
+                onChange={e => setAddVal(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder={t("profile.hpAmountPh")}
+                className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
+              />
+              <button
+                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
+                style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+                disabled={!add || add <= 0}
+                onClick={async () => {
+                  if (!add || add <= 0) return;
+                  await onApply(add);
+                  setAddVal("");
+                }}
+              >
+                <Plus size={11} /> {t("profile.hpAdd")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button className="btn-fantasy w-full" onClick={onClose}>{t("common.cancel")}</button>
       </div>
     </div>
   );
