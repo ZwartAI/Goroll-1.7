@@ -3,11 +3,12 @@ import { useState } from "react";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { LogOut } from "lucide-react";
-import { setSession, totals, type LogRow } from "@/lib/game";
+import { setSession, type LogRow } from "@/lib/game";
 import { LogSegments } from "@/components/app/LogSegments";
 import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
+import { Escenario } from "@/components/app/Escenario";
 
 export const Route = createFileRoute("/campaign/spectator")({ component: Spectator });
 
