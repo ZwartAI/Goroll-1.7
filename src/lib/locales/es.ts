@@ -289,6 +289,7 @@ export const es = {
     velocity: "Velocidad",
     initiative: "Iniciativa",
     damageBoost: "Potenciación de daño",
+    levelUpHint: "Sube de nivel cuando lo hayas ganado",
     save: "Guardar cambios",
     editedStatsLog: "editó sus estadísticas: {changes}",
     nameChangedTo: "cambió su nombre a",
