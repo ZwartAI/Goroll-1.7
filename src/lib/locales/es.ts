@@ -687,6 +687,43 @@ export const es = {
     enteringAs: "Entrando como {name}…",
     pageTitle: "Panel Maestro",
   },
+  level: {
+    label: "Nivel",
+    short: "Nv",
+  },
+  mailbox: {
+    ariaOpen: "Bandeja de solicitudes",
+    title: "Bandeja de solicitudes",
+    empty: "No hay solicitudes pendientes.",
+    ofCampaign: "en {name}",
+    reqCoDM: "quiere unirse como Co-DM",
+    reqRejoin: "pide reingresar a la campaña",
+    accept: "Aceptar",
+    reject: "Rechazar",
+    acceptedToast: "Solicitud aceptada",
+    rejectedToast: "Solicitud rechazada",
+  },
+  rejoin: {
+    title: "Fuiste expulsado de esta campaña",
+    body: "El Dungeon Master te removió. Puedes pedir permiso para volver a unirte.",
+    request: "Pedir reingreso al DM",
+    waitingTitle: "Esperando al Dungeon Master",
+    waitingBody: "Tu solicitud de reingreso a {name} está pendiente.",
+    cancel: "Cancelar solicitud",
+    approved: "El DM aprobó tu reingreso",
+    rejected: "El DM rechazó tu reingreso",
+    alreadyPending: "Ya tienes una solicitud pendiente.",
+  },
+  membersExtra: {
+    requestsTitle: "Solicitudes pendientes ({count})",
+    noRequests: "No hay solicitudes pendientes.",
+    kindCoDM: "Co-DM",
+    kindRejoin: "Reingreso",
+    accept: "Aceptar",
+    reject: "Rechazar",
+    removedAndBanned: "{name} fue removido de la campaña. Sus objetos y potenciadores se enviaron a tu Vault.",
+    removeWarning: "Esto eliminará todos sus personajes y enviará sus objetos y potenciadores a tu Vault. ¿Continuar?",
+  },
 };
 
 export type Dict = typeof es;

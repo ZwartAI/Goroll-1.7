@@ -169,6 +169,27 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_bans: {
+        Row: {
+          banned_at: string
+          campaign_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          campaign_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          campaign_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_members: {
         Row: {
           campaign_id: string
@@ -312,6 +333,7 @@ export type Database = {
           image_url: string | null
           initiative: number
           int_stat: number
+          level: number
           name: string
           race: string | null
           role: Database["public"]["Enums"]["character_role"]
@@ -341,6 +363,7 @@ export type Database = {
           image_url?: string | null
           initiative?: number
           int_stat?: number
+          level?: number
           name: string
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
@@ -370,6 +393,7 @@ export type Database = {
           image_url?: string | null
           initiative?: number
           int_stat?: number
+          level?: number
           name?: string
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
@@ -463,6 +487,7 @@ export type Database = {
           campaign_id: string
           created_at: string
           id: string
+          kind: string
           requester_user_id: string
           requester_username: string
           resolved_at: string | null
@@ -472,6 +497,7 @@ export type Database = {
           campaign_id: string
           created_at?: string
           id?: string
+          kind?: string
           requester_user_id: string
           requester_username: string
           resolved_at?: string | null
@@ -481,6 +507,7 @@ export type Database = {
           campaign_id?: string
           created_at?: string
           id?: string
+          kind?: string
           requester_user_id?: string
           requester_username?: string
           resolved_at?: string | null

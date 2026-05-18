@@ -14,6 +14,7 @@ import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
 import { User, LogOut, Minus, Plus, Camera, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
+import { MailboxButton } from "@/components/app/MailboxButton";
 import { MicToggle } from "@/components/app/MicToggle";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { useVoice } from "@/lib/useVoice";
@@ -104,6 +105,7 @@ function Profile() {
         <div className="flex items-center gap-1.5">
           <button onClick={logout} className="text-muted-foreground hover:text-foreground" aria-label={t("profile.logoutAria")}><LogOut size={18} /></button>
           <FullscreenButton />
+          <MailboxButton />
         </div>
         <div className="text-center">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{campaign.name}</p>
@@ -178,15 +180,19 @@ function Profile() {
                 <p className="font-display text-sm">{character.velocity}<span className="text-[9px]">ft</span></p>
               </div>
               <div className="ornate-card p-2 text-center">
-                <p className="text-[9px] uppercase text-muted-foreground">{t("profile.damage")}</p>
-                <p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p>
+                <p className="text-[9px] uppercase text-muted-foreground">{t("level.label")}</p>
+                <p className="font-display text-sm text-[var(--gold)]">{(character as any).level ?? 1}</p>
               </div>
-              <div className="ornate-card p-2 text-center col-span-2">
+              <div className="ornate-card p-2 text-center">
                 <p className="text-[9px] uppercase text-muted-foreground">{t("profile.coins")}</p>
                 <p className="font-display text-base text-[var(--gold)]">{character.coins}</p>
                 <div className="mt-1">
                   <CoinsAdjuster onApply={changeCoins} />
                 </div>
+              </div>
+              <div className="ornate-card p-2 text-center">
+                <p className="text-[9px] uppercase text-muted-foreground">{t("profile.damage")}</p>
+                <p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p>
               </div>
             </div>
           </div>

@@ -53,6 +53,7 @@ function Home() {
   const [singleDmOnly, setSingleDmOnly] = useState(false);
   const [lockNames, setLockNames] = useState(false);
   const [waitingReqId, setWaitingReqId] = useState<string | null>(null);
+  const [waitingKind, setWaitingKind] = useState<"codm" | "player_rejoin">("codm");
   const [actionCampaign, setActionCampaign] = useState<Campaign | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
 
@@ -137,6 +138,33 @@ function Home() {
     await pickCampaign(data as Campaign);
   }
 
+  async function checkBan(cid: string): Promise<boolean> {
+    if (!user) return false;
+    const { data } = await (supabase as any).from("campaign_bans")
+      .select("id").eq("campaign_id", cid).eq("user_id", user.id).maybeSingle();
+    return !!data;
+  }
+
+  async function requestRejoin(c: Campaign) {
+    if (!user) return;
+    const { data: existing } = await (supabase as any).from("dm_join_requests")
+      .select("*").eq("campaign_id", c.id).eq("requester_user_id", user.id)
+      .eq("status", "pending").maybeSingle();
+    let reqId = existing?.id as string | undefined;
+    if (!reqId) {
+      const { data: ins, error } = await (supabase as any).from("dm_join_requests")
+        .insert({ campaign_id: c.id, requester_user_id: user.id, requester_username: user.username, status: "pending", kind: "player_rejoin" })
+        .select().single();
+      if (error) { toast.error(error.message); return; }
+      reqId = ins.id as string;
+    } else {
+      toast.info(t("rejoin.alreadyPending"));
+    }
+    setCampaign(c);
+    setWaitingKind("player_rejoin");
+    setWaitingReqId(reqId!);
+  }
+
   async function joinByCode() {
     if (!user || !joinCode.trim()) return;
     const code = joinCode.trim();
@@ -146,8 +174,17 @@ function Home() {
       data = r.data;
     }
     if (!data) return toast.error(t("home.errCampaignNotFound"));
-    // For DM joins, gate via request flow (don't pre-create membership)
-    if (role !== "dm") {
+    // For player joins: check ban first; if banned, request rejoin instead of auto-joining.
+    if (role === "player") {
+      const banned = await checkBan(data.id);
+      if (banned) {
+        setJoinCode("");
+        await requestRejoin(data as Campaign);
+        return;
+      }
+      await (supabase as any).from("campaign_members")
+        .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
+    } else if (role === "spectator") {
       await (supabase as any).from("campaign_members")
         .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
     }
@@ -231,12 +268,22 @@ function Home() {
     let stop = false;
     const finish = async (status: string) => {
       if (status === "approved") {
-        toast.success(t("home.reqApproved"));
-        await enterAsDM(campaign);
+        if (waitingKind === "player_rejoin") {
+          toast.success(t("rejoin.approved"));
+          setWaitingReqId(null);
+          setStep("character");
+        } else {
+          toast.success(t("home.reqApproved"));
+          await enterAsDM(campaign);
+        }
       } else {
-        const cooldownUntil = Date.now() + 60_000;
-        try { localStorage.setItem(COOLDOWN_KEY(campaign.id), String(cooldownUntil)); } catch {}
-        toast.error(t("home.reqRejected"));
+        if (waitingKind === "player_rejoin") {
+          toast.error(t("rejoin.rejected"));
+        } else {
+          const cooldownUntil = Date.now() + 60_000;
+          try { localStorage.setItem(COOLDOWN_KEY(campaign.id), String(cooldownUntil)); } catch {}
+          toast.error(t("home.reqRejected"));
+        }
         setWaitingReqId(null);
         setCampaign(null);
       }
@@ -245,14 +292,13 @@ function Home() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "dm_join_requests", filter: `id=eq.${waitingReqId}` },
         (payload: any) => { if (stop) return; const s = payload.new?.status; if (s && s !== "pending") finish(s); })
       .subscribe();
-    // Initial check (in case it resolved before subscription)
     (async () => {
       const { data } = await (supabase as any).from("dm_join_requests").select("status").eq("id", waitingReqId).maybeSingle();
       if (!stop && data && data.status !== "pending") finish(data.status);
     })();
     return () => { stop = true; (supabase as any).removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waitingReqId, campaign?.id, user?.id]);
+  }, [waitingReqId, campaign?.id, user?.id, waitingKind]);
 
   async function cancelCoDMRequest() {
     if (!waitingReqId) return;

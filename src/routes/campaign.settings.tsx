@@ -23,7 +23,7 @@ function Settings() {
 
   async function save() {
     const changes: string[] = [];
-    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense","damage_boost"] as const).forEach(k => {
+    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense","damage_boost","level"] as const).forEach(k => {
       if ((character as any)[k] !== form[k]) changes.push(`${k}:${(character as any)[k]}→${form[k]}`);
     });
     await supabase.from("characters").update({
@@ -32,6 +32,7 @@ function Settings() {
       velocity: +form.velocity, initiative: +form.initiative,
       base_hp: +form.base_hp, base_defense: +form.base_defense,
       damage_boost: Math.max(0, +form.damage_boost || 0),
+      level: Math.max(1, +form.level || 1),
     } as any).eq("id", character!.id);
     if (changes.length) {
       await pushLog(campaign!.id, [

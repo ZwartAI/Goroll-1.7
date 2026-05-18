@@ -1,22 +1,34 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toastSaved } from "@/lib/saved";
-import type { Campaign } from "@/lib/game";
+import { getStoredUser, type Campaign } from "@/lib/game";
+import { pushLog } from "@/lib/log";
 import { useT } from "@/lib/i18n";
 
 type Member = { id: string; user_id: string; role: "player" | "dm"; created_at: string };
 type AppUser = { id: string; username: string };
+type Req = {
+  id: string;
+  campaign_id: string;
+  requester_user_id: string;
+  requester_username: string;
+  status: string;
+  kind: "codm" | "player_rejoin";
+  created_at: string;
+};
 
 export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign; onBack: () => void }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [users, setUsers] = useState<Record<string, AppUser>>({});
+  const [requests, setRequests] = useState<Req[]>([]);
   const [singleDmOnly, setSingleDmOnly] = useState<boolean>(!!(campaign as any).single_dm_only);
   const [lockNames, setLockNames] = useState<boolean>(!!(campaign as any).lock_character_names);
   const [busy, setBusy] = useState(false);
   const { t } = useT();
+  const me = getStoredUser();
 
-  async function reload() {
+  const reload = useCallback(async () => {
     const { data } = await (supabase as any).from("campaign_members")
       .select("*").eq("campaign_id", campaign.id).order("created_at");
     const ms = (data || []) as Member[];
@@ -28,8 +40,13 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
       (us || []).forEach((u: AppUser) => { map[u.id] = u; });
       setUsers(map);
     }
-  }
-  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [campaign.id]);
+    const { data: rq } = await (supabase as any).from("dm_join_requests")
+      .select("*").eq("campaign_id", campaign.id).eq("status", "pending")
+      .order("created_at", { ascending: true });
+    setRequests((rq || []) as Req[]);
+  }, [campaign.id]);
+
+  useEffect(() => { reload(); }, [reload]);
 
   async function setRole(m: Member, next: "player" | "dm") {
     if (m.role === next) return;
@@ -43,16 +60,80 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
 
   async function removeMember(m: Member) {
     if (m.user_id === (campaign as any).owner_user_id) { toast.error(t("campaign.cantRemoveOwner")); return; }
-    if (!confirm(t("campaign.removeUserConfirm", { name: users[m.user_id]?.username || "—" }))) return;
+    const uname = users[m.user_id]?.username || "—";
+    if (!confirm(t("campaign.removeUserConfirm", { name: uname }) + "\n\n" + t("membersExtra.removeWarning"))) return;
     setBusy(true);
     try {
-      await (supabase as any).from("campaign_members").delete().eq("id", m.id);
-      // Also remove any DM character belonging to them (player characters stay).
+      // 1. All characters owned by this user in this campaign
       const { data: chars } = await (supabase as any).from("characters")
-        .select("id").eq("campaign_id", campaign.id).eq("user_id", m.user_id).eq("role", "dm");
-      const ids = (chars || []).map((c: any) => c.id);
-      if (ids.length) await (supabase as any).from("characters").delete().in("id", ids);
+        .select("id,name").eq("campaign_id", campaign.id).eq("user_id", m.user_id);
+      const charIds = (chars || []).map((c: any) => c.id);
+
+      // 2. Transfer their items & boosters to the DM vault (instead of deleting)
+      if (charIds.length) {
+        await (supabase as any).from("items")
+          .update({ owner_character_id: null, in_dm_vault: true, equipped: false })
+          .in("owner_character_id", charIds);
+        await (supabase as any).from("boosters")
+          .update({ owner_character_id: null, in_dm_vault: true })
+          .in("owner_character_id", charIds);
+        // 3. Delete dependent rows that belong to those characters
+        await (supabase as any).from("achievements").delete().in("character_id", charIds);
+        await (supabase as any).from("character_conditions").delete().in("character_id", charIds);
+        await (supabase as any).from("character_notes").delete().in("character_id", charIds);
+        // 4. Delete the characters
+        await (supabase as any).from("characters").delete().in("id", charIds);
+      }
+
+      // 5. Remove membership
+      await (supabase as any).from("campaign_members").delete().eq("id", m.id);
+
+      // 6. Ban the user so they can't auto-rejoin
+      await (supabase as any).from("campaign_bans")
+        .upsert({ campaign_id: campaign.id, user_id: m.user_id },
+          { onConflict: "campaign_id,user_id" });
+
+      // 7. Reject any pending requests from that user for this campaign
+      await (supabase as any).from("dm_join_requests")
+        .update({ status: "rejected", resolved_at: new Date().toISOString() })
+        .eq("campaign_id", campaign.id).eq("requester_user_id", m.user_id).eq("status", "pending");
+
+      // 8. Log it
+      if (me) {
+        await pushLog(campaign.id, [
+          { t: "char", v: me.username, color: "var(--gold)" },
+          { t: "text", v: ` ${t("membersExtra.removedAndBanned", { name: uname })}` },
+        ]);
+      }
       toastSaved(t("campaign.userRemoved"));
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message || "Error");
+    } finally { setBusy(false); }
+  }
+
+  async function decideRequest(r: Req, approve: boolean) {
+    setBusy(true);
+    try {
+      await (supabase as any).from("dm_join_requests")
+        .update({ status: approve ? "approved" : "rejected", resolved_at: new Date().toISOString() })
+        .eq("id", r.id);
+      if (approve) {
+        if (r.kind === "player_rejoin") {
+          await (supabase as any).from("campaign_bans")
+            .delete().eq("campaign_id", r.campaign_id).eq("user_id", r.requester_user_id);
+          await (supabase as any).from("campaign_members")
+            .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "player" },
+              { onConflict: "campaign_id,user_id" });
+        } else {
+          await (supabase as any).from("campaign_members")
+            .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "dm" },
+              { onConflict: "campaign_id,user_id" });
+        }
+        toastSaved(t("mailbox.acceptedToast"));
+      } else {
+        toast.info(t("mailbox.rejectedToast"));
+      }
       reload();
     } finally { setBusy(false); }
   }
@@ -86,6 +167,37 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
           {t("campaign.lockNamesRule")}
         </label>
         <button className="btn-fantasy w-full text-xs" disabled={busy} onClick={saveFlags}>{t("campaign.saveRules")}</button>
+      </div>
+
+      <div className="ornate-card p-3 space-y-2">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          {t("membersExtra.requestsTitle", { count: requests.length })}
+        </p>
+        {requests.length === 0 && (
+          <p className="text-[10px] text-muted-foreground">{t("membersExtra.noRequests")}</p>
+        )}
+        {requests.map(r => (
+          <div key={r.id} className="bg-secondary/40 rounded px-2 py-2 space-y-1">
+            <p className="text-xs">
+              <span className="font-display text-[var(--gold)]">{r.requester_username}</span>{" "}
+              {r.kind === "player_rejoin" ? t("mailbox.reqRejoin") : t("mailbox.reqCoDM")}
+            </p>
+            <p className="text-[9px] uppercase text-muted-foreground tracking-widest">
+              {r.kind === "player_rejoin" ? t("membersExtra.kindRejoin") : t("membersExtra.kindCoDM")}
+            </p>
+            <div className="grid grid-cols-2 gap-1">
+              <button disabled={busy} onClick={() => decideRequest(r, true)}
+                className="text-[10px] py-1 rounded bg-[var(--gold)] text-black font-display">
+                {t("membersExtra.accept")}
+              </button>
+              <button disabled={busy} onClick={() => decideRequest(r, false)}
+                className="text-[10px] py-1 rounded text-white"
+                style={{ background: "var(--loss)" }}>
+                {t("membersExtra.reject")}
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="ornate-card p-3 space-y-2">
