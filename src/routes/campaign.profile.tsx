@@ -37,6 +37,8 @@ function Profile() {
   // When opened from Escenario tab (or from the log), force read-only sheet.
   const [openCharReadOnly, setOpenCharReadOnly] = useState(false);
 
+  const voice = useVoice(campaign?.id, character?.id);
+
   if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("profile.loading")}</p></PageFrame>;
 
   const equipped = items.filter(i => i.owner_character_id === character.id && i.equipped);
