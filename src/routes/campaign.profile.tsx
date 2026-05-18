@@ -26,6 +26,7 @@ function Profile() {
   const nav = useNavigate();
   const { t } = useT();
   const [imgModal, setImgModal] = useState(false);
+  const [hpModal, setHpModal] = useState(false);
   const [openChar, setOpenChar] = useState<string | null>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"personaje" | "escenario">("personaje");
