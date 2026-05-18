@@ -328,9 +328,9 @@ function Home() {
 
       {!waitingReqId && step === "campaign" && user && (
         <div className="ornate-card p-5 space-y-4">
-          <h2 className="text-center font-display text-lg">Tus campañas</h2>
+          <h2 className="text-center font-display text-lg">{t("home.myCampaigns")}</h2>
           <input className="w-full rounded-md bg-input border border-border px-3 py-2 text-sm"
-            placeholder="🔎 Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
+            placeholder={t("home.searchPlaceholder")} value={search} onChange={e => setSearch(e.target.value)} />
           <div className="max-h-56 overflow-y-auto space-y-2">
             {campaigns.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
               <button key={c.id} onClick={() => setActionCampaign(c)}
@@ -338,46 +338,46 @@ function Home() {
                 <span className="font-display text-base">{c.name}</span>
               </button>
             ))}
-            {!campaigns.length && <p className="text-center text-xs text-muted-foreground py-4">No estás en ninguna campaña aún.</p>}
+            {!campaigns.length && <p className="text-center text-xs text-muted-foreground py-4">{t("home.noCampaigns")}</p>}
           </div>
           <div className="gem-divider" />
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Unirme por nombre o código</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("home.joinByCode")}</p>
             <div className="flex flex-wrap gap-2">
               <input className="flex-1 min-w-0 basis-[12rem] rounded-md bg-input border border-border px-3 py-2 text-sm"
-                placeholder="Nombre exacto de la campaña..." value={joinCode} onChange={e => setJoinCode(e.target.value)} />
-              <button className="btn-fantasy shrink-0" onClick={joinByCode}>Unirme</button>
+                placeholder={t("home.joinPlaceholder")} value={joinCode} onChange={e => setJoinCode(e.target.value)} />
+              <button className="btn-fantasy shrink-0" onClick={joinByCode}>{t("home.join")}</button>
             </div>
           </div>
           {role === "dm" && (
             <>
               <div className="gem-divider" />
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">Crear nueva campaña</p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("home.createCampaign")}</p>
                 <div className="flex flex-wrap gap-2">
                   <input className="flex-1 min-w-0 basis-[12rem] rounded-md bg-input border border-border px-3 py-2 text-sm"
-                    placeholder="Nombre épico..." value={newCampaignName} onChange={e => setNewCampaignName(e.target.value)} />
-                  <button className="btn-fantasy shrink-0" onClick={createCampaign}>Crear</button>
+                    placeholder={t("home.namePlaceholder")} value={newCampaignName} onChange={e => setNewCampaignName(e.target.value)} />
+                  <button className="btn-fantasy shrink-0" onClick={createCampaign}>{t("home.create")}</button>
                 </div>
                 <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                   <input type="checkbox" checked={singleDmOnly} onChange={e => setSingleDmOnly(e.target.checked)} />
-                  Solo un Dungeon Master en la campaña
+                  {t("home.singleDmLabel")}
                 </label>
                 <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                   <input type="checkbox" checked={lockNames} onChange={e => setLockNames(e.target.checked)} />
-                  Sin posibilidad de editar nombre de personaje
+                  {t("home.lockNamesLabel")}
                 </label>
               </div>
             </>
           )}
-          <button className="text-xs text-muted-foreground underline w-full text-center" onClick={() => setStep("role")}>← Cambiar rol</button>
+          <button className="text-xs text-muted-foreground underline w-full text-center" onClick={() => setStep("role")}>{t("home.changeRole")}</button>
         </div>
       )}
 
       {step === "character" && campaign && user && role === "player" && (
         <div className="ornate-card p-5 space-y-4">
           <h2 className="text-center font-display text-lg">{campaign.name}</h2>
-          <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">Tus personajes</p>
+          <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">{t("home.yourCharacters")}</p>
           <div className="space-y-2">
             {myChars.map(c => (
               <button key={c.id} onClick={() => enterCampaign(campaign, c)}
@@ -386,19 +386,19 @@ function Home() {
                 <span className="text-xs text-muted-foreground">{c.race || "—"} / {c.class || "—"}</span>
               </button>
             ))}
-            {!myChars.length && <p className="text-center text-xs text-muted-foreground py-2">Aún no tienes personajes en esta campaña.</p>}
+            {!myChars.length && <p className="text-center text-xs text-muted-foreground py-2">{t("home.noCharacters")}</p>}
           </div>
           <div className="gem-divider" />
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Crear nuevo personaje</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("home.createCharacter")}</p>
             <div className="flex flex-wrap gap-2">
               <input className="flex-1 min-w-0 basis-[12rem] rounded-md bg-input border border-border px-3 py-2 text-sm"
-                placeholder="Nombre del héroe..." value={newCharName} onChange={e => setNewCharName(e.target.value)}
+                placeholder={t("home.heroPlaceholder")} value={newCharName} onChange={e => setNewCharName(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && createCharacter()} />
-              <button className="btn-fantasy shrink-0" onClick={createCharacter}>Crear</button>
+              <button className="btn-fantasy shrink-0" onClick={createCharacter}>{t("home.create")}</button>
             </div>
           </div>
-          <button className="text-xs text-muted-foreground underline w-full text-center" onClick={() => setStep("campaign")}>← Otra campaña</button>
+          <button className="text-xs text-muted-foreground underline w-full text-center" onClick={() => setStep("campaign")}>{t("home.otherCampaign")}</button>
         </div>
       )}
 
