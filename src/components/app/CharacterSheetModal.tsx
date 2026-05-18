@@ -18,7 +18,7 @@ type Props = {
   onPickItem?: (item: Item) => void;
 };
 
-const ATTR_KEYS = [["fue","FUE"],["des","DES"],["con","CON"],["int_stat","INT"],["wis","SAB"],["car","CAR"]] as const;
+const ATTR_KEYS = [["fue","attr.fue"],["des","attr.des"],["con","attr.con"],["int_stat","attr.int"],["wis","attr.wis"],["car","attr.car"]] as const;
 
 export function CharacterSheetModal({ characterId, campaignId, editor, onClose, onPickItem }: Props) {
   const { t } = useT();
