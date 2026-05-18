@@ -209,12 +209,12 @@ function Home() {
     let stop = false;
     const finish = async (status: string) => {
       if (status === "approved") {
-        toast.success("Solicitud aprobada");
+        toast.success(t("home.reqApproved"));
         await enterAsDM(campaign);
       } else {
         const cooldownUntil = Date.now() + 60_000;
         try { localStorage.setItem(COOLDOWN_KEY(campaign.id), String(cooldownUntil)); } catch {}
-        toast.error("El DM rechazó tu solicitud. Reintenta en 1 minuto.");
+        toast.error(t("home.reqRejected"));
         setWaitingReqId(null);
         setCampaign(null);
       }
