@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 
-/** Player & DM coin adjuster: 🪙 Recibir / 💸 Pagar buttons that open a modal for an exact amount. */
+/** Player & DM coin adjuster. */
 export function CoinsAdjuster({ onApply }: { onApply: (delta: number) => void | Promise<void> }) {
   const [open, setOpen] = useState<"add" | "sub" | null>(null);
   const [val, setVal] = useState("");
+  const { t } = useT();
   const n = parseInt(val, 10);
   return (
     <>
@@ -11,29 +13,29 @@ export function CoinsAdjuster({ onApply }: { onApply: (delta: number) => void | 
         <button
           onClick={() => { setOpen("add"); setVal(""); }}
           className="text-[10px] px-2 py-1 rounded bg-[var(--gold)] text-black font-display"
-          title="Recibir monedas"
+          title={t("coins.receiveAria")}
         >🪙 +</button>
         <button
           onClick={() => { setOpen("sub"); setVal(""); }}
           className="text-[10px] px-2 py-1 rounded font-display text-white"
           style={{ background: "var(--gradient-blood, var(--loss))" }}
-          title="Pagar / quitar monedas"
+          title={t("coins.payAria")}
         >💸 −</button>
       </div>
       {open && (
         <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={() => setOpen(null)}>
           <div className="ornate-card p-4 max-w-xs w-full space-y-3" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-center">
-              {open === "add" ? "🪙 Recibir monedas" : "💸 Pagar monedas"}
+              {open === "add" ? t("coins.receive") : t("coins.pay")}
             </h3>
             <input
               autoFocus type="number" min={1} inputMode="numeric"
               value={val} onChange={e => setVal(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="Cantidad"
+              placeholder={t("coins.amount")}
               className="w-full bg-input border border-border rounded px-3 py-2 text-center text-lg"
             />
             <div className="grid grid-cols-2 gap-2">
-              <button className="btn-fantasy" onClick={() => setOpen(null)}>Cancelar</button>
+              <button className="btn-fantasy" onClick={() => setOpen(null)}>{t("common.cancel")}</button>
               <button
                 className="btn-fantasy"
                 style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
