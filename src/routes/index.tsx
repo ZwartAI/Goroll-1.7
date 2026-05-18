@@ -13,6 +13,7 @@ import { CampaignActionsModal } from "@/components/app/CampaignActionsModal";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { Settings as SettingsIcon } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import goRollLogo from "@/assets/go-roll-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Vamos a Rolear · GoRoll" }] }),
