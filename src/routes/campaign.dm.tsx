@@ -117,15 +117,16 @@ function DM() {
               <LogSegments segments={l.segments as any}
                 onItem={openItemFromId}
                 onChar={(id) => {
-                  if (!characters.find(c => c.id === id)) toast.error("Jugador no encontrado");
+                  if (!characters.find(c => c.id === id)) toast.error(t("dm.playerNotFound"));
                   else setOpenChar(id);
                 }} />
               <div className="flex justify-between items-center mt-1">
                 <p className="text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleTimeString()}</p>
                 {l.undo && !l.undone && (
                   <button className="text-[10px] text-[var(--gold)] inline-flex items-center gap-1 hover:underline"
-                    onClick={() => undoLog(l, campaign.id, dmCtx)}>
-                    <Undo2 size={11}/> Deshacer
+                    onClick={() => undoLog(l, campaign.id, dmCtx, t)}>
+                    <Undo2 size={11}/> {t("dm.undo")}
+
                   </button>
                 )}
               </div>
