@@ -281,9 +281,10 @@ function DM() {
         <>
           {!players.length && (
             <p className="text-center text-xs text-muted-foreground py-3">
-              Sin jugadores aún. Pídeles que entren a "{campaign.name}".
+              {t("dm.noPlayersYet", { name: campaign.name })}
             </p>
           )}
+
           <Escenario
             characters={characters}
             onlineIds={onlineIds}
