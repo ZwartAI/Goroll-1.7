@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { getSession } from "@/lib/game";
 import { pushLog } from "@/lib/log";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/campaign/achievements")({ component: Page });
 
@@ -31,8 +32,8 @@ function Page() {
   const [editing, setEditing] = useState<{ id: string; label: string; color: string } | null>(null);
   const session = getSession();
   const isDM = session?.role === "dm";
+  const { t } = useT();
 
-  // Load templates + realtime
   useEffect(() => {
     if (!campaign) return;
     const load = async () => {
@@ -46,7 +47,7 @@ function Page() {
     return () => { supabase.removeChannel(ch); };
   }, [campaign?.id]);
 
-  if (loading || !character) return <PageFrame><p className="text-center text-muted-foreground">Cargando...</p></PageFrame>;
+  if (loading || !character) return <PageFrame><p className="text-center text-muted-foreground">{t("common.loading")}</p></PageFrame>;
 
   const players = characters.filter(c => c.role === "player");
 
@@ -57,7 +58,6 @@ function Page() {
       setLabel(""); return;
     }
     if (!targets.length) {
-      // Save as template (vault)
       await supabase.from("achievement_templates").insert([{ campaign_id: campaign!.id, label: label.trim(), color }]);
       setLabel("");
       return;
@@ -68,7 +68,7 @@ function Page() {
       const named = players.filter(p => targets.includes(p.id));
       await pushLog(campaign.id, [
         { t: "char", v: character!.name, color: character!.color },
-        { t: "text", v: `otorgó el logro "${label.trim()}" a ${named.map(n => n.name).join(", ")}` },
+        { t: "text", v: t("achievements.grantedLog", { label: label.trim(), names: named.map(n => n.name).join(", ") }) },
       ] as any);
     }
     setLabel(""); setTargets([]);
@@ -78,13 +78,12 @@ function Page() {
     if (!ids.length) return;
     const rows = ids.map(id => ({ character_id: id, label: tpl.label, color: tpl.color }));
     await supabase.from("achievements").insert(rows);
-    // Remove the template from the vault — it has been delivered.
     await supabase.from("achievement_templates").delete().eq("id", tpl.id);
     if (campaign) {
       const named = players.filter(p => ids.includes(p.id));
       await pushLog(campaign.id, [
         { t: "char", v: character!.name, color: character!.color },
-        { t: "text", v: `otorgó el logro "${tpl.label}" a ${named.map(n => n.name).join(", ")}` },
+        { t: "text", v: t("achievements.grantedLog", { label: tpl.label, names: named.map(n => n.name).join(", ") }) },
       ] as any);
     }
     setSelectedTpl(null); setShareTargets([]);
@@ -104,7 +103,7 @@ function Page() {
         const named = players.filter(p => rows.some(r => r.character_id === p.id));
         await pushLog(campaign.id, [
           { t: "char", v: character!.name, color: character!.color },
-          { t: "text", v: `compartió el logro "${a.label}" con ${named.map(n => n.name).join(", ")}` },
+          { t: "text", v: t("achievements.sharedLog", { label: a.label, names: named.map(n => n.name).join(", ") }) },
         ] as any);
       }
     }
@@ -112,7 +111,6 @@ function Page() {
   }
 
   async function returnToVault(a: any) {
-    // Avoid creating duplicate vault entries with same label+color.
     const { data: existing } = await supabase.from("achievement_templates")
       .select("id").eq("campaign_id", campaign!.id).eq("label", a.label).eq("color", a.color).limit(1);
     if (!existing || existing.length === 0) {
@@ -133,11 +131,10 @@ function Page() {
     setSelectedAch(null);
   }
 
-  // Player view: only own achievements
   if (!isDM) {
     const visible = achievements.filter(a => a.character_id === character.id);
     return (
-      <PageFrame title="Logros" subtitle={character.name} right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
+      <PageFrame title={t("achievements.title")} subtitle={character.name} right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
         <div className="ornate-card p-6 text-center mb-4">
           <Trophy className="mx-auto text-[var(--gold)]" size={48} />
         </div>
@@ -151,39 +148,37 @@ function Page() {
               </div>
             );
           })}
-          {!visible.length && <p className="text-center text-xs text-muted-foreground py-4">Aún sin logros.</p>}
+          {!visible.length && <p className="text-center text-xs text-muted-foreground py-4">{t("achievements.notYet")}</p>}
         </div>
       </PageFrame>
     );
   }
 
-  // DM view
   return (
-    <PageFrame title="Logros" subtitle="Administrador" right={<Link to="/campaign/dm" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
+    <PageFrame title={t("achievements.title")} subtitle={t("achievements.adminSubtitle")} right={<Link to="/campaign/dm" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
       <div className="ornate-card p-6 text-center mb-4">
         <Trophy className="mx-auto text-[var(--gold)]" size={48} />
       </div>
 
-      {/* Vault — unsent templates */}
       <div className="ornate-card p-4 mb-4">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-2">
-          <Archive size={14}/> Almacén de logros ({templates.length})
+          <Archive size={14}/> {t("achievements.vault", { count: templates.length })}
         </p>
         <div className="space-y-2 max-h-[35vh] overflow-y-auto">
-          {templates.map(t => {
-            const cc = colorOf(t.color);
-            const open = selectedTpl === t.id;
+          {templates.map(tpl => {
+            const cc = colorOf(tpl.color);
+            const open = selectedTpl === tpl.id;
             return (
-              <div key={t.id}>
-                <button onClick={() => { setSelectedTpl(open ? null : t.id); setShareTargets([]); }}
+              <div key={tpl.id}>
+                <button onClick={() => { setSelectedTpl(open ? null : tpl.id); setShareTargets([]); }}
                   className="w-full flex justify-between items-center px-3 py-2 rounded text-sm font-semibold"
                   style={{ background: `color-mix(in oklab, ${cc} 25%, transparent)`, color: cc, border: `1px solid ${cc}` }}>
-                  <span>{t.label}</span>
+                  <span>{tpl.label}</span>
                   <span className="text-xs opacity-70">{open ? "▴" : "▾"}</span>
                 </button>
                 {open && (
                   <div className="mt-2 p-3 border border-border rounded space-y-2 bg-[color-mix(in_oklab,var(--card)_70%,transparent)]">
-                    <p className="text-xs text-muted-foreground">Enviar a:</p>
+                    <p className="text-xs text-muted-foreground">{t("achievements.sendTo")}</p>
                     <div className="flex flex-wrap gap-2">
                       {players.map(p => {
                         const sel = shareTargets.includes(p.id);
@@ -197,10 +192,10 @@ function Page() {
                       })}
                     </div>
                     <div className="flex gap-2">
-                      <button className="btn-fantasy flex-1 text-xs" disabled={!shareTargets.length} onClick={() => sendTemplate(t, shareTargets)}>
-                        <Send size={12} className="inline mr-1"/> Enviar
+                      <button className="btn-fantasy flex-1 text-xs" disabled={!shareTargets.length} onClick={() => sendTemplate(tpl, shareTargets)}>
+                        <Send size={12} className="inline mr-1"/> {t("achievements.send")}
                       </button>
-                      <button className="text-xs px-3 py-2 rounded border border-destructive text-destructive" onClick={() => deleteTemplate(t.id)}>
+                      <button className="text-xs px-3 py-2 rounded border border-destructive text-destructive" onClick={() => deleteTemplate(tpl.id)}>
                         <Trash2 size={12}/>
                       </button>
                     </div>
@@ -209,14 +204,13 @@ function Page() {
               </div>
             );
           })}
-          {!templates.length && <p className="text-center text-xs text-muted-foreground py-4">Almacén vacío. Crea un logro sin destinatarios para guardarlo aquí.</p>}
+          {!templates.length && <p className="text-center text-xs text-muted-foreground py-4">{t("achievements.vaultEmpty")}</p>}
         </div>
       </div>
 
-      {/* Granted achievements */}
       <div className="ornate-card p-4 mb-4">
         <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-          Logros otorgados ({achievements.length})
+          {t("achievements.grantedTitle", { count: achievements.length })}
         </p>
         <div className="space-y-2 max-h-[40vh] overflow-y-auto">
           {achievements.map(a => {
@@ -247,13 +241,13 @@ function Page() {
                           ))}
                         </div>
                         <div className="flex gap-2">
-                          <button className="btn-fantasy flex-1 text-xs" onClick={saveEdit}>Guardar</button>
-                          <button className="text-xs px-3 py-2 rounded border border-border" onClick={() => setEditing(null)}>Cancelar</button>
+                          <button className="btn-fantasy flex-1 text-xs" onClick={saveEdit}>{t("common.save")}</button>
+                          <button className="text-xs px-3 py-2 rounded border border-border" onClick={() => setEditing(null)}>{t("common.cancel")}</button>
                         </div>
                       </>
                     ) : (
                       <>
-                        <p className="text-xs text-muted-foreground">Compartir con (duplica):</p>
+                        <p className="text-xs text-muted-foreground">{t("achievements.shareDuplicates")}</p>
                         <div className="flex flex-wrap gap-2">
                           {players.filter(p => p.id !== a.character_id).map(p => {
                             const sel = shareTargets.includes(p.id);
@@ -268,16 +262,16 @@ function Page() {
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <button className="btn-fantasy text-xs" disabled={!shareTargets.length} onClick={() => shareAch(a, shareTargets)}>
-                            <Share2 size={12} className="inline mr-1"/> Compartir
+                            <Share2 size={12} className="inline mr-1"/> {t("achievements.share")}
                           </button>
                           <button className="text-xs px-3 py-2 rounded border border-border" onClick={() => setEditing({ id: a.id, label: a.label, color: a.color })}>
-                            <Pencil size={12} className="inline mr-1"/> Editar
+                            <Pencil size={12} className="inline mr-1"/> {t("achievements.edit")}
                           </button>
                           <button className="text-xs px-3 py-2 rounded border border-border" onClick={() => returnToVault(a)}>
-                            <Archive size={12} className="inline mr-1"/> Al almacén
+                            <Archive size={12} className="inline mr-1"/> {t("achievements.toVault")}
                           </button>
                           <button className="text-xs px-3 py-2 rounded border border-destructive text-destructive" onClick={() => remove(a.id)}>
-                            <Trash2 size={12} className="inline mr-1"/> Eliminar
+                            <Trash2 size={12} className="inline mr-1"/> {t("achievements.deleteBtn")}
                           </button>
                         </div>
                       </>
@@ -287,14 +281,13 @@ function Page() {
               </div>
             );
           })}
-          {!achievements.length && <p className="text-center text-xs text-muted-foreground py-4">Aún no se han otorgado logros.</p>}
+          {!achievements.length && <p className="text-center text-xs text-muted-foreground py-4">{t("achievements.notGrantedYet")}</p>}
         </div>
       </div>
 
-      {/* Create / Grant */}
       <div className="ornate-card p-4 space-y-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Crear logro</p>
-        <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder="Vencedor del dragón..." value={label} onChange={e => setLabel(e.target.value)} />
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("achievements.createTitle")}</p>
+        <input className="w-full bg-input border border-border rounded px-3 py-2 text-sm" placeholder={t("achievements.placeholder")} value={label} onChange={e => setLabel(e.target.value)} />
         <div className="flex gap-2 flex-wrap">
           {COLORS.map(c => (
             <button key={c.v} onClick={() => setColor(c.v)} className="w-7 h-7 rounded-full border-2"
@@ -303,10 +296,10 @@ function Page() {
         </div>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Destinatarios (opcional)</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("achievements.recipients")}</p>
             <button className="text-xs underline text-[var(--gold)]"
               onClick={() => setTargets(targets.length === players.length ? [] : players.map(p => p.id))}>
-              {targets.length === players.length ? "Ninguno" : "Todos"}
+              {targets.length === players.length ? t("achievements.none") : t("achievements.all")}
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -322,13 +315,13 @@ function Page() {
                 </button>
               );
             })}
-            {!players.length && <p className="text-xs text-muted-foreground">Sin jugadores en la campaña.</p>}
+            {!players.length && <p className="text-xs text-muted-foreground">{t("achievements.noPlayers")}</p>}
           </div>
         </div>
         <button className="btn-fantasy w-full" onClick={add} disabled={!label.trim()}>
-          {targets.length ? `Otorgar a ${targets.length} jugador(es)` : "Guardar en almacén"}
+          {targets.length ? t("achievements.grantTo", { count: targets.length }) : t("achievements.storeInVault")}
         </button>
-        <p className="text-[10px] text-muted-foreground text-center">Sin destinatarios el logro se guarda en el almacén para enviarlo después.</p>
+        <p className="text-[10px] text-muted-foreground text-center">{t("achievements.vaultHint")}</p>
       </div>
     </PageFrame>
   );
