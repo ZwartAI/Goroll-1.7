@@ -533,7 +533,7 @@ function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, o
       <div className="ornate-card p-4 max-w-sm w-full space-y-3" onClick={e=>e.stopPropagation()}>
         <h3 className="font-display text-lg" style={isEq ? { color: RARITY_COLOR[item.rarity as Rarity] } : undefined}>{item.name}</h3>
         <p className="text-xs text-muted-foreground">
-          {isEq ? SLOTS.find(s=>s.key===item.slot)?.label : ITEM_CATEGORIES.find(c => c.key === item.category)?.label}
+          {isEq ? tr(`slots.${item.slot}`) : tr(`categories.${item.category}`)}
         </p>
         {isEq ? (
           <p className="text-sm">{isWeapon(item.slot as any) ? tr("equipment.damagePlus", { n: item.damage_bonus }) : tr("equipment.defHpPlus", { def: item.defense_bonus, hp: item.hp_bonus })}</p>
