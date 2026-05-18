@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSession, setSession, type Campaign, type Character, type Item, type LogRow, type Achievement } from "./game";
+
+export type DmLabel = { name: string; color: string };
 
 type GameData = {
   campaign: Campaign | null;
@@ -13,6 +15,10 @@ type GameData = {
   loading: boolean;
   /** Set of character ids currently connected (via Realtime presence). */
   onlineIds: Set<string>;
+  /** Display overrides for DM/Co-DM characters used by the log (character_id → label). */
+  dmLabels: Record<string, DmLabel>;
+  /** character_ids belonging to DM-role users in this campaign (hidden from the player table). */
+  dmCharacterIds: Set<string>;
   reload: () => Promise<void>;
 };
 
