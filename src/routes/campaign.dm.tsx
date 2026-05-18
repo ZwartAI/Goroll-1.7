@@ -269,24 +269,27 @@ function DM() {
         </div>
       )}
 
-      {tab === "players" && (
-        <div className="space-y-2">
-          {players.map(p => {
-            const eq = items.filter(i => i.owner_character_id === p.id && i.equipped);
-            return (
-              <button key={p.id} onClick={() => setOpenChar(p.id)} className="w-full ornate-card p-3 text-left">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-display" style={{ color: p.color }}>{p.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{p.race||"—"} / {p.class||"—"} · ❤️ {p.current_hp}/{p.base_hp + eq.filter(i=>!isWeapon(i.slot as any)).reduce((a,i)=>a+(i.hp_bonus||RARITY_BONUS[i.rarity as Rarity].hp),0)} · 🪙 {p.coins}</p>
-                  </div>
-                  <span className="text-xs">{eq.length} eq.</span>
-                </div>
-              </button>
-            );
-          })}
-          {!players.length && <p className="text-center text-xs text-muted-foreground py-6">Sin jugadores aún. Pídeles que entren a "{campaign.name}".</p>}
-        </div>
+      {tab === "escenario" && (
+        <>
+          {!players.length && (
+            <p className="text-center text-xs text-muted-foreground py-3">
+              Sin jugadores aún. Pídeles que entren a "{campaign.name}".
+            </p>
+          )}
+          <Escenario
+            characters={characters}
+            onlineIds={onlineIds}
+            logs={logs}
+            selfId={null}
+            onOpenChar={(id) => setOpenChar(id)}
+            onOpenItem={openItemFromId}
+          />
+          <DeleteCampaignButton
+            campaignId={campaign.id}
+            campaignName={campaign.name}
+            isOwner={!!(campaign as any).owner_user_id && (campaign as any).owner_user_id === getStoredUser()?.id}
+          />
+        </>
       )}
 
       {selItem && (
