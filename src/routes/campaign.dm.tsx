@@ -259,7 +259,7 @@ function DM() {
 
       {tab === "vault" && (
         <div className="space-y-2">
-          {vault.length === 0 && <p className="text-center text-xs text-muted-foreground py-6">Vault vacío. Crea o reclama objetos.</p>}
+          {vault.length === 0 && <p className="text-center text-xs text-muted-foreground py-6">{t("dm.vaultEmpty")}</p>}
           {vault.map(it => (
             <button key={it.id} onClick={() => setSelItem(it)}
               className="w-full ornate-card p-3 flex justify-between items-center text-left"
