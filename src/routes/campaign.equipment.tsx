@@ -77,7 +77,7 @@ function Equipment() {
       {picker && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center" onClick={() => setPicker(null)}>
           <div className="ornate-card p-4 w-full max-w-md max-h-[70vh] overflow-y-auto rounded-b-none" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-lg mb-3 text-center">{SLOTS.find(s => s.key === picker)?.label}</h3>
+            <h3 className="font-display text-lg mb-3 text-center">{t(`slots.${picker}`)}</h3>
             {equipped(picker) && (
               <button className="btn-fantasy w-full mb-3" onClick={() => { unequip(equipped(picker)!); setPicker(null); }}>{t("equipment.unequipCurrent")}</button>
             )}
