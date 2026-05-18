@@ -63,6 +63,7 @@ function Spectator() {
           onOpenChar={(id) => setOpenChar(id)}
           onOpenItem={openItemFromId}
           onOpenBooster={(id) => setOpenBoosterId(id)}
+          speakingIds={voice.speakingIds}
         />
       )}
 
