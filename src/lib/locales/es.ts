@@ -71,7 +71,7 @@ export const es = {
     settingsAria: "Ajustes",
     loginTitle: "ENTRA AL CÓDICE",
     loginHint: "¿Primera vez aquí? Tu cuenta se creará automáticamente.",
-    codexPin: "PIN DEL CÓDICE",
+    codexPin: "PIN",
     user: "Usuario",
     enter: "Entrar →",
     enterCta: "Entrar →",

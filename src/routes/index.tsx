@@ -333,7 +333,7 @@ function Home() {
           >
             {/* Título */}
             <div
-              className="absolute text-center font-display text-[var(--gold)] tracking-[0.08em]"
+              className="absolute text-center font-display tracking-[0.18em] text-xs mt-[215px] ml-[178px]"
               style={{
                 top: "11%",
                 left: "8%",
@@ -362,6 +362,7 @@ function Home() {
 
             {/* Username */}
             <input
+              type="text"
               className="absolute bg-transparent border-0 outline-none ring-0 focus:ring-0 focus:outline-none font-display text-[var(--gold)] placeholder:text-[color-mix(in_oklab,var(--gold)_55%,transparent)]"
               style={{
                 top: "36.5%",

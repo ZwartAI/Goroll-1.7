@@ -69,7 +69,7 @@ export const en: Dict = {
     settingsAria: "Settings",
     loginTitle: "ENTER THE CODEX",
     loginHint: "First time here? Your account will be created automatically.",
-    codexPin: "CODEX PIN",
+    codexPin: "PIN",
     user: "Username",
     enter: "Enter →",
     enterCta: "Join →",
