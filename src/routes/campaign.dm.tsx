@@ -479,7 +479,9 @@ function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, o
   onClose: () => void;
   onEdit: () => void;
 }) {
+  const { t: tr } = useT();
   const [target, setTarget] = useState("");
+
   const isEq = item.category === "equipo" || !item.category;
   function oldMaxFor(ownerId: string | null | undefined): number | undefined {
     if (!ownerId) return undefined;
