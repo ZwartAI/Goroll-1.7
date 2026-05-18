@@ -10,6 +10,7 @@ import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
+import { Escenario } from "@/components/app/Escenario";
 import { Settings, LogOut, Minus, Plus, Camera } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
 import { useRef, useState } from "react";
