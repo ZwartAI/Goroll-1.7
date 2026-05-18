@@ -1,14 +1,19 @@
 import type { ReactNode } from "react";
 import { RARITY_COLOR, type Segment } from "@/lib/game";
 
+type Override = { name: string; color: string };
+
 export function LogSegments({
   segments,
   onItem,
   onChar,
+  /** Map of character_id → { name, color } used to display DMs as "DM" / "Co-DM N" in the log. */
+  nameOverrides,
 }: {
   segments: Segment[];
   onItem?: (id: string) => void;
   onChar?: (id: string) => void;
+  nameOverrides?: Record<string, Override>;
 }) {
   const out: ReactNode[] = [];
   segments.forEach((s, i) => {
@@ -16,11 +21,12 @@ export function LogSegments({
     if (s.t === "text") out.push(<span key={i} className="text-foreground/85">{s.v}</span>);
     else if (s.t === "char") {
       const clickable = onChar && s.id;
+      const ov = s.id ? nameOverrides?.[s.id] : undefined;
       out.push(
         <strong key={i}
           className={clickable ? "cursor-pointer hover:underline" : ""}
           onClick={clickable ? () => onChar!(s.id!) : undefined}
-          style={{ color: s.color }}>{s.v}</strong>
+          style={{ color: ov?.color ?? s.color }}>{ov?.name ?? s.v}</strong>
       );
     } else if (s.t === "item") {
       const clickable = onItem && s.id;
@@ -37,3 +43,4 @@ export function LogSegments({
   });
   return <span>{out}</span>;
 }
+
