@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
-import { totals, fmtMod, modifier, RARITY_COLOR, RARITY_LABEL, SLOTS, type Character, type Item, type Rarity } from "@/lib/game";
+import { totals, fmtMod, modifier, RARITY_COLOR, SLOTS, type Character, type Item, type Rarity } from "@/lib/game";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { NotesEditor } from "@/components/app/NotesEditor";
+import { useT } from "@/lib/i18n";
 import type { Booster } from "@/components/app/BoosterCard";
 
 type Props = {
@@ -20,6 +21,7 @@ type Props = {
 const ATTR_KEYS = [["fue","FUE"],["des","DES"],["con","CON"],["int_stat","INT"],["wis","SAB"],["car","CAR"]] as const;
 
 export function CharacterSheetModal({ characterId, campaignId, editor, onClose, onPickItem }: Props) {
+  const { t } = useT();
   const [character, setCharacter] = useState<Character | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [achievements, setAchievements] = useState<{id:string;label:string;color:string}[]>([]);
