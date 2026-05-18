@@ -180,7 +180,7 @@ function Home() {
       const banned = await checkBan(data.id);
       if (banned) {
         setJoinCode("");
-        await requestRejoin(data as Campaign);
+        setExpelledCampaign(data as Campaign);
         return;
       }
       await (supabase as any).from("campaign_members")
