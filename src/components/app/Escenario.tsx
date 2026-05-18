@@ -94,14 +94,17 @@ export function Escenario({ characters, onlineIds, logs, selfId, onOpenChar, onO
   );
 }
 
-function PlayerCard({ c, online, onClick, isSelf, t }: { c: any; online: boolean; onClick: () => void; isSelf?: boolean; t: (p: string) => string }) {
+function PlayerCard({ c, online, onClick, isSelf, t, speaking }: { c: any; online: boolean; onClick: () => void; isSelf?: boolean; t: (p: string) => string; speaking?: boolean }) {
   const max = c.max_hp || c.base_hp || 1;
   const pct = Math.max(0, Math.min(100, (c.current_hp / max) * 100));
   return (
     <button onClick={onClick}
-      className={`ornate-card !p-2 text-center transition hover:border-[var(--gold)]/70 ${online ? "" : "opacity-50 grayscale"}`}>
-      <div className="relative mx-auto w-14 h-14 rounded-full overflow-hidden border-2"
-        style={{ borderColor: c.color || "var(--gold)" }}>
+      className={`ornate-card !p-2 text-center transition hover:border-[var(--gold)]/70 ${online ? "" : "opacity-50 grayscale"} ${speaking ? "voice-speaking" : ""}`}>
+      <div className="relative mx-auto w-14 h-14 rounded-full overflow-hidden border-2 transition-shadow"
+        style={{
+          borderColor: speaking ? "var(--gain)" : (c.color || "var(--gold)"),
+          boxShadow: speaking ? "0 0 0 2px var(--gain), 0 0 14px var(--gain)" : undefined,
+        }}>
         {c.image_url
           ? <img src={c.image_url} alt={c.name} className="w-full h-full object-cover"
               style={{ transform: `translate(${((c.image_offset_x ?? 50) - 50)}%, ${((c.image_offset_y ?? 50) - 50)}%) scale(${c.image_scale || 1})` }} />
@@ -114,8 +117,8 @@ function PlayerCard({ c, online, onClick, isSelf, t }: { c: any; online: boolean
       <div className="h-1 rounded-full bg-secondary overflow-hidden mt-0.5">
         <div className="h-full" style={{ width: `${pct}%`, background: pct > 50 ? "var(--gain)" : pct > 25 ? "var(--gold)" : "var(--loss)" }} />
       </div>
-      <p className={`text-[9px] mt-1 ${online ? "text-[var(--gain)]" : "text-muted-foreground"}`}>
-        {isSelf && online ? <span className="inline-flex items-center gap-0.5">{t("escenario.activeNow")}<span className="animate-pulse">···</span></span> : online ? t("escenario.onlineShort") : t("escenario.offlineShort")}
+      <p className={`text-[9px] mt-1 ${speaking ? "text-[var(--gain)] font-semibold" : online ? "text-[var(--gain)]" : "text-muted-foreground"}`}>
+        {speaking ? "🎙️ Hablando" : isSelf && online ? <span className="inline-flex items-center gap-0.5">{t("escenario.activeNow")}<span className="animate-pulse">···</span></span> : online ? t("escenario.onlineShort") : t("escenario.offlineShort")}
       </p>
     </button>
   );
