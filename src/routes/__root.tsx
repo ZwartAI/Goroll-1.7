@@ -15,6 +15,7 @@ import { mountGlobalClickSound } from "@/lib/sound";
 import { useGlobalBackground } from "@/lib/background";
 import { AppShell } from "@/components/app/AppShell";
 import { ThemeProvider } from "@/lib/theme";
+import { I18nProvider } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
