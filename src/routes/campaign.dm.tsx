@@ -373,11 +373,12 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
       await supabase.from("characters").update({ coins: next }).eq("id", t.id);
       await pushLog(campaignId, [
         { t: "char", v: dm.name, color: dm.color, id: dm.id },
-        { t: "text", v: "envió" },
+        { t: "text", v: tr("dm.sentLog") },
         { t: "coins", v: `${coins}` },
-        { t: "text", v: "a" },
+        { t: "text", v: tr("dm.sentTo") },
         { t: "char", v: t.name, color: t.color, id: t.id },
       ], { kind: "character.update", id: t.id, prev });
+
       setCoins(10);
       return;
     }
