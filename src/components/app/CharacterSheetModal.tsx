@@ -207,7 +207,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
                 style={{ borderColor: RARITY_COLOR[it.rarity as Rarity] }}>
                 <button className="flex-1 text-left" onClick={() => onPickItem?.(it)}
                   style={{ color: RARITY_COLOR[it.rarity as Rarity] }}>
-                  {it.name} <span className="text-muted-foreground">· {SLOTS.find(s=>s.key===it.slot)?.label}</span>
+                  {it.name} <span className="text-muted-foreground">· {t(`slots.${it.slot}`)}</span>
                 </button>
                 {isEdit && <button className="text-[10px] underline opacity-70" onClick={() => unequip(it)}>{t("sheet.quit")}</button>}
               </div>
