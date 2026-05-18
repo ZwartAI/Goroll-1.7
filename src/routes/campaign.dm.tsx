@@ -246,8 +246,9 @@ function DM() {
                   <div className="flex-1">
                     <p className="font-display" style={{ color: RARITY_COLOR[b.rarity as Rarity] }}>🃏 {b.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {b.uses}/{b.max_uses} usos · {owner ? `📦 ${owner.name}` : "🏛️ Vault"}
+                      {t("dm.usesOwner", { uses: b.uses, max: b.max_uses, owner: owner ? `📦 ${owner.name}` : "🏛️ Vault" })}
                     </p>
+
                   </div>
                   <RarityBadge rarity={b.rarity as Rarity} />
                 </button>
