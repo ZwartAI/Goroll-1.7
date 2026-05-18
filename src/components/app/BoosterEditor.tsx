@@ -47,12 +47,13 @@ function MetaChips({
   extId, tipo, rarity,
 }: { extId?: string | null; tipo?: string | null; rarity: Rarity }) {
   const rarityColor = RARITY_COLOR[rarity];
+  const { t } = useT();
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
       {extId && (
         <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] border"
           style={{ borderColor: "color-mix(in oklab, var(--gold) 40%, transparent)", color: "var(--gold)" }}>
-          🏷️ ID: {extId}
+          {t("boosters.metaIdLabel")} {extId}
         </span>
       )}
       {tipo && (
@@ -62,7 +63,7 @@ function MetaChips({
             background: "color-mix(in oklab, oklch(0.55 0.20 295) 18%, transparent)",
             color: "oklch(0.85 0.15 295)",
           }}>
-          ⓘ Tipo: {tipo}
+          {t("boosters.metaTypeLabel")} {tipo}
         </span>
       )}
       <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] border font-display"
@@ -71,7 +72,7 @@ function MetaChips({
           background: `color-mix(in oklab, ${rarityColor} 18%, transparent)`,
           color: rarityColor,
         }}>
-        ✦ Rareza: {RARITY_LABEL[rarity]}
+        {t("boosters.metaRarityLabel")} {t(`rarities.${rarity}`)}
       </span>
     </div>
   );
