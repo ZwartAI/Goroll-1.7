@@ -8,6 +8,7 @@ import { LogSegments } from "@/components/app/LogSegments";
 import { LogList } from "@/components/app/LogList";
 import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
+import { BoosterPeek } from "@/components/app/BoosterEditor";
 import { Escenario } from "@/components/app/Escenario";
 import { useT } from "@/lib/i18n";
 
