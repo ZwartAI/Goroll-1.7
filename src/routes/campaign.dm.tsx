@@ -53,7 +53,7 @@ function DM() {
     return () => { (supabase as any).removeChannel(ch); };
   }, [campaign?.id]);
 
-  if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">Cargando...</p></PageFrame>;
+  if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("dm.loading")}</p></PageFrame>;
 
   const players = characters.filter(c => c.role === "player");
   const vault = items.filter(i => i.in_dm_vault || i.owner_character_id === character.id);
