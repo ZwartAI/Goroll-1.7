@@ -180,15 +180,19 @@ function Profile() {
                 <p className="font-display text-sm">{character.velocity}<span className="text-[9px]">ft</span></p>
               </div>
               <div className="ornate-card p-2 text-center">
-                <p className="text-[9px] uppercase text-muted-foreground">{t("profile.damage")}</p>
-                <p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p>
+                <p className="text-[9px] uppercase text-muted-foreground">{t("level.label")}</p>
+                <p className="font-display text-sm text-[var(--gold)]">{(character as any).level ?? 1}</p>
               </div>
-              <div className="ornate-card p-2 text-center col-span-2">
+              <div className="ornate-card p-2 text-center">
                 <p className="text-[9px] uppercase text-muted-foreground">{t("profile.coins")}</p>
                 <p className="font-display text-base text-[var(--gold)]">{character.coins}</p>
                 <div className="mt-1">
                   <CoinsAdjuster onApply={changeCoins} />
                 </div>
+              </div>
+              <div className="ornate-card p-2 text-center">
+                <p className="text-[9px] uppercase text-muted-foreground">{t("profile.damage")}</p>
+                <p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p>
               </div>
             </div>
           </div>
