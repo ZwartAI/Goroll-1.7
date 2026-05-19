@@ -58,6 +58,7 @@ function Spectator() {
       {tab === "escenario" && (
         <Escenario
           characters={characters}
+          items={items}
           onlineIds={onlineIds}
           logs={logs}
           selfId={null}
