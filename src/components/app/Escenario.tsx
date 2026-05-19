@@ -141,7 +141,8 @@ function PlayerCard({ c, maxHp, online, onClick, isSelf, t, speaking }: { c: any
   );
 }
 
-function OfflineRow({ c, onClick }: { c: any; onClick: () => void }) {
+function OfflineRow({ c, maxHp, onClick }: { c: any; maxHp?: number; onClick: () => void }) {
+  const max = maxHp ?? c.max_hp ?? c.base_hp ?? 1;
   return (
     <button onClick={onClick} className="ornate-card !p-2 flex items-center gap-2 opacity-60 hover:opacity-80 transition text-left">
       <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: c.color || "var(--gold)" }}>
@@ -153,7 +154,7 @@ function OfflineRow({ c, onClick }: { c: any; onClick: () => void }) {
         <p className="font-display text-xs truncate" style={{ color: c.color }}>{c.name}</p>
         <p className="text-[9px] text-muted-foreground truncate">{c.race || "—"} / {c.class || "—"}</p>
         <div className="h-1 rounded-full bg-secondary overflow-hidden mt-0.5">
-          <div className="h-full bg-muted-foreground/60" style={{ width: `${Math.max(0, Math.min(100, (c.current_hp / (c.max_hp || c.base_hp || 1)) * 100))}%` }} />
+          <div className="h-full bg-muted-foreground/60" style={{ width: `${Math.max(0, Math.min(100, (c.current_hp / max) * 100))}%` }} />
         </div>
       </div>
     </button>
