@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import { supabase } from "@/integrations/supabase/client";
+
 import { toast } from "sonner";
 import {
   Bold, Italic, Underline, Strikethrough,
@@ -46,11 +48,13 @@ export function NotesEditor({ characterId, characterName, characterColor, readOn
       const { data } = await (supabase as any).from("character_notes")
         .select("content").eq("character_id", characterId).maybeSingle();
       if (cancel) return;
-      const html = (data?.content as string) || "";
+      const raw = (data?.content as string) || "";
+      const html = DOMPurify.sanitize(raw, { USE_PROFILES: { html: true } });
       initialRef.current = html;
       if (ref.current) ref.current.innerHTML = html;
       setLoading(false);
     })();
+
     return () => { cancel = true; };
   }, [characterId]);
 
@@ -64,9 +68,10 @@ export function NotesEditor({ characterId, characterName, characterColor, readOn
   async function save() {
     if (!ref.current) return;
     setSaving(true);
-    const content = ref.current.innerHTML;
+    const content = DOMPurify.sanitize(ref.current.innerHTML, { USE_PROFILES: { html: true } });
     const { error } = await (supabase as any).from("character_notes")
       .upsert({ character_id: characterId, content, updated_at: new Date().toISOString() });
+
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     initialRef.current = content;

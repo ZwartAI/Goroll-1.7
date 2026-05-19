@@ -40,12 +40,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const u = getStoredUser();
     if (u) {
       (async () => {
-        const { data } = await (supabase as any).from("app_users").select("language").eq("id", u.id).maybeSingle();
-        const remote = data?.language as Lang | undefined;
-        if (remote === "es" || remote === "en") {
-          setLangState(remote);
-          try { localStorage.setItem(LS_KEY, remote); } catch {}
-        }
+        try {
+          const { getMyLanguage } = await import("@/lib/users.functions");
+          const { language } = await getMyLanguage({ data: { userId: u.id } });
+          const remote = language as Lang | undefined;
+          if (remote === "es" || remote === "en") {
+            setLangState(remote);
+            try { localStorage.setItem(LS_KEY, remote); } catch {}
+          }
+        } catch {}
       })();
     }
   }, []);
@@ -55,9 +58,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(LS_KEY, l); } catch {}
     const u = getStoredUser();
     if (u) {
-      (supabase as any).from("app_users").update({ language: l }).eq("id", u.id).then(() => {});
+      (async () => {
+        try {
+          const { setMyLanguage } = await import("@/lib/users.functions");
+          await setMyLanguage({ data: { userId: u.id, language: l } });
+        } catch {}
+      })();
     }
   }, []);
+
 
   const t = useCallback((path: string, vars?: Record<string, string | number>) => {
     const dict = DICTS[lang] ?? es;

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { PageFrame } from "@/components/app/Frame";
 import { getStoredUser, setStoredUser, type StoredUser } from "@/lib/game";
@@ -8,14 +9,20 @@ import { toastSaved } from "@/lib/saved";
 import { setGlobalBackground } from "@/lib/background";
 import { Trash2, LogIn, Image as ImageIcon, LogOut } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import {
+  listAppUsers, deleteAppUserById, listLoginAttempts,
+  clearAllBlocks, clearBlockByIp,
+} from "@/lib/master.functions";
+
 
 export const Route = createFileRoute("/master")({
   head: () => ({ meta: [{ title: "Panel Maestro" }] }),
   component: Master,
 });
 
-type AppUser = { id: string; username: string; pin: string; created_at: string };
+type AppUser = { id: string; username: string; created_at: string };
 type Attempt = { ip: string; username: string | null; failed_count: number; blocked_until: string | null; next_try_at: string | null };
+
 
 function Master() {
   const { t } = useT();
@@ -25,6 +32,12 @@ function Master() {
   const [bgUrl, setBgUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const callList = useServerFn(listAppUsers);
+  const callAttempts = useServerFn(listLoginAttempts);
+  const callDeleteUser = useServerFn(deleteAppUserById);
+  const callClearAll = useServerFn(clearAllBlocks);
+  const callClearIp = useServerFn(clearBlockByIp);
 
   useEffect(() => {
     const me = getStoredUser();
@@ -36,49 +49,54 @@ function Master() {
       const { data } = await (supabase as any).from("app_settings").select("value").eq("key", "background_url").maybeSingle();
       setBgUrl(data?.value || "");
     })();
-    const ch = (supabase as any)
-      .channel("master:login_attempts")
-      .on("postgres_changes", { event: "*", schema: "public", table: "login_attempts" }, () => reload())
-      .on("postgres_changes", { event: "*", schema: "public", table: "app_users" }, () => reload())
-      .subscribe();
-    return () => { (supabase as any).removeChannel(ch); };
+    // Poll periodically since these tables are no longer in realtime.
+    const id = setInterval(() => { reload(); }, 5000);
+    return () => { clearInterval(id); };
   }, []);
 
   async function reload() {
-    const { data: u } = await (supabase as any).from("app_users").select("*").order("created_at", { ascending: false });
-    setUsers((u || []) as AppUser[]);
-    const { data: a } = await (supabase as any).from("login_attempts").select("*");
-    setAttempts((a || []) as Attempt[]);
+    const me = getStoredUser();
+    if (!me) return;
+    try {
+      const u = await callList({ data: { callerUserId: me.id } });
+      setUsers((u.users || []) as AppUser[]);
+      const a = await callAttempts({ data: { callerUserId: me.id } });
+      setAttempts(((a.attempts || []) as unknown) as Attempt[]);
+    } catch (e: any) {
+      // Silently fail if not master (defense in depth).
+    }
   }
 
   async function deleteUser(u: AppUser) {
     if (u.username === "MasterAcc1000") return toast.error(t("master.cantDeleteMaster"));
     if (!confirm(t("master.deleteAccountConfirm", { name: u.username }))) return;
-    const { data: chars } = await (supabase as any).from("characters").select("id").eq("user_id", u.id);
-    const charIds = (chars || []).map((c: any) => c.id);
-    if (charIds.length) {
-      await (supabase as any).from("items").delete().in("owner_character_id", charIds);
-      await (supabase as any).from("achievements").delete().in("character_id", charIds);
-      await (supabase as any).from("character_conditions").delete().in("character_id", charIds);
-      await (supabase as any).from("characters").delete().in("id", charIds);
+    const me = getStoredUser(); if (!me) return;
+    try {
+      await callDeleteUser({ data: { callerUserId: me.id, userId: u.id } });
+      toast.success(t("master.accountDeleted", { name: u.username }));
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message || "Error");
     }
-    await (supabase as any).from("campaign_members").delete().eq("user_id", u.id);
-    await (supabase as any).from("campaigns").delete().eq("owner_user_id", u.id);
-    await (supabase as any).from("app_users").delete().eq("id", u.id);
-    toast.success(t("master.accountDeleted", { name: u.username }));
-    reload();
   }
 
   async function unblockAll() {
-    await (supabase as any).from("login_attempts").delete().not("ip", "is", null);
-    toastSaved(t("master.unblockedAll"));
-    reload();
+    const me = getStoredUser(); if (!me) return;
+    try {
+      await callClearAll({ data: { callerUserId: me.id } });
+      toastSaved(t("master.unblockedAll"));
+      reload();
+    } catch (e: any) { toast.error(e?.message || "Error"); }
   }
   async function unblockOne(ip: string) {
-    await (supabase as any).from("login_attempts").delete().eq("ip", ip);
-    toastSaved(t("master.ipUnblocked"));
-    reload();
+    const me = getStoredUser(); if (!me) return;
+    try {
+      await callClearIp({ data: { callerUserId: me.id, ip } });
+      toastSaved(t("master.ipUnblocked"));
+      reload();
+    } catch (e: any) { toast.error(e?.message || "Error"); }
   }
+
 
   function impersonate(u: AppUser) {
     const stored: StoredUser = { id: u.id, username: u.username };

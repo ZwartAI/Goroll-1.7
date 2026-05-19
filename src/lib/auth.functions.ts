@@ -113,10 +113,6 @@ export const attemptLogin = createServerFn({ method: "POST" })
     return { ok: true, user: { id: created.id, username: created.username, isMaster: false }, isNewAccount: true };
   });
 
-export const masterUnblock = createServerFn({ method: "POST" })
-  .inputValidator((d: { ip?: string; userId?: string }) => d)
-  .handler(async () => {
-    // Clear all blocks (simple admin action).
-    await supabaseAdmin.from("login_attempts" as any).delete().gte("created_at", "1970-01-01");
-    return { ok: true };
-  });
+// masterUnblock removed — use clearAllBlocks / clearBlockByIp from master.functions.ts
+// (those enforce master identity check server-side).
+

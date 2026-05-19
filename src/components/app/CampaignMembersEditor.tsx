@@ -35,11 +35,15 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
     setMembers(ms);
     const ids = ms.map(m => m.user_id);
     if (ids.length) {
-      const { data: us } = await (supabase as any).from("app_users").select("id,username").in("id", ids);
-      const map: Record<string, AppUser> = {};
-      (us || []).forEach((u: AppUser) => { map[u.id] = u; });
-      setUsers(map);
+      try {
+        const { getUsernamesByIds } = await import("@/lib/users.functions");
+        const { users: us } = await getUsernamesByIds({ data: { ids } });
+        const map: Record<string, AppUser> = {};
+        (us || []).forEach((u: AppUser) => { map[u.id] = u; });
+        setUsers(map);
+      } catch {}
     }
+
     const { data: rq } = await (supabase as any).from("dm_join_requests")
       .select("*").eq("campaign_id", campaign.id).eq("status", "pending")
       .order("created_at", { ascending: true });
