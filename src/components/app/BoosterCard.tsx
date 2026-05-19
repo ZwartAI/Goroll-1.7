@@ -18,6 +18,7 @@ export type Booster = {
   objetivos?: string | null;
   dados?: string | null;
   efecto?: string | null;
+  template_id?: string | null;
 };
 
 export function BoosterCard({ b, onClick }: { b: Booster; onClick?: () => void }) {

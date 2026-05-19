@@ -8,6 +8,7 @@ import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { NotesEditor } from "@/components/app/NotesEditor";
 import { useT } from "@/lib/i18n";
 import type { Booster } from "@/components/app/BoosterCard";
+import { BoosterPeek } from "@/components/app/BoosterEditor";
 
 type Props = {
   characterId: string;
@@ -28,6 +29,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [boosters, setBoosters] = useState<Booster[]>([]);
   const [showNotes, setShowNotes] = useState(false);
   const [vaultConfirm, setVaultConfirm] = useState<Booster | null>(null);
+  const [peekBooster, setPeekBooster] = useState<Booster | null>(null);
 
   async function reload() {
     const [a, b, c, d] = await Promise.all([
@@ -236,10 +238,10 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             {boosters.map(b => (
               <div key={b.id} className="flex items-center justify-between text-xs ornate-card px-2 py-1"
                 style={{ borderColor: RARITY_COLOR[b.rarity as Rarity] }}>
-                <div className="flex-1">
+                <button className="flex-1 text-left" onClick={() => setPeekBooster(b)}>
                   <span style={{ color: RARITY_COLOR[b.rarity as Rarity] }}>🃏 {b.name}</span>
                   <span className="text-muted-foreground"> · {b.uses}/{b.max_uses}</span>
-                </div>
+                </button>
                 {isEdit && (
                   <div className="flex gap-2">
                     <button className="text-[10px] underline opacity-70" onClick={() => setVaultConfirm(b)}>{t("sheet.toVault")}</button>
@@ -292,6 +294,16 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
               </div>
             </div>
           </div>
+        )}
+        {peekBooster && (
+          <BoosterPeek
+            boosterId={peekBooster.id}
+            campaignId={campaignId}
+            character={null}
+            players={[]}
+            hideDiscard
+            onClose={() => setPeekBooster(null)}
+          />
         )}
       </div>
     </div>

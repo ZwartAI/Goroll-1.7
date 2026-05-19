@@ -424,6 +424,13 @@ export const es = {
     remainingSuffix: "({n} restantes)",
     yieldedLog: "cedió el potenciador a {name}",
     rolledLog: "tiró el potenciador {detail}",
+    distributeCopies: "Repartir copias",
+    distributeHint: "Marca a los jugadores que recibirán una copia.",
+    distributeConfirm: "Enviar copias",
+    distributedLog: "repartió copias a {names}",
+    holders: "Lo tienen",
+    noHolders: "Nadie lo tiene aún.",
+    movedToVault: "🏛️ Mover al vault del DM",
   },
   slots: {
     casco: "Casco",

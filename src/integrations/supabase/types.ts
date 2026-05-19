@@ -128,6 +128,7 @@ export type Database = {
           objetivos: string | null
           owner_character_id: string | null
           rarity: Database["public"]["Enums"]["item_rarity"]
+          template_id: string
           tipo: string | null
           uses: number
         }
@@ -146,6 +147,7 @@ export type Database = {
           objetivos?: string | null
           owner_character_id?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
+          template_id: string
           tipo?: string | null
           uses?: number
         }
@@ -164,6 +166,7 @@ export type Database = {
           objetivos?: string | null
           owner_character_id?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
+          template_id?: string
           tipo?: string | null
           uses?: number
         }

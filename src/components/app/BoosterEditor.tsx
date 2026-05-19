@@ -192,6 +192,46 @@ const ROW_ACCENTS = {
   uses:     "oklch(0.78 0.14 330)",  // pink
 } as const;
 
+function BoosterHolders({ templateId, campaignId, excludeId }: { templateId?: string | null; campaignId: string; excludeId?: string }) {
+  const { t } = useT();
+  const [owners, setOwners] = useState<{ id: string; name: string; color: string }[]>([]);
+  useEffect(() => {
+    if (!templateId) return;
+    let live = true;
+    async function load() {
+      const { data: copies } = await (supabase as any)
+        .from("boosters")
+        .select("owner_character_id")
+        .eq("campaign_id", campaignId)
+        .eq("template_id", templateId)
+        .not("owner_character_id", "is", null);
+      const ids = Array.from(new Set(((copies || []) as any[]).map(r => r.owner_character_id).filter(Boolean)));
+      if (ids.length === 0) { if (live) setOwners([]); return; }
+      const { data: chars } = await supabase.from("characters").select("id,name,color").in("id", ids);
+      if (!live) return;
+      setOwners(((chars || []) as any[]).filter(c => c.id !== excludeId));
+    }
+    load();
+    const ch = (supabase as any).channel(`bx:holders:${templateId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "boosters", filter: `campaign_id=eq.${campaignId}` }, load)
+      .subscribe();
+    return () => { live = false; (supabase as any).removeChannel(ch); };
+  }, [templateId, campaignId, excludeId]);
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-[10px] uppercase tracking-widest text-muted-foreground mr-1">{t("boosters.holders")}:</span>
+      {owners.length === 0 && <span className="text-[10px] italic text-muted-foreground">{t("boosters.noHolders")}</span>}
+      {owners.map(o => (
+        <span key={o.id} className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]"
+          style={{ borderColor: o.color, color: o.color, background: `color-mix(in oklab, ${o.color} 12%, transparent)` }}>
+          <span className="w-2 h-2 rounded-full" style={{ background: o.color }} />
+          {o.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function BoosterDetails({ b }: { b: Booster }) {
   const color = RARITY_COLOR[b.rarity as Rarity];
   const { t } = useT();
@@ -230,6 +270,12 @@ function BoosterDetails({ b }: { b: Booster }) {
           </StatRow>
         </div>
       </SectionFrame>
+
+      {b.template_id && (
+        <SectionFrame icon="👥" title={t("boosters.holders")} color={color}>
+          <BoosterHolders templateId={b.template_id} campaignId={b.campaign_id} excludeId={b.owner_character_id || undefined} />
+        </SectionFrame>
+      )}
 
       {b.efecto && (
         <SectionFrame icon="✒️" title={t("boosters.effect")} color={color}>
@@ -299,22 +345,60 @@ export function BoosterEditor({
     onClose();
   }
 
-  async function transferDM(targetId: string) {
-    if (!booster || !targetId) return;
-    const goVault = targetId === "__vault__";
+  async function moveToVault() {
+    if (!booster) return;
     await (supabase as any).from("boosters").update({
-      owner_character_id: goVault ? null : targetId,
-      in_dm_vault: goVault,
+      owner_character_id: null,
+      in_dm_vault: true,
     }).eq("id", booster.id);
     if (dm) {
-      const target = (players || []).find(p => p.id === targetId);
       const { pushLog } = await import("@/lib/log");
       await pushLog(campaignId, [
         { t: "char", v: dm.name, color: dm.color, id: dm.id },
-        { t: "text", v: goVault ? t("boosters.savedToVault") : t("boosters.handed") },
+        { t: "text", v: t("boosters.savedToVault") },
         { t: "item", v: booster.name, rarity },
-        ...(target ? [{ t: "text", v: "→" } as const, { t: "char", v: target.name, color: target.color, id: target.id } as const] : []),
       ] as any);
+    }
+    toastSaved();
+    onClose();
+  }
+
+  async function distributeCopies(targetIds: string[]) {
+    if (!booster || targetIds.length === 0) return;
+    const templateId = (booster as any).template_id || booster.id;
+    const baseRow = {
+      campaign_id: campaignId,
+      template_id: templateId,
+      name: booster.name,
+      rarity: booster.rarity,
+      uses: booster.max_uses,
+      max_uses: booster.max_uses,
+      in_dm_vault: false,
+      external_id: booster.external_id ?? null,
+      tipo: booster.tipo ?? null,
+      modo_lanzamiento: booster.modo_lanzamiento ?? null,
+      distancia: booster.distancia ?? null,
+      objetivos: booster.objetivos ?? null,
+      dados: booster.dados ?? null,
+      efecto: booster.efecto ?? null,
+    };
+    const rows = targetIds.map(id => ({ ...baseRow, owner_character_id: id }));
+    const { error } = await (supabase as any).from("boosters").insert(rows);
+    if (error) { toast.error(error.message); return; }
+    if (dm) {
+      const targets = (players || []).filter(p => targetIds.includes(p.id));
+      const { pushLog } = await import("@/lib/log");
+      const segs: any[] = [
+        { t: "char", v: dm.name, color: dm.color, id: dm.id },
+        { t: "text", v: t("boosters.handed") },
+        { t: "item", v: booster.name, rarity },
+        { t: "text", v: "→" },
+      ];
+      targets.forEach((tgt, i) => {
+        if (i > 0) segs.push({ t: "text", v: "," });
+        segs.push({ t: "char", v: tgt.name, color: tgt.color, id: tgt.id });
+      });
+      await pushLog(campaignId, segs);
     }
     toastSaved();
     onClose();
@@ -424,25 +508,12 @@ export function BoosterEditor({
       <button className="text-sm text-muted-foreground underline w-full" onClick={onClose}>{t("boosters.close")}</button>
 
       {showTransferPick && (
-        <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4"
-          onClick={() => setShowTransferPick(false)}>
-          <div className="ornate-card bg-card max-w-sm w-full p-4 space-y-2" onClick={e => e.stopPropagation()}>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground text-center">{t("boosters.transferOption")}</p>
-            <button className="btn-fantasy w-full text-left"
-              onClick={() => { setShowTransferPick(false); transferDM("__vault__"); }}>
-              {t("boosters.dmVault")}
-            </button>
-            {(players || []).map(p => (
-              <button key={p.id} className="btn-fantasy w-full text-left"
-                style={{ color: p.color }}
-                onClick={() => { setShowTransferPick(false); transferDM(p.id); }}>
-                {p.name}
-              </button>
-            ))}
-            <button className="text-xs text-muted-foreground underline w-full pt-1"
-              onClick={() => setShowTransferPick(false)}>{t("boosters.cancel")}</button>
-          </div>
-        </div>
+        <TransferPickModal
+          players={players || []}
+          onClose={() => setShowTransferPick(false)}
+          onDistribute={(ids) => { setShowTransferPick(false); distributeCopies(ids); }}
+          onSendToVault={() => { setShowTransferPick(false); moveToVault(); }}
+        />
       )}
 
 
@@ -457,6 +528,61 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: "var(--gold)" }}>{label}</span>
       {children}
     </label>
+  );
+}
+
+function TransferPickModal({
+  players, onClose, onDistribute, onSendToVault,
+}: {
+  players: Character[];
+  onClose: () => void;
+  onDistribute: (ids: string[]) => void;
+  onSendToVault: () => void;
+}) {
+  const { t } = useT();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  function toggle(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="ornate-card bg-card max-w-sm w-full p-4 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground text-center">{t("boosters.distributeCopies")}</p>
+        <p className="text-[11px] text-muted-foreground text-center">{t("boosters.distributeHint")}</p>
+        {players.length === 0 && <p className="text-center text-xs text-muted-foreground py-3">—</p>}
+        <div className="space-y-1.5">
+          {players.map(p => {
+            const checked = selected.has(p.id);
+            return (
+              <button key={p.id} type="button" onClick={() => toggle(p.id)}
+                className="w-full flex items-center gap-3 ornate-card px-3 py-2 text-left"
+                style={{ borderColor: checked ? p.color : undefined, background: checked ? `color-mix(in oklab, ${p.color} 14%, transparent)` : undefined }}>
+                <span className="w-5 h-5 rounded border flex items-center justify-center text-[12px] font-bold"
+                  style={{ borderColor: p.color, color: p.color, background: checked ? p.color : "transparent" }}>
+                  {checked ? <span style={{ color: "white" }}>✓</span> : null}
+                </span>
+                <span className="w-3 h-3 rounded-full" style={{ background: p.color }} />
+                <span className="flex-1 truncate" style={{ color: p.color }}>{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn-fantasy w-full"
+          style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+          disabled={selected.size === 0}
+          onClick={() => onDistribute(Array.from(selected))}>
+          {t("boosters.distributeConfirm")} ({selected.size})
+        </button>
+        <button className="btn-fantasy w-full text-left" onClick={onSendToVault}>
+          {t("boosters.movedToVault")}
+        </button>
+        <button className="text-xs text-muted-foreground underline w-full pt-1" onClick={onClose}>{t("boosters.cancel")}</button>
+      </div>
+    </div>
   );
 }
 
@@ -516,9 +642,8 @@ export function BoosterActions({
     if (!character) return;
     const remaining = booster.uses - 1;
     if (remaining <= 0) {
-      await (supabase as any).from("boosters").update({
-        uses: booster.max_uses, owner_character_id: null, in_dm_vault: true,
-      }).eq("id", booster.id);
+      // Final use: remove this copy from the player's vault.
+      await (supabase as any).from("boosters").delete().eq("id", booster.id);
       await pushBoosterLog(character, t("boosters.usedBoosterLog"), t("boosters.lastSuffix"));
     } else {
       await (supabase as any).from("boosters").update({ uses: remaining }).eq("id", booster.id);
