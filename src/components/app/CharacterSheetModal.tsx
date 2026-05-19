@@ -27,6 +27,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [achievements, setAchievements] = useState<{id:string;label:string;color:string}[]>([]);
   const [boosters, setBoosters] = useState<Booster[]>([]);
   const [showNotes, setShowNotes] = useState(false);
+  const [vaultConfirm, setVaultConfirm] = useState<Booster | null>(null);
 
   async function reload() {
     const [a, b, c, d] = await Promise.all([
