@@ -117,13 +117,16 @@ export function useGlobalBackground() {
   return url;
 }
 
+import { setAppBackground } from "@/lib/master.functions";
+import { getStoredUser } from "@/lib/game";
+
 export async function setGlobalBackground(url: string) {
-  await (supabase as any).from("app_settings").upsert(
-    { key: KEY, value: url },
-    { onConflict: "key" },
-  );
+  const me = getStoredUser();
+  if (!me) throw new Error("Not signed in");
+  await setAppBackground({ data: { callerUserId: me.id, url } });
   try {
     if (url) window.localStorage.setItem(CACHE_KEY, url);
     else window.localStorage.removeItem(CACHE_KEY);
   } catch {}
 }
+
