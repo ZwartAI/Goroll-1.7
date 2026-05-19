@@ -295,6 +295,16 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             </div>
           </div>
         )}
+        {peekBooster && (
+          <BoosterPeek
+            boosterId={peekBooster.id}
+            campaignId={campaignId}
+            character={null}
+            players={[]}
+            hideDiscard
+            onClose={() => setPeekBooster(null)}
+          />
+        )}
       </div>
     </div>
   );
