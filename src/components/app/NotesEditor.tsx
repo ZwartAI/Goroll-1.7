@@ -68,9 +68,10 @@ export function NotesEditor({ characterId, characterName, characterColor, readOn
   async function save() {
     if (!ref.current) return;
     setSaving(true);
-    const content = ref.current.innerHTML;
+    const content = DOMPurify.sanitize(ref.current.innerHTML, { USE_PROFILES: { html: true } });
     const { error } = await (supabase as any).from("character_notes")
       .upsert({ character_id: characterId, content, updated_at: new Date().toISOString() });
+
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     initialRef.current = content;
