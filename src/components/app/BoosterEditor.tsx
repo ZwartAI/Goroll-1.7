@@ -531,6 +531,61 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function TransferPickModal({
+  players, onClose, onDistribute, onSendToVault,
+}: {
+  players: Character[];
+  onClose: () => void;
+  onDistribute: (ids: string[]) => void;
+  onSendToVault: () => void;
+}) {
+  const { t } = useT();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  function toggle(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  return (
+    <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="ornate-card bg-card max-w-sm w-full p-4 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <p className="text-xs uppercase tracking-widest text-muted-foreground text-center">{t("boosters.distributeCopies")}</p>
+        <p className="text-[11px] text-muted-foreground text-center">{t("boosters.distributeHint")}</p>
+        {players.length === 0 && <p className="text-center text-xs text-muted-foreground py-3">—</p>}
+        <div className="space-y-1.5">
+          {players.map(p => {
+            const checked = selected.has(p.id);
+            return (
+              <button key={p.id} type="button" onClick={() => toggle(p.id)}
+                className="w-full flex items-center gap-3 ornate-card px-3 py-2 text-left"
+                style={{ borderColor: checked ? p.color : undefined, background: checked ? `color-mix(in oklab, ${p.color} 14%, transparent)` : undefined }}>
+                <span className="w-5 h-5 rounded border flex items-center justify-center text-[12px] font-bold"
+                  style={{ borderColor: p.color, color: p.color, background: checked ? p.color : "transparent" }}>
+                  {checked ? <span style={{ color: "white" }}>✓</span> : null}
+                </span>
+                <span className="w-3 h-3 rounded-full" style={{ background: p.color }} />
+                <span className="flex-1 truncate" style={{ color: p.color }}>{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn-fantasy w-full"
+          style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+          disabled={selected.size === 0}
+          onClick={() => onDistribute(Array.from(selected))}>
+          {t("boosters.distributeConfirm")} ({selected.size})
+        </button>
+        <button className="btn-fantasy w-full text-left" onClick={onSendToVault}>
+          {t("boosters.movedToVault")}
+        </button>
+        <button className="text-xs text-muted-foreground underline w-full pt-1" onClick={onClose}>{t("boosters.cancel")}</button>
+      </div>
+    </div>
+  );
+}
+
 /* ───────────────── Player / Spectator action sheet ───────────────── */
 
 export function BoosterActions({
