@@ -447,7 +447,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /* ───────────────── Player / Spectator action sheet ───────────────── */
 
 export function BoosterActions({
-  booster, character, campaignId, players, dm, readOnly, onClose, onEdit,
+  booster, character, campaignId, players, dm, readOnly, hideDiscard, onClose, onEdit,
 }: {
   booster: Booster;
   character?: Character | null;
@@ -455,9 +455,11 @@ export function BoosterActions({
   players: Character[];
   dm?: { id: string; name: string; color: string } | null;
   readOnly?: boolean;
+  hideDiscard?: boolean;
   onClose: () => void;
   onEdit?: () => void;
 }) {
+
   const [confirmUse, setConfirmUse] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [members, setMembers] = useState<Character[]>(players);
