@@ -15,6 +15,7 @@ import { DMConditionsCreator } from "@/components/app/ConditionsPanel";
 import { BoosterEditor } from "@/components/app/BoosterEditor";
 import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
+import { SkillsManager } from "@/components/app/SkillsManager";
 import { Escenario } from "@/components/app/Escenario";
 import { MicToggle } from "@/components/app/MicToggle";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
@@ -30,7 +31,7 @@ function DM() {
   const { character, characters, items, logs, campaign, onlineIds, loading, dmLabels, dmCharacterIds } = useGameData();
 
   const nav = useNavigate();
-  const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "escenario">("log");
+  const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "skills" | "escenario">("log");
   const [selItem, setSelItem] = useState<Item | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [openChar, setOpenChar] = useState<string | null>(null);
@@ -111,9 +112,9 @@ function DM() {
       </header>
       <div className="gem-divider mb-4"/>
 
-      <div className="grid grid-cols-5 gap-1 mb-4">
+      <div className="grid grid-cols-6 gap-1 mb-4">
         {([
-          ["log", t("dm.tabLog")],["create", t("dm.tabCreate")],["vault", t("dm.tabVault")],["boosters", t("dm.tabBoosters")],["escenario", t("dm.tabScene")],
+          ["log", t("dm.tabLog")],["create", t("dm.tabCreate")],["vault", t("dm.tabVault")],["boosters", t("dm.tabBoosters")],["skills", t("skills.title")],["escenario", t("dm.tabScene")],
         ] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k as any)}
             className={`text-[10px] py-2 rounded-md font-display ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}>
@@ -392,6 +393,10 @@ function DM() {
         </div>
         );
       })()}
+
+      {tab === "skills" && (
+        <SkillsManager campaignId={campaign.id} dm={dmCtx} players={players} onlineIds={onlineIds} />
+      )}
 
       {tab === "escenario" && (
         <>

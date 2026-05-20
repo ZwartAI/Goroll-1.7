@@ -265,10 +265,14 @@ function Profile() {
               <Trophy size={14} /><span>{t("profile.quickAch")}</span>
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
             <Link to="/campaign/boosters" className="btn-fantasy flex items-center justify-center gap-1.5"
               style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
               <Sparkles size={14} /><span>{t("profile.quickBoost")}</span>
+            </Link>
+            <Link to="/campaign/skills" className="btn-fantasy flex items-center justify-center gap-1.5"
+              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
+              <Sparkles size={14} /><span>{t("skills.title")}</span>
             </Link>
             <Link to="/campaign/notes" className="btn-fantasy flex items-center justify-center gap-1.5"
               style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
