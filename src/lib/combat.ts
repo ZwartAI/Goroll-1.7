@@ -234,7 +234,7 @@ export async function dmShiftTurn(
 ) {
   if (encounter.status !== "active" || blocks.length === 0) return { ok: false };
   const next = ((encounter.current_turn_index + delta) % blocks.length + blocks.length) % blocks.length;
-  // Wrap-around forward → reset has_ended_turn for everyone (new round).
+  // Wrap-around forward → reset has_ended_turn for everyone (new round) and bump round_number.
   const wrapped = delta === 1 && encounter.current_turn_index + 1 >= blocks.length;
   if (wrapped) {
     await supabase.from("combat_participants" as any)
@@ -243,10 +243,16 @@ export async function dmShiftTurn(
   }
   await supabase
     .from("combat_encounters" as any)
-    .update({ current_turn_index: next })
+    .update({
+      current_turn_index: next,
+      ...(wrapped ? { round_number: (encounter.round_number || 1) + 1 } : {}),
+    })
     .eq("id", encounter.id);
+
+  // If we landed on an enemy block via DM advance, log its turn end implicitly when shifting away.
   return { ok: true };
 }
+
 
 // ─────────────────────── Player actions ───────────────────────────
 
