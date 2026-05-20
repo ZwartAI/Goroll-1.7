@@ -107,6 +107,15 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
   );
 }
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 border-b border-border/60 pb-1">{title}</p>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
 function SkillList({ skills, onPick }: { skills: CharacterSkill[]; onPick: (s: CharacterSkill) => void }) {
   const { t } = useT();
   if (!skills.length) return <p className="text-center text-xs text-muted-foreground py-4">{t("skills.charHasNone")}</p>;
@@ -373,13 +382,6 @@ function ManualCreate({ campaignId, target, dm, players, onDone }: {
     }
   }
 
-  // Section wrapper
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="space-y-2">
-      <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 border-b border-border/60 pb-1">{title}</p>
-      <div className="space-y-2">{children}</div>
-    </div>
-  );
 
   return (
     <div className="ornate-card p-3 space-y-2" style={{ borderColor: "color-mix(in oklab, var(--gold) 55%, var(--rarity-purple))" }}>
