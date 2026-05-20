@@ -17,6 +17,7 @@ import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
 import { SkillsManager } from "@/components/app/SkillsManager";
 import { Escenario } from "@/components/app/Escenario";
+import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicToggle } from "@/components/app/MicToggle";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { useVoice } from "@/lib/useVoice";
