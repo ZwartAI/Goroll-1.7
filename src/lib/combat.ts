@@ -384,3 +384,277 @@ export async function passTurn(
   }
   return { ok: true };
 }
+
+// ─────────────────────── Enemy actions (DM) ───────────────────────────
+
+export type EnemyDraft = {
+  name: string;
+  icon: string;
+  color: string;
+  initiative: number;
+  max_hp: number;
+  current_hp: number;
+  defense: number;
+  speed: string;
+  notes: string;
+};
+
+export type InsertPosition = "byInitiative" | "afterCurrent" | "end";
+
+export function clampHp(n: number, max: number) {
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(Math.floor(n), Math.floor(max)));
+}
+
+async function nextOrderIndex(encounterId: string): Promise<number> {
+  const { data } = await (supabase as any)
+    .from("combat_participants")
+    .select("order_index")
+    .eq("encounter_id", encounterId)
+    .order("order_index", { ascending: false })
+    .limit(1);
+  const max = data && data[0] ? Number(data[0].order_index) : -1;
+  return max + 1;
+}
+
+async function nextInstanceNumber(encounterId: string, baseName: string): Promise<number> {
+  const { data } = await (supabase as any)
+    .from("combat_participants")
+    .select("enemy_instance_number,enemy_name")
+    .eq("encounter_id", encounterId)
+    .eq("enemy_name", baseName);
+  const max = (data || []).reduce((acc: number, r: any) => Math.max(acc, Number(r.enemy_instance_number || 0)), 0);
+  return max + 1;
+}
+
+export async function addEnemies(
+  encounter: CombatEncounter,
+  draft: EnemyDraft,
+  count: number,
+  position: InsertPosition,
+  dm: { id: string; name: string; color: string },
+) {
+  if (encounter.status === "ended") return { ok: false, error: "ended" };
+  const name = (draft.name || "").trim();
+  if (!name) return { ok: false, error: "no_name" };
+  const max_hp = Math.max(1, Math.floor(draft.max_hp || 1));
+  const current_hp = clampHp(draft.current_hp ?? max_hp, max_hp);
+  const defense = Math.max(0, Math.floor(draft.defense || 0));
+  const initiative = clampInitiative(draft.initiative || 1);
+  const qty = Math.max(1, Math.min(20, Math.floor(count || 1)));
+
+  let baseOrder = await nextOrderIndex(encounter.id);
+  if (position === "afterCurrent" && encounter.status === "active") {
+    baseOrder = encounter.current_turn_index + 1;
+  }
+  // For byInitiative we just append; buildOrderedTurns sorts by initiative anyway.
+
+  const rows: any[] = [];
+  for (let i = 0; i < qty; i++) {
+    const instance = await nextInstanceNumber(encounter.id, name) + i;
+    rows.push({
+      encounter_id: encounter.id,
+      campaign_id: encounter.campaign_id,
+      character_id: null,
+      participant_type: "enemy",
+      display_name: qty > 1 ? `${name} ${instance}` : name,
+      image_url: null,
+      color: draft.color || null,
+      initiative,
+      order_index: baseOrder + i,
+      enemy_name: name,
+      enemy_icon: draft.icon || "skull",
+      enemy_color: draft.color || null,
+      enemy_hp: current_hp,
+      enemy_max_hp: max_hp,
+      enemy_defense: defense,
+      enemy_speed: draft.speed || null,
+      enemy_notes: draft.notes || null,
+      enemy_instance_number: instance,
+      is_enemy_visible: true,
+      is_defeated: current_hp <= 0,
+    });
+  }
+  const { error } = await (supabase as any).from("combat_participants").insert(rows);
+  if (error) return { ok: false, error: error.message };
+
+  await pushLog(encounter.campaign_id, [
+    { t: "char", v: dm.name, color: dm.color, id: dm.id },
+    { t: "text", v: qty > 1 ? ` añadió ${qty} enemigos al combate: ${name}.` : ` añadió enemigo al combate: ${name}.` },
+  ]);
+  return { ok: true };
+}
+
+export async function updateEnemy(participant: CombatParticipant, patch: Partial<EnemyDraft>) {
+  if (!isEnemy(participant)) return { ok: false };
+  const upd: any = {};
+  if (patch.name !== undefined) {
+    upd.enemy_name = patch.name.trim();
+    upd.display_name = participant.enemy_instance_number && participant.enemy_instance_number > 1
+      ? `${patch.name.trim()} ${participant.enemy_instance_number}`
+      : patch.name.trim();
+  }
+  if (patch.icon !== undefined) upd.enemy_icon = patch.icon;
+  if (patch.color !== undefined) { upd.enemy_color = patch.color; upd.color = patch.color; }
+  if (patch.initiative !== undefined) upd.initiative = clampInitiative(patch.initiative);
+  if (patch.max_hp !== undefined) upd.enemy_max_hp = Math.max(1, Math.floor(patch.max_hp));
+  if (patch.current_hp !== undefined) {
+    const max = upd.enemy_max_hp ?? participant.enemy_max_hp ?? 1;
+    upd.enemy_hp = clampHp(patch.current_hp, max);
+    upd.is_defeated = upd.enemy_hp <= 0;
+  }
+  if (patch.defense !== undefined) upd.enemy_defense = Math.max(0, Math.floor(patch.defense));
+  if (patch.speed !== undefined) upd.enemy_speed = patch.speed;
+  if (patch.notes !== undefined) upd.enemy_notes = patch.notes;
+  const { error } = await (supabase as any).from("combat_participants").update(upd).eq("id", participant.id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function applyEnemyDamage(
+  participant: CombatParticipant,
+  raw: number,
+  opts: { useDefense: boolean },
+) {
+  if (!isEnemy(participant)) return { ok: false, applied: 0 };
+  const def = participant.enemy_defense || 0;
+  const applied = Math.max(0, Math.floor(raw) - (opts.useDefense ? def : 0));
+  const max = participant.enemy_max_hp || 1;
+  const newHp = clampHp((participant.enemy_hp || 0) - applied, max);
+  const becameDefeated = newHp <= 0 && !participant.is_defeated;
+  await (supabase as any).from("combat_participants")
+    .update({ enemy_hp: newHp, is_defeated: newHp <= 0 })
+    .eq("id", participant.id);
+  if (becameDefeated) {
+    await pushLog(participant.campaign_id, [
+      { t: "text", v: `${participant.display_name} fue derrotado.` },
+    ]);
+  }
+  return { ok: true, applied };
+}
+
+export async function healEnemy(participant: CombatParticipant, amount: number) {
+  if (!isEnemy(participant)) return { ok: false };
+  const max = participant.enemy_max_hp || 1;
+  const newHp = clampHp((participant.enemy_hp || 0) + Math.floor(amount), max);
+  await (supabase as any).from("combat_participants")
+    .update({ enemy_hp: newHp, is_defeated: newHp <= 0 })
+    .eq("id", participant.id);
+  return { ok: true };
+}
+
+export async function duplicateEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
+  if (!isEnemy(participant)) return { ok: false };
+  const baseName = participant.enemy_name || participant.display_name;
+  const instance = await nextInstanceNumber(encounter.id, baseName);
+  const order = await nextOrderIndex(encounter.id);
+  const { error } = await (supabase as any).from("combat_participants").insert({
+    encounter_id: encounter.id,
+    campaign_id: encounter.campaign_id,
+    character_id: null,
+    participant_type: "enemy",
+    display_name: `${baseName} ${instance}`,
+    image_url: null,
+    color: participant.enemy_color || null,
+    initiative: participant.initiative,
+    order_index: order,
+    enemy_name: baseName,
+    enemy_icon: participant.enemy_icon,
+    enemy_color: participant.enemy_color,
+    enemy_hp: participant.enemy_max_hp,
+    enemy_max_hp: participant.enemy_max_hp,
+    enemy_defense: participant.enemy_defense || 0,
+    enemy_speed: participant.enemy_speed,
+    enemy_notes: participant.enemy_notes,
+    enemy_instance_number: instance,
+    is_enemy_visible: true,
+    is_defeated: false,
+  });
+  if (error) return { ok: false, error: error.message };
+  await pushLog(encounter.campaign_id, [
+    { t: "char", v: dm.name, color: dm.color, id: dm.id },
+    { t: "text", v: ` duplicó enemigo: ${baseName}.` },
+  ]);
+  return { ok: true };
+}
+
+export async function removeEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
+  if (!isEnemy(participant)) return { ok: false };
+  const { error } = await (supabase as any).from("combat_participants").delete().eq("id", participant.id);
+  if (error) return { ok: false, error: error.message };
+  // If the removed participant was before/at the current turn, adjust current_turn_index.
+  if (encounter.status === "active") {
+    const removedOrder = participant.order_index;
+    if (removedOrder <= encounter.current_turn_index && encounter.current_turn_index > 0) {
+      await (supabase as any).from("combat_encounters")
+        .update({ current_turn_index: encounter.current_turn_index - 1 })
+        .eq("id", encounter.id);
+    }
+  }
+  await pushLog(encounter.campaign_id, [
+    { t: "char", v: dm.name, color: dm.color, id: dm.id },
+    { t: "text", v: ` eliminó enemigo: ${participant.display_name}.` },
+  ]);
+  return { ok: true };
+}
+
+export async function moveParticipant(
+  encounter: CombatEncounter,
+  blocks: TurnBlock[],
+  blockKey: string,
+  direction: "up" | "down" | "first" | "last",
+) {
+  if (encounter.status === "ended") return { ok: false };
+  const idx = blocks.findIndex(b => b.key === blockKey);
+  if (idx < 0) return { ok: false };
+  let target = idx;
+  if (direction === "up") target = Math.max(0, idx - 1);
+  else if (direction === "down") target = Math.min(blocks.length - 1, idx + 1);
+  else if (direction === "first") target = 0;
+  else target = blocks.length - 1;
+  if (target === idx) return { ok: true };
+
+  const reordered = [...blocks];
+  const [moved] = reordered.splice(idx, 1);
+  reordered.splice(target, 0, moved);
+
+  // Reassign order_index sequentially across all participants.
+  let order = 0;
+  for (const b of reordered) {
+    if (b.kind === "solo") {
+      await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", b.participant.id);
+    } else {
+      for (const m of b.members) {
+        await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", m.id);
+      }
+    }
+    order++;
+  }
+
+  if (encounter.status === "active") {
+    // Keep current turn pointing at the same block.
+    let newCurrent = encounter.current_turn_index;
+    if (idx === encounter.current_turn_index) newCurrent = target;
+    else if (idx < encounter.current_turn_index && target >= encounter.current_turn_index) newCurrent--;
+    else if (idx > encounter.current_turn_index && target <= encounter.current_turn_index) newCurrent++;
+    if (newCurrent !== encounter.current_turn_index) {
+      await (supabase as any).from("combat_encounters")
+        .update({ current_turn_index: newCurrent })
+        .eq("id", encounter.id);
+    }
+  }
+  return { ok: true };
+}
+
+export async function dmEndEnemyTurn(
+  encounter: CombatEncounter,
+  blocks: TurnBlock[],
+) {
+  const block = activeBlock(encounter, blocks);
+  if (!block || block.kind !== "solo" || !isEnemy(block.participant)) return { ok: false };
+  await pushLog(encounter.campaign_id, [
+    { t: "text", v: `${block.participant.display_name} terminó su turno.` },
+  ]);
+  return dmShiftTurn(encounter, blocks, 1);
+}
+
