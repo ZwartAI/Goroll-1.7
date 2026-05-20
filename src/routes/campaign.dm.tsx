@@ -112,9 +112,9 @@ function DM() {
       </header>
       <div className="gem-divider mb-4"/>
 
-      <div className="grid grid-cols-5 gap-1 mb-4">
+      <div className="grid grid-cols-6 gap-1 mb-4">
         {([
-          ["log", t("dm.tabLog")],["create", t("dm.tabCreate")],["vault", t("dm.tabVault")],["boosters", t("dm.tabBoosters")],["escenario", t("dm.tabScene")],
+          ["log", t("dm.tabLog")],["create", t("dm.tabCreate")],["vault", t("dm.tabVault")],["boosters", t("dm.tabBoosters")],["skills", t("skills.title")],["escenario", t("dm.tabScene")],
         ] as const).map(([k, l]) => (
           <button key={k} onClick={() => setTab(k as any)}
             className={`text-[10px] py-2 rounded-md font-display ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}>
