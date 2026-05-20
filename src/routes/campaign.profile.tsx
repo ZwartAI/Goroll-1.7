@@ -28,7 +28,7 @@ export const Route = createFileRoute("/campaign/profile")({
 });
 
 function Profile() {
-  const { campaign, character, characters, items, logs, onlineIds, loading } = useGameData();
+  const { campaign, character, characters, items, logs, onlineIds, loading, combat } = useGameData();
   const nav = useNavigate();
   const { t } = useT();
   const [imgModal, setImgModal] = useState(false);
