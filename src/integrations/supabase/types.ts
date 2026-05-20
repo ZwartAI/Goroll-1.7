@@ -358,6 +358,72 @@ export type Database = {
         }
         Relationships: []
       }
+      character_skills: {
+        Row: {
+          campaign_id: string
+          character_id: string
+          cost: number
+          created_at: string
+          dice: string | null
+          effect: string | null
+          id: string
+          imported_row_index: number | null
+          is_unlocked: boolean
+          name: string
+          name_key: string
+          order_index: number
+          range_targets: string | null
+          rarity: Database["public"]["Enums"]["item_rarity"]
+          source: string
+          type: string | null
+          unlocked_at: string | null
+          updated_at: string
+          visual_brief: string | null
+        }
+        Insert: {
+          campaign_id: string
+          character_id: string
+          cost?: number
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          id?: string
+          imported_row_index?: number | null
+          is_unlocked?: boolean
+          name: string
+          name_key: string
+          order_index?: number
+          range_targets?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          source?: string
+          type?: string | null
+          unlocked_at?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          character_id?: string
+          cost?: number
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          id?: string
+          imported_row_index?: number | null
+          is_unlocked?: boolean
+          name?: string
+          name_key?: string
+          order_index?: number
+          range_targets?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          source?: string
+          type?: string | null
+          unlocked_at?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Relationships: []
+      }
       characters: {
         Row: {
           backpack_slots: number
@@ -385,6 +451,7 @@ export type Database = {
           name: string
           race: string | null
           role: Database["public"]["Enums"]["character_role"]
+          skill_points: number
           user_id: string | null
           velocity: number
           wis: number
@@ -415,6 +482,7 @@ export type Database = {
           name: string
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
+          skill_points?: number
           user_id?: string | null
           velocity?: number
           wis?: number
@@ -445,6 +513,7 @@ export type Database = {
           name?: string
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
+          skill_points?: number
           user_id?: string | null
           velocity?: number
           wis?: number
