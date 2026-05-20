@@ -127,6 +127,16 @@ function DM() {
 
       {tab === "log" && (
         <>
+          <div className="mb-3">
+            <CombatDMPanel
+              campaignId={campaign.id}
+              dm={dmCtx}
+              encounter={combat.encounter}
+              participants={combat.participants}
+              groups={combat.groups}
+            />
+          </div>
+
           <button
             className="btn-fantasy w-full text-xs mb-2"
             style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
