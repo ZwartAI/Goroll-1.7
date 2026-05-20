@@ -99,12 +99,16 @@ export function buildOrderedTurns(
   }
   blocks.sort((a, b) => {
     if (b.initiative !== a.initiative) return b.initiative - a.initiative;
+    const ao = a.kind === "solo" ? a.participant.order_index : Math.min(...a.members.map(m => m.order_index));
+    const bo = b.kind === "solo" ? b.participant.order_index : Math.min(...b.members.map(m => m.order_index));
+    if (ao !== bo) return ao - bo;
     const ak = a.kind === "solo" ? a.participant.created_at : a.group.created_at;
     const bk = b.kind === "solo" ? b.participant.created_at : b.group.created_at;
     return ak.localeCompare(bk);
   });
   return blocks;
 }
+
 
 export function activeBlock(encounter: CombatEncounter | null, blocks: TurnBlock[]): TurnBlock | null {
   if (!encounter || encounter.status !== "active" || blocks.length === 0) return null;
