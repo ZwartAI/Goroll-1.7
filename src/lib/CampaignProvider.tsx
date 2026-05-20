@@ -200,7 +200,7 @@ export function useGameData(): GameData {
   if (v) return v;
   return {
     campaign: null, character: null, characters: [], items: [], logs: [], achievements: [],
-    loading: true, onlineIds: new Set(), dmLabels: {}, dmCharacterIds: new Set(), reload: async () => {},
+    loading: true, onlineIds: new Set(), dmLabels: {}, dmCharacterIds: new Set(), combat: { encounter: null, participants: [], groups: [] }, reload: async () => {},
   };
 }
 
