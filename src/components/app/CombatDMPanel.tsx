@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Swords, Flag, Play, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Swords, Flag, Play, ChevronLeft, ChevronRight, X, Plus } from "lucide-react";
 import {
   buildOrderedTurns,
   cancelInitiative,
@@ -13,6 +14,8 @@ import {
   type CombatTurnGroup,
 } from "@/lib/combat";
 import { CombatList } from "@/components/app/CombatList";
+import { EnemyEditorModal } from "@/components/app/EnemyEditorModal";
+import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 
 type Props = {
   campaignId: string;
@@ -25,6 +28,9 @@ type Props = {
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups }: Props) {
   const { t } = useT();
   const status = encounter?.status ?? null;
+  const [addingEnemy, setAddingEnemy] = useState(false);
+
+  const canAddEnemy = encounter && status !== "ended";
 
   return (
     <div className="ornate-card p-3 space-y-2">
@@ -44,10 +50,19 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
         </button>
       )}
 
+      {canAddEnemy && (
+        <button className="btn-fantasy w-full text-xs"
+          style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
+          onClick={() => setAddingEnemy(true)}>
+          <Plus size={14} className="inline mr-1" /> {t("combat.addEnemy")}
+        </button>
+      )}
+
       {status === "collecting" && encounter && (
         <>
           <p className="text-[11px] text-muted-foreground">{t("combat.collectingHint", { n: participants.length })}</p>
           <CombatList encounter={encounter} participants={participants} groups={groups} />
+          <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} dm={dm} />
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button className="btn-fantasy" style={{ background: "var(--loss)", color: "white" }}
               onClick={async () => {
@@ -72,6 +87,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
       {status === "active" && encounter && (
         <>
           <CombatList encounter={encounter} participants={participants} groups={groups} />
+          <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} dm={dm} />
           <div className="grid grid-cols-3 gap-2 pt-1">
             <button className="btn-fantasy text-xs"
               onClick={() => dmShiftTurn(encounter, buildOrderedTurns(participants, groups), -1)}>
@@ -93,6 +109,10 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
             </button>
           </div>
         </>
+      )}
+
+      {addingEnemy && encounter && (
+        <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
       )}
     </div>
   );
