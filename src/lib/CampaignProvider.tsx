@@ -2,8 +2,15 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback, t
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSession, setSession, type Campaign, type Character, type Item, type LogRow, type Achievement } from "./game";
+import type { CombatEncounter, CombatParticipant, CombatTurnGroup } from "./combat";
 
 export type DmLabel = { name: string; color: string };
+
+export type CombatState = {
+  encounter: CombatEncounter | null;
+  participants: CombatParticipant[];
+  groups: CombatTurnGroup[];
+};
 
 type GameData = {
   campaign: Campaign | null;
@@ -19,6 +26,8 @@ type GameData = {
   dmLabels: Record<string, DmLabel>;
   /** character_ids belonging to DM-role users in this campaign (hidden from the player table). */
   dmCharacterIds: Set<string>;
+  /** Active or collecting combat for this campaign (null when none). */
+  combat: CombatState;
   reload: () => Promise<void>;
 };
 
@@ -37,6 +46,29 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
 
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; created_at: string }>>([]);
+
+  const [combat, setCombat] = useState<CombatState>({ encounter: null, participants: [], groups: [] });
+
+  const loadCombat = useCallback(async (campaignId: string) => {
+    const { data: encs } = await (supabase as any)
+      .from("combat_encounters")
+      .select("*")
+      .eq("campaign_id", campaignId)
+      .neq("status", "ended")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const enc = (encs && encs[0]) as CombatEncounter | undefined;
+    if (!enc) { setCombat({ encounter: null, participants: [], groups: [] }); return; }
+    const [{ data: parts }, { data: grps }] = await Promise.all([
+      (supabase as any).from("combat_participants").select("*").eq("encounter_id", enc.id),
+      (supabase as any).from("combat_turn_groups").select("*").eq("encounter_id", enc.id),
+    ]);
+    setCombat({
+      encounter: enc,
+      participants: (parts || []) as CombatParticipant[],
+      groups: (grps || []) as CombatTurnGroup[],
+    });
+  }, []);
 
   const load = useCallback(async () => {
     const s = getSession();
@@ -62,8 +94,9 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       ? await supabase.from("achievements").select("*").in("character_id", charIds)
       : { data: [] as Achievement[] };
     setAchievements((ach || []) as Achievement[]);
+    await loadCombat(s.campaignId);
     setLoading(false);
-  }, [nav]);
+  }, [nav, loadCombat]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -80,9 +113,12 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "character_conditions" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "campaign_members", filter: `campaign_id=eq.${s.campaignId}` }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `id=eq.${s.campaignId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_encounters", filter: `campaign_id=eq.${s.campaignId}` }, () => loadCombat(s.campaignId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_participants", filter: `campaign_id=eq.${s.campaignId}` }, () => loadCombat(s.campaignId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_turn_groups", filter: `campaign_id=eq.${s.campaignId}` }, () => loadCombat(s.campaignId))
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [load]);
+  }, [load, loadCombat]);
 
   // Presence: track which characters are currently connected.
   // Spectators (no characterId) still subscribe so they can SEE who is online,
@@ -152,7 +188,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   }, [members, characters, campaign]);
 
   return (
-    <Ctx.Provider value={{ campaign, character, characters, items, logs, achievements, loading, onlineIds, dmLabels, dmCharacterIds, reload: load }}>
+    <Ctx.Provider value={{ campaign, character, characters, items, logs, achievements, loading, onlineIds, dmLabels, dmCharacterIds, combat, reload: load }}>
       {children}
     </Ctx.Provider>
   );
@@ -164,7 +200,7 @@ export function useGameData(): GameData {
   if (v) return v;
   return {
     campaign: null, character: null, characters: [], items: [], logs: [], achievements: [],
-    loading: true, onlineIds: new Set(), dmLabels: {}, dmCharacterIds: new Set(), reload: async () => {},
+    loading: true, onlineIds: new Set(), dmLabels: {}, dmCharacterIds: new Set(), combat: { encounter: null, participants: [], groups: [] }, reload: async () => {},
   };
 }
 

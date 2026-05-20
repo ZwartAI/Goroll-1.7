@@ -12,6 +12,7 @@ import { BoosterPeek } from "@/components/app/BoosterEditor";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
+import { InitiativeButton } from "@/components/app/InitiativeButton";
 import { User, LogOut, Minus, Plus, Camera, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
 import { MailboxButton } from "@/components/app/MailboxButton";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/campaign/profile")({
 });
 
 function Profile() {
-  const { campaign, character, characters, items, logs, onlineIds, loading } = useGameData();
+  const { campaign, character, characters, items, logs, onlineIds, loading, combat } = useGameData();
   const nav = useNavigate();
   const { t } = useT();
   const [imgModal, setImgModal] = useState(false);
@@ -250,6 +251,17 @@ function Profile() {
             })}
           </div>
           <div className="stat-pill mb-3 !text-[11px]"><span>{t("profile.initiative")}</span><span className="text-[var(--gold)] font-bold">{fmtMod(character.initiative)}</span></div>
+
+          <div className="mb-3">
+            <InitiativeButton
+              character={character}
+              encounter={combat.encounter}
+              participants={combat.participants}
+              groups={combat.groups}
+              online={characters.filter(c => onlineIds.has(c.id))}
+            />
+          </div>
+
 
           <ConditionsPanel character={character} campaignId={campaign.id} canEdit={true} />
 

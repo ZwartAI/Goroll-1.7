@@ -17,6 +17,7 @@ import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
 import { SkillsManager } from "@/components/app/SkillsManager";
 import { Escenario } from "@/components/app/Escenario";
+import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicToggle } from "@/components/app/MicToggle";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { useVoice } from "@/lib/useVoice";
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/campaign/dm")({ component: DM });
 
 function DM() {
   const { t } = useT();
-  const { character, characters, items, logs, campaign, onlineIds, loading, dmLabels, dmCharacterIds } = useGameData();
+  const { character, characters, items, logs, campaign, onlineIds, loading, dmLabels, dmCharacterIds, combat } = useGameData();
 
   const nav = useNavigate();
   const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "skills" | "escenario">("log");
@@ -126,6 +127,16 @@ function DM() {
 
       {tab === "log" && (
         <>
+          <div className="mb-3">
+            <CombatDMPanel
+              campaignId={campaign.id}
+              dm={dmCtx}
+              encounter={combat.encounter}
+              participants={combat.participants}
+              groups={combat.groups}
+            />
+          </div>
+
           <button
             className="btn-fantasy w-full text-xs mb-2"
             style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
