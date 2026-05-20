@@ -814,6 +814,140 @@ export type Database = {
         }
         Relationships: []
       }
+      enemy_template_skills: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          dice: string | null
+          effect: string | null
+          enemy_template_id: string
+          id: string
+          name: string
+          order_index: number
+          range_text: string | null
+          rarity: Database["public"]["Enums"]["item_rarity"]
+          skill_type: string | null
+          target_shape: string | null
+          targets: string | null
+          updated_at: string
+          visual_brief: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          enemy_template_id: string
+          id?: string
+          name: string
+          order_index?: number
+          range_text?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          skill_type?: string | null
+          target_shape?: string | null
+          targets?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          enemy_template_id?: string
+          id?: string
+          name?: string
+          order_index?: number
+          range_text?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          skill_type?: string | null
+          target_shape?: string | null
+          targets?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enemy_template_skills_enemy_template_id_fkey"
+            columns: ["enemy_template_id"]
+            isOneToOne: false
+            referencedRelation: "enemy_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enemy_templates: {
+        Row: {
+          base_damage: string | null
+          behavior_notes: string | null
+          biome: string | null
+          campaign_id: string
+          color: string
+          created_at: string
+          created_by_character_id: string | null
+          defense: number
+          description: string | null
+          icon_key: string
+          id: string
+          immunities: Json
+          is_boss: boolean
+          is_elite: boolean
+          max_hp: number
+          name: string
+          role: string
+          speed: string
+          tier: string
+          updated_at: string
+          weaknesses_text: string | null
+        }
+        Insert: {
+          base_damage?: string | null
+          behavior_notes?: string | null
+          biome?: string | null
+          campaign_id: string
+          color?: string
+          created_at?: string
+          created_by_character_id?: string | null
+          defense?: number
+          description?: string | null
+          icon_key?: string
+          id?: string
+          immunities?: Json
+          is_boss?: boolean
+          is_elite?: boolean
+          max_hp?: number
+          name: string
+          role?: string
+          speed?: string
+          tier?: string
+          updated_at?: string
+          weaknesses_text?: string | null
+        }
+        Update: {
+          base_damage?: string | null
+          behavior_notes?: string | null
+          biome?: string | null
+          campaign_id?: string
+          color?: string
+          created_at?: string
+          created_by_character_id?: string | null
+          defense?: number
+          description?: string | null
+          icon_key?: string
+          id?: string
+          immunities?: Json
+          is_boss?: boolean
+          is_elite?: boolean
+          max_hp?: number
+          name?: string
+          role?: string
+          speed?: string
+          tier?: string
+          updated_at?: string
+          weaknesses_text?: string | null
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           campaign_id: string

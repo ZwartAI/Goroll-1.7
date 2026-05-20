@@ -21,6 +21,7 @@ import { Route as CampaignInventoryRouteImport } from './routes/campaign.invento
 import { Route as CampaignEquipmentRouteImport } from './routes/campaign.equipment'
 import { Route as CampaignDmRouteImport } from './routes/campaign.dm'
 import { Route as CampaignBoostersRouteImport } from './routes/campaign.boosters'
+import { Route as CampaignBestiaryRouteImport } from './routes/campaign.bestiary'
 import { Route as CampaignAchievementsRouteImport } from './routes/campaign.achievements'
 
 const MasterRoute = MasterRouteImport.update({
@@ -83,6 +84,11 @@ const CampaignBoostersRoute = CampaignBoostersRouteImport.update({
   path: '/boosters',
   getParentRoute: () => CampaignRoute,
 } as any)
+const CampaignBestiaryRoute = CampaignBestiaryRouteImport.update({
+  id: '/bestiary',
+  path: '/bestiary',
+  getParentRoute: () => CampaignRoute,
+} as any)
 const CampaignAchievementsRoute = CampaignAchievementsRouteImport.update({
   id: '/achievements',
   path: '/achievements',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/campaign': typeof CampaignRouteWithChildren
   '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
+  '/campaign/bestiary': typeof CampaignBestiaryRoute
   '/campaign/boosters': typeof CampaignBoostersRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/campaign': typeof CampaignRouteWithChildren
   '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
+  '/campaign/bestiary': typeof CampaignBestiaryRoute
   '/campaign/boosters': typeof CampaignBoostersRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/campaign': typeof CampaignRouteWithChildren
   '/master': typeof MasterRoute
   '/campaign/achievements': typeof CampaignAchievementsRoute
+  '/campaign/bestiary': typeof CampaignBestiaryRoute
   '/campaign/boosters': typeof CampaignBoostersRoute
   '/campaign/dm': typeof CampaignDmRoute
   '/campaign/equipment': typeof CampaignEquipmentRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/campaign'
     | '/master'
     | '/campaign/achievements'
+    | '/campaign/bestiary'
     | '/campaign/boosters'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/campaign'
     | '/master'
     | '/campaign/achievements'
+    | '/campaign/bestiary'
     | '/campaign/boosters'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/campaign'
     | '/master'
     | '/campaign/achievements'
+    | '/campaign/bestiary'
     | '/campaign/boosters'
     | '/campaign/dm'
     | '/campaign/equipment'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignBoostersRouteImport
       parentRoute: typeof CampaignRoute
     }
+    '/campaign/bestiary': {
+      id: '/campaign/bestiary'
+      path: '/bestiary'
+      fullPath: '/campaign/bestiary'
+      preLoaderRoute: typeof CampaignBestiaryRouteImport
+      parentRoute: typeof CampaignRoute
+    }
     '/campaign/achievements': {
       id: '/campaign/achievements'
       path: '/achievements'
@@ -287,6 +306,7 @@ declare module '@tanstack/react-router' {
 
 interface CampaignRouteChildren {
   CampaignAchievementsRoute: typeof CampaignAchievementsRoute
+  CampaignBestiaryRoute: typeof CampaignBestiaryRoute
   CampaignBoostersRoute: typeof CampaignBoostersRoute
   CampaignDmRoute: typeof CampaignDmRoute
   CampaignEquipmentRoute: typeof CampaignEquipmentRoute
@@ -300,6 +320,7 @@ interface CampaignRouteChildren {
 
 const CampaignRouteChildren: CampaignRouteChildren = {
   CampaignAchievementsRoute: CampaignAchievementsRoute,
+  CampaignBestiaryRoute: CampaignBestiaryRoute,
   CampaignBoostersRoute: CampaignBoostersRoute,
   CampaignDmRoute: CampaignDmRoute,
   CampaignEquipmentRoute: CampaignEquipmentRoute,

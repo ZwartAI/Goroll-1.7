@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search } from "lucide-react";
+import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search, Skull } from "lucide-react";
 import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog, type UndoAction } from "@/lib/log";
@@ -108,6 +108,7 @@ function DM() {
         <div className="flex items-center gap-1.5">
           <MicToggle enabled={voice.enabled} onToggle={voice.toggle} onLongPress={() => setMicSettingsOpen(true)} />
           <MicSettingsModal open={micSettingsOpen} onOpenChange={setMicSettingsOpen} />
+          <Link to="/campaign/bestiary" className="text-muted-foreground" title={t("bestiary.title")}><Skull size={20}/></Link>
           <Link to="/campaign/achievements" className="text-muted-foreground"><Trophy size={20}/></Link>
         </div>
       </header>

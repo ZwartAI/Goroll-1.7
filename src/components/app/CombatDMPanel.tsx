@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Swords, Flag, Play, ChevronLeft, ChevronRight, X, Plus } from "lucide-react";
+import { Swords, Flag, Play, ChevronLeft, ChevronRight, X, Plus, BookOpen } from "lucide-react";
+import { listTemplates, spawnFromTemplate, type EnemyTemplate } from "@/lib/bestiary";
 import {
   buildOrderedTurns,
   cancelInitiative,
@@ -29,6 +30,12 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
   const { t } = useT();
   const status = encounter?.status ?? null;
   const [addingEnemy, setAddingEnemy] = useState(false);
+  const [pickingTemplate, setPickingTemplate] = useState(false);
+  const [templates, setTemplates] = useState<EnemyTemplate[]>([]);
+
+  useEffect(() => {
+    if (pickingTemplate) listTemplates(campaignId).then(setTemplates);
+  }, [pickingTemplate, campaignId]);
 
   const canAddEnemy = encounter && status !== "ended";
 
@@ -51,11 +58,18 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
       )}
 
       {canAddEnemy && (
-        <button className="btn-fantasy w-full text-xs"
-          style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
-          onClick={() => setAddingEnemy(true)}>
-          <Plus size={14} className="inline mr-1" /> {t("combat.addEnemy")}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="btn-fantasy text-xs"
+            style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
+            onClick={() => setAddingEnemy(true)}>
+            <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
+          </button>
+          <button className="btn-fantasy text-xs"
+            style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
+            onClick={() => setPickingTemplate(true)}>
+            <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
+          </button>
+        </div>
       )}
 
       {status === "collecting" && encounter && (
@@ -113,6 +127,31 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
 
       {addingEnemy && encounter && (
         <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
+      )}
+      {pickingTemplate && encounter && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={() => setPickingTemplate(false)}>
+          <div className="ornate-card max-w-md w-full max-h-[80vh] overflow-y-auto p-3 space-y-2" onClick={e => e.stopPropagation()}>
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">{t("bestiary.addFromBestiary")}</h3>
+            {templates.length === 0 && <p className="text-xs text-muted-foreground py-3 text-center">{t("bestiary.empty")}</p>}
+            {templates.map(tpl => (
+              <button key={tpl.id}
+                className="w-full ornate-card !p-2 flex items-center gap-2 text-left hover:border-[var(--gold)]"
+                onClick={async () => {
+                  const r = await spawnFromTemplate(tpl, encounter, { count: 1, initiative: 10, position: "byInitiative" }, dm);
+                  if (!r.ok) toast.error(t("bestiary.spawnError"));
+                  else { toast.success(t("bestiary.spawned")); setPickingTemplate(false); }
+                }}>
+                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center bg-card shrink-0"
+                  style={{ borderColor: tpl.color, color: tpl.color }}>★</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-display truncate" style={{ color: tpl.color }}>{tpl.name}</p>
+                  <p className="text-[10px] text-muted-foreground">HP {tpl.max_hp} · DEF {tpl.defense}</p>
+                </div>
+              </button>
+            ))}
+            <button className="btn-fantasy w-full text-xs" onClick={() => setPickingTemplate(false)}>{t("common.close")}</button>
+          </div>
+        </div>
       )}
     </div>
   );
