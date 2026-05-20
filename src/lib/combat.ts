@@ -138,7 +138,7 @@ export async function requestInitiative(campaignId: string, dm: { id: string; na
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: " pidió iniciativa." },
   ]);
-  return { ok: true, encounter: data as CombatEncounter };
+  return { ok: true, encounter: data as unknown as CombatEncounter };
 }
 
 export async function cancelInitiative(encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
