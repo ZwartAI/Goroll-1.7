@@ -69,7 +69,7 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
       {target && (
         <>
           <ImportSection campaignId={campaignId} target={target} dm={dm} existingCount={skills.filter(s => s.is_unlocked).length} onDone={reload} />
-          <ManualCreate campaignId={campaignId} target={target} dm={dm} existingCount={skills.length} unlockedCount={skills.filter(s => s.is_unlocked).length} onDone={reload} />
+          <ManualCreate campaignId={campaignId} target={target} dm={dm} players={players} onDone={reload} />
           <GrantSp campaignId={campaignId} target={target} dm={dm} />
           <SkillList skills={skills} onPick={setSel} />
         </>
