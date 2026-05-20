@@ -20,6 +20,7 @@ export type CharacterSkill = {
   is_unlocked: boolean;
   source: string;
   order_index: number;
+  icon_key?: string | null;
 };
 
 /** Best-effort split of "Alcance / Objetivos" combined strings. */
