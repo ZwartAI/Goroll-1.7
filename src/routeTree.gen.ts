@@ -83,11 +83,6 @@ const CampaignBoostersRoute = CampaignBoostersRouteImport.update({
   path: '/boosters',
   getParentRoute: () => CampaignRoute,
 } as any)
-const CampaignSkillsRoute = CampaignSkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
-  getParentRoute: () => CampaignRoute,
-} as any)
 const CampaignAchievementsRoute = CampaignAchievementsRouteImport.update({
   id: '/achievements',
   path: '/achievements',
