@@ -373,13 +373,6 @@ function ManualCreate({ campaignId, target, dm, players, onDone }: {
     }
   }
 
-  // Section wrapper
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="space-y-2">
-      <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 border-b border-border/60 pb-1">{title}</p>
-      <div className="space-y-2">{children}</div>
-    </div>
-  );
 
   return (
     <div className="ornate-card p-3 space-y-2" style={{ borderColor: "color-mix(in oklab, var(--gold) 55%, var(--rarity-purple))" }}>
