@@ -60,7 +60,7 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
         </h3>
 
         <Field label={t("combat.name")}>
-          <input className="input-fantasy w-full" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
+          <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
         </Field>
 
         <Field label={t("combat.icon")}>
@@ -73,15 +73,15 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
 
         <div className="grid grid-cols-2 gap-2">
           <Field label={t("combat.initiative")}>
-            <input type="number" min={1} max={20} className="input-fantasy w-full"
+            <input type="number" min={1} max={20} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
               value={initiative} onChange={e => setInitiative(parseInt(e.target.value) || 0)} />
           </Field>
           <Field label={t("combat.defense")}>
-            <input type="number" min={0} className="input-fantasy w-full"
+            <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
               value={defense} onChange={e => setDefense(parseInt(e.target.value) || 0)} />
           </Field>
           <Field label={t("combat.maxHp")}>
-            <input type="number" min={1} className="input-fantasy w-full"
+            <input type="number" min={1} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
               value={maxHp} onChange={e => {
                 const v = parseInt(e.target.value) || 1;
                 setMaxHp(v);
@@ -89,27 +89,27 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
               }} />
           </Field>
           <Field label={t("combat.currentHp")}>
-            <input type="number" min={0} className="input-fantasy w-full"
+            <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
               value={curHp} onChange={e => setCurHp(parseInt(e.target.value) || 0)} />
           </Field>
           <Field label={t("combat.speed")}>
-            <input className="input-fantasy w-full" value={speed} onChange={e => setSpeed(e.target.value)} />
+            <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={speed} onChange={e => setSpeed(e.target.value)} />
           </Field>
           {!isEdit && (
             <Field label={t("combat.count")}>
-              <input type="number" min={1} max={20} className="input-fantasy w-full"
+              <input type="number" min={1} max={20} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
                 value={count} onChange={e => setCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))} />
             </Field>
           )}
         </div>
 
         <Field label={t("combat.notes")}>
-          <textarea className="input-fantasy w-full" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
+          <textarea className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
         </Field>
 
         {!isEdit && (
           <Field label={t("combat.insertPosition")}>
-            <select className="input-fantasy w-full" value={position} onChange={e => setPosition(e.target.value as InsertPosition)}>
+            <select className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={position} onChange={e => setPosition(e.target.value as InsertPosition)}>
               <option value="byInitiative">{t("combat.posByInitiative")}</option>
               <option value="afterCurrent">{t("combat.posAfterCurrent")}</option>
               <option value="end">{t("combat.posAtEnd")}</option>

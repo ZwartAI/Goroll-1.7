@@ -49,7 +49,7 @@ export function EnemyDamageModal({ participant, onClose }: Props) {
 
         <div className="space-y-2">
           <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.damage")}</label>
-          <input type="number" min={0} className="input-fantasy w-full" value={damage}
+          <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={damage}
             onChange={e => setDamage(Math.max(0, parseInt(e.target.value) || 0))} />
           <label className="flex items-center gap-2 text-xs">
             <input type="checkbox" checked={useDef} onChange={e => setUseDef(e.target.checked)} />
@@ -64,7 +64,7 @@ export function EnemyDamageModal({ participant, onClose }: Props) {
 
         <div className="space-y-2 pt-2 border-t border-border">
           <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.heal")}</label>
-          <input type="number" min={0} className="input-fantasy w-full" value={heal}
+          <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={heal}
             onChange={e => setHeal(Math.max(0, parseInt(e.target.value) || 0))} />
           <button className="btn-fantasy w-full" disabled={busy || heal <= 0}
             style={{ background: "var(--gain)", color: "white" }} onClick={doHeal}>
