@@ -45,7 +45,7 @@ export function CombatList({ encounter, participants, groups, selfCharacterId, o
           activeLabel={t("combat.activePlayer")}
           activeEnemyLabel={t("combat.activeEnemy")}
           enlaceLabel={t("combat.linkBadge")}
-          enemyLabel={t("combat.enemy")}
+          enemyLabel={t("combat.enemyLabel")}
           defeatedLabel={t("combat.defeated")}
           onOpenChar={onOpenChar}
         />

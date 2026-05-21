@@ -119,13 +119,41 @@ export function totals(character: Character, equipped: Item[]) {
 }
 
 /* ----- Log segments ----- */
+export type EnemySkillLogPayload = {
+  enemyName: string;
+  enemyIcon: string | null;
+  enemyColor: string | null;
+  skillName: string;
+  rarity: string;
+  skillType?: string | null;
+  targetShape?: string | null;
+  targets?: string | null;
+  dice?: string | null;
+  rangeText?: string | null;
+  effect?: string | null;
+  visualBrief?: string | null;
+  detail: "nameAndEffect" | "full";
+  resolvedTargets?: string | null;
+  rollResult?: string | null;
+  dmNote?: string | null;
+};
+
+export type EnemySpeechLogPayload = {
+  enemyName: string;
+  enemyIcon: string | null;
+  enemyColor: string | null;
+  text: string;
+};
+
 export type Segment =
   | { t: "text"; v: string }
   | { t: "char"; v: string; color: string; id?: string }
   | { t: "item"; v: string; rarity: Rarity; id?: string; kind?: "item" | "booster" }
   | { t: "coins"; v: string }
   | { t: "gain"; v: string }
-  | { t: "loss"; v: string };
+  | { t: "loss"; v: string }
+  | { t: "enemy_skill"; v: EnemySkillLogPayload }
+  | { t: "enemy_speech"; v: EnemySpeechLogPayload };
 
 export const SESSION_KEY = "codice.session";
 export type Session = {
