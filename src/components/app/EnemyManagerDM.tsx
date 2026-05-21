@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
-  Edit3, Copy, Trash2, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, FastForward, FileText,
+  Edit3, Copy, Trash2, FastForward, FileText, GripVertical,
 } from "lucide-react";
 import {
   activeBlock,
@@ -12,8 +12,8 @@ import {
   duplicateEnemy,
   healEnemy,
   isEnemy,
-  moveParticipant,
   removeEnemy,
+  reorderParticipantTo,
   type CombatEncounter,
   type CombatParticipant,
   type CombatTurnGroup,
@@ -41,34 +41,58 @@ export function EnemyManagerDM({ encounter, participants, groups, dm }: Props) {
   const [damaging, setDamaging] = useState<CombatParticipant | null>(null);
   const [sheet, setSheet] = useState<CombatParticipant | null>(null);
 
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+
   if (enemies.length === 0) return null;
+
+  const onDrop = async (toEnemy: CombatParticipant) => {
+    if (!dragKey) return;
+    const toBlockKey = `s:${toEnemy.id}`;
+    if (toBlockKey === dragKey) { setDragKey(null); setOverKey(null); return; }
+    const toIdx = blocks.findIndex(b => b.key === toBlockKey);
+    setDragKey(null);
+    setOverKey(null);
+    if (toIdx < 0) return;
+    const r = await reorderParticipantTo(encounter, blocks, dragKey, toIdx);
+    if (!r.ok) toast.error(t("combat.saveError"));
+  };
 
   return (
     <div className="space-y-2">
       <p className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">
         {t("combat.enemies")}
       </p>
-      {enemies.map(p => (
-        <EnemyRow
-          key={p.id}
-          p={p}
-          isActive={active?.kind === "solo" && active.participant.id === p.id}
-          encounter={encounter}
-          blocks={blocks}
-          onEdit={() => setEditing(p)}
-          onDamage={() => setDamaging(p)}
-          onSheet={() => setSheet(p)}
-          onDuplicate={async () => {
-            const r = await duplicateEnemy(p, encounter, dm);
-            if (!r.ok) toast.error(t("combat.saveError"));
-          }}
-          onRemove={async () => {
-            if (!confirm(t("combat.confirmRemoveEnemy"))) return;
-            const r = await removeEnemy(p, encounter, dm);
-            if (!r.ok) toast.error(t("combat.saveError"));
-          }}
-        />
-      ))}
+      {enemies.map(p => {
+        const key = `s:${p.id}`;
+        return (
+          <EnemyRow
+            key={p.id}
+            p={p}
+            isActive={active?.kind === "solo" && active.participant.id === p.id}
+            encounter={encounter}
+            blocks={blocks}
+            isDragging={dragKey === key}
+            isDragOver={overKey === key && dragKey !== key}
+            onDragStart={() => setDragKey(key)}
+            onDragOver={() => setOverKey(key)}
+            onDragEnd={() => { setDragKey(null); setOverKey(null); }}
+            onDropOn={() => onDrop(p)}
+            onEdit={() => setEditing(p)}
+            onDamage={() => setDamaging(p)}
+            onSheet={() => setSheet(p)}
+            onDuplicate={async () => {
+              const r = await duplicateEnemy(p, encounter, dm);
+              if (!r.ok) toast.error(t("combat.saveError"));
+            }}
+            onRemove={async () => {
+              if (!confirm(t("combat.confirmRemoveEnemy"))) return;
+              const r = await removeEnemy(p, encounter, dm);
+              if (!r.ok) toast.error(t("combat.saveError"));
+            }}
+          />
+        );
+      })}
 
       {editing && (
         <EnemyEditorModal encounter={encounter} dm={dm} editing={editing} onClose={() => setEditing(null)} />
@@ -90,12 +114,20 @@ export function EnemyManagerDM({ encounter, participants, groups, dm }: Props) {
 }
 
 function EnemyRow({
-  p, isActive, encounter, blocks, onEdit, onDamage, onSheet, onDuplicate, onRemove,
+  p, isActive, encounter, blocks,
+  isDragging, isDragOver, onDragStart, onDragOver, onDragEnd, onDropOn,
+  onEdit, onDamage, onSheet, onDuplicate, onRemove,
 }: {
   p: CombatParticipant;
   isActive: boolean;
   encounter: CombatEncounter;
   blocks: ReturnType<typeof buildOrderedTurns>;
+  isDragging: boolean;
+  isDragOver: boolean;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDragEnd: () => void;
+  onDropOn: () => void;
   onEdit: () => void; onDamage: () => void; onSheet: () => void;
   onDuplicate: () => void; onRemove: () => void;
 }) {
@@ -105,21 +137,36 @@ function EnemyRow({
   const pct = Math.max(0, Math.min(100, (cur / max) * 100));
   const hpBg = pct > 60 ? "var(--gain)" : pct > 30 ? "#eab308" : "var(--loss)";
   const baseColor = p.enemy_color || "var(--loss)";
-  const blockKey = `s:${p.id}`;
   const lp = useLongPress(onSheet, 450);
+  const blueBg = "color-mix(in oklab, oklch(0.55 0.18 240) 60%, var(--card))";
 
   return (
     <div
-      className="ornate-card !p-2 space-y-1.5"
+      className="ornate-card !p-2 space-y-1.5 transition"
       style={{
-        borderColor: isActive ? "var(--loss)" : `color-mix(in oklab, ${baseColor} 55%, transparent)`,
-        opacity: p.is_defeated ? 0.55 : 1,
+        borderColor: isDragOver
+          ? "var(--gold)"
+          : isActive ? "var(--loss)" : `color-mix(in oklab, ${baseColor} 55%, transparent)`,
+        opacity: isDragging ? 0.5 : (p.is_defeated ? 0.55 : 1),
+        boxShadow: isDragOver ? "0 0 0 2px var(--gold)" : undefined,
       }}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(); }}
+      onDrop={(e) => { e.preventDefault(); onDropOn(); }}
     >
       <div className="flex items-center gap-2 select-none cursor-pointer"
         {...{ onMouseDown: lp.onMouseDown, onMouseUp: lp.onMouseUp, onMouseLeave: lp.onMouseLeave, onTouchStart: lp.onTouchStart, onTouchEnd: lp.onTouchEnd, onTouchCancel: lp.onTouchCancel }}
         onClick={() => { if (!lp.didLongPress()) onSheet(); }}
         title={t("combat.enemy.openSheet")}>
+        <span
+          className="text-muted-foreground hover:text-[var(--gold)] cursor-grab active:cursor-grabbing px-0.5"
+          draggable
+          onDragStart={(e) => { e.stopPropagation(); onDragStart(); try { e.dataTransfer.setData("text/plain", p.id); e.dataTransfer.effectAllowed = "move"; } catch {} }}
+          onDragEnd={(e) => { e.stopPropagation(); onDragEnd(); }}
+          onClick={(e) => e.stopPropagation()}
+          title={t("combat.reorderHint")}
+        >
+          <GripVertical size={14} />
+        </span>
         <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center bg-card"
           style={{ borderColor: baseColor, color: baseColor }}>
           <EnemyIcon name={p.enemy_icon} size={18} />
@@ -168,8 +215,8 @@ function EnemyRow({
       </div>
 
       <div className="grid grid-cols-4 gap-1">
-        <IconBtn icon={<Edit3 size={12} />} onClick={onEdit} />
-        <IconBtn icon={<Copy size={12} />} onClick={onDuplicate} />
+        <IconBtn icon={<Edit3 size={12} />} onClick={onEdit} bg={blueBg} />
+        <IconBtn icon={<Copy size={12} />} onClick={onDuplicate} bg={blueBg} />
         <IconBtn icon={<Trash2 size={12} />} danger onClick={onRemove} />
         {isActive ? (
           <button className="btn-fantasy text-[10px] py-1"
@@ -181,13 +228,6 @@ function EnemyRow({
         ) : (
           <span />
         )}
-      </div>
-
-      <div className="grid grid-cols-4 gap-1">
-        <IconBtn icon={<ChevronsUp size={12} />} onClick={() => moveParticipant(encounter, blocks, blockKey, "first")} />
-        <IconBtn icon={<ArrowUp size={12} />} onClick={() => moveParticipant(encounter, blocks, blockKey, "up")} />
-        <IconBtn icon={<ArrowDown size={12} />} onClick={() => moveParticipant(encounter, blocks, blockKey, "down")} />
-        <IconBtn icon={<ChevronsDown size={12} />} onClick={() => moveParticipant(encounter, blocks, blockKey, "last")} />
       </div>
     </div>
   );
@@ -203,10 +243,11 @@ function HpBtn({ label, onClick, positive }: { label: string; onClick: () => voi
   );
 }
 
-function IconBtn({ icon, onClick, danger }: { icon: React.ReactNode; onClick: () => void; danger?: boolean }) {
+function IconBtn({ icon, onClick, danger, bg }: { icon: React.ReactNode; onClick: () => void; danger?: boolean; bg?: string }) {
+  const background = danger ? "color-mix(in oklab, var(--loss) 35%, var(--card))" : bg;
   return (
     <button className="btn-fantasy text-[10px] py-1 flex items-center justify-center"
-      style={danger ? { background: "color-mix(in oklab, var(--loss) 35%, var(--card))" } : undefined}
+      style={background ? { background, color: "white" } : undefined}
       onClick={onClick}>
       {icon}
     </button>

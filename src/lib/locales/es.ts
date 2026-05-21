@@ -922,6 +922,7 @@ export const es = {
     activeEnemy: "En turno",
     tabLog: "Log",
     tabCombat: "Combate",
+    reorderHint: "Arrastra para reordenar",
     round: "Ronda",
     addEnemy: "Añadir enemigo",
     editEnemy: "Editar enemigo",

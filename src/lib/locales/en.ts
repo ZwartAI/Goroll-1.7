@@ -920,6 +920,7 @@ export const en: Dict = {
     activeEnemy: "Active Enemy",
     tabLog: "Log",
     tabCombat: "Combat",
+    reorderHint: "Drag to reorder",
     round: "Round",
     addEnemy: "Add Enemy",
     editEnemy: "Edit Enemy",

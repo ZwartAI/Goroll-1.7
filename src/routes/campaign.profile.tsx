@@ -12,6 +12,7 @@ import { BoosterPeek } from "@/components/app/BoosterEditor";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsPurseModal } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
+import { CombatList } from "@/components/app/CombatList";
 import { InitiativeButton } from "@/components/app/InitiativeButton";
 import { User, LogOut, Minus, Plus, Camera, Heart, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen, Coins } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
@@ -305,18 +306,16 @@ function Profile() {
             </Link>
           </div>
 
-          {/* Log */}
-          <h2 className="font-display text-xs uppercase tracking-widest text-center mb-2 text-[var(--gold)]">{t("profile.sessionLog")}</h2>
-          <LogList rows={logs} initial={20} maxH="max-h-[40vh]" empty={t("escenario.noActivity")}
-            renderRow={(l: any) => (
-              <div key={l.id} className={`text-xs bg-secondary/40 rounded px-2 py-1.5 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
-                <LogSegments segments={l.segments as any}
-                  onItem={(id) => setOpenItem(id)}
-                  onBooster={(id) => setOpenBooster(id)}
-                  onChar={(id) => openCharFromLog(id, false)} />
-                <p className="text-[9px] text-muted-foreground mt-0.5">{new Date(l.created_at).toLocaleTimeString()}</p>
-              </div>
-            )} />
+          {/* Log + Combat tab (mirrors Escenario behavior) */}
+          <ProfileLogPanel
+            logs={logs}
+            combat={combat}
+            selfId={character.id}
+            onOpenChar={(id) => openCharFromLog(id, false)}
+            onOpenItem={(id) => setOpenItem(id)}
+            onOpenBooster={(id) => setOpenBooster(id)}
+            t={t}
+          />
         </>
       )}
 
@@ -556,5 +555,57 @@ function HpModal({
         <button className="btn-fantasy w-full" onClick={onClose}>{t("common.cancel")}</button>
       </div>
     </div>
+  );
+}
+
+function ProfileLogPanel({ logs, combat, selfId, onOpenChar, onOpenItem, onOpenBooster, t }: {
+  logs: any[];
+  combat: ReturnType<typeof useGameData>["combat"];
+  selfId: string;
+  onOpenChar: (id: string) => void;
+  onOpenItem: (id: string) => void;
+  onOpenBooster: (id: string) => void;
+  t: (k: string, p?: any) => string;
+}) {
+  const combatActive = combat.encounter?.status === "active";
+  const [tab, setTab] = useState<"log" | "combat">(combatActive ? "combat" : "log");
+
+  return (
+    <>
+      {combatActive ? (
+        <div className="grid grid-cols-2 gap-1 mb-2">
+          <button onClick={() => setTab("log")}
+            className={`text-[10px] py-1.5 rounded-md font-display uppercase tracking-widest ${tab === "log" ? "bg-[var(--gold)] text-black" : "bg-card border border-border text-foreground"}`}>
+            {t("combat.tabLog")}
+          </button>
+          <button onClick={() => setTab("combat")}
+            className={`text-[10px] py-1.5 rounded-md font-display uppercase tracking-widest ${tab === "combat" ? "bg-[var(--gold)] text-black" : "bg-card border border-border text-foreground"}`}>
+            {t("combat.tabCombat")}
+          </button>
+        </div>
+      ) : (
+        <h2 className="font-display text-xs uppercase tracking-widest text-center mb-2 text-[var(--gold)]">{t("profile.sessionLog")}</h2>
+      )}
+      {tab === "combat" && combat.encounter ? (
+        <CombatList
+          encounter={combat.encounter}
+          participants={combat.participants}
+          groups={combat.groups}
+          selfCharacterId={selfId}
+          onOpenChar={onOpenChar}
+        />
+      ) : (
+        <LogList rows={logs} initial={20} maxH="max-h-[40vh]" empty={t("escenario.noActivity")}
+          renderRow={(l: any) => (
+            <div key={l.id} className={`text-xs bg-secondary/40 rounded px-2 py-1.5 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
+              <LogSegments segments={l.segments as any}
+                onItem={(id) => onOpenItem(id)}
+                onBooster={(id) => onOpenBooster(id)}
+                onChar={(id) => onOpenChar(id)} />
+              <p className="text-[9px] text-muted-foreground mt-0.5">{new Date(l.created_at).toLocaleTimeString()}</p>
+            </div>
+          )} />
+      )}
+    </>
   );
 }

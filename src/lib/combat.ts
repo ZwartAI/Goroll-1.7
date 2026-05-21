@@ -657,6 +657,51 @@ export async function moveParticipant(
   return { ok: true };
 }
 
+/**
+ * Reorder a block to a specific target index (used by drag-and-drop).
+ */
+export async function reorderParticipantTo(
+  encounter: CombatEncounter,
+  blocks: TurnBlock[],
+  fromKey: string,
+  toIndex: number,
+) {
+  if (encounter.status === "ended") return { ok: false };
+  const idx = blocks.findIndex(b => b.key === fromKey);
+  if (idx < 0) return { ok: false };
+  const target = Math.max(0, Math.min(blocks.length - 1, toIndex));
+  if (target === idx) return { ok: true };
+
+  const reordered = [...blocks];
+  const [moved] = reordered.splice(idx, 1);
+  reordered.splice(target, 0, moved);
+
+  let order = 0;
+  for (const b of reordered) {
+    if (b.kind === "solo") {
+      await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", b.participant.id);
+    } else {
+      for (const m of b.members) {
+        await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", m.id);
+      }
+    }
+    order++;
+  }
+
+  if (encounter.status === "active") {
+    let newCurrent = encounter.current_turn_index;
+    if (idx === encounter.current_turn_index) newCurrent = target;
+    else if (idx < encounter.current_turn_index && target >= encounter.current_turn_index) newCurrent--;
+    else if (idx > encounter.current_turn_index && target <= encounter.current_turn_index) newCurrent++;
+    if (newCurrent !== encounter.current_turn_index) {
+      await (supabase as any).from("combat_encounters")
+        .update({ current_turn_index: newCurrent })
+        .eq("id", encounter.id);
+    }
+  }
+  return { ok: true };
+}
+
 export async function dmEndEnemyTurn(
   encounter: CombatEncounter,
   blocks: TurnBlock[],
