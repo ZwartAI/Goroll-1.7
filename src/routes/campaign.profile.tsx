@@ -156,15 +156,21 @@ function Profile() {
           {/* Top: image (left) + compact stats + initiative (right) */}
           <div className="grid grid-cols-5 gap-2 mb-3">
             <button
-              onClick={() => setImgModal(true)}
-              className="col-span-2 aspect-[3/4] rounded-lg overflow-hidden bg-[var(--secondary)] relative ornate-card !p-0"
+              onClick={() => {
+                if (character.image_url || (character as any).body_image_url) {
+                  setImgViewer(true);
+                } else {
+                  setImgModal("face");
+                }
+              }}
+              className="col-span-2 aspect-square rounded-xl overflow-hidden bg-[var(--secondary)] relative ornate-card !p-0"
               aria-label={t("profile.editImageAria")}
             >
               {character.image_url ? (
                 <img src={character.image_url} alt={character.name}
                   className="absolute inset-0 w-full h-full object-cover"
                   style={{
-                    transform: `translate(${((character.image_offset_x ?? 50) - 50)}%, ${((character.image_offset_y ?? 50) - 50)}%) scale(${character.image_scale || 1})`,
+                    transform: `translate(${((character.image_offset_x ?? 50) - 50)}%, ${((character.image_offset_y ?? 50) - 50)}%) scale(${character.image_scale || 1}) rotate(${(character as any).image_rotation || 0}deg)`,
                     transformOrigin: "center center",
                   }} />
               ) : (
@@ -174,6 +180,7 @@ function Profile() {
                 </div>
               )}
             </button>
+
 
             <div className="col-span-3 flex flex-col gap-1.5">
               {/* Row 1: Level, Defense, Damage */}
