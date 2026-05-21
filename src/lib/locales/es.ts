@@ -272,7 +272,17 @@ export const es = {
     zoom: "Zoom",
     posX: "↔ Pos X",
     posY: "↕ Pos Y",
+    rotation: "Rotación",
+    imgFaceTitle: "Subir rostro del personaje",
+    imgBodyTitle: "Subir imagen de cuerpo completo",
+    imgFaceHint: "Este rostro se usa en todas las representaciones del personaje.",
+    imgBodyHint: "Se muestra al tocar el retrato. Por defecto usa la misma del rostro.",
+    imgEditFace: "Editar rostro",
+    imgEditBody: "Editar cuerpo",
+    imgViewerNone: "Aún no hay imagen — toca editar para subir.",
+    imgUploadBoth: "Subir imágenes",
   },
+
   settingsPage: {
     title: "Estadísticas",
     loading: "Cargando...",
