@@ -688,3 +688,40 @@ function ProfileLogPanel({ logs, combat, selfId, onOpenChar, onOpenItem, onOpenB
     </>
   );
 }
+
+function ProfileHeader({
+  campaignName, characterName, subtitle, voice, onLogout, settingsAria,
+}: {
+  campaignName: string;
+  characterName: string;
+  subtitle: string;
+  voice: { enabled: boolean; toggle: () => void };
+  onLogout: () => void;
+  settingsAria: string;
+}) {
+  const [mailboxOpen, setMailboxOpen] = useState(false);
+  const items = useStandardHeaderItems({
+    achievements: true,
+    bestiary: true,
+    mailbox: { onOpen: () => setMailboxOpen(true) },
+    mic: { enabled: voice.enabled, toggle: voice.toggle },
+    fullscreen: true,
+    exit: { onExit: onLogout },
+  });
+  return (
+    <header className="relative mb-3 min-h-[64px]">
+      <div className="text-center px-2">
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground truncate">{campaignName}</p>
+        <h1 className="font-display text-xl rune-glow truncate">{characterName}</h1>
+        <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+      </div>
+      <div className="absolute right-0 top-1 flex items-center gap-1">
+        <Link to="/campaign/settings" className="text-muted-foreground hover:text-foreground p-1" aria-label={settingsAria}>
+          <User size={20} />
+        </Link>
+        <HeaderMenu items={items} />
+      </div>
+      <MailboxInlineModal open={mailboxOpen} onClose={() => setMailboxOpen(false)} />
+    </header>
+  );
+}
