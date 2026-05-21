@@ -113,7 +113,6 @@ function Settings() {
             {num("base_hp", t("settingsPage.baseHp"))}
             {num("base_defense", t("settingsPage.baseDefense"))}
             {num("velocity", t("settingsPage.velocity"))}
-            {num("initiative", t("settingsPage.initiative"))}
             {num("damage_boost", t("settingsPage.damageBoost"))}
           </div>
           <div className="mt-2 flex items-center justify-between gap-2 ornate-card !p-2">
