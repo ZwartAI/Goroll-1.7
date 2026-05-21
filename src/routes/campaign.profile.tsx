@@ -506,13 +506,13 @@ function ImageEditor({
             : <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">{t("profile.imgNone")}</div>}
         </div>
 
-        <input ref={fileRef} type="file" accept="image/*" className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
-        <button className="btn-fantasy w-full flex items-center justify-center gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
+        {isFace && <input ref={fileRef} type="file" accept="image/*" className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />}
+        {isFace && <button className="btn-fantasy w-full flex items-center justify-center gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
           <Camera size={14}/> {uploading ? t("profile.uploading") : t("profile.uploadFromGallery")}
-        </button>
-        <input className="w-full rounded bg-input border border-border px-3 py-2 text-xs"
-          placeholder={t("profile.orPasteUrl")} value={url} onChange={e => setUrl(e.target.value)} />
+        </button>}
+        {isFace && <input className="w-full rounded bg-input border border-border px-3 py-2 text-xs"
+          placeholder={t("profile.orPasteUrl")} value={url} onChange={e => setUrl(e.target.value)} />}
 
         {url && (
           <>
