@@ -177,7 +177,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
         )}
         <div className="grid grid-cols-6 gap-1.5 text-center text-xs">
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("level.short")}</p><p className="font-display text-sm text-[var(--gold)]">{(character as any).level ?? 1}</p></div>
-          <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.life")}</p><p className="font-display text-sm">{character.current_hp}/{stats.maxHp}</p></div>
+          <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.life")}</p><p className="font-display text-[11px] sm:text-sm leading-tight tabular-nums whitespace-nowrap">{character.current_hp}/{stats.maxHp}</p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.def")}</p><p className="font-display text-sm text-[var(--gold)]">{stats.defense}</p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.vel")}</p><p className="font-display text-sm">{character.velocity}</p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.damage")}</p><p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p></div>

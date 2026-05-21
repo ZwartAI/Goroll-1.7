@@ -696,7 +696,7 @@ export function ManualCreate({ campaignId, target, dm, players, onDone }: {
           segs.push({ t: "char", v: p.name, color: p.color, id: p.id });
         });
         segs.push({ t: "text", v: `: ✨ ${name.trim()}` });
-        await pushLog(campaignId, segs);
+        await pushLog(campaignId, segs, undefined, { dmOnly: true });
       }
       await logFor(groups.unlocked, "skills.logCreatedFor");
       await logFor(groups.acquirable, "skills.logCreatedAcquirableFor");

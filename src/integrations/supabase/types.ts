@@ -1207,6 +1207,7 @@ export type Database = {
         Row: {
           campaign_id: string
           created_at: string
+          dm_only: boolean
           id: string
           segments: Json
           undo: Json | null
@@ -1215,6 +1216,7 @@ export type Database = {
         Insert: {
           campaign_id: string
           created_at?: string
+          dm_only?: boolean
           id?: string
           segments: Json
           undo?: Json | null
@@ -1223,6 +1225,7 @@ export type Database = {
         Update: {
           campaign_id?: string
           created_at?: string
+          dm_only?: boolean
           id?: string
           segments?: Json
           undo?: Json | null
