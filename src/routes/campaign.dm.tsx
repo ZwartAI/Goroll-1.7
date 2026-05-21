@@ -498,6 +498,7 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
   const [damage, setDamage] = useState(0);
   const [uses, setUses] = useState(1);
   const [coins, setCoins] = useState(10);
+  const [description, setDescription] = useState("");
   const [target, setTarget] = useState<string>("");
 
   async function create(send: boolean) {
