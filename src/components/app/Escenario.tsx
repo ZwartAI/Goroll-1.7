@@ -149,7 +149,7 @@ function PlayerCard({ c, maxHp, online, onClick, onImageClick, isSelf, t, speaki
         tabIndex={onImageClick ? 0 : undefined}
         onClick={onImageClick ? (e) => { e.stopPropagation(); onImageClick(); } : undefined}
         onKeyDown={onImageClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onImageClick(); } } : undefined}
-        className="relative mx-auto w-16 aspect-square rounded-md overflow-hidden border-2 transition-shadow block cursor-pointer"
+        className="relative mx-auto w-16 h-16 rounded-full overflow-hidden border-2 transition-shadow block cursor-pointer"
         style={{
           borderColor: speaking ? "var(--gain)" : (c.color || "var(--gold)"),
           boxShadow: speaking ? "0 0 0 2px var(--gain), 0 0 14px var(--gain)" : undefined,
