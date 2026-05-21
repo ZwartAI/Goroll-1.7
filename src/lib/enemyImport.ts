@@ -494,5 +494,3 @@ export type EnemyImportPlan = {
   modeByKey: Record<string, DuplicateMode>;
 };
 
-void TIER_VISUALS; // re-export anchor (silence linter); also makes the module self-documenting
-void isPresetBiome;
