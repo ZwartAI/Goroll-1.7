@@ -832,11 +832,56 @@ export async function dmEndEnemyTurn(
   blocks: TurnBlock[],
 ) {
   const block = activeBlock(encounter, blocks);
-  if (!block || block.kind !== "solo" || !isEnemy(block.participant)) return { ok: false };
-  await pushLog(encounter.campaign_id, [
-    { t: "text", v: `${block.participant.display_name} terminó su turno.` },
-  ]);
+  if (!block) return { ok: false };
+  if (block.kind === "solo" && isEnemy(block.participant)) {
+    await pushLog(encounter.campaign_id, [
+      { t: "text", v: `${block.participant.display_name} terminó su turno.` },
+    ]);
+  } else if (block.kind === "pin") {
+    await pushLog(encounter.campaign_id, [
+      { t: "text", v: `${block.linked.display_name} terminó un turno adicional.` },
+    ]);
+  } else {
+    return { ok: false };
+  }
   return dmShiftTurn(encounter, blocks, 1);
+}
+
+// ─────────────── Turn pins (extra turns for an existing enemy) ───────────────
+
+export async function addTurnPin(
+  encounter: CombatEncounter,
+  linked: CombatParticipant,
+  opts?: { initiative?: number; label?: string | null },
+) {
+  if (!isEnemy(linked)) return { ok: false, error: "not_enemy" };
+  if (encounter.status === "ended") return { ok: false, error: "ended" };
+  const initiative = clampInitiative(opts?.initiative ?? linked.initiative ?? 10);
+  // Append at the end of the order so it doesn't disrupt the current turn pointer.
+  const order = await nextOrderIndex(encounter.id);
+  const { error } = await (supabase as any).from("combat_turn_pins").insert({
+    encounter_id: encounter.id,
+    campaign_id: encounter.campaign_id,
+    linked_participant_id: linked.id,
+    label: opts?.label ?? null,
+    order_index: order,
+    initiative,
+    is_active: true,
+  });
+  if (error) return { ok: false, error: error.message };
+  await pushLog(encounter.campaign_id, [
+    { t: "text", v: `Turno adicional añadido para ${linked.display_name}.` },
+  ]);
+  return { ok: true };
+}
+
+export async function deleteTurnPin(pin: CombatTurnPin) {
+  const { error } = await (supabase as any)
+    .from("combat_turn_pins")
+    .delete()
+    .eq("id", pin.id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 // ─────────────── Enemy skills (snapshot in combat) ───────────────
