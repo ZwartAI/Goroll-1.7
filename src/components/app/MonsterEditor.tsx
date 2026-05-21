@@ -155,6 +155,21 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
           <Field label={t("combat.icon")}>
             <EnemyIconPicker value={icon} onChange={setIcon} />
           </Field>
+          <Field label={t("bestiary.visualAsset")}>
+            <div className="grid grid-cols-6 gap-1.5">
+              {(["normal","elite","boss","god","hero_female","hero_male"] as const).map(k => {
+                const key = `asset:${k}`;
+                const sel = icon === key;
+                return (
+                  <button key={k} type="button" onClick={() => setIcon(sel ? "skull" : key)}
+                    className={`aspect-square rounded-md border overflow-hidden ${sel ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/50" : "border-border hover:border-[var(--gold)]/50"}`}
+                    title={t(`bestiary.asset_${k}`)}>
+                    <img src={require("@/components/app/EnemyIconPicker").ENEMY_ASSETS[k]} alt={k} className="w-full h-full object-cover" />
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
           <Field label={t("combat.color")}>
             <EnemyColorPicker value={color} onChange={setColor} />
           </Field>
