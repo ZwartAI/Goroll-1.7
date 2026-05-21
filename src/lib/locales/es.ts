@@ -617,6 +617,8 @@ export const es = {
     createBoosterTitle: "🃏 Crear potenciador",
     createMonsterTitle: "Crear monstruo",
     createMonsterHint: "Crea plantillas de enemigos para el compendio y úsalos durante la iniciativa.",
+    createEnemyOrMonsterTitle: "Crear enemigo o monstruo",
+    createEnemyOrMonsterHint: "Crea plantillas de enemigos o monstruos para el compendio, o impórtalas desde un Excel.",
     openBestiary: "Abrir compendio",
     createBoosterHint: "Define nombre, rareza y usos. Se guarda en el Vault.",
     newBooster: "Nuevo potenciador",

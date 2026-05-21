@@ -615,6 +615,8 @@ export const en: Dict = {
     createBoosterTitle: "🃏 Create booster",
     createMonsterTitle: "Create monster",
     createMonsterHint: "Build enemy templates for the compendium and use them during initiative.",
+    createEnemyOrMonsterTitle: "Create enemy or monster",
+    createEnemyOrMonsterHint: "Build enemy or monster templates for the compendium, or import them from an Excel file.",
     openBestiary: "Open compendium",
     createBoosterHint: "Set name, rarity and uses. Saved to the Vault.",
     newBooster: "New booster",
