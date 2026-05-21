@@ -227,9 +227,9 @@ function DM() {
                 style={{ background: "linear-gradient(135deg, oklch(0.45 0.18 25), oklch(0.30 0.14 25))", color: "white" }}>
                 <Plus size={14} /> {t("dm.openBestiary")}
               </Link>
-              <Link to="/campaign/bestiary" search={{ import: 1 } as any} className="btn-fantasy inline-flex items-center justify-center gap-1.5">
+              <a href="/campaign/bestiary?import=1" className="btn-fantasy inline-flex items-center justify-center gap-1.5">
                 <Upload size={14} /> {t("bestiary.importExcelShort")}
-              </Link>
+              </a>
             </div>
           </div>
         </div>
