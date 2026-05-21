@@ -50,28 +50,32 @@ export function EnemyDamageModal({ participant, onClose, mode = "both" }: Props)
           HP {participant.enemy_hp}/{participant.enemy_max_hp} · {t("combat.defense")} {def}
         </p>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.damage")}</label>
-          <NumberInput min={0} value={damage} onChange={setDamage} />
-          <label className="flex items-center gap-2 text-xs">
-            <input type="checkbox" checked={useDef} onChange={e => setUseDef(e.target.checked)} />
-            <span>{t("combat.applyWithDefense")}</span>
-          </label>
-          <p className="text-[11px] text-muted-foreground">→ {preview} HP</p>
-          <button className="btn-fantasy w-full" disabled={busy || damage <= 0}
-            style={{ background: "var(--loss)", color: "white" }} onClick={doDamage}>
-            {t("combat.applyDamage")}
-          </button>
-        </div>
+        {(mode === "both" || mode === "damage") && (
+          <div className="space-y-2">
+            <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.damage")}</label>
+            <NumberInput min={0} value={damage} onChange={setDamage} />
+            <label className="flex items-center gap-2 text-xs">
+              <input type="checkbox" checked={useDef} onChange={e => setUseDef(e.target.checked)} />
+              <span>{t("combat.applyWithDefense")}</span>
+            </label>
+            <p className="text-[11px] text-muted-foreground">→ {preview} HP</p>
+            <button className="btn-fantasy w-full" disabled={busy || damage <= 0}
+              style={{ background: "var(--loss)", color: "white" }} onClick={doDamage}>
+              {t("combat.applyDamage")}
+            </button>
+          </div>
+        )}
 
-        <div className="space-y-2 pt-2 border-t border-border">
-          <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.heal")}</label>
-          <NumberInput min={0} value={heal} onChange={setHeal} />
-          <button className="btn-fantasy w-full" disabled={busy || heal <= 0}
-            style={{ background: "var(--gain)", color: "white" }} onClick={doHeal}>
-            {t("combat.heal")}
-          </button>
-        </div>
+        {(mode === "both" || mode === "heal") && (
+          <div className={mode === "both" ? "space-y-2 pt-2 border-t border-border" : "space-y-2"}>
+            <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("combat.heal")}</label>
+            <NumberInput min={0} value={heal} onChange={setHeal} />
+            <button className="btn-fantasy w-full" disabled={busy || heal <= 0}
+              style={{ background: "var(--gain)", color: "white" }} onClick={doHeal}>
+              {t("combat.heal")}
+            </button>
+          </div>
+        )}
 
         <button className="btn-fantasy w-full" onClick={onClose} disabled={busy}>{t("common.cancel")}</button>
       </div>
