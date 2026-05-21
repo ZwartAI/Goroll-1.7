@@ -14,7 +14,13 @@ import { CoinsPurseModal } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
 import { CombatList } from "@/components/app/CombatList";
 import { InitiativeButton } from "@/components/app/InitiativeButton";
-import { User, Minus, Plus, Camera, Heart, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen, Coins, RotateCw } from "lucide-react";
+import { User, Minus, Plus, Camera, Heart, HeartPulse, Coins, RotateCw } from "lucide-react";
+import navEquipo from "@/assets/nav/equipo.png";
+import navMochila from "@/assets/nav/mochila.png";
+import navLogros from "@/assets/nav/logros.png";
+import navPotenciadores from "@/assets/nav/potenciadores.png";
+import navHabilidades from "@/assets/nav/habilidades.png";
+import navNotas from "@/assets/nav/notas.png";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
@@ -285,31 +291,31 @@ function Profile() {
 
           <ConditionsPanel character={character} campaignId={campaign.id} canEdit={true} />
 
-          {/* Quick links — icon left, text right */}
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <Link to="/campaign/equipment" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2">
-              <Sword size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[11px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("profile.quickEquip")}</span>
-            </Link>
-            <Link to="/campaign/inventory" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2" style={{ background: "linear-gradient(135deg, oklch(0.5 0.15 195), oklch(0.3 0.1 195))" }}>
-              <Backpack size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[11px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("profile.quickInv")}</span>
-            </Link>
-            <Link to="/campaign/achievements" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
-              <Trophy size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[11px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("profile.quickAch")}</span>
-            </Link>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <Link to="/campaign/boosters" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2 tracking-normal"
-              style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
-              <Sparkles size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[10px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("profile.quickBoost")}</span>
-            </Link>
-            <Link to="/campaign/skills" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2"
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
-              <Sparkles size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[11px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("skills.title")}</span>
-            </Link>
-            <Link to="/campaign/notes" className="btn-fantasy flex items-center justify-center gap-1.5 overflow-hidden min-w-0 px-2"
-              style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
-              <NotebookPen size={14} className="shrink-0" /><span className="min-w-0 text-center leading-tight truncate whitespace-nowrap text-[11px]" style={{ wordBreak: "normal", hyphens: "none" }}>{t("profile.quickNotes")}</span>
-            </Link>
+          {/* Quick links — single row of 6 vertical asset buttons */}
+          <div className="grid grid-cols-6 gap-1 mb-4">
+            {[
+              { to: "/campaign/equipment", src: navEquipo, label: t("profile.quickEquip") },
+              { to: "/campaign/inventory", src: navMochila, label: t("profile.quickInv") },
+              { to: "/campaign/achievements", src: navLogros, label: t("profile.quickAch") },
+              { to: "/campaign/boosters", src: navPotenciadores, label: t("profile.quickBoost") },
+              { to: "/campaign/skills", src: navHabilidades, label: t("skills.title") },
+              { to: "/campaign/notes", src: navNotas, label: t("profile.quickNotes") },
+            ].map((b) => (
+              <Link
+                key={b.to}
+                to={b.to}
+                aria-label={b.label}
+                className="block min-w-0 transition-transform duration-150 ease-out active:scale-[0.94]"
+                style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+              >
+                <img
+                  src={b.src}
+                  alt={b.label}
+                  className="w-full h-auto object-contain select-none pointer-events-none"
+                  draggable={false}
+                />
+              </Link>
+            ))}
           </div>
 
           {/* Log + Combat tab (mirrors Escenario behavior) */}
