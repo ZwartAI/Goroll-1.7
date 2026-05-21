@@ -117,11 +117,13 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups 
             </button>
             <button className="btn-fantasy text-xs"
               style={{ background: "var(--loss)", color: "white" }}
-              onClick={async () => {
-                if (!confirm(t("combat.confirmEnd"))) return;
-                const r = await endCombat(encounter, dm);
-                if (!r.ok) toast.error(t("combat.endError"));
-              }}>
+              onClick={() => setConfirmState({
+                message: t("combat.confirmEnd"),
+                onConfirm: async () => {
+                  const r = await endCombat(encounter, dm);
+                  if (!r.ok) toast.error(t("combat.endError"));
+                },
+              })}>
               <X size={14} className="inline mr-1" /> {t("combat.end")}
             </button>
           </div>
