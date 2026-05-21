@@ -37,6 +37,7 @@ function Bestiary() {
   const [spawning, setSpawning] = useState<EnemyTemplate | null>(null);
   const [deleting, setDeleting] = useState<EnemyTemplate | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const isDM = character?.role === "dm";
 
@@ -50,6 +51,13 @@ function Bestiary() {
       .subscribe();
     return () => { (supabase as any).removeChannel(ch); };
   }, [campaign?.id]);
+
+  // Auto-open the Excel import modal when navigated with ?import=1 (DM Create shortcut).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("import") === "1") setImporting(true);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -79,10 +87,15 @@ function Bestiary() {
       <header className="flex items-center gap-2 mb-3">
         <Link to="/campaign/dm" className="text-muted-foreground"><ChevronLeft size={20} /></Link>
         <h1 className="font-display text-lg flex-1 text-[var(--gold)] rune-glow">🐉 {t("bestiary.title")}</h1>
+        <button className="btn-fantasy text-xs inline-flex items-center gap-1"
+          onClick={() => setImporting(true)}
+          title={t("bestiary.importEnemyExcel")}>
+          <Upload size={14} /> {t("bestiary.importExcelShort")}
+        </button>
         <button className="btn-fantasy text-xs"
           style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
           onClick={() => setCreating(true)}>
-          <Plus size={14} className="inline" /> {t("bestiary.createMonster")}
+          <Plus size={14} className="inline" /> {t("bestiary.createEnemyOrMonster")}
         </button>
       </header>
       <div className="gem-divider mb-3" />
@@ -182,6 +195,16 @@ function Bestiary() {
           encounter={combat.encounter}
           dm={dmCtx}
           onClose={() => setSpawning(null)}
+        />
+      )}
+
+      {importing && (
+        <EnemyExcelImportModal
+          campaignId={campaign.id}
+          dm={dmCtx}
+          existing={templates}
+          onClose={() => setImporting(false)}
+          onImported={() => listTemplates(campaign.id).then(setTemplates)}
         />
       )}
 

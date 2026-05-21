@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Vault, Sparkles, Wand2, Theater } from "lucide-react";
+import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Vault, Sparkles, Wand2, Theater, Upload } from "lucide-react";
 import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog, type UndoAction } from "@/lib/log";
@@ -220,12 +220,17 @@ function DM() {
           )}
 
           <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--loss)] flex items-center gap-2"><Skull size={16} /> {t("dm.createMonsterTitle")}</h3>
-            <p className="text-xs text-muted-foreground">{t("dm.createMonsterHint")}</p>
-            <Link to="/campaign/bestiary" className="btn-fantasy w-full inline-flex items-center justify-center gap-1.5"
-              style={{ background: "linear-gradient(135deg, oklch(0.45 0.18 25), oklch(0.30 0.14 25))", color: "white" }}>
-              <Plus size={14} /> {t("dm.openBestiary")}
-            </Link>
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--loss)] flex items-center gap-2"><Skull size={16} /> {t("dm.createEnemyOrMonsterTitle")}</h3>
+            <p className="text-xs text-muted-foreground">{t("dm.createEnemyOrMonsterHint")}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Link to="/campaign/bestiary" className="btn-fantasy inline-flex items-center justify-center gap-1.5"
+                style={{ background: "linear-gradient(135deg, oklch(0.45 0.18 25), oklch(0.30 0.14 25))", color: "white" }}>
+                <Plus size={14} /> {t("dm.openBestiary")}
+              </Link>
+              <a href="/campaign/bestiary?import=1" className="btn-fantasy inline-flex items-center justify-center gap-1.5">
+                <Upload size={14} /> {t("bestiary.importExcelShort")}
+              </a>
+            </div>
           </div>
         </div>
       )}

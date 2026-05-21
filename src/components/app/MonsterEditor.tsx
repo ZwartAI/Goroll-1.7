@@ -13,6 +13,7 @@ import {
   SKILL_TYPES,
   SKILL_SHAPES,
   IMMUNITIES,
+  TIER_VISUALS,
   createTemplate,
   updateTemplate,
   listTemplateSkills,
@@ -187,7 +188,7 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
       <div className="ornate-card max-w-2xl w-full max-h-[92vh] overflow-y-auto p-4 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-display text-[var(--gold)] text-base uppercase tracking-widest">
-            {isEdit ? t("bestiary.editMonster") : t("bestiary.createMonster")}
+            {isEdit ? t("bestiary.editEnemyOrMonster") : t("bestiary.createEnemyOrMonster")}
           </h3>
           <button className="text-muted-foreground" onClick={onClose}>✕</button>
         </div>
@@ -199,7 +200,16 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field label={t("bestiary.tier")}>
-              <Select value={tier} onChange={setTier} options={PRIMARY_TIERS.map(v => [v, t(`bestiary.tier_${v}`)])} />
+              <Select value={tier} onChange={(v) => {
+                setTier(v);
+                // Auto-apply the tier's visual asset + border color so the card
+                // matches the chosen rank immediately. DM can override after.
+                const vis = TIER_VISUALS[v];
+                if (vis) {
+                  setIcon(vis.assetKey);
+                  setColor(vis.border);
+                }
+              }} options={PRIMARY_TIERS.map(v => [v, t(`bestiary.tier_${v}`)])} />
             </Field>
             <Field label={t("bestiary.role")}>
               <Select value={role} onChange={setRole} options={ROLE_OPTIONS.map(v => [v, t(`bestiary.role_${v}`)])} />
@@ -342,7 +352,7 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
           <button className="btn-fantasy" disabled={busy}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
             onClick={submit}>
-            {isEdit ? t("common.save") : t("bestiary.createMonster")}
+            {isEdit ? t("common.save") : t("bestiary.createEnemyOrMonster")}
           </button>
         </div>
       </div>
