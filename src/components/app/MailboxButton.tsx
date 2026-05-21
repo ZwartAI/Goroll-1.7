@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Mail } from "lucide-react";
+import { Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStoredUser } from "@/lib/game";
 import { toast } from "sonner";
@@ -87,7 +87,7 @@ export function MailboxButton({ className = "text-white" }: { className?: string
         aria-label={t("mailbox.ariaOpen")}
         className={`relative rounded-md border border-border bg-card/60 backdrop-blur p-1.5 text-muted-foreground hover:text-[var(--gold)] hover:border-[var(--gold)] transition-colors ${className}`}
       >
-        <Mail size={14} />
+        <Inbox size={14} />
         {hasPending && (
           <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[var(--loss)] border border-background animate-pulse" />
         )}

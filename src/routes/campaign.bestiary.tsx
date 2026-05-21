@@ -149,7 +149,7 @@ function Bestiary() {
                 </div>
                 <div className="flex flex-col gap-0.5 items-end">
                   {tpl.tier === "elite" && <span title={t("bestiary.tier_elite")}><Star size={12} className="text-purple-400" /></span>}
-                  {(tpl.tier === "boss" || tpl.tier === "god") && <span title={t(`bestiary.tier_${tpl.tier}`)}><Crown size={12} className={tpl.tier === "god" ? "text-yellow-300" : "text-red-400"} /></span>}
+                  {(tpl.tier === "boss" || tpl.tier === "god") && <span title={t(`bestiary.tier_${tpl.tier}`)}><Crown size={12} className="text-red-400" /></span>}
                 </div>
               </div>
               <div className="grid grid-cols-3 text-center text-[10px] text-muted-foreground">
