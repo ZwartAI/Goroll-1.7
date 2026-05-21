@@ -294,6 +294,75 @@ export function SkillUseModal({ encounter, participants, groups, source, allChar
           </div>
         )}
 
+        {/* Link Bonus — only when source is in a link and damage resolution */}
+        {linkInfo && resolution === "damage" && (
+          <div className="ornate-card !p-2 space-y-1.5" style={{ borderColor: "color-mix(in oklab, var(--gold) 50%, transparent)" }}>
+            <p className="text-[11px] font-display uppercase tracking-widest text-[var(--gold)]">
+              {t("combat.linkBonusTitle")}
+            </p>
+            <p className="text-[10px] text-muted-foreground">{t("combat.linkBonusHint")}</p>
+            <div className="grid grid-cols-3 gap-1">
+              {([0, 2, 3] as const).map(v => {
+                const disabled = v === 3 && (linkInfo.members.length < 3);
+                const on = linkBonus === v;
+                const label = v === 0 ? t("combat.linkBonusNone") : v === 2 ? t("combat.linkBonus2") : t("combat.linkBonus3");
+                return (
+                  <button key={v} type="button" disabled={disabled}
+                    onClick={() => setLinkBonus(v)}
+                    className="text-[10px] px-1.5 py-1 rounded border"
+                    style={{
+                      borderColor: on ? "var(--gold)" : "var(--border)",
+                      background: on ? "color-mix(in oklab, var(--gold) 18%, transparent)" : "transparent",
+                      color: disabled ? "var(--muted-foreground)" : (on ? "var(--gold)" : undefined),
+                      opacity: disabled ? 0.5 : 1,
+                    }}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {linkBonus > 0 && linkMates.length > 0 && (
+              <div>
+                <p className="text-[10px] text-muted-foreground mb-1">{t("combat.linkMembers")}</p>
+                <div className="flex flex-wrap gap-1">
+                  {linkMates.map(m => {
+                    const id = m.character_id!;
+                    const on = linkBonusMembers.has(id);
+                    return (
+                      <button key={id} type="button"
+                        onClick={() => {
+                          const n = new Set(linkBonusMembers);
+                          on ? n.delete(id) : n.add(id);
+                          setLinkBonusMembers(n);
+                        }}
+                        className="px-2 py-1 rounded border text-[11px]"
+                        style={{
+                          borderColor: on ? (m.color || "var(--gold)") : "var(--border)",
+                          background: on ? `color-mix(in oklab, ${m.color || "var(--gold)"} 18%, transparent)` : "transparent",
+                          color: m.color || undefined,
+                        }}>
+                        {m.display_name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {linkBonus > 0 && (
+              <div>
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {t("combat.linkBonusJustification")}
+                </label>
+                <textarea className="w-full bg-input border border-border rounded px-2 py-1 text-xs" rows={2}
+                  value={linkJust} onChange={e => setLinkJust(e.target.value)} />
+              </div>
+            )}
+          </div>
+        )}
+
+
         <div className="flex gap-2 pt-2">
           <button type="button" onClick={onClose} className="flex-1 btn-ghost">{t("common.cancel")}</button>
           <button type="button" disabled={busy} onClick={submit}
