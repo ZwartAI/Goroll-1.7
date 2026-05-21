@@ -470,7 +470,12 @@ export type EnemyDraft = {
   defense: number;
   speed: string;
   notes: string;
+  role?: string | null;
+  biome?: string | null;
+  base_damage?: string | null;
+  behavior?: string | null;
 };
+
 
 export type InsertPosition = "byInitiative" | "afterCurrent" | "end";
 
