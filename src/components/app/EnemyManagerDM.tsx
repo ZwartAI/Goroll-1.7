@@ -41,6 +41,7 @@ export function EnemyManagerDM({ encounter, participants, groups, dm }: Props) {
   const [editing, setEditing] = useState<CombatParticipant | null>(null);
   const [damaging, setDamaging] = useState<CombatParticipant | null>(null);
   const [sheet, setSheet] = useState<CombatParticipant | null>(null);
+  const [removing, setRemoving] = useState<CombatParticipant | null>(null);
 
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [overKey, setOverKey] = useState<string | null>(null);
