@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
-  Edit3, Copy, Trash2, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, FastForward, FileText,
+  Edit3, Copy, Trash2, FastForward, FileText, GripVertical,
 } from "lucide-react";
 import {
   activeBlock,
@@ -12,8 +12,8 @@ import {
   duplicateEnemy,
   healEnemy,
   isEnemy,
-  moveParticipant,
   removeEnemy,
+  reorderParticipantTo,
   type CombatEncounter,
   type CombatParticipant,
   type CombatTurnGroup,
