@@ -348,8 +348,22 @@ function Profile() {
       )}
 
       {imgModal && (
-        <ImageEditor character={character} onClose={() => setImgModal(false)} />
+        <ImageEditor
+          character={character}
+          mode={imgModal}
+          onClose={() => setImgModal(null)}
+        />
       )}
+      {imgViewer && (
+        <CharacterImageViewer
+          character={character}
+          canEdit={true}
+          onClose={() => setImgViewer(false)}
+          onEditFace={() => { setImgViewer(false); setImgModal("face"); }}
+          onEditBody={() => { setImgViewer(false); setImgModal("body"); }}
+        />
+      )}
+
       {hpModal && (
         <HpModal
           current={character.current_hp}
