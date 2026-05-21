@@ -166,6 +166,8 @@ export const en: Dict = {
     strangled: "Strangled",
   },
   campaign: {
+    loadingTitle: "Entering the campaign",
+    loadingBody: "Hold on while we load the table. If it takes too long, you can cancel.",
     actionTitle: "What would you like to do?",
     play: "▶️ Play campaign",
     edit: "⚙️ Edit campaign",
@@ -880,6 +882,7 @@ export const en: Dict = {
     },
   },
   combat: {
+    cancelRollHint: "Opened this by mistake? Press Cancel to go back.",
     dmTitle: "Combat",
     requestInitiative: "Request initiative",
     requested: "Initiative requested",

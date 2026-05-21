@@ -88,8 +88,9 @@ export function InitiativeRollModal({ encounter, character, linkCandidates, onCl
           </div>
         )}
 
+        <p className="text-[10px] text-muted-foreground text-center -mt-1">{t("combat.cancelRollHint")}</p>
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <button className="btn-fantasy" onClick={onClose} disabled={busy}>{t("common.close")}</button>
+          <button className="btn-fantasy" onClick={onClose} disabled={busy}>{t("common.cancel")}</button>
           <button className="btn-fantasy" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
             disabled={busy || !value} onClick={confirm}>
             {t("combat.confirm")}
