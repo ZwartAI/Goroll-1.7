@@ -43,7 +43,16 @@ export function getEnemyAssetUrl(key: string | null | undefined): string | null 
   return ENEMY_ASSETS[key.slice(6)] || null;
 }
 
-export function EnemyIcon({ name, size = 24, color, fill = false }: { name: string | null | undefined; size?: number; color?: string; fill?: boolean }) {
+export function EnemyIcon({
+  name, size = 24, color, fill = false, assetScale = 1,
+}: {
+  name: string | null | undefined;
+  size?: number;
+  color?: string;
+  fill?: boolean;
+  /** Scale factor applied only to tier visual assets (not to lucide icons). */
+  assetScale?: number;
+}) {
   const asset = getEnemyAssetUrl(name);
   if (asset) {
     // When `fill` is true the image fills its parent (use inside a rounded
@@ -54,8 +63,31 @@ export function EnemyIcon({ name, size = 24, color, fill = false }: { name: stri
           src={asset}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center" }}
+          style={{ objectPosition: "center", transform: assetScale !== 1 ? `scale(${assetScale})` : undefined, transformOrigin: "center" }}
         />
+      );
+    }
+    if (assetScale !== 1) {
+      // Render inside a fixed-size circular clip and scale the image to zoom in.
+      return (
+        <span
+          style={{ width: size, height: size, display: "inline-block", borderRadius: "9999px", overflow: "hidden", position: "relative" }}
+        >
+          <img
+            src={asset}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
+              transform: `scale(${assetScale})`,
+              transformOrigin: "center",
+            }}
+          />
+        </span>
       );
     }
     return <img src={asset} alt="" style={{ width: size, height: size, objectFit: "cover", borderRadius: "9999px" }} />;
