@@ -223,7 +223,7 @@ function TurnRow({
           </p>
           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{activeEnemyLabel}</p>
         </div>
-        <InitiativeChip n={block.pin.initiative} />
+        
         {isActive && !inactive && <ActiveBadge label={activeEnemyLabel} tone="enemy" />}
       </div>
     );
