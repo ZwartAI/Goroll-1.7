@@ -230,13 +230,16 @@ export async function startCombat(
   for (const b of blocks) {
     if (b.kind === "solo") {
       await supabase.from("combat_participants" as any).update({ order_index: order, has_ended_turn: false }).eq("id", b.participant.id);
-    } else {
+    } else if (b.kind === "group") {
       for (const m of b.members) {
         await supabase.from("combat_participants" as any).update({ order_index: order, has_ended_turn: false }).eq("id", m.id);
       }
+    } else {
+      await (supabase as any).from("combat_turn_pins").update({ order_index: order }).eq("id", b.pin.id);
     }
     order++;
   }
+
   const { error } = await supabase
     .from("combat_encounters" as any)
     .update({ status: "active", current_turn_index: 0, started_at: new Date().toISOString() })
