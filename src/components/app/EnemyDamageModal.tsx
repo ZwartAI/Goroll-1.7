@@ -7,9 +7,11 @@ import { NumberInput } from "@/components/app/NumberInput";
 type Props = {
   participant: CombatParticipant;
   onClose: () => void;
+  /** Which sections to show. Default "both". */
+  mode?: "both" | "heal" | "damage";
 };
 
-export function EnemyDamageModal({ participant, onClose }: Props) {
+export function EnemyDamageModal({ participant, onClose, mode = "both" }: Props) {
   const { t } = useT();
   const [damage, setDamage] = useState(0);
   const [heal, setHeal] = useState(0);
