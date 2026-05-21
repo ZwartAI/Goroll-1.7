@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import {
   ChevronLeft, ChevronRight, X,
-  Inbox, Trophy, Skull, Mic, MicOff, Maximize2, Minimize2, LogOut,
+  Mail, Trophy, Skull, Mic, MicOff, Maximize2, Minimize2, LogOut,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -301,7 +301,7 @@ export function useStandardHeaderItems(opts: {
       const hasPending = pending > 0;
       items.push({
         key: "mailbox", label: t("mailbox.title"),
-        icon: Inbox, onClick: opts.mailbox.onOpen,
+        icon: Mail, onClick: opts.mailbox.onOpen,
         color: hasPending ? "#ffffff" : "oklch(0.65 0.02 260)",
         trailing: hasPending ? (
           <span
