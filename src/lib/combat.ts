@@ -551,8 +551,13 @@ export async function addEnemies(
       enemy_instance_number: instance,
       is_enemy_visible: true,
       is_defeated: current_hp <= 0,
+      enemy_role: draft.role || null,
+      enemy_biome: draft.biome || null,
+      enemy_base_damage: draft.base_damage || null,
+      enemy_behavior: draft.behavior || null,
     });
   }
+
   const { error } = await (supabase as any).from("combat_participants").insert(rows);
   if (error) return { ok: false, error: error.message };
 
