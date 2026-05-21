@@ -93,7 +93,7 @@ export function NotesEditor({ characterId, characterName, characterColor, readOn
       const raw = (data?.content as string) || "";
       const html = DOMPurify.sanitize(raw, { USE_PROFILES: { html: true } });
       initialRef.current = html;
-      if (ref.current) ref.current.innerHTML = html;
+      if (ref.current) { ref.current.innerHTML = html; highlightStats(ref.current); }
       setLoading(false);
     })();
 
