@@ -66,6 +66,12 @@ export type ResolvePayload = {
   rollResult?: string;
   note?: string;
   durationRounds?: number;
+  /** Link synergy bonus added to damage amount. 0, 2 or 3. */
+  linkBonus?: 0 | 2 | 3;
+  /** Names of link members credited with the synergy (for the log). */
+  linkBonusMembers?: string[];
+  /** Required short justification when linkBonus > 0. */
+  linkBonusJustification?: string;
 };
 
 // ───────────────────────── Validation ─────────────────────────
