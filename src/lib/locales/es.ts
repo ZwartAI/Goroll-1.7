@@ -974,6 +974,7 @@ export const es = {
     defeated: "Derrotado",
     endEnemyTurn: "Pasar turno del enemigo",
     confirmRemoveEnemy: "¿Eliminar este enemigo del combate?",
+    confirmRemoveEnemyTitle: "Eliminar enemigo",
     errNameRequired: "Nombre requerido",
     errMaxHp: "HP máximo debe ser mayor a 0",
     saveError: "No se pudo guardar",
