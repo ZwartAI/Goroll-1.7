@@ -267,8 +267,15 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     return { dmLabels: labels, dmCharacterIds: ids };
   }, [members, characters, campaign]);
 
+  // Hide dm_only log entries from non-DM viewers (players + spectators).
+  const isDmViewer = !!character && (character.role === "dm" || dmCharacterIds.has(character.id));
+  const visibleLogs = useMemo(
+    () => (isDmViewer ? logs : logs.filter(l => !(l as any).dm_only)),
+    [logs, isDmViewer],
+  );
+
   return (
-    <Ctx.Provider value={{ campaign, character, characters, items, logs, achievements, loading, onlineIds, dmLabels, dmCharacterIds, combat, reload: load, loadMoreLogs }}>
+    <Ctx.Provider value={{ campaign, character, characters, items, logs: visibleLogs, achievements, loading, onlineIds, dmLabels, dmCharacterIds, combat, reload: load, loadMoreLogs }}>
       {loading && <CampaignLoadingOverlay onCancel={() => { setSession(null); nav({ to: "/" }); }} />}
       {children}
     </Ctx.Provider>

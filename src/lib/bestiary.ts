@@ -163,7 +163,7 @@ export async function createTemplate(
   await pushLog(campaignId, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: ` creó una plantilla de enemigo: ${row.name}.` },
-  ]);
+  ], undefined, { dmOnly: true });
   return { ok: true as const, template: data as EnemyTemplate };
 }
 

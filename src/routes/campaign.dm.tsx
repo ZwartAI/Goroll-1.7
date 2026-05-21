@@ -564,12 +564,13 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
     const { data: it } = await supabase.from("items").insert(payload).select().single();
     if (it) {
       const targetChar = players.find(p => p.id === target);
+      const handed = send && !!targetChar;
       await pushLog(campaignId, [
         { t: "char", v: dm.name, color: dm.color, id: dm.id },
-        { t: "text", v: send && targetChar ? tr("dm.handedLog") : tr("dm.createdLog") },
-        ...(send && targetChar ? [{ t: "char", v: targetChar.name, color: targetChar.color, id: targetChar.id } as const, { t: "text", v: ":" } as const] : []),
+        { t: "text", v: handed ? tr("dm.handedLog") : tr("dm.createdLog") },
+        ...(handed ? [{ t: "char", v: targetChar!.name, color: targetChar!.color, id: targetChar!.id } as const, { t: "text", v: ":" } as const] : []),
         { t: "item", v: it.name, rarity: it.rarity as any, id: it.id },
-      ] as any, { kind: "item.recreate", item: it as any });
+      ] as any, { kind: "item.recreate", item: it as any }, { dmOnly: !handed });
     }
 
     setName(""); setDamage(0); setUses(1); setDescription("");
