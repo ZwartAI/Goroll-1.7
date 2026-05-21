@@ -6,6 +6,7 @@ import { listTemplates, spawnFromTemplate, type EnemyTemplate } from "@/lib/best
 import {
   buildOrderedTurns,
   cancelInitiative,
+  dissolveLink,
   dmShiftTurn,
   endCombat,
   requestInitiative,
@@ -15,6 +16,7 @@ import {
   type CombatTurnGroup,
 } from "@/lib/combat";
 import { CombatList } from "@/components/app/CombatList";
+import { Crown, Link as LinkIcon } from "lucide-react";
 import { EnemyEditorModal } from "@/components/app/EnemyEditorModal";
 import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 
