@@ -1050,7 +1050,7 @@ export async function logEnemySpeech(participant: CombatParticipant, text: strin
 // ─────────────────────── Enemy → Players damage ───────────────────────
 
 import { totals } from "./game";
-import type { Character, Item } from "./game";
+import type { Item } from "./game";
 
 export type EnemyAttackDistribution = "individual" | "split";
 
