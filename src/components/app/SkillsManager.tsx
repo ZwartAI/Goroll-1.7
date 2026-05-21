@@ -316,11 +316,7 @@ function CharacterPickerModal({
                 className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0"
                 style={{ border: `1.5px solid ${p.color}` }}
               >
-                {(p as any).image_url ? (
-                  <img src={(p as any).image_url} alt={p.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="font-display text-sm" style={{ color: p.color }}>{p.name.charAt(0)}</span>
-                )}
+                <CharacterPortrait character={p as any} className="w-full h-full text-sm" showBorder={false} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-display text-sm truncate" style={{ color: p.color }}>{p.name}</p>
