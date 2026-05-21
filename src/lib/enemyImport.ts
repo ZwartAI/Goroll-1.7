@@ -3,10 +3,11 @@
 // (no storage upload, no base64 backup). After import the File reference is dropped.
 import * as XLSX from "xlsx";
 import {
-  BIOME_PRESETS, TIER_VISUALS, getTierVisual, pickAutoIcon,
-  TIER_OPTIONS, ROLE_OPTIONS, isPresetBiome,
+  BIOME_PRESETS, getTierVisual, pickAutoIcon,
+  TIER_OPTIONS, ROLE_OPTIONS,
   type EnemyTier, type EnemyRole,
 } from "./bestiary";
+
 
 export type ImportedEnemySkill = {
   name: string;
