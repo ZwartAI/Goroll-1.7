@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, Crown, Star, Upload, ChessKnight } from "lucide-react";
+import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, Crown, Star, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
