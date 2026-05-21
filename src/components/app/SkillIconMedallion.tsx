@@ -83,14 +83,6 @@ export function SkillIconMedallion({
       aria-hidden
     >
       <Icon size={icon} color={color} strokeWidth={1.8} />
-      <span
-        className="absolute -top-0.5 -right-0.5 rounded-full"
-        style={{
-          width: 8, height: 8,
-          background: color,
-          boxShadow: `0 0 6px ${color}`,
-        }}
-      />
     </div>
   );
 }
