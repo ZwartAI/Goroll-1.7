@@ -43,9 +43,14 @@ function Settings() {
     toastSaved();
   }
 
-  const num = (k: string, label: string) => (
-    <label className="stat-pill gap-1 min-w-0 !items-center">
-      <span className="min-w-0 flex-1 whitespace-normal break-words leading-tight text-[10px]">{label}</span>
+  const num = (k: string, label: string, color?: string) => (
+    <label className="stat-pill gap-1 min-w-0 !items-center"
+      style={color ? {
+        borderColor: `color-mix(in oklab, ${color} 55%, transparent)`,
+        background: `linear-gradient(180deg, color-mix(in oklab, ${color} 10%, var(--card)), var(--card))`,
+      } : undefined}>
+      <span className="min-w-0 flex-1 whitespace-normal break-words leading-tight text-[10px]"
+        style={color ? { color, fontWeight: 600 } : undefined}>{label}</span>
       <input type="number" className="w-14 flex-shrink-0 bg-transparent text-right outline-none text-[var(--gold)]"
         value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} />
     </label>
