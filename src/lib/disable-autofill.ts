@@ -63,10 +63,10 @@ export function mountDisableAutofill() {
       m.addedNodes.forEach(node => {
         if (node.nodeType !== 1) return;
         const el = node as Element;
-        if (el.matches?.("input, textarea")) {
+        if (typeof (el as any).matches === "function" && el.matches("input, textarea")) {
           harden(el as HTMLInputElement | HTMLTextAreaElement);
         }
-        if (el.querySelectorAll) scan(el);
+        if (typeof (el as any).querySelectorAll === "function") scan(el);
       });
     }
   });
