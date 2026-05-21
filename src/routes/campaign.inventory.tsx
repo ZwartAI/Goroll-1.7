@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { clampHpForOwner } from "@/lib/hp";
 import { RarityBadge } from "@/components/app/RarityBadge";
+import { StatText } from "@/components/app/StatText";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 
