@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search, Skull } from "lucide-react";
+import { LogOut, Plus, Send, Trophy, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Vault, Sparkles, Wand2, Theater } from "lucide-react";
 import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog, type UndoAction } from "@/lib/log";
@@ -117,11 +117,20 @@ function DM() {
 
       <div className="grid grid-cols-6 gap-1 mb-4">
         {([
-          ["log", t("dm.tabLog")],["create", t("dm.tabCreate")],["vault", t("dm.tabVault")],["boosters", t("dm.tabBoosters")],["skills", t("skills.title")],["escenario", t("dm.tabScene")],
-        ] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setTab(k as any)}
-            className={`text-[10px] py-2 rounded-md font-display ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}>
-            {l}
+          ["log", t("dm.tabLog"), ScrollText],
+          ["create", t("dm.tabCreate"), Hammer],
+          ["vault", t("dm.tabVault"), Vault],
+          ["boosters", t("dm.tabBoosters"), Sparkles],
+          ["skills", t("skills.title"), Wand2],
+          ["escenario", t("dm.tabScene"), Theater],
+        ] as const).map(([k, l, Icon]) => (
+          <button
+            key={k}
+            onClick={() => setTab(k as any)}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-md font-display transition-colors ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}
+          >
+            <Icon size={26} strokeWidth={1.75} />
+            <span className="text-[9px] leading-tight uppercase tracking-wide truncate max-w-full">{l}</span>
           </button>
         ))}
 
