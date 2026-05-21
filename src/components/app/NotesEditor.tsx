@@ -189,6 +189,7 @@ export function NotesEditor({ characterId, characterName, characterColor, readOn
           contentEditable={!readOnly}
           suppressContentEditableWarning
           onInput={() => setDirty(true)}
+          onBlur={() => highlightStats(ref.current)}
           className="flex-1 overflow-y-auto rounded-md border border-border bg-input p-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] notes-editor"
           style={{ minHeight: "40vh" }}
         />
