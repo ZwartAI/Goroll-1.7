@@ -432,6 +432,11 @@ export type Database = {
           backpack_slots: number
           base_defense: number
           base_hp: number
+          body_image_offset_x: number
+          body_image_offset_y: number
+          body_image_rotation: number
+          body_image_scale: number
+          body_image_url: string
           campaign_id: string
           car: number
           class: string | null
@@ -446,6 +451,7 @@ export type Database = {
           id: string
           image_offset_x: number
           image_offset_y: number
+          image_rotation: number
           image_scale: number
           image_url: string | null
           initiative: number
@@ -463,6 +469,11 @@ export type Database = {
           backpack_slots?: number
           base_defense?: number
           base_hp?: number
+          body_image_offset_x?: number
+          body_image_offset_y?: number
+          body_image_rotation?: number
+          body_image_scale?: number
+          body_image_url?: string
           campaign_id: string
           car?: number
           class?: string | null
@@ -477,6 +488,7 @@ export type Database = {
           id?: string
           image_offset_x?: number
           image_offset_y?: number
+          image_rotation?: number
           image_scale?: number
           image_url?: string | null
           initiative?: number
@@ -494,6 +506,11 @@ export type Database = {
           backpack_slots?: number
           base_defense?: number
           base_hp?: number
+          body_image_offset_x?: number
+          body_image_offset_y?: number
+          body_image_rotation?: number
+          body_image_scale?: number
+          body_image_url?: string
           campaign_id?: string
           car?: number
           class?: string | null
@@ -508,6 +525,7 @@ export type Database = {
           id?: string
           image_offset_x?: number
           image_offset_y?: number
+          image_rotation?: number
           image_scale?: number
           image_url?: string | null
           initiative?: number
