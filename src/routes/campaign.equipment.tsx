@@ -80,7 +80,12 @@ function Equipment() {
           <div className="ornate-card p-4 w-full max-w-md max-h-[70vh] overflow-y-auto rounded-b-none" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-lg mb-3 text-center">{t(`slots.${picker}`)}</h3>
             {equipped(picker) && (
-              <button className="btn-fantasy w-full mb-3" onClick={() => { unequip(equipped(picker)!); setPicker(null); }}>{t("equipment.unequipCurrent")}</button>
+              <div className="mb-3 space-y-3">
+                <div className="ornate-card !p-3" style={{ borderColor: RARITY_COLOR[equipped(picker)!.rarity as Rarity] }}>
+                  <ItemView item={equipped(picker)!} />
+                </div>
+                <button className="btn-fantasy w-full" onClick={() => { unequip(equipped(picker)!); setPicker(null); }}>{t("equipment.unequipCurrent")}</button>
+              </div>
             )}
             <p className="text-xs uppercase text-muted-foreground tracking-widest mb-2">{t("equipment.backpack")}</p>
             <div className="space-y-2">
