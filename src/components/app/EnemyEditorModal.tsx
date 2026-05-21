@@ -66,6 +66,38 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
           <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
         </Field>
 
+        <Field label={t("bestiary.tier")}>
+          <div className="grid grid-cols-4 gap-1">
+            {PRIMARY_TIERS.map(tk => (
+              <button key={tk} type="button"
+                onClick={() => {
+                  setTier(tk);
+                  const vis = TIER_VISUALS[tk];
+                  if (vis) { setIcon(vis.assetKey); setColor(vis.border); }
+                }}
+                className={`text-[10px] py-1 rounded border ${tier === tk ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold)]" : "border-border"}`}>
+                {t(`bestiary.tier_${tk}`)}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label={t("bestiary.visualAsset")}>
+          <div className="grid grid-cols-6 gap-1.5">
+            {(["normal","elite","boss","god","hero_female","hero_male"] as const).map(k => {
+              const key = `asset:${k}`;
+              const sel = icon === key;
+              return (
+                <button key={k} type="button" onClick={() => setIcon(sel ? "skull" : key)}
+                  className={`aspect-square rounded-md border overflow-hidden ${sel ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/50" : "border-border hover:border-[var(--gold)]/50"}`}
+                  title={t(`bestiary.asset_${k}`)}>
+                  <img src={ENEMY_ASSETS[k]} alt={k} className="w-full h-full object-cover" />
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+
         <Field label={t("combat.icon")}>
           <EnemyIconPicker value={icon} onChange={setIcon} />
         </Field>
@@ -76,32 +108,23 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
 
         <div className="grid grid-cols-2 gap-2">
           <Field label={t("combat.initiative")}>
-            <input type="number" min={1} max={20} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
-              value={initiative} onChange={e => setInitiative(parseInt(e.target.value) || 0)} />
+            <NumberInput min={1} max={20} value={initiative} onChange={setInitiative} />
           </Field>
           <Field label={t("combat.defense")}>
-            <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
-              value={defense} onChange={e => setDefense(parseInt(e.target.value) || 0)} />
+            <NumberInput min={0} value={defense} onChange={setDefense} />
           </Field>
           <Field label={t("combat.maxHp")}>
-            <input type="number" min={1} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
-              value={maxHp} onChange={e => {
-                const v = parseInt(e.target.value) || 1;
-                setMaxHp(v);
-                if (!isEdit) setCurHp(v);
-              }} />
+            <NumberInput min={1} value={maxHp} onChange={(v) => { setMaxHp(v); if (!isEdit) setCurHp(v); }} />
           </Field>
           <Field label={t("combat.currentHp")}>
-            <input type="number" min={0} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
-              value={curHp} onChange={e => setCurHp(parseInt(e.target.value) || 0)} />
+            <NumberInput min={0} value={curHp} onChange={setCurHp} />
           </Field>
           <Field label={t("combat.speed")}>
             <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full" value={speed} onChange={e => setSpeed(e.target.value)} />
           </Field>
           {!isEdit && (
             <Field label={t("combat.count")}>
-              <input type="number" min={1} max={20} className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm w-full"
-                value={count} onChange={e => setCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))} />
+              <NumberInput min={1} max={20} value={count} onChange={setCount} />
             </Field>
           )}
         </div>
