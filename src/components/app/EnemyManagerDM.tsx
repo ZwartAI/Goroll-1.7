@@ -88,10 +88,7 @@ export function EnemyManagerDM({ encounter, participants, groups, dm }: Props) {
               if (!r.ok) toast.error(t("combat.saveError"));
             }}
             onRemove={async () => {
-              if (!confirm(t("combat.confirmRemoveEnemy"))) return;
-              const r = await removeEnemy(p, encounter, dm);
-              if (!r.ok) toast.error(t("combat.saveError"));
-            }}
+            onRemove={() => setRemoving(p)}
           />
         );
       })}
