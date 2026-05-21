@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, Crown, Star } from "lucide-react";
+import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, Crown, Star, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -18,6 +18,8 @@ import { MonsterEditor } from "@/components/app/MonsterEditor";
 import { MonsterSheetModal } from "@/components/app/MonsterSheetModal";
 import { AddFromBestiaryModal } from "@/components/app/AddFromBestiaryModal";
 import { ConfirmDialog } from "@/components/app/ConfirmDialog";
+import { EnemyExcelImportModal } from "@/components/app/EnemyExcelImportModal";
+
 
 export const Route = createFileRoute("/campaign/bestiary")({ component: Bestiary });
 
