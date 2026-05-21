@@ -236,9 +236,24 @@ export async function dmShiftTurn(
   delta: 1 | -1,
 ) {
   if (encounter.status !== "active" || blocks.length === 0) return { ok: false };
-  const next = ((encounter.current_turn_index + delta) % blocks.length + blocks.length) % blocks.length;
-  // Wrap-around forward → reset has_ended_turn for everyone (new round) and bump round_number.
-  const wrapped = delta === 1 && encounter.current_turn_index + 1 >= blocks.length;
+  // Walk forward/backward skipping blocks that are entirely defeated enemies,
+  // so passing the turn of a downed enemy lands on the next live combatant.
+  const isAllDefeated = (b: TurnBlock) => {
+    if (b.kind === "solo") return isEnemy(b.participant) && b.participant.is_defeated;
+    return false;
+  };
+  let cur = encounter.current_turn_index;
+  let next = cur;
+  let wrapped = false;
+  let bumpedRound = 0;
+  // Cap iterations to avoid infinite loop if every block is defeated.
+  for (let i = 0; i < blocks.length; i++) {
+    const raw = next + delta;
+    const w = delta === 1 ? raw >= blocks.length : raw < 0;
+    if (w) { wrapped = true; bumpedRound += 1; }
+    next = ((raw % blocks.length) + blocks.length) % blocks.length;
+    if (!isAllDefeated(blocks[next])) break;
+  }
   if (wrapped) {
     await supabase.from("combat_participants" as any)
       .update({ has_ended_turn: false })
@@ -248,14 +263,13 @@ export async function dmShiftTurn(
     .from("combat_encounters" as any)
     .update({
       current_turn_index: next,
-      ...(wrapped ? { round_number: (encounter.round_number || 1) + 1 } : {}),
+      ...(bumpedRound > 0 ? { round_number: (encounter.round_number || 1) + bumpedRound } : {}),
     })
     .eq("id", encounter.id);
 
   // Phase 5: any "used a white skill this turn" flag clears on turn change.
   await resetUsedThisTurn(encounter.id);
 
-  // If we landed on an enemy block via DM advance, log its turn end implicitly when shifting away.
   return { ok: true };
 }
 
