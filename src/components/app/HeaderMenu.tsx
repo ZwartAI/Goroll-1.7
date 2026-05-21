@@ -155,9 +155,10 @@ export function usePendingMailboxCount() {
 
   useEffect(() => {
     if (!me) return;
-    const ch = (supabase as any).channel(`mailbox-count:${me.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "dm_join_requests" }, () => reload())
-      .subscribe();
+    const channelName = `mailbox-count:${me.id}:${Math.random().toString(36).slice(2)}`;
+    const ch = (supabase as any).channel(channelName)
+      .on("postgres_changes", { event: "*", schema: "public", table: "dm_join_requests" }, () => reload());
+    ch.subscribe();
     return () => { (supabase as any).removeChannel(ch); };
   }, [me?.id, reload]);
 
