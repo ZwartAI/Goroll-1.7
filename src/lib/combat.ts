@@ -6,6 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import type { Character } from "@/lib/game";
+import { resetUsedThisTurn, clearEncounterSkillState } from "@/lib/combat-skills";
 
 export type EncounterStatus = "collecting" | "active" | "ended";
 
@@ -220,6 +221,8 @@ export async function endCombat(
     .update({ status: "ended", ended_at: new Date().toISOString() })
     .eq("id", encounter.id);
   if (error) return { ok: false, error: error.message };
+  // Phase 5 cleanup: drop ephemeral skill-use counters and temporary effects.
+  await clearEncounterSkillState(encounter.id);
   await pushLog(encounter.campaign_id, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: " terminó el combate." },
@@ -248,6 +251,9 @@ export async function dmShiftTurn(
       ...(wrapped ? { round_number: (encounter.round_number || 1) + 1 } : {}),
     })
     .eq("id", encounter.id);
+
+  // Phase 5: any "used a white skill this turn" flag clears on turn change.
+  await resetUsedThisTurn(encounter.id);
 
   // If we landed on an enemy block via DM advance, log its turn end implicitly when shifting away.
   return { ok: true };
@@ -367,6 +373,11 @@ export async function passTurn(
       ...(wrapped ? { round_number: (encounter.round_number || 1) + 1 } : {}),
     })
     .eq("id", encounter.id);
+
+  // Phase 5: clear white-skill-used-this-turn flags.
+  await resetUsedThisTurn(encounter.id);
+
+
 
 
   if (block.kind === "solo") {

@@ -726,6 +726,99 @@ export type Database = {
           },
         ]
       }
+      combat_skill_uses: {
+        Row: {
+          campaign_id: string
+          character_id: string
+          character_skill_id: string
+          created_at: string
+          encounter_id: string
+          id: string
+          last_turn_index: number | null
+          max_uses: number | null
+          rarity: Database["public"]["Enums"]["item_rarity"]
+          updated_at: string
+          used_this_turn: boolean
+          uses_remaining: number | null
+        }
+        Insert: {
+          campaign_id: string
+          character_id: string
+          character_skill_id: string
+          created_at?: string
+          encounter_id: string
+          id?: string
+          last_turn_index?: number | null
+          max_uses?: number | null
+          rarity: Database["public"]["Enums"]["item_rarity"]
+          updated_at?: string
+          used_this_turn?: boolean
+          uses_remaining?: number | null
+        }
+        Update: {
+          campaign_id?: string
+          character_id?: string
+          character_skill_id?: string
+          created_at?: string
+          encounter_id?: string
+          id?: string
+          last_turn_index?: number | null
+          max_uses?: number | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          updated_at?: string
+          used_this_turn?: boolean
+          uses_remaining?: number | null
+        }
+        Relationships: []
+      }
+      combat_temporary_effects: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          duration_rounds: number | null
+          effect_type: string
+          encounter_id: string
+          expires_at_turn_index: number | null
+          id: string
+          label: string | null
+          source_character_id: string | null
+          source_skill_id: string | null
+          target_character_id: string | null
+          target_enemy_participant_id: string | null
+          value: number
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          duration_rounds?: number | null
+          effect_type?: string
+          encounter_id: string
+          expires_at_turn_index?: number | null
+          id?: string
+          label?: string | null
+          source_character_id?: string | null
+          source_skill_id?: string | null
+          target_character_id?: string | null
+          target_enemy_participant_id?: string | null
+          value?: number
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          duration_rounds?: number | null
+          effect_type?: string
+          encounter_id?: string
+          expires_at_turn_index?: number | null
+          id?: string
+          label?: string | null
+          source_character_id?: string | null
+          source_skill_id?: string | null
+          target_character_id?: string | null
+          target_enemy_participant_id?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       combat_turn_groups: {
         Row: {
           campaign_id: string

@@ -5,6 +5,7 @@ import { useGameData } from "@/lib/useGame";
 import { ArrowLeft, ScrollText, Gem, ShoppingBag } from "lucide-react";
 import { SkillCard, type CharacterSkill } from "@/components/app/SkillCard";
 import { SkillAcquireModal } from "@/components/app/SkillAcquireModal";
+import { PlayerCombatSkillsPanel } from "@/components/app/PlayerCombatSkillsPanel";
 import { SKILL_RARITY_COST } from "@/lib/skillImport";
 import { useT } from "@/lib/i18n";
 import { pushLog } from "@/lib/log";
@@ -13,7 +14,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/campaign/skills")({ component: Skills });
 
 function Skills() {
-  const { character, campaign, loading } = useGameData();
+  const { character, campaign, characters, combat, loading } = useGameData();
   const { t } = useT();
   const [skills, setSkills] = useState<CharacterSkill[]>([]);
   const [shopOpen, setShopOpen] = useState(false);
@@ -152,6 +153,15 @@ function Skills() {
           <ScrollText size={18} className="opacity-60 group-hover:opacity-100" />
         </button>
       </div>
+
+      <PlayerCombatSkillsPanel
+        encounter={combat.encounter}
+        participants={combat.participants}
+        groups={combat.groups}
+        character={character}
+        allCharacters={characters}
+        skills={unlocked}
+      />
 
       {/* Owned skills (scrollable area, 2 columns when there's room) */}
       <div
