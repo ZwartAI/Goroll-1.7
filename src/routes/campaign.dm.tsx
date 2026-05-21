@@ -496,6 +496,7 @@ function DM() {
           <CharacterImageViewer
             character={c}
             canEdit={false}
+            canDelete={true}
             onClose={() => setImageViewerCharId(null)}
             onEditFace={() => {}}
             onEditBody={() => {}}
