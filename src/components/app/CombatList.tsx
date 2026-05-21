@@ -77,22 +77,13 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
     </p>
   );
 
-  if (!onReorder) {
-    return (
-      <div className="space-y-2">
-        {header}
-        {rows}
-      </div>
-    );
-  }
-
   const handleDragEnd = (e: DragEndEvent) => {
+    if (!onReorder) return;
     const { active: a, over } = e;
     if (!over || a.id === over.id) return;
     const oldIndex = blocks.findIndex(b => b.key === a.id);
     const newIndex = blocks.findIndex(b => b.key === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
-    // We just compute reordered (for parity if needed) and forward to parent.
     arrayMove(blocks, oldIndex, newIndex);
     onReorder(String(a.id), newIndex);
   };
