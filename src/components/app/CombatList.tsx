@@ -10,8 +10,25 @@ import {
   type CombatTurnPin,
   type TurnBlock,
 } from "@/lib/combat";
-import { Crown } from "lucide-react";
+import { Crown, GripVertical } from "lucide-react";
 import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type Props = {
   encounter: CombatEncounter;
@@ -20,49 +37,108 @@ type Props = {
   pins?: CombatTurnPin[];
   selfCharacterId?: string | null;
   onOpenChar?: (id: string) => void;
+  /** If provided, the list becomes drag-and-droppable (DM only). */
+  onReorder?: (fromKey: string, toIndex: number) => void;
 };
 
-export function CombatList({ encounter, participants, groups, pins, selfCharacterId, onOpenChar }: Props) {
+export function CombatList({ encounter, participants, groups, pins, selfCharacterId, onOpenChar, onReorder }: Props) {
   const { t } = useT();
   const blocks = buildOrderedTurns(participants, groups, pins || []);
   const active = activeBlock(encounter, blocks);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   if (blocks.length === 0) {
     return <p className="text-center text-xs text-muted-foreground py-4">{t("combat.empty")}</p>;
   }
 
+  const rows = blocks.map(b => (
+    <TurnRow
+      key={b.key}
+      block={b}
+      isActive={!!active && active.key === b.key}
+      isSelf={selfCharacterId ? blockContainsCharacter(b, selfCharacterId) : false}
+      activeLabel={t("combat.activePlayer")}
+      activeEnemyLabel={t("combat.activeEnemy")}
+      enlaceLabel={t("combat.linkBadge")}
+      enemyLabel={t("combat.enemyLabel")}
+      defeatedLabel={t("combat.defeated")}
+      onOpenChar={onOpenChar}
+      draggable={!!onReorder}
+    />
+  ));
+
+  const header = encounter.status === "active" && (
+    <p className="text-[10px] text-center text-muted-foreground font-display tracking-widest uppercase">
+      {t("combat.round")} {encounter.round_number || 1}
+    </p>
+  );
+
+  if (!onReorder) {
+    return (
+      <div className="space-y-2">
+        {header}
+        {rows}
+      </div>
+    );
+  }
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active: a, over } = e;
+    if (!over || a.id === over.id) return;
+    const oldIndex = blocks.findIndex(b => b.key === a.id);
+    const newIndex = blocks.findIndex(b => b.key === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    // We just compute reordered (for parity if needed) and forward to parent.
+    arrayMove(blocks, oldIndex, newIndex);
+    onReorder(String(a.id), newIndex);
+  };
+
   return (
     <div className="space-y-2">
-      {encounter.status === "active" && (
-        <p className="text-[10px] text-center text-muted-foreground font-display tracking-widest uppercase">
-          {t("combat.round")} {encounter.round_number || 1}
-        </p>
-      )}
-      {blocks.map(b => (
-        <TurnRow
-          key={b.key}
-          block={b}
-          isActive={!!active && active.key === b.key}
-          isSelf={selfCharacterId ? blockContainsCharacter(b, selfCharacterId) : false}
-          activeLabel={t("combat.activePlayer")}
-          activeEnemyLabel={t("combat.activeEnemy")}
-          enlaceLabel={t("combat.linkBadge")}
-          enemyLabel={t("combat.enemyLabel")}
-          defeatedLabel={t("combat.defeated")}
-          onOpenChar={onOpenChar}
-        />
-      ))}
+      {header}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={blocks.map(b => b.key)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">{rows}</div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
 
 function TurnRow({
-  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, onOpenChar,
+  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, onOpenChar, draggable,
 }: {
   block: TurnBlock; isActive: boolean; isSelf: boolean;
   activeLabel: string; activeEnemyLabel: string; enlaceLabel: string; enemyLabel: string; defeatedLabel: string;
   onOpenChar?: (id: string) => void;
+  draggable?: boolean;
 }) {
+  const sortable = useSortable({ id: block.key, disabled: !draggable });
+  const dragStyle = draggable
+    ? {
+        transform: CSS.Transform.toString(sortable.transform),
+        transition: sortable.transition,
+        opacity: sortable.isDragging ? 0.6 : undefined,
+      }
+    : undefined;
+  const setNodeRef = draggable ? sortable.setNodeRef : undefined;
+  const dragHandle = draggable ? (
+    <button
+      type="button"
+      ref={sortable.setActivatorNodeRef as any}
+      {...sortable.attributes}
+      {...sortable.listeners}
+      className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground/70 hover:text-foreground flex-shrink-0"
+      aria-label="Drag to reorder"
+    >
+      <GripVertical size={16} />
+    </button>
+  ) : null;
+
   const baseColor =
     block.kind === "solo"
       ? (block.participant.enemy_color || block.participant.color || "var(--gold)")
@@ -79,10 +155,12 @@ function TurnRow({
       background: `linear-gradient(180deg, color-mix(in oklab, ${baseColor} 18%, var(--card)), var(--card))`,
       boxShadow: isActive ? `0 0 0 1px var(--loss), 0 0 18px color-mix(in oklab, ${baseColor} 50%, transparent)` : undefined,
       opacity: defeated ? 0.55 : 1,
+      ...dragStyle,
     } as const;
     const isTierAsset = !!getEnemyAssetUrl(p.enemy_icon);
     return (
-      <div className="ornate-card !p-2 flex items-center gap-3 transition-shadow" style={containerStyle}>
+      <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
+        {dragHandle}
         <div className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
           style={{ borderColor: baseColor, color: baseColor }}>
           <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} assetScale={isTierAsset ? 4 : 1} />
@@ -112,12 +190,14 @@ function TurnRow({
     borderColor: isActive ? "var(--gold)" : `color-mix(in oklab, ${baseColor} 55%, transparent)`,
     background: `linear-gradient(180deg, color-mix(in oklab, ${baseColor} 12%, var(--card)), var(--card))`,
     boxShadow: isActive ? "0 0 0 1px var(--gold), 0 0 18px color-mix(in oklab, var(--gold) 35%, transparent)" : undefined,
+    ...dragStyle,
   } as const;
 
   if (block.kind === "solo") {
     const p = block.participant;
     return (
-      <div className="ornate-card !p-2 flex items-center gap-3 transition-shadow" style={containerStyle}>
+      <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
+        {dragHandle}
         <Avatar p={p} onClick={() => p.character_id && onOpenChar?.(p.character_id)} />
         <div className="min-w-0 flex-1">
           <p className="font-display text-sm truncate" style={{ color: p.color || undefined }}>
@@ -135,12 +215,13 @@ function TurnRow({
     const l = block.linked;
     const inactive = l.is_defeated;
     return (
-      <div className="ornate-card !p-2 flex items-center gap-2 transition-shadow"
+      <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow"
         style={{
           ...containerStyle,
           opacity: inactive ? 0.5 : 1,
           borderStyle: "dashed",
         }}>
+        {dragHandle}
         <div className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden"
           style={{ borderColor: baseColor, color: baseColor }}>
           <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyAssetUrl(l.enemy_icon)} assetScale={getEnemyAssetUrl(l.enemy_icon) ? 4 : 1} />
@@ -158,13 +239,14 @@ function TurnRow({
   }
 
   return (
-    <div className="ornate-card !p-2 transition-shadow" style={containerStyle}>
-      <div className="flex items-center justify-between mb-1.5">
+    <div ref={setNodeRef as any} className="ornate-card !p-2 transition-shadow" style={containerStyle}>
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        {dragHandle}
         <span className="text-[10px] font-display uppercase tracking-widest px-2 py-0.5 rounded-full"
           style={{ background: `color-mix(in oklab, ${baseColor} 25%, transparent)`, color: baseColor }}>
           {enlaceLabel}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <InitiativeChip n={block.group.group_initiative} />
           {isActive && <ActiveBadge label={activeLabel} />}
         </div>
