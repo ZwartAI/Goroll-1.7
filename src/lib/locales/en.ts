@@ -1129,7 +1129,7 @@ export const en: Dict = {
     errDef: "Defense cannot be negative",
     errSkillName: "Skill name required",
     warnNoDice: "This skill produces a numeric effect but has no dice. Continue?",
-    tier_normal: "Normal", tier_elite: "Elite", tier_boss: "Boss",
+    tier_normal: "Normal", tier_elite: "Elite", tier_boss: "Boss", tier_god: "God",
     tier_minion: "Minion", tier_summon: "Summon", tier_hazard: "Hazard", tier_special: "Special",
     role_damage: "Damage", role_tank: "Tank", role_support: "Support", role_control: "Control",
     role_skirmisher: "Skirmisher", role_summoner: "Summoner", role_terrain: "Terrain",
