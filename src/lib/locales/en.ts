@@ -1153,6 +1153,7 @@ export const en: Dict = {
     customRegion: "Custom region",
     errCustomBiome: "Enter the custom region name",
     allTypes: "All",
+    enemiesSection: "Enemies",
     confirmDeleteTitle: "Delete template",
     confirmDeleteSkillTitle: "Delete skill",
     skillsPartial: "Monster saved but some skills failed. Please retry.",

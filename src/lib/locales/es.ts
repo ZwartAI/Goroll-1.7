@@ -1155,6 +1155,7 @@ export const es = {
     customRegion: "Región personalizada",
     errCustomBiome: "Escribe el nombre de la región personalizada",
     allTypes: "Todos",
+    enemiesSection: "Enemigos",
     confirmDeleteTitle: "Eliminar plantilla",
     confirmDeleteSkillTitle: "Eliminar skill",
     skillsPartial: "El monstruo se guardó pero algunas skills fallaron. Reintenta.",

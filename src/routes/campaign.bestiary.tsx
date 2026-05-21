@@ -87,16 +87,6 @@ function Bestiary() {
       <header className="flex items-center gap-2 mb-3">
         <Link to="/campaign/dm" className="text-muted-foreground"><ChevronLeft size={20} /></Link>
         <h1 className="font-display text-lg flex-1 text-[var(--gold)] rune-glow">🐉 {t("bestiary.title")}</h1>
-        <button className="btn-fantasy text-xs inline-flex items-center gap-1"
-          onClick={() => setImporting(true)}
-          title={t("bestiary.importEnemyExcel")}>
-          <Upload size={14} /> {t("bestiary.importExcelShort")}
-        </button>
-        <button className="btn-fantasy text-xs"
-          style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-          onClick={() => setCreating(true)}>
-          <Plus size={14} className="inline" /> {t("bestiary.createEnemyOrMonster")}
-        </button>
       </header>
       <div className="gem-divider mb-3" />
 
@@ -113,7 +103,23 @@ function Bestiary() {
             <TierChip key={v} active={tier === v} label={t(`bestiary.tier_${v}`)} onClick={() => setTier(v)} />
           ))}
         </div>
+        <div className="ornate-card px-2 py-1.5 space-y-1">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-display">{t("bestiary.enemiesSection")}</p>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button className="text-[11px] py-1 px-2 rounded border border-border inline-flex items-center justify-center gap-1 hover:border-[var(--gold)] transition-colors"
+              onClick={() => setImporting(true)}
+              title={t("bestiary.importEnemyExcel")}>
+              <Upload size={11} /> {t("bestiary.importExcelShort")}
+            </button>
+            <button className="text-[11px] py-1 px-2 rounded inline-flex items-center justify-center gap-1"
+              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+              onClick={() => setCreating(true)}>
+              <Plus size={11} /> {t("bestiary.createEnemyOrMonster")}
+            </button>
+          </div>
+        </div>
       </div>
+
 
       {filtered.length === 0 && (
         <p className="text-center text-xs text-muted-foreground py-8">{t("bestiary.empty")}</p>
