@@ -94,6 +94,51 @@ export function LogSegments({
         </span>
       );
     }
+    else if (s.t === "player_skill") {
+      const p = s.v;
+      const color = p.charColor || "var(--gold)";
+      const rarityColor = (RARITY_COLOR as any)[p.rarity] || "var(--rarity-white)";
+      out.push(
+        <span key={i} className="block my-1 rounded-md p-2 border-2"
+          style={{
+            background: "linear-gradient(180deg, oklch(0.18 0.02 280), oklch(0.12 0.02 280))",
+            borderColor: `color-mix(in oklab, ${rarityColor} 65%, transparent)`,
+          }}>
+          <span className="flex items-center gap-2">
+            <span className="inline-block w-6 h-6 rounded-full overflow-hidden border" style={{ borderColor: color }}>
+              {p.charImage ? <img src={p.charImage} alt="" className="w-full h-full object-cover" /> : <span className="block w-full h-full bg-card" />}
+            </span>
+            <strong style={{ color }} className="text-xs">{p.charName}</strong>
+            <span className="text-[10px] text-muted-foreground">✨</span>
+            <strong style={{ color: rarityColor }} className="text-xs">{p.skillName}</strong>
+          </span>
+          {p.targetNames.length > 0 && (
+            <span className="block mt-1 text-[10px]">
+              <span className="text-muted-foreground">→ </span>
+              <span style={{ color: "#34d399" }}>{p.targetNames.join(", ")}</span>
+            </span>
+          )}
+          {p.rollResult && <span className="block text-[10px]"><span className="text-muted-foreground">🎲 </span><span style={{ color: "var(--gold)" }}>{p.rollResult}</span></span>}
+          {p.damage.length > 0 && (
+            <span className="block text-[10px] text-[var(--loss)]">
+              {p.damage.map((d, k) => <span key={k} className="block">−{d.applied} {d.targetName}</span>)}
+            </span>
+          )}
+          {p.heal.length > 0 && (
+            <span className="block text-[10px] text-[var(--gain)]">
+              {p.heal.map((d, k) => <span key={k} className="block">+{d.amount} {d.targetName}</span>)}
+            </span>
+          )}
+          {p.shield.length > 0 && (
+            <span className="block text-[10px]" style={{ color: "#60a5fa" }}>
+              {p.shield.map((d, k) => <span key={k} className="block">🛡 +{d.amount} {d.targetName}</span>)}
+            </span>
+          )}
+          {p.defeated.length > 0 && <span className="block text-[10px] text-muted-foreground">💀 {p.defeated.join(", ")}</span>}
+          {p.note && <span className="block mt-0.5 text-[10px] italic text-foreground/80">{p.note}</span>}
+        </span>
+      );
+    }
   });
   return <span>{out}</span>;
 }
