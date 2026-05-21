@@ -1,74 +1,74 @@
-## Phase 5 — Player Skills in Combat
+# Plan: Performance + Excel Import Improvements
 
-Integrate unlocked player skills into active combat with rarity-based uses, target selection, damage/heal/shield resolution, and visual log.
+Large multi-part change. Splitting into focused phases so each piece can be verified before moving to the next.
 
-### Scope decisions
+## Phase 1 — Performance: split CampaignProvider loads
 
-- **DM approval flow**: Use **Option B (simple)** — direct application with full log. DM can correct HP from existing controls. Rationale: faster to ship, less disruptive, matches existing pattern where DM already corrects HP via EnemyManagerDM. Approval flow can be added later if needed.
-- **Shields**: store in new `combat_temporary_effects` table, display as visual badge on participant. Manual reduction by DM (no auto-absorption).
-- **Skill uses**: lazy-create rows on first use per encounter (not eagerly on combat start) — lighter DB load.
+**Goal:** initial paint shows core data fast; heavy modules load on demand; realtime updates only the affected slice.
 
-### Database
+- Audit `CampaignProvider` / `useGameData` to map every query + realtime subscription.
+- Split the single `load()` into focused loaders:
+  - `loadCore()` — campaign, current character, character list (minimal), active combat, role.
+  - `loadCombat()`, `loadLogs(limit=50)`, `loadAchievements()`, `loadBoosters()`, `loadSkills(characterId)`, `loadBestiary()`, `loadInventory(characterId)`, `loadVault()`.
+- Realtime: per-table handlers do targeted state patches (insert/update/delete on the local array) instead of calling full `load()`. Filter every channel by `campaign_id=eq.{id}` where the column exists.
+- Logs: cap to latest 50–100, expose `loadMoreLogs()`.
+- Per-module loading flags so UI can render partial.
+- Lazy-load images in lists (`loading="lazy"`, `decoding="async"`); avoid pulling `image_url` in list views when an avatar/thumbnail variant suffices.
 
-New migration with two tables (RLS `public_all`, realtime enabled):
+Risk: targeted realtime patches are error-prone. We keep `load{Module}()` fallback for unknown events.
 
-```
-combat_skill_uses
-  id, encounter_id, campaign_id, character_id, character_skill_id,
-  rarity, max_uses (null=infinite), uses_remaining, used_this_turn bool,
-  last_turn_index int, created_at, updated_at
-  UNIQUE(encounter_id, character_skill_id)
+## Phase 2 — Excel files are not persisted
 
-combat_temporary_effects
-  id, encounter_id, campaign_id,
-  target_character_id nullable, target_enemy_participant_id nullable,
-  source_character_id, source_skill_id nullable,
-  effect_type text (shield|buff|debuff|control|note),
-  value int, label text, duration_rounds int nullable,
-  expires_at_turn_index int nullable, created_at
-```
+- Remove any code path that uploads imported Excel to Storage or stores base64 in a row.
+- Importers (skills, boosters, future enemies) parse in-memory, create rows, then drop the File reference.
+- Document inline that backup of source Excel is intentionally not stored.
 
-### Logic (`src/lib/combat-skills.ts` new)
+## Phase 3 — Enemy / Monster Excel import
 
-- `getOrCreateSkillUse(encounterId, characterSkill)` — lazy init based on rarity (white: null/-1, blue:3, purple:2, gold:1).
-- `canUseSkill({ encounter, participant, skill, uses })` → `{ ok, reason }`. Checks: combat active, turn ownership (self or group leader), unlocked, uses remaining, white-once-per-turn.
-- `useSkill({ skill, encounter, character, targets, rollResult, resolution, amount, applyDefense })` — atomic flow: validate → apply effect → decrement uses → write log segment.
-- `resetTurnFlags(encounterId)` — clear `used_this_turn` when turn advances (hook into existing `passTurn`).
-- `clearEncounterSkillState(encounterId)` — called from `endCombat`.
+- Rename UI strings: "Monstruo" → "Enemy or Monster" / "Enemigo o Monstruo" in the creator entry points (keep DB unchanged).
+- New "Importar Excel" button in `MonsterEditor` / Bestiary create flow.
+- Parser (using existing `xlsx` if present, else add) supports:
+  - **Option B (preferred):** two sheets — `Enemies` and `Enemy Skills` joined by `enemy_key`.
+  - **Option A (fallback):** single sheet with `Skill N <field>` columns.
+- Preview modal lists: detected enemies, detected skills, duplicates (by normalized name), invalid biomes, ignored rows, warnings. No native confirm — reuse `ConfirmDialog`.
+- Duplicate handling per row: Update / Skip / Create duplicate.
+- Validation: name required, hp>0, defense≥0, allow bracketed tokens + accents in skill fields, skip skills with empty name.
+- Double-submit guard on import button.
 
-### Effect resolution
+## Phase 4 — Tier → visual asset + border defaults
 
-- **damage**: required enemy target(s). If `applyDefense`, compute `max(0, raw - enemy.defense)`. Update `combat_participants.enemy_hp`. Mark `is_defeated` if HP≤0. Log includes raw + applied (DM-only sees DEF detail; public log shows "Damage applied: X").
-- **heal**: required player/ally target. `current_hp = min(base_hp + bonuses, current_hp + amount)` via existing character HP update path.
-- **shield**: insert row in `combat_temporary_effects`, surface badge in CombatList.
-- **narrative**: just a note + optional temp effect row.
-- **log_only**: just write log segment.
+- Central map in `src/lib/bestiary.ts`:
+  - normal → `1 Normal.png`, white border
+  - elite → `2 Elite.png`, green border
+  - boss → `3 Boss.png`, red border
+  - god → `4 God.png`, gold border
+  - hero_female → `Heroe Fem.png`, pink border
+  - hero_male → `Heroe Male.png`, purple border
+- Editor: when tier changes and no manual asset chosen, default asset + border. If user manually picked an asset, don't overwrite.
+- Importer: same rule.
 
-### UI Components
+## Phase 5 — Automatic icon fallback (no tier)
 
-- **`PlayerCombatSkillsPanel.tsx`** (new) — embed in CharacterSheet skills section; shows combat banner ("In combat — your turn" / "Not your turn"), per-skill use counter chip, "Use" button.
-- **`SkillUseModal.tsx`** (new) — header (icon/name/rarity/uses), mechanical data, target picker (tabs: Enemies / Allies / Self / None), roll result input, resolution radio (log/damage/heal/shield/narrative), conditional fields (amount, applyDefense), submit.
-- **`SkillUseTargetPicker.tsx`** (new) — reusable, fetches active encounter participants.
-- **`LogSegments.tsx`** edit — render new `player_skill` segment type (avatar, name, skill, rarity color, dice, targets, roll, effect summary).
-- **`CombatList.tsx`** edit — show shield badge from `combat_temporary_effects` on each participant.
-- Integrate panel into existing skills UI in `campaign.profile.tsx` (or wherever character skills render).
+- Helper `pickAutoIcon(name, role)` mapping keywords (lobo/bestia, guardia/soldado, mago, ojo, veneno/araña, sombra/espectro, jefe/rey, …) to existing icons in `EnemyIconPicker`.
+- Used when tier missing/unrecognized and no icon supplied.
 
-### Types & i18n
+## Phase 6 — Biome handling
 
-- Extend `Segment` union in `src/lib/game.ts` with `player_skill`.
-- Add `combat.playerSkill.*` namespace in `es.ts` / `en.ts` covering all required strings.
-- Regenerate types via migration.
+- Validate against fixed list (Praivell, Ignivar, Saavakar, Arboris, Snofell, Silvamyr, Pilar del pulso). Unknown → warning in preview, importable as "otra región" if DM confirms; never blocks the whole import.
 
-### Files
+## Phase 7 — i18n
 
-**New**: migration sql, `src/lib/combat-skills.ts`, `src/components/app/PlayerCombatSkillsPanel.tsx`, `src/components/app/SkillUseModal.tsx`, `src/components/app/SkillUseTargetPicker.tsx`.
+- Add ES/EN keys: enemy_or_monster, import_enemy_excel, detected_enemies, detected_skills, excel_not_stored_notice, import_preview, confirm_import, tier_unknown_warning, asset_auto_assigned, icon_auto_assigned.
 
-**Edited**: `src/lib/combat.ts` (passTurn → resetTurnFlags, endCombat → clearEncounterSkillState), `src/lib/game.ts` (Segment), `src/components/app/LogSegments.tsx` (renderer), `src/components/app/CombatList.tsx` (shield badge), `src/routes/campaign.profile.tsx` (mount panel in skills section), `src/integrations/supabase/types.ts` (auto), `src/lib/locales/{es,en}.ts`.
+## Out of scope (unchanged)
 
-### Out of scope (explicit)
+Player skills, Skill Points, skill purchase, inventory, equipment, notes, vault, turn flow, Link system, boosters logic (only file-not-stored rule applies to its importer).
 
-- DM approval workflow (using simple direct-apply).
-- Auto-parsing skill dice text.
-- Automatic shield absorption on incoming damage.
-- Increasing max uses via items/buffs.
-- Boss phases, rewards, AI.
+## Suggested approval order
+
+This is large enough that I'd like to ship and verify in two passes:
+
+1. **Pass A:** Phases 1 + 2 (perf + no Excel storage).
+2. **Pass B:** Phases 3–7 (enemy Excel import + tier assets + icons + biomes + i18n).
+
+Reply "go" to start Pass A, or tell me to do everything in one pass / reorder.
