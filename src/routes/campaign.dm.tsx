@@ -19,6 +19,7 @@ import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
 import { SkillsManager, ManualCreate as SkillManualCreate } from "@/components/app/SkillsManager";
 import { Escenario } from "@/components/app/Escenario";
+import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
@@ -38,6 +39,7 @@ function DM() {
   const [selItem, setSelItem] = useState<Item | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [openChar, setOpenChar] = useState<string | null>(null);
+  const [imageViewerCharId, setImageViewerCharId] = useState<string | null>(null);
   const [boosters, setBoosters] = useState<Booster[]>([]);
   const [holdersByBooster, setHoldersByBooster] = useState<Map<string, string[]>>(new Map());
   const [boosterSearch, setBoosterSearch] = useState("");
@@ -451,6 +453,7 @@ function DM() {
             dmCharacterIds={dmCharacterIds}
             nameOverrides={dmLabels}
             onOpenChar={(id) => setOpenChar(id)}
+            onOpenImage={(id) => setImageViewerCharId(id)}
             onOpenItem={openItemFromId}
             onOpenBooster={openBoosterFromId}
             speakingIds={voice.speakingIds}
@@ -486,6 +489,19 @@ function DM() {
           onClose={() => setOpenChar(null)}
           onPickItem={(it) => setSelItem(it)} />
       )}
+      {imageViewerCharId && (() => {
+        const c = characters.find(ch => ch.id === imageViewerCharId);
+        if (!c) return null;
+        return (
+          <CharacterImageViewer
+            character={c}
+            canEdit={false}
+            onClose={() => setImageViewerCharId(null)}
+            onEditFace={() => {}}
+            onEditBody={() => {}}
+          />
+        );
+      })()}
       {selBooster && (
         <BoosterEditor booster={selBooster} campaignId={campaign.id}
           players={players} dm={dmCtx}

@@ -35,6 +35,7 @@ function Profile() {
   const { t } = useT();
   const [imgModal, setImgModal] = useState<null | "face" | "body">(null);
   const [imgViewer, setImgViewer] = useState(false);
+  const [imgViewerCharId, setImgViewerCharId] = useState<string | null>(null);
 
   const [hpModal, setHpModal] = useState(false);
   const [purseOpen, setPurseOpen] = useState(false);
@@ -332,6 +333,7 @@ function Profile() {
           logs={logs}
           selfId={character.id}
           onOpenChar={(id) => openCharFromLog(id, true)}
+          onOpenImage={(id) => { if (id === character.id) setImgViewer(true); else setImgViewerCharId(id); }}
           onOpenItem={(id) => setOpenItem(id)}
           onOpenBooster={(id) => setOpenBooster(id)}
           speakingIds={voice.speakingIds}
@@ -354,6 +356,19 @@ function Profile() {
           onEditBody={() => { setImgViewer(false); setImgModal("body"); }}
         />
       )}
+      {imgViewerCharId && (() => {
+        const c = characters.find(ch => ch.id === imgViewerCharId);
+        if (!c) return null;
+        return (
+          <CharacterImageViewer
+            character={c}
+            canEdit={false}
+            onClose={() => setImgViewerCharId(null)}
+            onEditFace={() => {}}
+            onEditBody={() => {}}
+          />
+        );
+      })()}
 
       {hpModal && (
         <HpModal

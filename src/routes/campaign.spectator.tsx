@@ -10,6 +10,7 @@ import { CharacterSheetModal } from "@/components/app/CharacterSheetModal";
 import { ItemModal } from "@/components/app/ItemModal";
 import { BoosterPeek } from "@/components/app/BoosterEditor";
 import { Escenario } from "@/components/app/Escenario";
+import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { useVoice } from "@/lib/useVoice";
 import { useT } from "@/lib/i18n";
 
@@ -21,6 +22,7 @@ function Spectator() {
   const nav = useNavigate();
   const [tab, setTab] = useState<"escenario" | "log" | "achievements">("escenario");
   const [openChar, setOpenChar] = useState<string | null>(null);
+  const [imageViewerCharId, setImageViewerCharId] = useState<string | null>(null);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [openBoosterId, setOpenBoosterId] = useState<string | null>(null);
   const [achPlayerId, setAchPlayerId] = useState<string | null>(null);
@@ -57,6 +59,7 @@ function Spectator() {
           logs={logs}
           selfId={null}
           onOpenChar={(id) => setOpenChar(id)}
+          onOpenImage={(id) => setImageViewerCharId(id)}
           onOpenItem={openItemFromId}
           onOpenBooster={(id) => setOpenBoosterId(id)}
           speakingIds={voice.speakingIds}
@@ -123,6 +126,19 @@ function Spectator() {
         <BoosterPeek boosterId={openBoosterId} character={null} campaignId={campaign.id}
           onClose={() => setOpenBoosterId(null)} />
       )}
+      {imageViewerCharId && (() => {
+        const c = characters.find(ch => ch.id === imageViewerCharId);
+        if (!c) return null;
+        return (
+          <CharacterImageViewer
+            character={c}
+            canEdit={false}
+            onClose={() => setImageViewerCharId(null)}
+            onEditFace={() => {}}
+            onEditBody={() => {}}
+          />
+        );
+      })()}
     </PageFrame>
   );
 }
