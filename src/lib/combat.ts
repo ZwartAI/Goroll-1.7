@@ -374,6 +374,11 @@ export async function passTurn(
     })
     .eq("id", encounter.id);
 
+  // Phase 5: clear white-skill-used-this-turn flags.
+  await resetUsedThisTurn(encounter.id);
+
+
+
 
   if (block.kind === "solo") {
     await pushLog(encounter.campaign_id, [
