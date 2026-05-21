@@ -119,19 +119,19 @@ function DM() {
 
       <div className="grid grid-cols-6 gap-1 mb-4">
         {([
-          ["log", t("dm.tabLog"), ScrollText],
-          ["create", t("dm.tabCreate"), Hammer],
-          ["vault", t("dm.tabVault"), Vault],
-          ["boosters", t("dm.tabBoosters"), Sparkles],
-          ["skills", t("skills.title"), Wand2],
-          ["escenario", t("dm.tabScene"), Theater],
-        ] as const).map(([k, l, Icon]) => (
+          ["log", t("dm.tabLog"), ScrollText, "oklch(0.72 0.10 95)"],
+          ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)"],
+          ["vault", t("dm.tabVault"), Package, "oklch(0.65 0.09 60)"],
+          ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)"],
+          ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)"],
+          ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)"],
+        ] as const).map(([k, l, Icon, color]) => (
           <button
             key={k}
             onClick={() => setTab(k as any)}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-md font-display transition-colors ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}
           >
-            <Icon size={26} strokeWidth={1.75} />
+            <Icon size={26} strokeWidth={1.75} color={tab===k ? undefined : color} />
             <span className="text-[9px] leading-tight uppercase tracking-wide truncate max-w-full">{l}</span>
           </button>
         ))}
