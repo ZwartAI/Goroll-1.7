@@ -10,7 +10,7 @@ import {
   type TurnBlock,
 } from "@/lib/combat";
 import { Crown } from "lucide-react";
-import { EnemyIcon } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
 
 type Props = {
   encounter: CombatEncounter;
