@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { Plus, Send, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Sparkles, Wand2, Theater, Upload, ChessKnight } from "lucide-react";
+import { Plus, Send, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Sparkles, Wand2, Theater, Upload, ChessKnight, Boxes } from "lucide-react";
 
 import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,7 +116,7 @@ function DM() {
         {([
           ["log", t("dm.tabLog"), ScrollText, "oklch(0.72 0.10 95)"],
           ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)"],
-          ["vault", t("dm.tabVault"), ChessKnight, "oklch(0.65 0.09 60)"],
+          ["vault", t("dm.tabVault"), Boxes, "oklch(0.65 0.09 60)"],
           ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)"],
           ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)"],
           ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)"],
