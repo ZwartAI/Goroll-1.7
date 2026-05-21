@@ -165,7 +165,7 @@ export function SkillCard({ s, compact, locked, onClick, expandable, i18n }: Pro
             <DetailRow icon={<Sparkles size={13} color={color} />} label={i18n?.effect ?? "Efecto"}>
               <p className="text-xs whitespace-pre-wrap"
                 style={{ color: "color-mix(in oklab, var(--foreground) 88%, transparent)" }}>
-                {s.effect}
+                <StatText>{s.effect}</StatText>
               </p>
             </DetailRow>
           )}
