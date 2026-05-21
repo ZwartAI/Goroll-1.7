@@ -64,7 +64,10 @@ function TurnRow({
   const baseColor =
     block.kind === "solo"
       ? (block.participant.enemy_color || block.participant.color || "var(--gold)")
-      : (block.group.color || "var(--gold)");
+      : block.kind === "group"
+      ? (block.group.color || "var(--gold)")
+      : (block.linked.enemy_color || "var(--gold)");
+
 
   if (block.kind === "solo" && isEnemy(block.participant)) {
     const p = block.participant;
