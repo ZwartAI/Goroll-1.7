@@ -14,16 +14,18 @@ import { CoinsPurseModal } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
 import { CombatList } from "@/components/app/CombatList";
 import { InitiativeButton } from "@/components/app/InitiativeButton";
-import { User, LogOut, Minus, Plus, Camera, Heart, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen, Coins } from "lucide-react";
+import { User, LogOut, Minus, Plus, Camera, Heart, HeartPulse, Sword, Backpack, Trophy, Sparkles, NotebookPen, Coins, RotateCw } from "lucide-react";
 import { FullscreenButton } from "@/components/app/AppShell";
 import { MailboxButton } from "@/components/app/MailboxButton";
 import { MicToggle } from "@/components/app/MicToggle";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
+import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { useVoice } from "@/lib/useVoice";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { useLongPress } from "@/hooks/useLongPress";
+
 
 export const Route = createFileRoute("/campaign/profile")({
   component: Profile,
