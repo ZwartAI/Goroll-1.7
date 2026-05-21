@@ -270,7 +270,17 @@ export const en: Dict = {
     zoom: "Zoom",
     posX: "↔ Pos X",
     posY: "↕ Pos Y",
+    rotation: "Rotation",
+    imgFaceTitle: "Upload character face",
+    imgBodyTitle: "Upload full-body image",
+    imgFaceHint: "This face is used everywhere your character appears.",
+    imgBodyHint: "Shown when someone taps your portrait. Defaults to the face image.",
+    imgEditFace: "Edit face",
+    imgEditBody: "Edit body",
+    imgViewerNone: "No image yet — tap edit to upload.",
+    imgUploadBoth: "Upload images",
   },
+
   settingsPage: {
     title: "Stats",
     loading: "Loading...",
