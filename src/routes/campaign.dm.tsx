@@ -20,6 +20,7 @@ import { SkillsManager, ManualCreate as SkillManualCreate } from "@/components/a
 import { Escenario } from "@/components/app/Escenario";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicToggle } from "@/components/app/MicToggle";
+import { MailboxButton } from "@/components/app/MailboxButton";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { useVoice } from "@/lib/useVoice";
 import { useEffect, useState } from "react";
