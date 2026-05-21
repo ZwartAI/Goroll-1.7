@@ -1,5 +1,7 @@
 import { useT } from "@/lib/i18n";
-import { Pencil, X, User } from "lucide-react";
+import { Pencil, X, User, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
  * Fullscreen viewer for the character full-body image. Tapping a character's
@@ -10,12 +12,14 @@ import { Pencil, X, User } from "lucide-react";
 export function CharacterImageViewer({
   character,
   canEdit,
+  canDelete = false,
   onClose,
   onEditFace,
   onEditBody,
 }: {
   character: any;
   canEdit: boolean;
+  canDelete?: boolean;
   onClose: () => void;
   onEditFace: () => void;
   onEditBody: () => void;
@@ -23,10 +27,26 @@ export function CharacterImageViewer({
   const { t } = useT();
   const bodyUrl: string =
     character?.body_image_url || character?.image_url || "";
+  const faceUrl: string = character?.image_url || "";
   const ox = character?.body_image_offset_x ?? 50;
   const oy = character?.body_image_offset_y ?? 50;
   const scale = character?.body_image_scale || 1;
   const rot = character?.body_image_rotation || 0;
+
+  async function deleteImage(kind: "face" | "body") {
+    if (!character?.id) return;
+    if (!confirm(t("profile.imgDeleteConfirm"))) return;
+    const patch: any = kind === "face"
+      ? { image_url: "", image_offset_x: 50, image_offset_y: 50, image_scale: 1, image_rotation: 0 }
+      : { body_image_url: "", body_image_offset_x: 50, body_image_offset_y: 50, body_image_scale: 1, body_image_rotation: 0 };
+    const { error } = await supabase.from("characters").update(patch).eq("id", character.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("OK");
+    onClose();
+  }
 
   return (
     <div
@@ -89,6 +109,31 @@ export function CharacterImageViewer({
               <Pencil size={12} />
               {t("profile.imgEditBody")}
             </button>
+          </div>
+        )}
+
+        {canDelete && (bodyUrl || faceUrl) && (
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {faceUrl && (
+              <button
+                type="button"
+                className="text-xs px-3 py-1.5 rounded-md bg-red-700/90 hover:bg-red-700 text-white flex items-center gap-1 shadow"
+                onClick={() => deleteImage("face")}
+              >
+                <Trash2 size={12} />
+                {t("profile.imgDeleteFace")}
+              </button>
+            )}
+            {character?.body_image_url && (
+              <button
+                type="button"
+                className="text-xs px-3 py-1.5 rounded-md bg-red-700/90 hover:bg-red-700 text-white flex items-center gap-1 shadow"
+                onClick={() => deleteImage("body")}
+              >
+                <Trash2 size={12} />
+                {t("profile.imgDeleteBody")}
+              </button>
+            )}
           </div>
         )}
       </div>
