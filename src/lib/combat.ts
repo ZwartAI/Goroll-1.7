@@ -589,6 +589,11 @@ export async function updateEnemy(participant: CombatParticipant, patch: Partial
   if (patch.defense !== undefined) upd.enemy_defense = Math.max(0, Math.floor(patch.defense));
   if (patch.speed !== undefined) upd.enemy_speed = patch.speed;
   if (patch.notes !== undefined) upd.enemy_notes = patch.notes;
+  if (patch.role !== undefined) upd.enemy_role = patch.role;
+  if (patch.biome !== undefined) upd.enemy_biome = patch.biome;
+  if (patch.base_damage !== undefined) upd.enemy_base_damage = patch.base_damage;
+  if (patch.behavior !== undefined) upd.enemy_behavior = patch.behavior;
+
   const { error } = await (supabase as any).from("combat_participants").update(upd).eq("id", participant.id);
   if (error) return { ok: false, error: error.message };
   return { ok: true };
