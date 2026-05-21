@@ -32,7 +32,7 @@ export function ItemView({ item }: { item: Item }) {
       {item.description && (
         <div className="mt-2 rounded-md border border-[var(--gold)]/30 bg-[var(--card)]/60 p-2">
           <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 mb-1">{t("itemEditor.description")}</p>
-          <p className="text-xs italic text-muted-foreground whitespace-pre-wrap">"{item.description}"</p>
+          <p className="text-xs italic text-muted-foreground whitespace-pre-wrap">"<StatText>{item.description}</StatText>"</p>
         </div>
       )}
     </div>
