@@ -397,19 +397,48 @@ function Profile() {
 }
 
 
-function ImageEditor({ character, onClose }: { character: any; onClose: () => void }) {
+function ImageEditor({
+  character,
+  mode,
+  onClose,
+}: {
+  character: any;
+  mode: "face" | "body";
+  onClose: () => void;
+}) {
   const { t } = useT();
-  const [url, setUrl] = useState<string>(character.image_url || "");
-  const [scale, setScale] = useState<number>(character.image_scale || 1);
-  const [ox, setOx] = useState<number>(character.image_offset_x ?? 50);
-  const [oy, setOy] = useState<number>(character.image_offset_y ?? 50);
+  const isFace = mode === "face";
+
+  const initialUrl = isFace
+    ? (character.image_url || "")
+    : (character.body_image_url || character.image_url || "");
+  const initialScale = isFace
+    ? (character.image_scale || 1)
+    : (character.body_image_scale || character.image_scale || 1);
+  const initialOx = isFace
+    ? (character.image_offset_x ?? 50)
+    : (character.body_image_offset_x ?? character.image_offset_x ?? 50);
+  const initialOy = isFace
+    ? (character.image_offset_y ?? 50)
+    : (character.body_image_offset_y ?? character.image_offset_y ?? 50);
+  const initialRot = isFace
+    ? (character.image_rotation || 0)
+    : (character.body_image_rotation || 0);
+
+  const [url, setUrl] = useState<string>(initialUrl);
+  const [scale, setScale] = useState<number>(initialScale);
+  const [ox, setOx] = useState<number>(initialOx);
+  const [oy, setOy] = useState<number>(initialOy);
+  const [rot, setRot] = useState<number>(initialRot);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const zoomMax = isFace ? 6 : 3;
 
   async function uploadFile(file: File) {
     setUploading(true);
     const ext = file.name.split(".").pop() || "jpg";
-    const path = `${character.id}/${Date.now()}.${ext}`;
+    const path = `${character.id}/${mode}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
     if (!error) {
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
@@ -419,22 +448,47 @@ function ImageEditor({ character, onClose }: { character: any; onClose: () => vo
   }
 
   async function save() {
-    await supabase.from("characters").update({
-      image_url: url, image_scale: scale, image_offset_x: ox, image_offset_y: oy,
-    }).eq("id", character.id);
+    const patch: any = {};
+    if (isFace) {
+      patch.image_url = url;
+      patch.image_scale = scale;
+      patch.image_offset_x = ox;
+      patch.image_offset_y = oy;
+      patch.image_rotation = rot;
+      // Auto-mirror to body if user has no body image yet (saves duplicate uploads)
+      if (!character.body_image_url && url) {
+        patch.body_image_url = url;
+        patch.body_image_scale = 1;
+        patch.body_image_offset_x = 50;
+        patch.body_image_offset_y = 50;
+        patch.body_image_rotation = 0;
+      }
+    } else {
+      patch.body_image_url = url;
+      patch.body_image_scale = scale;
+      patch.body_image_offset_x = ox;
+      patch.body_image_offset_y = oy;
+      patch.body_image_rotation = rot;
+    }
+    await supabase.from("characters").update(patch).eq("id", character.id);
     onClose();
   }
+
+  const previewAspect = isFace ? "aspect-square" : "aspect-[3/4]";
+  const title = isFace ? t("profile.imgFaceTitle") : t("profile.imgBodyTitle");
+  const hint = isFace ? t("profile.imgFaceHint") : t("profile.imgBodyHint");
 
   return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-3" onClick={onClose}>
       <div className="ornate-card p-4 max-w-sm w-full space-y-3 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <h3 className="font-display text-lg text-center">{t("profile.imgTitle")}</h3>
-        <div className="aspect-[3/4] rounded-lg overflow-hidden bg-[var(--secondary)] relative border border-border">
+        <h3 className="font-display text-lg text-center">{title}</h3>
+        <p className="text-[11px] text-muted-foreground text-center -mt-1">{hint}</p>
+        <div className={`${previewAspect} rounded-lg overflow-hidden bg-[var(--secondary)] relative border border-border`}>
           {url
             ? <img src={url} alt="preview"
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{
-                  transform: `translate(${(ox - 50)}%, ${(oy - 50)}%) scale(${scale})`,
+                  transform: `translate(${(ox - 50)}%, ${(oy - 50)}%) scale(${scale}) rotate(${rot}deg)`,
                   transformOrigin: "center center",
                 }} />
             : <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">{t("profile.imgNone")}</div>}
@@ -452,7 +506,7 @@ function ImageEditor({ character, onClose }: { character: any; onClose: () => vo
           <>
             <label className="text-xs flex items-center justify-between gap-2">
               <span className="text-muted-foreground">{t("profile.zoom")}</span>
-              <input type="range" min={0.5} max={3} step={0.05} value={scale} onChange={e => setScale(+e.target.value)} className="flex-1" />
+              <input type="range" min={0.5} max={zoomMax} step={0.05} value={scale} onChange={e => setScale(+e.target.value)} className="flex-1" />
               <span className="font-mono text-[10px] w-10 text-right">{scale.toFixed(2)}x</span>
             </label>
             <label className="text-xs flex items-center justify-between gap-2">
@@ -465,6 +519,11 @@ function ImageEditor({ character, onClose }: { character: any; onClose: () => vo
               <input type="range" min={-100} max={200} value={oy} onChange={e => setOy(+e.target.value)} className="flex-1" />
               <span className="font-mono text-[10px] w-10 text-right">{oy|0}</span>
             </label>
+            <label className="text-xs flex items-center justify-between gap-2">
+              <span className="text-muted-foreground inline-flex items-center gap-1"><RotateCw size={11}/>{t("profile.rotation")}</span>
+              <input type="range" min={-180} max={180} value={rot} onChange={e => setRot(+e.target.value)} className="flex-1" />
+              <span className="font-mono text-[10px] w-10 text-right">{rot|0}°</span>
+            </label>
           </>
         )}
 
@@ -476,6 +535,7 @@ function ImageEditor({ character, onClose }: { character: any; onClose: () => vo
     </div>
   );
 }
+
 
 function HpModal({
   current, max, onApply, onClose,
