@@ -148,6 +148,17 @@ function Profile() {
 
       {activeTab === "personaje" && (
         <>
+          {/* Primary combat action — initiative / pass turn */}
+          <div className="mb-3">
+            <InitiativeButton
+              character={character}
+              encounter={combat.encounter}
+              participants={combat.participants}
+              groups={combat.groups}
+              online={characters.filter(c => onlineIds.has(c.id))}
+            />
+          </div>
+
           {/* Top: image (left) + key stats (right) */}
           <div className="grid grid-cols-5 gap-2 mb-3">
             <button
@@ -187,13 +198,21 @@ function Profile() {
                 <p className="text-[9px] uppercase text-muted-foreground">{t("level.label")}</p>
                 <p className="font-display text-sm text-[var(--gold)]">{(character as any).level ?? 1}</p>
               </div>
-              <div className="ornate-card p-2 text-center">
-                <p className="text-[9px] uppercase text-muted-foreground">{t("profile.coins")}</p>
-                <p className="font-display text-base text-[var(--gold)]">{character.coins}</p>
-                <div className="mt-1">
-                  <CoinsAdjuster onApply={changeCoins} />
-                </div>
-              </div>
+              <button
+                type="button"
+                {...coinsPress}
+                onContextMenu={(e) => { e.preventDefault(); setPurseOpen(true); }}
+                onDoubleClick={() => setPurseOpen(true)}
+                aria-label={t("purse.openHint")}
+                title={t("purse.openHint")}
+                className="ornate-card p-2 text-center select-none transition-transform active:scale-95"
+              >
+                <p className="text-[9px] uppercase text-muted-foreground flex items-center justify-center gap-1">
+                  <Coins size={10} className="text-[var(--gold)]" />
+                  {t("profile.coins")}
+                </p>
+                <p className="font-display text-sm text-[var(--gold)]">{character.coins}</p>
+              </button>
               <div className="ornate-card p-2 text-center">
                 <p className="text-[9px] uppercase text-muted-foreground">{t("profile.damage")}</p>
                 <p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p>
@@ -255,18 +274,6 @@ function Profile() {
           </div>
           <div className="stat-pill mb-3 !text-[11px]"><span>{t("profile.initiative")}</span><span className="text-[var(--gold)] font-bold">{fmtMod(character.initiative)}</span></div>
 
-          <div className="mb-3">
-            <InitiativeButton
-              character={character}
-              encounter={combat.encounter}
-              participants={combat.participants}
-              groups={combat.groups}
-              online={characters.filter(c => onlineIds.has(c.id))}
-            />
-          </div>
-
-
-          <ConditionsPanel character={character} campaignId={campaign.id} canEdit={true} />
 
           {/* Quick links — icon left, text right */}
           <div className="grid grid-cols-3 gap-2 mb-2">
