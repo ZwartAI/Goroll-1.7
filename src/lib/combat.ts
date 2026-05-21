@@ -1047,4 +1047,103 @@ export async function logEnemySpeech(participant: CombatParticipant, text: strin
   return { ok: true };
 }
 
+// ─────────────────────── Enemy → Players damage ───────────────────────
+
+import { totals } from "./game";
+import type { Character, Item } from "./game";
+
+export type EnemyAttackDistribution = "individual" | "split";
+
+export type EnemyAttackOptions = {
+  damage: number;
+  targetCharacterIds: string[];
+  useDefense: boolean;
+  distribution: EnemyAttackDistribution;
+  /** If true, expand selected targets to include all members of their turn_group_id. */
+  spreadToLinkGroup: boolean;
+};
+
+/**
+ * The DM applies an enemy's attack to one or more player characters.
+ * Per-target flow:
+ *   1) Compute base hit (from distribution).
+ *   2) Subtract that character's total defense (if useDefense).
+ *   3) Reduce current_hp; clamp at 0.
+ * Writes one consolidated log entry.
+ */
+export async function applyEnemyAttackToPlayers(
+  enemy: CombatParticipant,
+  participants: CombatParticipant[],
+  opts: EnemyAttackOptions,
+) {
+  if (!isEnemy(enemy)) return { ok: false as const, reason: "not_enemy" };
+  const baseDamage = Math.max(0, Math.floor(opts.damage));
+  if (baseDamage <= 0) return { ok: false as const, reason: "no_damage" };
+
+  // Expand to link groups if requested.
+  let targetIds = Array.from(new Set(opts.targetCharacterIds));
+  if (opts.spreadToLinkGroup) {
+    const groupIds = new Set<string>();
+    for (const id of targetIds) {
+      const p = participants.find(pp => pp.character_id === id && pp.participant_type === "player");
+      if (p?.turn_group_id) groupIds.add(p.turn_group_id);
+    }
+    if (groupIds.size > 0) {
+      const extra = participants
+        .filter(pp => pp.participant_type === "player" && pp.turn_group_id && groupIds.has(pp.turn_group_id))
+        .map(pp => pp.character_id!)
+        .filter(Boolean);
+      targetIds = Array.from(new Set([...targetIds, ...extra]));
+    }
+  }
+  if (targetIds.length === 0) return { ok: false as const, reason: "no_targets" };
+
+  // Per-target hit pre-defense.
+  const perHit = opts.distribution === "split"
+    ? Math.max(1, Math.ceil(baseDamage / targetIds.length))
+    : baseDamage;
+
+  // Fetch characters + equipped items in parallel.
+  const [chRes, itRes] = await Promise.all([
+    supabase.from("characters").select("*").in("id", targetIds),
+    supabase.from("items").select("*").in("owner_character_id", targetIds).eq("equipped", true),
+  ]);
+  const chars = (chRes.data || []) as Character[];
+  const items = (itRes.data || []) as Item[];
+
+  const results: { name: string; color: string | null; id: string; applied: number; def: number; defeated: boolean }[] = [];
+
+  for (const ch of chars) {
+    const equipped = items.filter(i => i.owner_character_id === ch.id);
+    const def = totals(ch, equipped).defense;
+    const applied = Math.max(0, perHit - (opts.useDefense ? def : 0));
+    const newHp = Math.max(0, ch.current_hp - applied);
+    if (applied > 0) {
+      await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", ch.id);
+    }
+    results.push({
+      name: ch.name,
+      color: ch.color,
+      id: ch.id,
+      applied,
+      def: opts.useDefense ? def : 0,
+      defeated: newHp <= 0 && ch.current_hp > 0,
+    });
+  }
+
+  // Log: "<Enemy> atacó: [name] -X (DEF Y), [name] -X (DEF Y)..."
+  const segs: any[] = [
+    { t: "text", v: `${enemy.display_name} atacó: ` },
+  ];
+  results.forEach((r, i) => {
+    if (i > 0) segs.push({ t: "text", v: ", " });
+    segs.push({ t: "char", v: r.name, color: r.color || undefined, id: r.id });
+    segs.push({ t: "text", v: ` -${r.applied}${opts.useDefense ? ` (DEF ${r.def})` : ""}${r.defeated ? " ☠" : ""}` });
+  });
+  await pushLog(enemy.campaign_id, segs as any);
+
+  return { ok: true as const, results };
+}
+
+
 
