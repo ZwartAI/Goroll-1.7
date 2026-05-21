@@ -208,6 +208,9 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "combat_turn_groups", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
         setCombat(prev => ({ ...prev, groups: applyChange(prev.groups, payload) as CombatTurnGroup[] }));
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_turn_pins", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
+        setCombat(prev => ({ ...prev, pins: applyChange(prev.pins, payload) as CombatTurnPin[] }));
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [loadCombat]);
