@@ -40,6 +40,16 @@ export function SkillUseModal({ encounter, participants, groups, source, allChar
     return allCharacters.filter(c => ids.has(c.id));
   }, [players, allCharacters]);
 
+  // Link membership of the source character (if any).
+  const linkInfo = useMemo(
+    () => groupForCharacter(participants, groups, source.id),
+    [participants, groups, source.id],
+  );
+  const linkMates = useMemo(
+    () => (linkInfo?.members.filter(m => m.character_id && m.character_id !== source.id) ?? []),
+    [linkInfo, source.id],
+  );
+
   const [selectedEnemies, setSelectedEnemies] = useState<Set<string>>(new Set());
   const [selectedAllies, setSelectedAllies] = useState<Set<string>>(new Set());
   const [selfChosen, setSelfChosen] = useState(false);
@@ -48,6 +58,9 @@ export function SkillUseModal({ encounter, participants, groups, source, allChar
   const [amount, setAmount] = useState<number>(0);
   const [applyDefense, setApplyDefense] = useState(true);
   const [note, setNote] = useState("");
+  const [linkBonus, setLinkBonus] = useState<0 | 2 | 3>(0);
+  const [linkBonusMembers, setLinkBonusMembers] = useState<Set<string>>(new Set());
+  const [linkJust, setLinkJust] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
