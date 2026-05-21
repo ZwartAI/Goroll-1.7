@@ -17,6 +17,8 @@ type Props = {
   onOpenChar: (id: string) => void;
   onOpenItem?: (id: string) => void;
   onOpenBooster?: (id: string) => void;
+  /** Tap the portrait area opens the full-body image viewer. */
+  onOpenImage?: (id: string) => void;
   /** Character IDs that belong to DM-role users — they are hidden from the players table. */
   dmCharacterIds?: Set<string>;
   /** Display overrides for DM/Co-DM names in the log. */
