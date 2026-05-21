@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { RARITY_COLOR, type Segment } from "@/lib/game";
 import { EnemyIcon } from "@/components/app/EnemyIconPicker";
+import { StatText } from "@/components/app/StatText";
 
 type Override = { name: string; color: string };
 
