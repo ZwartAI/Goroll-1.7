@@ -159,8 +159,10 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-2 overflow-y-auto" onClick={onClose}>
-      <div className="ornate-card p-4 max-w-md w-full max-h-[92vh] overflow-y-auto space-y-3" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-2" onClick={onClose}>
+      <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="p-4 space-y-3 max-h-[92vh] overflow-y-auto">
+
         <div className="text-center">
           <h3 className="font-display text-xl rune-glow" style={{ color: character.color }}>{character.name}</h3>
           <p className="text-xs text-muted-foreground">{character.race || "—"} / {character.class || "—"} · {character.role === "dm" ? t("sheet.dungeonMaster") : t("sheet.player")}</p>
@@ -177,7 +179,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
         )}
         <div className="grid grid-cols-6 gap-1.5 text-center text-xs">
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("level.short")}</p><p className="font-display text-sm text-[var(--gold)]">{(character as any).level ?? 1}</p></div>
-          <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.life")}</p><p className="font-display text-[11px] sm:text-sm leading-tight tabular-nums whitespace-nowrap">{character.current_hp}/{stats.maxHp}</p></div>
+          <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.life")}</p><p className="font-display text-[11px] sm:text-sm leading-[1.05] tabular-nums text-center"><span className="block">{character.current_hp}</span><span className="block opacity-70">/{stats.maxHp}</span></p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.def")}</p><p className="font-display text-sm text-[var(--gold)]">{stats.defense}</p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.vel")}</p><p className="font-display text-sm">{character.velocity}</p></div>
           <div className="ornate-card p-2"><p className="text-muted-foreground text-[9px] uppercase">{t("sheet.damage")}</p><p className="font-display text-sm text-[var(--loss)]">{stats.damage > 0 ? `+${stats.damage}` : stats.damage}</p></div>
@@ -371,7 +373,9 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             onClose={() => setPeekBooster(null)}
           />
         )}
+        </div>
       </div>
     </div>
   );
+
 }

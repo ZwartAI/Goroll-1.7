@@ -27,16 +27,30 @@ function optimize(url: string): string {
   return url;
 }
 
+function ensureBgEl(): HTMLDivElement | null {
+  if (typeof document === "undefined" || !document.body) return null;
+  let el = document.getElementById("app-bg-photo") as HTMLDivElement | null;
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "app-bg-photo";
+    el.style.position = "fixed";
+    el.style.inset = "0";
+    el.style.zIndex = "-1";
+    el.style.pointerEvents = "none";
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center";
+    el.style.backgroundRepeat = "no-repeat";
+    document.body.prepend(el);
+  }
+  return el;
+}
+
 function applyToBody(url: string) {
-  if (typeof document === "undefined") return;
-  const body = document.body;
+  const el = ensureBgEl();
+  if (!el) return;
   if (url) {
     const opt = optimize(url);
-    body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)), url("${opt}")`;
-    body.style.backgroundSize = "cover";
-    body.style.backgroundPosition = "center";
-    body.style.backgroundAttachment = "fixed";
-    body.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)), url("${opt}")`;
     // Preload hint so browser fetches with high priority.
     try {
       const id = "bg-preload-link";
@@ -52,9 +66,10 @@ function applyToBody(url: string) {
       if (link.href !== opt) link.href = opt;
     } catch {}
   } else {
-    body.style.backgroundImage = "";
+    el.style.backgroundImage = "";
   }
 }
+
 
 // Apply cached background synchronously on module load (before React mounts)
 // so the user never sees a flash.
