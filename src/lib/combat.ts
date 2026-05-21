@@ -827,6 +827,92 @@ export async function reorderParticipantTo(
   return { ok: true };
 }
 
+/**
+ * Drag-and-drop reorder for the round turn list. Reorders blocks and
+ * automatically adjusts the dragged enemy/pin initiative to match its new
+ * neighbors so the order remains consistent with initiative values.
+ *
+ * - Dragged DOWN: initiative becomes equal to the upper neighbor.
+ * - Dragged UP: initiative becomes lower neighbor + 1 (capped by upper).
+ * - Players are reordered without changing their initiative.
+ */
+export async function reorderBlockWithAutoInitiative(
+  encounter: CombatEncounter,
+  blocks: TurnBlock[],
+  fromKey: string,
+  toIndex: number,
+) {
+  if (encounter.status === "ended") return { ok: false };
+  const idx = blocks.findIndex(b => b.key === fromKey);
+  if (idx < 0) return { ok: false };
+  const target = Math.max(0, Math.min(blocks.length - 1, toIndex));
+  if (target === idx) return { ok: true };
+
+  const reordered = [...blocks];
+  const [moved] = reordered.splice(idx, 1);
+  reordered.splice(target, 0, moved);
+
+  const upper = target > 0 ? reordered[target - 1] : null;
+  const lower = target < reordered.length - 1 ? reordered[target + 1] : null;
+  const upperInit = upper ? upper.initiative : null;
+  const lowerInit = lower ? lower.initiative : null;
+
+  // Compute new initiative for the dragged block (enemies + pins only).
+  let newInit: number | null = null;
+  const isPlayerSolo = moved.kind === "solo" && !isEnemy(moved.participant);
+  const isGroup = moved.kind === "group";
+  if (!isPlayerSolo && !isGroup) {
+    if (target > idx) {
+      // Dragged down → tie with upper neighbor.
+      if (upperInit != null) newInit = upperInit;
+      else if (lowerInit != null) newInit = lowerInit;
+    } else {
+      // Dragged up → one above lower neighbor (clamped by upper).
+      if (lowerInit != null) {
+        newInit = lowerInit + 1;
+        if (upperInit != null && newInit > upperInit) newInit = upperInit;
+      } else if (upperInit != null) newInit = upperInit;
+    }
+  }
+
+  // Persist initiative change first so the model stays consistent.
+  if (newInit != null) {
+    if (moved.kind === "solo") {
+      await (supabase as any).from("combat_participants").update({ initiative: newInit }).eq("id", moved.participant.id);
+    } else if (moved.kind === "pin") {
+      await (supabase as any).from("combat_turn_pins").update({ initiative: newInit }).eq("id", moved.pin.id);
+    }
+  }
+
+  // Persist new order_index sequentially.
+  let order = 0;
+  for (const b of reordered) {
+    if (b.kind === "solo") {
+      await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", b.participant.id);
+    } else if (b.kind === "group") {
+      for (const m of b.members) {
+        await (supabase as any).from("combat_participants").update({ order_index: order }).eq("id", m.id);
+      }
+    } else {
+      await (supabase as any).from("combat_turn_pins").update({ order_index: order }).eq("id", b.pin.id);
+    }
+    order++;
+  }
+
+  if (encounter.status === "active") {
+    let newCurrent = encounter.current_turn_index;
+    if (idx === encounter.current_turn_index) newCurrent = target;
+    else if (idx < encounter.current_turn_index && target >= encounter.current_turn_index) newCurrent--;
+    else if (idx > encounter.current_turn_index && target <= encounter.current_turn_index) newCurrent++;
+    if (newCurrent !== encounter.current_turn_index) {
+      await (supabase as any).from("combat_encounters")
+        .update({ current_turn_index: newCurrent })
+        .eq("id", encounter.id);
+    }
+  }
+  return { ok: true, newInitiative: newInit };
+}
+
 export async function dmEndEnemyTurn(
   encounter: CombatEncounter,
   blocks: TurnBlock[],
