@@ -16,7 +16,7 @@ import { DMConditionsCreator } from "@/components/app/ConditionsPanel";
 import { BoosterEditor } from "@/components/app/BoosterEditor";
 import { type Booster } from "@/components/app/BoosterCard";
 import { DMRequestGate } from "@/components/app/DMRequestGate";
-import { SkillsManager } from "@/components/app/SkillsManager";
+import { SkillsManager, ManualCreate as SkillManualCreate } from "@/components/app/SkillsManager";
 import { Escenario } from "@/components/app/Escenario";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicToggle } from "@/components/app/MicToggle";
@@ -196,6 +196,19 @@ function DM() {
 
             <BulkBoosterImport campaignId={campaign.id} />
           </div>
+
+          {players[0] && (
+            <div className="ornate-card p-4 space-y-2">
+              <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("skills.createSkillSectionTitle")}</h3>
+              <p className="text-xs text-muted-foreground">{t("skills.createSkillSectionHint")}</p>
+              <SkillManualCreate
+                campaignId={campaign.id}
+                target={players[0]}
+                dm={dmCtx}
+                players={players}
+              />
+            </div>
+          )}
         </div>
       )}
 
