@@ -2,6 +2,12 @@ import {
   Skull, Sword, Shield, Eye, Flame, Bug, Crown, Ghost, PawPrint, Drama, Swords, Cloud,
   type LucideIcon,
 } from "lucide-react";
+import normalAsset from "@/assets/combat-ranks/normal.png";
+import eliteAsset from "@/assets/combat-ranks/elite.png";
+import bossAsset from "@/assets/combat-ranks/boss.png";
+import godAsset from "@/assets/combat-ranks/god.png";
+import heroFemAsset from "@/assets/combat-ranks/hero_female.png";
+import heroMaleAsset from "@/assets/combat-ranks/hero_male.png";
 
 export const ENEMY_ICONS: Record<string, LucideIcon> = {
   skull: Skull,
@@ -18,17 +24,30 @@ export const ENEMY_ICONS: Record<string, LucideIcon> = {
   shadow: Cloud,
 };
 
+export const ENEMY_ASSETS: Record<string, string> = {
+  normal: normalAsset,
+  elite: eliteAsset,
+  boss: bossAsset,
+  god: godAsset,
+  hero_female: heroFemAsset,
+  hero_male: heroMaleAsset,
+};
+
 export const ENEMY_COLORS = [
-  "#ef4444", // red
-  "#a855f7", // purple
-  "#1e3a8a", // navy
-  "#16a34a", // green
-  "#eab308", // gold
-  "#6b7280", // gray
-  "#0f172a", // near-black
+  "#ef4444", "#a855f7", "#1e3a8a", "#16a34a", "#eab308", "#6b7280", "#0f172a",
 ];
 
+/** Detect if an icon_key refers to a bundled visual asset (prefix `asset:`). */
+export function getEnemyAssetUrl(key: string | null | undefined): string | null {
+  if (!key || !key.startsWith("asset:")) return null;
+  return ENEMY_ASSETS[key.slice(6)] || null;
+}
+
 export function EnemyIcon({ name, size = 24, color }: { name: string | null | undefined; size?: number; color?: string }) {
+  const asset = getEnemyAssetUrl(name);
+  if (asset) {
+    return <img src={asset} alt="" style={{ width: size, height: size, objectFit: "cover", borderRadius: 4 }} />;
+  }
   const Icon = ENEMY_ICONS[name || "skull"] || Skull;
   return <Icon size={size} color={color} />;
 }
