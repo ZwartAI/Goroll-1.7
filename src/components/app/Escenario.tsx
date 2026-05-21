@@ -94,7 +94,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
 
       {showLog && (
         <div className="ornate-card p-3">
-          {combat.encounter && combat.encounter.status === "active" ? (
+          {combat.encounter && combat.encounter.status === "active" && !hideCombatTab ? (
             <div className="grid grid-cols-2 gap-1 mb-2">
               <button onClick={() => setLogTab("log")}
                 className={`text-[10px] py-1.5 rounded-md font-display uppercase tracking-widest ${logTab === "log" ? "bg-[var(--gold)] text-black" : "bg-card border border-border text-foreground"}`}>
