@@ -830,7 +830,7 @@ function BulkBoosterImport({ campaignId }: { campaignId: string }) {
 }
 
 function DMHeader({
-  campaignName, characterName, dmLabel, voice, onMicSettings, onLogout,
+  campaignName, characterName, dmLabel, voice, onLogout,
 }: {
   campaignName: string;
   characterName: string;
