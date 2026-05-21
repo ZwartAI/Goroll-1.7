@@ -848,7 +848,6 @@ function DMHeader({
     fullscreen: true,
     exit: { onExit: onLogout },
   });
-  // Long-press the mic item to open settings — replicate by listening via header menu? Keep settings shortcut available via mic menu hint.
   return (
     <header className="relative mb-3 min-h-[64px]">
       <div className="text-center px-2">
@@ -857,15 +856,10 @@ function DMHeader({
         <p className="text-xs text-muted-foreground">{dmLabel}</p>
       </div>
       <div className="absolute right-0 top-1 flex items-center">
-        <button
-          onClick={onMicSettings}
-          aria-label="mic settings"
-          className="hidden"
-          tabIndex={-1}
-        />
         <HeaderMenu items={items} />
       </div>
       <MailboxInlineModal open={mailboxOpen} onClose={() => setMailboxOpen(false)} />
     </header>
   );
 }
+
