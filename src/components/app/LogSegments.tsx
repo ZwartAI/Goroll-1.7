@@ -89,9 +89,9 @@ export function LogSegments({
               {p.rollResult && <span className="block"><span className="text-muted-foreground">Tirada: </span><span style={{ color: "var(--gold)" }}>{p.rollResult}</span></span>}
             </span>
           )}
-          {p.effect && <span className="block mt-1 text-[11px] text-foreground/90">{p.effect}</span>}
-          {full && p.visualBrief && <span className="block mt-0.5 text-[10px] italic" style={{ color: "#c4b5fd" }}>{p.visualBrief}</span>}
-          {full && p.dmNote && <span className="block mt-0.5 text-[10px] text-muted-foreground">— {p.dmNote}</span>}
+          {p.effect && <span className="block mt-1 text-[11px] text-foreground/90"><StatText>{p.effect}</StatText></span>}
+          {full && p.visualBrief && <span className="block mt-0.5 text-[10px] italic" style={{ color: "#c4b5fd" }}><StatText>{p.visualBrief}</StatText></span>}
+          {full && p.dmNote && <span className="block mt-0.5 text-[10px] text-muted-foreground">— <StatText>{p.dmNote}</StatText></span>}
         </span>
       );
     }
