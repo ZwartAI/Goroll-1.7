@@ -329,3 +329,19 @@ function SquareBtn({
     </button>
   );
 }
+
+function IconBtn({
+  label, icon, bg, color, onClick,
+}: { label: string; icon: React.ReactNode; bg: string; color?: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="btn-fantasy aspect-square w-full flex items-center justify-center"
+      style={{ background: bg, color: color || "white" }}
+      onClick={onClick}
+      title={label}
+      aria-label={label}>
+      {icon}
+    </button>
+  );
+}
