@@ -1424,24 +1424,39 @@ export async function duplicateEnemyMulti(
       else arr = [...existing.slice(0, idx + 1), ...copies, ...existing.slice(idx + 1)];
     } else if (placement === "distributePlayers") {
       arr = [...existing];
-      const slots: number[] = [];
+      const playerSlots: number[] = [];
       arr.forEach((e, i) => {
         if (e.type !== "block") return;
         const b = e.block;
-        if (b.kind === "group") slots.push(i);
-        else if (b.kind === "solo" && b.participant.participant_type === "player") slots.push(i);
+        if (b.kind === "group") playerSlots.push(i);
+        else if (b.kind === "solo" && b.participant.participant_type === "player") playerSlots.push(i);
       });
-      let consumed = 0;
-      // Insert from back to keep slot indices valid.
-      for (let s = slots.length - 1; s >= 0 && consumed < copies.length; s--) {
-        const pos = slots[s] + 1;
-        arr.splice(pos, 0, copies[consumed]);
-        consumed++;
+      if (playerSlots.length === 0) {
+        // No players — spread evenly across the whole list.
+        const total = arr.length;
+        for (let i = 0; i < copies.length; i++) {
+          const target = Math.round(((i + 1) * (total + i + 1)) / (copies.length + 1));
+          const pos = Math.max(0, Math.min(arr.length, target));
+          arr.splice(pos, 0, copies[i]);
+        }
+      } else {
+        // Cycle through player slots so copies are interleaved, not bunched.
+        const shifts = new Map<number, number>();
+        for (let i = 0; i < copies.length; i++) {
+          const slotIdx = playerSlots[i % playerSlots.length];
+          let extra = 0;
+          shifts.forEach((v, k) => { if (k <= slotIdx) extra += v; });
+          const pos = slotIdx + 1 + extra;
+          arr.splice(pos, 0, copies[i]);
+          shifts.set(slotIdx, (shifts.get(slotIdx) || 0) + 1);
+        }
       }
-      if (consumed < copies.length) arr = [...arr, ...copies.slice(consumed)];
     } else if (placement === "randomMix") {
+      // Mix copies into existing entries with truly uniform random positions
+      // (including the absolute first and last slots).
       arr = [...existing];
-      for (const c of copies) {
+      const shuffled = [...copies].sort(() => Math.random() - 0.5);
+      for (const c of shuffled) {
         const pos = Math.floor(Math.random() * (arr.length + 1));
         arr.splice(pos, 0, c);
       }
