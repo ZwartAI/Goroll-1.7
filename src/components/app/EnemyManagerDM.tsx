@@ -77,10 +77,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
               onDamage={() => setAttacking(p)}
               onHeal={() => setHealing(p)}
               onSheet={() => setSheet(p)}
-              onDuplicate={async () => {
-                const r = await duplicateEnemy(p, encounter, dm);
-                if (!r.ok) toast.error(t("combat.saveError"));
-              }}
+              onDuplicate={() => setDuplicating(p)}
               onRemove={() => setRemoving(p)}
               onAddPin={async () => {
                 const r = await addTurnPin(encounter, p);
