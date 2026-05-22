@@ -123,10 +123,11 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
       const r = await addEnemies(encounter, draft, count, position, dm);
       if (!r.ok) { toast.error(t("combat.saveError")); setBusy(false); return; }
       // Persist local skills onto every created participant.
-      if (localSkills.length && r.ids.length) {
+      const newIds = r.ids ?? [];
+      if (localSkills.length && newIds.length) {
         for (let i = 0; i < localSkills.length; i++) {
           const { id: _id, _isLocal: _l, ...payload } = localSkills[i];
-          await addEnemySkillToParticipants(r.ids, encounter.id, encounter.campaign_id, {
+          await addEnemySkillToParticipants(newIds, encounter.id, encounter.campaign_id, {
             ...payload,
             order_index: i,
           });
