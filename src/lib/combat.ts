@@ -6,7 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import type { Character } from "@/lib/game";
-import { resetUsedThisTurn, clearEncounterSkillState } from "@/lib/combat-skills";
+import { resetUsedThisTurn, clearEncounterSkillState, tickPlayerTurnEnd } from "@/lib/combat-skills";
 
 export type EncounterStatus = "collecting" | "active" | "ended";
 
@@ -491,6 +491,28 @@ export async function passTurn(
 
   // Phase 5: clear white-skill-used-this-turn flags.
   await resetUsedThisTurn(encounter.id);
+
+  // Phase 6: auto-tick condition effects on the character(s) whose turn just ended.
+  const affectedCharIds: string[] =
+    block.kind === "solo"
+      ? (block.participant.character_id ? [block.participant.character_id] : [])
+      : block.kind === "group"
+        ? block.members.map(m => m.character_id).filter((x): x is string => !!x)
+        : [];
+  const i18nTpl = {
+    damaged: "{effect} hizo {amount} de daño a {target}.",
+    shieldAbsorbed: "Escudo absorbió {absorbed}. {target} recibió {applied} de daño.",
+    expired: "{effect} expiró sobre {target}.",
+  };
+  for (const cid of affectedCharIds) {
+    await tickPlayerTurnEnd({
+      characterId: cid,
+      campaignId: encounter.campaign_id,
+      encounterId: encounter.id,
+      i18n: i18nTpl,
+    });
+  }
+
 
 
 

@@ -713,4 +713,164 @@ export async function tickEnemyEffect(effectId: string): Promise<void> {
   }
 }
 
+// ─────────────────────── DOT / turn-end tick (Phase 6) ───────────────────────
+
+/**
+ * Apply persistent damage (DOT) to a character.
+ * Bypasses defense; consumes temporary shields FIFO before HP.
+ * Returns the resolved breakdown.
+ */
+export async function applyDotToCharacter(
+  characterId: string,
+  amount: number,
+  encounterId: string,
+): Promise<{ absorbed: number; applied: number; defeated: boolean } | null> {
+  const raw = Math.max(0, Math.floor(amount));
+  if (raw <= 0) return { absorbed: 0, applied: 0, defeated: false };
+
+  const [{ data: ch }, { data: shields }] = await Promise.all([
+    supabase.from("characters").select("*").eq("id", characterId).maybeSingle(),
+    (supabase as any)
+      .from("combat_temporary_effects")
+      .select("*")
+      .eq("encounter_id", encounterId)
+      .eq("target_character_id", characterId)
+      .eq("effect_type", "shield")
+      .order("created_at", { ascending: true }),
+  ]);
+  if (!ch) return null;
+
+  let remaining = raw;
+  let absorbed = 0;
+  for (const sh of (shields || []) as CombatTemporaryEffect[]) {
+    if (remaining <= 0) break;
+    const take = Math.min(sh.value || 0, remaining);
+    if (take <= 0) continue;
+    absorbed += take;
+    remaining -= take;
+    const next = (sh.value || 0) - take;
+    if (next <= 0) {
+      await (supabase as any).from("combat_temporary_effects").delete().eq("id", sh.id);
+    } else {
+      await (supabase as any).from("combat_temporary_effects").update({ value: next }).eq("id", sh.id);
+    }
+  }
+
+  const cur = (ch as Character).current_hp;
+  const newHp = Math.max(0, cur - remaining);
+  const applied = cur - newHp;
+  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", characterId);
+  return { absorbed, applied, defeated: newHp <= 0 };
+}
+
+function tplOne(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
+}
+
+/**
+ * Tick all condition effects owned by a single character when their turn ends.
+ *  - character_conditions (legacy): apply damage_per_turn (with shields), decrement turns_left.
+ *  - combat_temporary_effects: shields/notes only decrement duration; debuff/control with value>0 deal DOT.
+ *  - Buff with value>0 (e.g. flat shield) only decrements duration.
+ *  - Effects with no duration just sit there untouched (defensive; nothing to tick).
+ */
+export async function tickPlayerTurnEnd(args: {
+  characterId: string;
+  campaignId: string;
+  encounterId: string;
+  i18n: {
+    damaged: string;        // "{effect} hizo {amount} de daño a {target}."
+    shieldAbsorbed: string; // "Escudo absorbió {absorbed}. {target} recibió {applied} de daño."
+    expired: string;        // "{effect} expiró sobre {target}."
+  };
+}): Promise<void> {
+  const { characterId, campaignId, encounterId, i18n } = args;
+
+  // Character name for logs.
+  const { data: chRow } = await supabase
+    .from("characters")
+    .select("name,color,id")
+    .eq("id", characterId)
+    .maybeSingle();
+  const charName = (chRow as any)?.name || "";
+  const charColor = (chRow as any)?.color || undefined;
+
+  // 1) Legacy character_conditions
+  const { data: condRows } = await (supabase as any)
+    .from("character_conditions")
+    .select("*")
+    .eq("character_id", characterId);
+  for (const c of (condRows || []) as Array<{
+    id: string; label: string; icon: string; turns_left: number; damage_per_turn: number;
+  }>) {
+    const label = `${c.icon || ""} ${c.label || ""}`.trim();
+    const dmg = Math.max(0, Math.floor(c.damage_per_turn || 0));
+    if (dmg > 0) {
+      const r = await applyDotToCharacter(characterId, dmg, encounterId);
+      if (r) {
+        const segs: any[] =
+          r.absorbed > 0 && r.applied > 0
+            ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: r.applied }) }]
+            : r.absorbed > 0 && r.applied === 0
+              ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: 0 }) }]
+              : [
+                  { t: "char", v: charName, color: charColor, id: characterId },
+                  { t: "text", v: " " },
+                  { t: "text", v: tplOne(i18n.damaged, { effect: label, amount: r.applied, target: charName }) },
+                ];
+        await pushLog(campaignId, segs as any);
+      }
+    }
+    const next = (c.turns_left || 0) - 1;
+    if (next <= 0) {
+      await (supabase as any).from("character_conditions").delete().eq("id", c.id);
+      await pushLog(campaignId, [
+        { t: "text", v: tplOne(i18n.expired, { effect: label, target: charName }) },
+      ] as any);
+    } else {
+      await (supabase as any).from("character_conditions").update({ turns_left: next }).eq("id", c.id);
+    }
+  }
+
+  // 2) combat_temporary_effects (skip shields/notes for damage; tick duration on debuff/control/buff)
+  const { data: tmpRows } = await (supabase as any)
+    .from("combat_temporary_effects")
+    .select("*")
+    .eq("encounter_id", encounterId)
+    .eq("target_character_id", characterId);
+  for (const e of (tmpRows || []) as CombatTemporaryEffect[]) {
+    const type = (e.effect_type || "").toLowerCase();
+    if (type === "shield" || type === "note") {
+      // Don't damage. Don't auto-decrement either (shields keep their own lifecycle).
+      continue;
+    }
+    const dmg = Math.max(0, Math.floor(e.value || 0));
+    const label = (e.label || type).trim();
+    if (dmg > 0 && (type === "debuff" || type === "control")) {
+      const r = await applyDotToCharacter(characterId, dmg, encounterId);
+      if (r) {
+        const segs: any[] =
+          r.absorbed > 0
+            ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: r.applied }) }]
+            : [
+                { t: "char", v: charName, color: charColor, id: characterId },
+                { t: "text", v: " " },
+                { t: "text", v: tplOne(i18n.damaged, { effect: label, amount: r.applied, target: charName }) },
+              ];
+        await pushLog(campaignId, segs as any);
+      }
+    }
+    // Decrement duration if it has one.
+    if (typeof e.duration_rounds === "number") {
+      const next = (e.duration_rounds || 0) - 1;
+      if (next <= 0) {
+        await (supabase as any).from("combat_temporary_effects").delete().eq("id", e.id);
+      } else {
+        await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", e.id);
+      }
+    }
+  }
+}
+
+
 
