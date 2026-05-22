@@ -23,7 +23,7 @@ import { PRIMARY_TIERS, TIER_VISUALS, ROLE_OPTIONS, BIOME_PRESETS, SKILL_TYPES, 
 import { ConfirmDialog } from "@/components/app/ConfirmDialog";
 
 const CUSTOM_BIOME = "__custom__";
-const RARITIES = ["white", "green", "blue", "purple", "orange", "red"] as const;
+const RARITIES = ["white", "blue", "purple", "gold"] as const;
 
 type LocalSkill = CombatEnemySkillDraft & { id: string; _isLocal: true };
 
