@@ -122,6 +122,17 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
           onClose={() => setSheet(null)}
         />
       )}
+      {duplicating && (
+        <EnemyDuplicateModal
+          enemy={duplicating}
+          encounter={encounter}
+          participants={participants}
+          groups={groups}
+          pins={pins}
+          dm={dm}
+          onClose={() => setDuplicating(null)}
+        />
+      )}
       <ConfirmDialog
         open={!!removing}
         title={t("combat.confirmRemoveEnemyTitle")}
