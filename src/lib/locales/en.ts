@@ -1033,6 +1033,8 @@ export const en: Dict = {
       done: "Applied {n} damage to {k} target(s).",
       errDamage: "Enter a damage value.",
       errTargets: "Select at least one target.",
+      useSkill: "Use enemy skill",
+      useSkillHint: "Pick a skill to use on the selected targets. Non-damaging skills are logged too.",
     },
     duplicate: "Duplicate",
     edit: "Edit",
