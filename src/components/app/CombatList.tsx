@@ -307,3 +307,118 @@ function ActiveBadge({ label, tone }: { label: string; tone?: "enemy" }) {
     </span>
   );
 }
+
+// ─────────────────── Effect chips (read-only, long-press → info) ───────────────────
+
+type TempEffectRow = Tables<"combat_temporary_effects">;
+type CondRow = Tables<"character_conditions">;
+
+function emojiOf(row: TempEffectRow | CondRow, kind: "temp" | "cond"): string {
+  if (kind === "cond") return (row as CondRow).icon || "✨";
+  const r = row as TempEffectRow;
+  const raw = (r.label || "").trim();
+  if (raw) {
+    const first = raw.split(/\s+/)[0] || "";
+    if (first && !/[a-z0-9]/i.test(first)) return first;
+  }
+  const type = (r.effect_type || "").toLowerCase();
+  if (type === "shield") return "🛡️";
+  if (type === "note") return "📜";
+  if (type === "buff") return "✨";
+  if (type === "control") return "💫";
+  if (type === "debuff") return "☠️";
+  return "✨";
+}
+
+function TurnEffectChips({
+  kind, id, encounterId,
+}: { kind: "enemy" | "character"; id: string; encounterId: string }) {
+  const [temp, setTemp] = useState<TempEffectRow[]>([]);
+  const [cond, setCond] = useState<CondRow[]>([]);
+  const [info, setInfo] = useState<EffectInfoInput | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const tempQ = (supabase as any).from("combat_temporary_effects")
+        .select("*").eq("encounter_id", encounterId)
+        .eq(kind === "enemy" ? "target_enemy_participant_id" : "target_character_id", id)
+        .order("created_at", { ascending: true });
+      const condQ = kind === "character"
+        ? (supabase as any).from("character_conditions").select("*").eq("character_id", id).order("created_at", { ascending: true })
+        : Promise.resolve({ data: [] });
+      const [{ data: t1 }, { data: t2 }] = await Promise.all([tempQ, condQ]);
+      if (!alive) return;
+      setTemp((t1 || []) as TempEffectRow[]);
+      setCond((t2 || []) as CondRow[]);
+    };
+    load();
+    const ch = (supabase as any)
+      .channel(`fx-${kind}-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_temporary_effects", filter: `encounter_id=eq.${encounterId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "character_conditions", filter: kind === "character" ? `character_id=eq.${id}` : `character_id=eq.${id}` }, () => load())
+      .subscribe();
+    return () => { alive = false; (supabase as any).removeChannel(ch); };
+  }, [kind, id, encounterId]);
+
+  const items: Array<{ key: string; emoji: string; dur: number | null; payload: EffectInfoInput }> = [
+    ...temp.map(r => ({
+      key: `t:${r.id}`,
+      emoji: emojiOf(r, "temp"),
+      dur: typeof r.duration_rounds === "number" ? r.duration_rounds : null,
+      payload: { kind: "temporary" as const, row: r },
+    })),
+    ...cond.map(r => ({
+      key: `c:${r.id}`,
+      emoji: emojiOf(r, "cond"),
+      dur: typeof r.turns_left === "number" ? r.turns_left : null,
+      payload: { kind: "condition" as const, row: r },
+    })),
+  ];
+
+  if (items.length === 0) return null;
+  const MAX = 3;
+  const shown = items.slice(0, MAX);
+  const overflow = items.length - shown.length;
+
+  return (
+    <>
+      <div className="inline-flex items-center gap-1 ml-1">
+        {shown.map(it => (
+          <EffectChip key={it.key} emoji={it.emoji} dur={it.dur} onInfo={() => setInfo(it.payload)} />
+        ))}
+        {overflow > 0 && (
+          <span className="text-[9px] font-display px-1 rounded bg-secondary border border-border">+{overflow}</span>
+        )}
+      </div>
+      {info && <EffectInfoModal effect={info} onClose={() => setInfo(null)} />}
+    </>
+  );
+}
+
+function EffectChip({ emoji, dur, onInfo }: { emoji: string; dur: number | null; onInfo: () => void }) {
+  const lp = useLongPress(onInfo, 500);
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); if (!lp.didLongPress()) onInfo(); }}
+      onContextMenu={(e) => { e.preventDefault(); onInfo(); }}
+      onMouseDown={lp.onMouseDown}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
+      onTouchStart={lp.onTouchStart}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      className="relative inline-flex items-center justify-center w-5 h-5 rounded border border-border bg-card text-[11px] leading-none hover:border-[var(--gold)]/60"
+      aria-label="effect"
+    >
+      <span>{emoji}</span>
+      {dur !== null && (
+        <span className="absolute -bottom-1 -right-1 min-w-[12px] h-[12px] px-[2px] rounded-full bg-secondary border border-border text-[7px] font-display leading-none flex items-center justify-center">
+          {dur}
+        </span>
+      )}
+    </button>
+  );
+}
+
