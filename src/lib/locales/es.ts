@@ -1173,6 +1173,18 @@ export const es = {
       cannotUseNotUnlocked: "Skill bloqueada.",
       success: "Skill usada.",
       genericError: "No se pudo usar la skill.",
+      // Phase 6 — Uso de Skill
+      blockTitle: "Uso de Skill",
+      charactersHeading: "Personajes",
+      enemiesHeading: "Enemigos",
+      youTag: "(Tú)",
+      noEnemies: "Sin enemigos en combate.",
+      noCharacters: "Sin personajes en combate.",
+      distributionLabel: "Modo de aplicación",
+      distDirect: "Directo (ignora defensa)",
+      distWithDefense: "Con defensa",
+      distSplit: "Dividir entre golpeados",
+      distLinkGroup: "Grupo de Enlace",
     },
   },
   bestiary: {
