@@ -19,9 +19,9 @@ import {
 } from "@/lib/combat";
 import {
   listEffectsForEnemy,
-  removeEffect,
   tickEnemyEffect,
 } from "@/lib/combat-skills";
+import { EffectInfoModal } from "@/components/app/EffectInfoModal";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
