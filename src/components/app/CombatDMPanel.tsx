@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Swords, Flag, Play, ChevronLeft, ChevronRight, X, Plus, BookOpen } from "lucide-react";
-import { listTemplates, spawnFromTemplate, type EnemyTemplate } from "@/lib/bestiary";
+import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import {
   buildOrderedTurns,
   cancelInitiative,
