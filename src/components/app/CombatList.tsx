@@ -71,6 +71,8 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
       enlaceLabel={t("combat.linkBadge")}
       enemyLabel={t("combat.enemyLabel")}
       defeatedLabel={t("combat.defeated")}
+      extraTurnLabel={t("combat.extraTurn")}
+      enemyTurnOfLabel={t("combat.enemyTurnOf")}
       onOpenChar={onOpenChar}
       draggable={!!onReorder}
     />
@@ -106,10 +108,11 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
 }
 
 function TurnRow({
-  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, onOpenChar, draggable,
+  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, extraTurnLabel, enemyTurnOfLabel, onOpenChar, draggable,
 }: {
   block: TurnBlock; isActive: boolean; isSelf: boolean;
   activeLabel: string; activeEnemyLabel: string; enlaceLabel: string; enemyLabel: string; defeatedLabel: string;
+  extraTurnLabel: string; enemyTurnOfLabel: string;
   onOpenChar?: (id: string) => void;
   draggable?: boolean;
 }) {
