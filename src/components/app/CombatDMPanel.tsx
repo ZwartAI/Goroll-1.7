@@ -179,6 +179,11 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
             )}
             <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
           </div>
+          <button className="btn-fantasy w-full text-xs py-1.5"
+            style={{ background: "color-mix(in oklab, var(--gold) 30%, var(--card))", color: "var(--gold)" }}
+            onClick={() => setApplyingEffect(true)}>
+            <Sparkles size={12} className="inline mr-1" /> {t("combat.dmEffects.openButton")}
+          </button>
           <div className="grid grid-cols-3 gap-2 pt-1">
             <button className="btn-fantasy text-xs"
               onClick={() => dmShiftTurn(encounter, buildOrderedTurns(participants, groups, pins), -1)}>
