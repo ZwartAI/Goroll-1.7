@@ -71,8 +71,9 @@ function Profile() {
     if (!character || !campaign) return;
     const next = Math.max(0, Math.min(stats.maxHp, character.current_hp + delta));
     if (next === character.current_hp) return;
-    const prev = { current_hp: character.current_hp };
-    await supabase.from("characters").update({ current_hp: next }).eq("id", character.id);
+    const prev = { current_hp: character.current_hp, hp_damage_taken: (character as any).hp_damage_taken };
+    const { applyHpDelta } = await import("@/lib/hp");
+    await applyHpDelta(character.id, next, stats.maxHp);
     await pushLog(campaign.id, [
       { t: "char", v: character.name, color: character.color, id: character.id },
       { t: "text", v: delta > 0 ? t("profile.healed") : t("profile.tookDmg") },

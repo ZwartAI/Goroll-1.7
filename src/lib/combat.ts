@@ -1333,7 +1333,9 @@ export async function applyEnemyAttackToPlayers(
     const applied = Math.max(0, perHit - (opts.useDefense ? def : 0));
     const newHp = Math.max(0, ch.current_hp - applied);
     if (applied > 0) {
-      await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", ch.id);
+      const maxHp = totals(ch, equipped).maxHp;
+      const { applyHpDelta } = await import("@/lib/hp");
+      await applyHpDelta(ch.id, newHp, maxHp);
     }
     results.push({
       name: ch.name,

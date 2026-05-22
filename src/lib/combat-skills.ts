@@ -207,7 +207,8 @@ async function applyHealToCharacter(targetId: string, amount: number): Promise<{
   const cur = (ch as Character).current_hp;
   const newHp = Math.max(0, Math.min(max, cur + Math.max(0, Math.floor(amount))));
   const applied = newHp - cur;
-  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", targetId);
+  const { applyHpDelta } = await import("@/lib/hp");
+  await applyHpDelta(targetId, newHp, max);
   return { applied, newHp, max };
 }
 
@@ -253,7 +254,9 @@ async function applyDamageToCharacter(
   }
   const cur = (ch as Character).current_hp;
   const newHp = Math.max(0, cur - remaining);
-  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", targetId);
+  const maxAfter = totals(ch as Character, (its || []) as Item[]).maxHp;
+  const { applyHpDelta } = await import("@/lib/hp");
+  await applyHpDelta(targetId, newHp, maxAfter);
   return { applied: totalRaw, def, absorbed };
 }
 
@@ -779,7 +782,10 @@ export async function applyDotToCharacter(
   const cur = (ch as Character).current_hp;
   const newHp = Math.max(0, cur - remaining);
   const applied = cur - newHp;
-  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", characterId);
+  const { data: equippedItems } = await supabase.from("items").select("*").eq("owner_character_id", characterId).eq("equipped", true);
+  const maxAfter = totals(ch as Character, (equippedItems || []) as Item[]).maxHp;
+  const { applyHpDelta } = await import("@/lib/hp");
+  await applyHpDelta(characterId, newHp, maxAfter);
   return { absorbed, applied, defeated: newHp <= 0 };
 }
 

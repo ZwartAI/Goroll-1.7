@@ -448,6 +448,7 @@ export type Database = {
           damage_boost: number
           des: number
           fue: number
+          hp_damage_taken: number
           id: string
           image_offset_x: number
           image_offset_y: number
@@ -485,6 +486,7 @@ export type Database = {
           damage_boost?: number
           des?: number
           fue?: number
+          hp_damage_taken?: number
           id?: string
           image_offset_x?: number
           image_offset_y?: number
@@ -522,6 +524,7 @@ export type Database = {
           damage_boost?: number
           des?: number
           fue?: number
+          hp_damage_taken?: number
           id?: string
           image_offset_x?: number
           image_offset_y?: number

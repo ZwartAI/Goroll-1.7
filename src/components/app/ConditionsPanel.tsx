@@ -91,8 +91,12 @@ export function ConditionsPanel({
     const label = getRowLabel(c);
     if (c.damage_per_turn > 0) {
       const newHp = Math.max(0, character.current_hp - c.damage_per_turn);
-      const prev = { current_hp: character.current_hp };
-      await supabase.from("characters").update({ current_hp: newHp }).eq("id", character.id);
+      const prev = { current_hp: character.current_hp, hp_damage_taken: (character as any).hp_damage_taken };
+      const { totals } = await import("@/lib/game");
+      const { data: equipped } = await supabase.from("items").select("*").eq("owner_character_id", character.id).eq("equipped", true);
+      const maxHp = totals(character as any, (equipped || []) as any).maxHp;
+      const { applyHpDelta } = await import("@/lib/hp");
+      await applyHpDelta(character.id, newHp, maxHp);
       await pushLog(campaignId, [
         { t: "char", v: character.name, color: character.color, id: character.id },
         { t: "text", v: t("conditions.suffersLog", { icon: c.icon, label }) },
