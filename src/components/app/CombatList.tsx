@@ -165,7 +165,7 @@ function TurnRow({
           <p className="font-display text-sm truncate" style={{ color: baseColor }}>
             {p.display_name}
           </p>
-          <div className="flex items-center gap-1 mt-0.5">
+          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
             <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-[var(--loss)]/25 text-[var(--loss)]">
               {enemyLabel}
             </span>
@@ -174,6 +174,7 @@ function TurnRow({
                 {defeatedLabel}
               </span>
             )}
+            <TurnEffectChips kind="enemy" id={p.id} encounterId={p.encounter_id} />
           </div>
         </div>
         <InitiativeChip n={p.initiative} />
