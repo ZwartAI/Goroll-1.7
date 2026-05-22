@@ -1,13 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { useGameData } from "@/lib/CampaignProvider";
 import {
   applyEnemyAttackToPlayers,
+  listEnemySkills,
+  type CombatEnemySkill,
   type CombatParticipant,
   type EnemyAttackDistribution,
 } from "@/lib/combat";
 import { NumberInput } from "@/components/app/NumberInput";
+import { EnemySkillUseModal } from "@/components/app/EnemySkillUseModal";
+import { RarityBadge } from "@/components/app/RarityBadge";
+import type { Rarity } from "@/lib/game";
+import { Sparkles } from "lucide-react";
 
 type Props = {
   enemy: CombatParticipant;
