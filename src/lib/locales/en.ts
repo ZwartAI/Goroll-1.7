@@ -1008,6 +1008,10 @@ export const en: Dict = {
     heal: "Heal",
     applyDamage: "Apply Damage",
     applyWithDefense: "Apply with Defense",
+    directDamage: "Direct damage",
+    applyDirectDamage: "Apply direct damage",
+    damageWithDefense: "Damage with defense",
+    applyDamageWithDefense: "Apply damage with defense",
     damageApplied: "Damage applied: {n} after DEF {def}.",
     attack: {
       title: "Enemy attacks players",
