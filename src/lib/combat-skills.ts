@@ -358,44 +358,124 @@ export async function useSkill(args: {
   let shieldDetail: { amount: number; targetName: string }[] = [];
   let defeatedNames: string[] = [];
 
+  const distribution: SkillDistribution = payload.distribution
+    ?? (payload.applyDefense === false ? "direct" : "defense");
+
+  // Helper: expand any enemy/ally target to its full link group (when distribution = linkGroup).
+  function expandLinkGroup(list: SkillTarget[]): SkillTarget[] {
+    if (distribution !== "linkGroup") return list;
+    const seenEnemy = new Set<string>();
+    const seenChar = new Set<string>();
+    const out: SkillTarget[] = [];
+    for (const tg of list) {
+      if (tg.kind === "enemy") {
+        const groupId = tg.participant.turn_group_id;
+        if (groupId) {
+          const mates = args.participants.filter(p => p.turn_group_id === groupId && isEnemy(p) && !p.is_defeated);
+          for (const m of mates) {
+            if (!seenEnemy.has(m.id)) { seenEnemy.add(m.id); out.push({ kind: "enemy", participant: m }); }
+          }
+        } else if (!seenEnemy.has(tg.participant.id)) {
+          seenEnemy.add(tg.participant.id);
+          out.push(tg);
+        }
+      } else if (tg.kind === "ally" || tg.kind === "self") {
+        const link = groupForCharacter(args.participants, args.groups, tg.character.id);
+        if (link) {
+          for (const m of link.members) {
+            if (m.character_id && !seenChar.has(m.character_id)) {
+              seenChar.add(m.character_id);
+              // We don't have the full Character object for link mates beyond source/allyChars;
+              // we still apply the effect by character id. Use minimal Character-shaped object.
+              const mate = m.character_id === tg.character.id
+                ? tg.character
+                : ({ id: m.character_id, name: m.display_name, color: m.color || tg.character.color } as Character);
+              out.push({ kind: "ally", character: mate });
+            }
+          }
+        } else if (!seenChar.has(tg.character.id)) {
+          seenChar.add(tg.character.id);
+          out.push(tg);
+        }
+      } else {
+        out.push(tg);
+      }
+    }
+    return out;
+  }
+
   if (payload.resolution === "damage") {
-    const enemies = targets.filter(t => t.kind === "enemy") as Extract<SkillTarget, { kind: "enemy" }>[];
-    if (enemies.length === 0) return { ok: false, error: "no_enemy_target" as const };
+    const expanded = expandLinkGroup(targets);
+    const enemies = expanded.filter(t => t.kind === "enemy") as Extract<SkillTarget, { kind: "enemy" }>[];
+    const allies = expanded.filter(t => t.kind === "ally" || t.kind === "self") as Extract<SkillTarget, { kind: "ally" | "self" }>[];
+    if (enemies.length === 0 && allies.length === 0) return { ok: false, error: "no_enemy_target" as const };
     const bonus = (payload.linkBonus === 2 || payload.linkBonus === 3) ? payload.linkBonus : 0;
-    const raw = Math.max(0, Math.floor(payload.amount || 0)) + bonus;
+    const totalRaw = Math.max(0, Math.floor(payload.amount || 0)) + bonus;
+    const totalTargets = enemies.length + allies.length;
+    const applyDefense = distribution !== "direct";
+    const perTarget = distribution === "split"
+      ? Math.floor(totalRaw / Math.max(1, totalTargets))
+      : totalRaw;
+    const remainder = distribution === "split"
+      ? totalRaw - perTarget * totalTargets
+      : 0;
+    let leftover = remainder;
     for (const tg of enemies) {
-      const r = await applyDamageToEnemy(tg.participant, raw, !!payload.applyDefense);
+      const raw = perTarget + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
+      const r = await applyDamageToEnemy(tg.participant, raw, applyDefense);
       damageDetail.push({ raw, applied: r.applied, def: r.def, targetName: tg.participant.display_name });
       targetNames.push(tg.participant.display_name);
       if (r.defeated) defeatedNames.push(tg.participant.display_name);
     }
-  } else if (payload.resolution === "heal") {
-    const allies = targets.filter(t => t.kind === "ally" || t.kind === "self") as Extract<SkillTarget, { kind: "ally" | "self" }>[];
-    if (allies.length === 0) return { ok: false, error: "no_ally_target" as const };
-    const amount = Math.max(0, Math.floor(payload.amount || 0));
     for (const tg of allies) {
-      const r = await applyHealToCharacter(tg.character.id, amount);
+      const raw = perTarget + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
+      const r = await applyDamageToCharacter(tg.character.id, raw, applyDefense, encounter.id);
+      if (r) {
+        damageDetail.push({ raw, applied: r.applied, def: r.def, targetName: tg.character.name });
+        targetNames.push(tg.character.name);
+      }
+    }
+  } else if (payload.resolution === "heal") {
+    const expanded = expandLinkGroup(targets);
+    const allies = expanded.filter(t => t.kind === "ally" || t.kind === "self") as Extract<SkillTarget, { kind: "ally" | "self" }>[];
+    if (allies.length === 0) return { ok: false, error: "no_ally_target" as const };
+    const totalAmt = Math.max(0, Math.floor(payload.amount || 0));
+    const per = distribution === "split" ? Math.floor(totalAmt / Math.max(1, allies.length)) : totalAmt;
+    const rem0 = distribution === "split" ? totalAmt - per * allies.length : 0;
+    let leftover = rem0;
+    for (const tg of allies) {
+      const amt = per + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
+      const r = await applyHealToCharacter(tg.character.id, amt);
       if (r) {
         healDetail.push({ amount: r.applied, targetName: tg.character.name });
         targetNames.push(tg.character.name);
       }
     }
   } else if (payload.resolution === "shield") {
-    const allies = targets.filter(t => t.kind === "ally" || t.kind === "self") as Extract<SkillTarget, { kind: "ally" | "self" }>[];
+    const expanded = expandLinkGroup(targets);
+    const allies = expanded.filter(t => t.kind === "ally" || t.kind === "self") as Extract<SkillTarget, { kind: "ally" | "self" }>[];
     if (allies.length === 0) return { ok: false, error: "no_ally_target" as const };
-    const amount = Math.max(0, Math.floor(payload.amount || 0));
+    const totalAmt = Math.max(0, Math.floor(payload.amount || 0));
+    const per = distribution === "split" ? Math.floor(totalAmt / Math.max(1, allies.length)) : totalAmt;
+    const rem0 = distribution === "split" ? totalAmt - per * allies.length : 0;
+    let leftover = rem0;
     for (const tg of allies) {
+      const amt = per + (leftover > 0 ? 1 : 0);
+      if (leftover > 0) leftover--;
       await createShield({
         encounter,
         source,
         sourceSkillId: skill.id,
         targetCharacterId: tg.character.id,
         targetEnemyParticipantId: null,
-        value: amount,
+        value: amt,
         label: skill.name,
         durationRounds: payload.durationRounds,
       });
-      shieldDetail.push({ amount, targetName: tg.character.name });
+      shieldDetail.push({ amount: amt, targetName: tg.character.name });
       targetNames.push(tg.character.name);
     }
   } else if (payload.resolution === "narrative") {
