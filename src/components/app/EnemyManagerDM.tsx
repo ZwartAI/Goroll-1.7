@@ -424,6 +424,7 @@ function EnemyEffectsStrip({ participantId, encounterId }: { participantId: stri
   const { t } = useT();
   const [effects, setEffects] = useState<EffectRow[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [info, setInfo] = useState<EffectRow | null>(null);
 
   const load = async () => {
     const rows = await listEffectsForEnemy(participantId);
@@ -446,45 +447,67 @@ function EnemyEffectsStrip({ participantId, encounterId }: { participantId: stri
 
   if (effects.length === 0) return null;
 
-  const longPressRemove = (id: string) => {
-    if (window.confirm(t("combat.effects.remove") + "?")) {
-      removeEffect(id).then(load);
-    }
-  };
-
   return (
     <div className="flex flex-wrap gap-1.5 pt-0.5">
-      {effects.map(e => {
-        const emoji = emojiForEffect(e);
-        const dur = typeof e.duration_rounds === "number" ? e.duration_rounds : null;
-        const dmg = Math.max(0, Math.floor(e.value || 0));
-        const text = textOfEffectLabel(e);
-        const title = `${text}${dmg > 0 ? ` · -${dmg}/t` : ""}${dur !== null ? ` · ${dur}t` : ""} — ${t("combat.effects.reduce")}`;
-        return (
-          <button
-            key={e.id}
-            type="button"
-            disabled={busy === e.id}
-            onClick={async () => {
-              if (busy) return;
-              setBusy(e.id);
-              try { await tickEnemyEffect(e.id); } finally { setBusy(null); load(); }
-            }}
-            onContextMenu={(ev) => { ev.preventDefault(); longPressRemove(e.id); }}
-            className="relative w-8 h-8 rounded-md border border-border bg-card hover:border-[var(--gold)]/60 flex items-center justify-center text-base leading-none disabled:opacity-50"
-            title={title}
-            aria-label={title}
-          >
-            <span>{emoji}</span>
-            {dur !== null && (
-              <span className="absolute -bottom-1 -right-1 min-w-[14px] h-[14px] px-[3px] rounded-full bg-secondary border border-border text-[8px] font-display leading-none flex items-center justify-center">
-                {dur}
-              </span>
-            )}
-          </button>
-        );
-      })}
+      {effects.map(e => (
+        <EnemyEffectChip
+          key={e.id}
+          row={e}
+          disabled={busy === e.id}
+          onTick={async () => {
+            if (busy) return;
+            setBusy(e.id);
+            try { await tickEnemyEffect(e.id); } finally { setBusy(null); load(); }
+          }}
+          onInfo={() => setInfo(e)}
+          tickLabel={t("combat.effects.reduce")}
+        />
+      ))}
+      {info && (
+        <EffectInfoModal effect={{ kind: "temporary", row: info }} onClose={() => setInfo(null)} />
+      )}
     </div>
+  );
+}
+
+function EnemyEffectChip({
+  row, disabled, onTick, onInfo, tickLabel,
+}: {
+  row: EffectRow;
+  disabled: boolean;
+  onTick: () => void;
+  onInfo: () => void;
+  tickLabel: string;
+}) {
+  const emoji = emojiForEffect(row);
+  const dur = typeof row.duration_rounds === "number" ? row.duration_rounds : null;
+  const dmg = Math.max(0, Math.floor(row.value || 0));
+  const text = textOfEffectLabel(row);
+  const title = `${text}${dmg > 0 ? ` · -${dmg}/t` : ""}${dur !== null ? ` · ${dur}t` : ""} — ${tickLabel}`;
+  const lp = useLongPress(onInfo, 500);
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => { if (!lp.didLongPress()) onTick(); }}
+      onContextMenu={(ev) => { ev.preventDefault(); onInfo(); }}
+      onMouseDown={lp.onMouseDown}
+      onMouseUp={lp.onMouseUp}
+      onMouseLeave={lp.onMouseLeave}
+      onTouchStart={lp.onTouchStart}
+      onTouchEnd={lp.onTouchEnd}
+      onTouchCancel={lp.onTouchCancel}
+      className="relative w-8 h-8 rounded-md border border-border bg-card hover:border-[var(--gold)]/60 flex items-center justify-center text-base leading-none disabled:opacity-50"
+      title={title}
+      aria-label={title}
+    >
+      <span>{emoji}</span>
+      {dur !== null && (
+        <span className="absolute -bottom-1 -right-1 min-w-[14px] h-[14px] px-[3px] rounded-full bg-secondary border border-border text-[8px] font-display leading-none flex items-center justify-center">
+          {dur}
+        </span>
+      )}
+    </button>
   );
 }
 
