@@ -41,17 +41,6 @@ function Inventory() {
     await pushLog(campaign!.id, [{t:"char",v:character!.name,color:character!.color,id:character!.id},{t:"text",v:t("inventory.logEquipped")},{t:"item",v:it.name,rarity:it.rarity as Rarity,id:it.id}]);
     setSel(null);
   }
-  async function unequip(it: Item) {
-    const kind = await unequipItem(it, character!, owned);
-    const segs: any[] = [
-      {t:"char",v:character!.name,color:character!.color,id:character!.id},
-      {t:"text",v:t("inventory.logUnequipped")},
-      {t:"item",v:it.name,rarity:it.rarity as Rarity,id:it.id},
-    ];
-    if (kind === "temporary") segs.push({ t: "text", v: t("inventory.logToTemp") });
-    await pushLog(campaign!.id, segs);
-    setSel(null);
-  }
   async function useItem(it: Item) {
     const remaining = (it.uses ?? 1) - 1;
     if (remaining <= 0) {
