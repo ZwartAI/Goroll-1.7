@@ -84,6 +84,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
           <div key={p.id} className="space-y-1">
             <EnemyRow
               p={p}
+              shield={shieldByEnemy[p.id] || 0}
               isActive={isActive}
               encounter={encounter}
               blocks={blocks}
