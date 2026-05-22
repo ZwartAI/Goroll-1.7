@@ -1,13 +1,31 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { addEnemies, updateEnemy, type CombatEncounter, type CombatParticipant, type EnemyDraft, type InsertPosition } from "@/lib/combat";
+import { Plus, Trash2, ArrowUp, ArrowDown, Edit3 } from "lucide-react";
+import {
+  addEnemies,
+  updateEnemy,
+  listEnemySkills,
+  addEnemySkillToParticipants,
+  updateEnemySkill,
+  deleteEnemySkill,
+  reorderEnemySkill,
+  type CombatEncounter,
+  type CombatParticipant,
+  type CombatEnemySkill,
+  type CombatEnemySkillDraft,
+  type EnemyDraft,
+  type InsertPosition,
+} from "@/lib/combat";
 import { EnemyIconPicker, EnemyColorPicker, ENEMY_COLORS, ENEMY_ASSETS } from "@/components/app/EnemyIconPicker";
 import { NumberInput } from "@/components/app/NumberInput";
-import { PRIMARY_TIERS, TIER_VISUALS, ROLE_OPTIONS, BIOME_PRESETS } from "@/lib/bestiary";
+import { PRIMARY_TIERS, TIER_VISUALS, ROLE_OPTIONS, BIOME_PRESETS, SKILL_TYPES, SKILL_SHAPES } from "@/lib/bestiary";
+import { ConfirmDialog } from "@/components/app/ConfirmDialog";
 
 const CUSTOM_BIOME = "__custom__";
+const RARITIES = ["white", "green", "blue", "purple", "orange", "red"] as const;
 
+type LocalSkill = CombatEnemySkillDraft & { id: string; _isLocal: true };
 
 type Props = {
   encounter: CombatEncounter;
@@ -41,6 +59,44 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
   const [position, setPosition] = useState<InsertPosition>("byInitiative");
   const [busy, setBusy] = useState(false);
 
+  // Skills (snapshot per enemy participant).
+  const [savedSkills, setSavedSkills] = useState<CombatEnemySkill[]>([]);
+  const [localSkills, setLocalSkills] = useState<LocalSkill[]>([]);
+  const [editingSkill, setEditingSkill] = useState<CombatEnemySkill | LocalSkill | null>(null);
+  const [addingSkill, setAddingSkill] = useState(false);
+  const [confirmDeleteSkill, setConfirmDeleteSkill] = useState<CombatEnemySkill | LocalSkill | null>(null);
+
+  useEffect(() => {
+    if (editing) listEnemySkills(editing.id).then(setSavedSkills);
+  }, [editing?.id]);
+
+  const allSkills = useMemo<Array<CombatEnemySkill | LocalSkill>>(
+    () => [...savedSkills, ...localSkills].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
+    [savedSkills, localSkills],
+  );
+
+  const reloadSavedSkills = async (pid: string) => setSavedSkills(await listEnemySkills(pid));
+
+  const handleSkillUpsertLocal = (draft: CombatEnemySkillDraft, existing: CombatEnemySkill | LocalSkill | null) => {
+    if (existing && (existing as LocalSkill)._isLocal) {
+      setLocalSkills(prev => prev.map(s => (s.id === existing.id ? { ...s, ...draft } : s)));
+    } else {
+      const id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      setLocalSkills(prev => [...prev, { id, _isLocal: true, ...draft }]);
+    }
+  };
+
+  const handleConfirmDeleteSkill = async () => {
+    const s = confirmDeleteSkill;
+    if (!s) return;
+    if ((s as LocalSkill)._isLocal) {
+      setLocalSkills(prev => prev.filter(x => x.id !== s.id));
+    } else {
+      await deleteEnemySkill(s as CombatEnemySkill);
+      if (editing) reloadSavedSkills(editing.id);
+    }
+    setConfirmDeleteSkill(null);
+  };
 
   const submit = async () => {
     const trimmed = name.trim();
@@ -61,12 +117,22 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
 
     if (isEdit && editing) {
       const r = await updateEnemy(editing, draft);
-      if (!r.ok) toast.error(t("combat.saveError"));
-      else toast.success(t("combat.saved"));
+      if (!r.ok) { toast.error(t("combat.saveError")); setBusy(false); return; }
+      toast.success(t("combat.saved"));
     } else {
       const r = await addEnemies(encounter, draft, count, position, dm);
-      if (!r.ok) toast.error(t("combat.saveError"));
-      else toast.success(t("combat.enemyAdded"));
+      if (!r.ok) { toast.error(t("combat.saveError")); setBusy(false); return; }
+      // Persist local skills onto every created participant.
+      if (localSkills.length && r.ids.length) {
+        for (let i = 0; i < localSkills.length; i++) {
+          const { id: _id, _isLocal: _l, ...payload } = localSkills[i];
+          await addEnemySkillToParticipants(r.ids, encounter.id, encounter.campaign_id, {
+            ...payload,
+            order_index: i,
+          });
+        }
+      }
+      toast.success(t("combat.enemyAdded"));
     }
     setBusy(false);
     onClose();
@@ -197,6 +263,41 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
           </Field>
         )}
 
+        {/* Skills — manage per-enemy combat skills */}
+        <div className="space-y-2 border-t border-border/50 pt-3">
+          <p className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">
+            {t("bestiary.sectionSkills")}
+          </p>
+          <div className="space-y-1.5">
+            {allSkills.length === 0 && <p className="text-xs text-muted-foreground">{t("bestiary.noSkills")}</p>}
+            {allSkills.map((s, i) => {
+              const isLocal = (s as LocalSkill)._isLocal;
+              const saved = !isLocal ? (s as CombatEnemySkill) : null;
+              return (
+                <div key={s.id} className="bg-secondary/40 rounded p-2 flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-display truncate">{s.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {s.skill_type ? t(`bestiary.skillType_${s.skill_type}`) : "—"} · {s.dice || "—"}
+                    </p>
+                  </div>
+                  {saved && (
+                    <>
+                      <button type="button" className="text-muted-foreground disabled:opacity-30" onClick={async () => { await reorderEnemySkill(saved, "up", savedSkills); if (editing) reloadSavedSkills(editing.id); }} disabled={i === 0}><ArrowUp size={14} /></button>
+                      <button type="button" className="text-muted-foreground disabled:opacity-30" onClick={async () => { await reorderEnemySkill(saved, "down", savedSkills); if (editing) reloadSavedSkills(editing.id); }} disabled={i === allSkills.length - 1}><ArrowDown size={14} /></button>
+                    </>
+                  )}
+                  <button type="button" className="text-muted-foreground" onClick={() => setEditingSkill(s)}><Edit3 size={14} /></button>
+                  <button type="button" className="text-destructive" onClick={() => setConfirmDeleteSkill(s)}><Trash2 size={14} /></button>
+                </div>
+              );
+            })}
+            <button type="button" className="btn-fantasy w-full text-xs" onClick={() => setAddingSkill(true)}>
+              <Plus size={12} className="inline mr-1" /> {t("bestiary.addSkill")}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2 pt-2">
           <button className="btn-fantasy" onClick={onClose} disabled={busy}>{t("common.cancel")}</button>
           <button className="btn-fantasy" disabled={busy}
@@ -204,6 +305,143 @@ export function EnemyEditorModal({ encounter, dm, editing, onClose }: Props) {
             onClick={submit}>
             {isEdit ? t("combat.save") : t("combat.add")}
           </button>
+        </div>
+      </div>
+
+      {(addingSkill || editingSkill) && (
+        <EnemySkillEditor
+          participantId={editing?.id || null}
+          encounterId={encounter.id}
+          campaignId={encounter.campaign_id}
+          editing={editingSkill}
+          nextOrder={allSkills.length}
+          onClose={() => { setAddingSkill(false); setEditingSkill(null); }}
+          onLocalSave={(draft) => handleSkillUpsertLocal(draft, editingSkill)}
+          onSavedRefresh={() => editing && reloadSavedSkills(editing.id)}
+        />
+      )}
+
+      <ConfirmDialog
+        open={!!confirmDeleteSkill}
+        title={t("bestiary.confirmDeleteSkillTitle")}
+        description={t("bestiary.confirmDeleteSkill")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={handleConfirmDeleteSkill}
+        onCancel={() => setConfirmDeleteSkill(null)}
+      />
+    </div>
+  );
+}
+
+function EnemySkillEditor({
+  participantId, encounterId, campaignId, editing, nextOrder, onClose, onLocalSave, onSavedRefresh,
+}: {
+  participantId: string | null;
+  encounterId: string;
+  campaignId: string;
+  editing: CombatEnemySkill | LocalSkill | null;
+  nextOrder: number;
+  onClose: () => void;
+  onLocalSave: (draft: CombatEnemySkillDraft) => void;
+  onSavedRefresh: () => void;
+}) {
+  const { t } = useT();
+  const [name, setName] = useState(editing?.name || "");
+  const [rarity, setRarity] = useState<string>((editing?.rarity as any) || "white");
+  const [skillType, setSkillType] = useState(editing?.skill_type || "impact");
+  const [shape, setShape] = useState(editing?.target_shape || "point");
+  const [targets, setTargets] = useState(editing?.targets || "");
+  const [dice, setDice] = useState(editing?.dice || "");
+  const [rangeText, setRangeText] = useState(editing?.range_text || "");
+  const [effect, setEffect] = useState(editing?.effect || "");
+  const [visual, setVisual] = useState(editing?.visual_brief || "");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (!name.trim()) { toast.error(t("bestiary.errSkillName")); return; }
+    setBusy(true);
+    const draft: CombatEnemySkillDraft = {
+      name: name.trim(),
+      rarity,
+      skill_type: skillType,
+      target_shape: shape,
+      targets: targets.trim() || null,
+      dice: dice.trim() || null,
+      range_text: rangeText.trim() || null,
+      effect: effect.trim() || null,
+      visual_brief: visual.trim() || null,
+      order_index: (editing as any)?.order_index ?? nextOrder,
+    };
+    const isLocalEdit = editing && (editing as LocalSkill)._isLocal;
+    // No participant yet (Add Enemy flow) OR editing a local-only draft → store locally.
+    if (!participantId || isLocalEdit) {
+      onLocalSave(draft);
+      setBusy(false);
+      onClose();
+      return;
+    }
+    // Edit Enemy flow: persist directly.
+    const r = editing
+      ? await updateEnemySkill(editing as CombatEnemySkill, draft)
+      : await addEnemySkillToParticipants([participantId], encounterId, campaignId, draft);
+    setBusy(false);
+    if (!r.ok) { toast.error(t("bestiary.saveError")); return; }
+    onSavedRefresh();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-3" onClick={onClose}>
+      <div className="ornate-card max-w-md w-full max-h-[90vh] overflow-y-auto p-4 space-y-2" onClick={e => e.stopPropagation()}>
+        <h4 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest">
+          {editing ? t("bestiary.editSkill") : t("bestiary.addSkill")}
+        </h4>
+        <Field label={t("bestiary.name")}>
+          <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm" value={name} onChange={e => setName(e.target.value)} maxLength={80} />
+        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label={t("bestiary.rarity")}>
+            <select className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm"
+              value={rarity} onChange={e => setRarity(e.target.value)}>
+              {RARITIES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </Field>
+          <Field label={t("bestiary.skillType")}>
+            <select className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm"
+              value={skillType} onChange={e => setSkillType(e.target.value)}>
+              {SKILL_TYPES.map(v => <option key={v} value={v}>{t(`bestiary.skillType_${v}`)}</option>)}
+            </select>
+          </Field>
+          <Field label={t("bestiary.castShape")}>
+            <select className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm"
+              value={shape} onChange={e => setShape(e.target.value)}>
+              {SKILL_SHAPES.map(v => <option key={v} value={v}>{t(`bestiary.shape_${v}`)}</option>)}
+            </select>
+          </Field>
+          <Field label={t("bestiary.targets")}>
+            <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm" value={targets} onChange={e => setTargets(e.target.value)} placeholder="[Usuario]" />
+          </Field>
+          <Field label={t("bestiary.dice")}>
+            <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm" value={dice} onChange={e => setDice(e.target.value)} placeholder="1d6" />
+          </Field>
+          <Field label={t("bestiary.range")}>
+            <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm" value={rangeText} onChange={e => setRangeText(e.target.value)} placeholder="[MELEE]" />
+          </Field>
+        </div>
+        <Field label={t("bestiary.effect")}>
+          <textarea className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 text-sm" rows={2}
+            value={effect} onChange={e => setEffect(e.target.value)} />
+        </Field>
+        <Field label={t("bestiary.visualBrief")}>
+          <input className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 outline-none focus:border-[var(--gold)] text-sm" value={visual} onChange={e => setVisual(e.target.value)} />
+        </Field>
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <button className="btn-fantasy" onClick={onClose} disabled={busy}>{t("common.cancel")}</button>
+          <button className="btn-fantasy" disabled={busy}
+            style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+            onClick={submit}>{t("common.save")}</button>
         </div>
       </div>
     </div>
