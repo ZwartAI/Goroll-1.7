@@ -8,7 +8,6 @@ import { pushLog } from "@/lib/log";
 import { clampHpForOwner } from "@/lib/hp";
 import {
   equipItem,
-  unequipItem,
   normalBackpackItems,
   temporaryBackpackItems,
   getMaxSlots,
