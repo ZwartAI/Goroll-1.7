@@ -19,8 +19,8 @@ import {
 } from "@/lib/combat";
 import {
   listEffectsForEnemy,
-  decrementEffectDuration,
   removeEffect,
+  tickEnemyEffect,
 } from "@/lib/combat-skills";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
