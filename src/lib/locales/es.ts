@@ -948,7 +948,7 @@ export const es = {
     btnInitiative: "Iniciativa",
     btnWaitingDm: "Esperando al DM",
     btnWaitingTurn: "Esperando turno",
-    btnPassTurn: "Pasar turno",
+    btnPassTurn: "Finalizar turno",
     passError: "No es tu turno",
     rollInitiativeTitle: "Tirar iniciativa",
     rollInitiativeHint: "Introduce tu iniciativa (máximo 20).",
