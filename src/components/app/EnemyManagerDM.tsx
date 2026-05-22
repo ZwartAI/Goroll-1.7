@@ -243,14 +243,10 @@ function EnemyRow({
             </div>
           </div>
 
-          <div className="space-y-0.5">
-            <div className="relative h-2.5 rounded-full bg-card border border-border overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${pct}%`, background: hpBg }} />
-            </div>
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-display text-center">
-              {cur} / {max} HP
-            </p>
-          </div>
+          <HpShieldBar current={cur} max={max} shield={shield} height={10} hideLabel />
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground font-display text-center">
+            {cur} / {max} HP{shield > 0 && <span className="ml-1.5 text-cyan-300">· 🛡️ +{shield}</span>}
+          </p>
 
           {/* Active effects strip (Phase 1) */}
           <EnemyEffectsStrip participantId={p.id} encounterId={encounter.id} />
