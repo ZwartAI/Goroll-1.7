@@ -207,7 +207,8 @@ async function applyHealToCharacter(targetId: string, amount: number): Promise<{
   const cur = (ch as Character).current_hp;
   const newHp = Math.max(0, Math.min(max, cur + Math.max(0, Math.floor(amount))));
   const applied = newHp - cur;
-  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", targetId);
+  const { applyHpDelta } = await import("@/lib/hp");
+  await applyHpDelta(targetId, newHp, max);
   return { applied, newHp, max };
 }
 
