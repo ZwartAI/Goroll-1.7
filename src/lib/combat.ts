@@ -1502,7 +1502,7 @@ export async function duplicateEnemyMulti(
   await pushLog(encounter.campaign_id, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: ` duplicó ${baseName} x${qty}.` },
-  ]);
+  ], { kind: "combat.duplicate.remove", participantIds: newIds });
 
   return { ok: true, created: qty };
 }
