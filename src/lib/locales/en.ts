@@ -17,6 +17,7 @@ export const en: Dict = {
     confirm: "Confirm",
     back: "Back",
     next: "Next",
+    continue: "Continue",
     yes: "Yes",
     no: "No",
     loading: "Loading...",
