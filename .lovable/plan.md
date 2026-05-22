@@ -1,141 +1,93 @@
-# Plan: compactar tarjetas de enemigos y sistema de efectos/escudos
+# Uso de Skill + condiciones cruzadas
 
-Esta solicitud cubre 14 partes muy heterogéneas (UI, base de datos, escudos, panel DM, realtime, i18n). Hacerlo todo en un solo turno me obligaría a tocar casi todo el módulo de combate de golpe, con alto riesgo de romper iniciativa, turnos, daño, curación o realtime. Propongo dividirlo en **3 fases independientes y entregables por separado**. Cada fase queda funcional y no rompe lo anterior.
-
-> Aviso: para responder a tu memoria de i18n, todos los textos nuevos pasan por `t(...)` con claves en `es.ts` y `en.ts`. Nada hardcodeado.
+Solo se tocan el modal de uso de skill de jugadores, la resolución de skills (`combat-skills.ts`), el panel de condiciones del personaje y los locales. No se modifica iniciativa, turnos, Bestiario, Enemy Sheet ni la lógica de combate del DM.
 
 ---
 
-## Fase 1 — UI: botón "Actions" y efectos compactos en tarjeta de enemigo
+## 1) Renombrar el modal a "Uso de Skill"
 
-Sólo UI sobre la tarjeta de enemigo del DM. Ya existe la tabla `combat_temporary_effects`, la reusamos para mostrar lo que haya, aunque la creación todavía no exista para enemigos (queda vacío hasta Fase 2).
+Archivo: `src/components/app/SkillUseModal.tsx` (lo dejamos con este nombre interno, pero añadimos un título visible).
 
-### Cambios
+- Añadir cabecera con el rótulo del bloque: **"Uso de Skill"** (es) / **"Skill Use"** (en) encima del nombre de la skill.
+- Nuevas claves i18n: `combat.skillUse.blockTitle` en `es` y `en`.
+- Nota para futuras referencias: este componente es el **bloque "Uso de Skill"**.
 
-- `EnemyManagerDM.tsx`:
-  - Estado local `openActionsId: string | null` para que sólo una tarjeta tenga acciones abiertas a la vez.
-  - Siempre visibles: icono/asset, nombre, DEF, SPD, INI, barra HP, HP actual/máx, "End Enemy Turn" (si está en turno), "Add Turn Pin".
-  - Por defecto, debajo de la barra HP (o debajo del botón amarillo si está en turno): botón ancho `Actions` con estilo azul oscuro.
-  - Al pulsar, oculta el botón y muestra la fila actual con los 6 botones cuadrados (Damage, Heal, Sheet, Edit, Clone, Delete) + un botón pequeño `×` para volver a colapsar.
-- Nuevo subcomponente `EnemyEffectsStrip`:
-  - Fila de chips: emoji grande + un botoncito debajo `[N]` con turnos restantes.
-  - Click en `[N]`: decrementa duración (`combat_temporary_effects.duration_rounds`); si llega a 0, elimina la fila.
-  - Long-press / segundo tap en el emoji: abre `EffectDetailModal` (nombre, tipo, valor, duración, fuente, botón eliminar).
-- `combat-skills.ts`: añadir helpers `listEffectsForEnemy(participantId)`, `decrementEffectDuration(id)`, `removeEffect(id)`. (Hoy sólo hay flujos parciales).
-- i18n: `combat.actions`, `combat.hideActions`, `combat.effects.reduce`, `combat.effects.remove`, `combat.effects.detail`.
+## 2) Selección de objetivos por etiquetas
 
-### No toca
+Reemplazar la sección actual "Selected targets" por dos sub-bloques con título:
 
-Lógica de daño, curación, sheet, edit, clone, delete, turnos, iniciativa, logs.
+- **Personajes** (incluye al propio personaje y a los aliados del combate):
+  - Tags clickables con color del personaje.
+  - El tag del propio personaje aparece primero, marcado como "(Tú)".
+  - Sustituye al checkbox `self` actual.
+- **Enemigos**: tags con icono y color de cada enemigo invocado no derrotado.
 
----
+Actualización en tiempo real: suscripción Supabase Realtime a `combat_participants` filtrada por `encounter_id` dentro del modal, para refrescar la lista si entran/salen personajes o enemigos mientras el modal está abierto.
 
-## Fase 2 — Sistema de efectos aplicables (jugadores + enemigos + entidades)
+## 3) Modos de reparto al aplicar daño/sanación/escudo
 
-Esta fase introduce el modelo de datos completo y los modales para crearlos.
+Cuando `resolution` sea `damage`, `heal` o `shield` **y haya más de un objetivo seleccionado** (o el origen pertenezca a un Enlace), mostrar un selector "Modo de aplicación" con estas opciones:
 
-### Migración DB
+- **Directo (ignora defensa)** — el número va completo a cada objetivo, sin restar defensa.
+- **Con defensa** — se resta la defensa de cada objetivo (comportamiento actual de `applyDefense`).
+- **Dividir entre golpeados** — el total se reparte equitativamente (resto al primero) entre los objetivos.
+- **Grupo de Enlace** — si el origen está enlazado, el daño se reparte entre todos los miembros del Enlace del objetivo (si se golpea a un miembro de un grupo enemigo enlazado, afecta a todo el grupo).
 
-Extender `combat_temporary_effects` (ya existe) con columnas que faltan:
+El selector queda oculto cuando solo hay un objetivo y no aplica Enlace.
 
-- `kind` text (`condition` | `buff` | `debuff` | `shield` | `extra_def` | `extra_dmg` | `extra_max_hp` | `control` | `note`).
-- `name` text, `icon` text (emoji), `description` text.
-- `remaining_value` int (para escudos).
-- `visibility` text (`public` | `dm`).
-- `is_manual` bool (no auto-decrementa).
-- `source_label` text.
+## 4) Daño a personajes en tiempo real
 
-Más índices por `encounter_id` y `target_*`. Realtime ya disponible vía publicación o se añade.
+Hoy `damage` solo afecta a enemigos. Cambios en `src/lib/combat-skills.ts`:
 
-### UI / lógica
+- Permitir `damage` también sobre `ally` y `self`: nueva helper `applyDamageToCharacter(targetId, raw, applyDefense)` que respeta defensa total (`totals().defense`) y consume escudos temporales antes de HP (siguiendo el orden FIFO ya soportado por `combat_temporary_effects`).
+- Integrar los modos del punto 3 en `useSkill` (parámetros nuevos en `ResolvePayload`: `distribution: "direct" | "defense" | "split" | "linkGroup"`).
+- Actualizar `current_hp` directamente → el realtime de personajes ya está suscrito en `CharacterSheetModal`, `Escenario` y `campaign.spectator`, así que el cambio se ve al instante.
+- Añadir detalle por objetivo en el log (`damage` array ya existe; solo se enriquece con el modo aplicado).
 
-- En `ConditionsPanel` (Character Sheet), si hay combate activo, botón `Apply effect to…`.
-- Nuevo `ApplyEffectModal`:
-  1. **Target picker**: jugadores activos + enemigos activos (pin → enemigo original). Multi-select.
-  2. **Type picker**: los 9 tipos listados (`Negative condition`, `Buff`, etc.).
-  3. **Preset picker** con presets emoji (Veneno, Quemadura, …) + opción `Custom` (nombre + emoji + descripción).
-  4. **Value** (condicional según tipo).
-  5. **Duration** (mínimo 1, opción "manual" / "until end of combat").
-  6. **Visibility** (public / dm-private).
-- Validaciones de la Parte 13.
-- Permisos de la Parte 11 (jugador → sus efectos + propuestas; DM → todo).
-- Aplicación a múltiples targets crea una fila por target (instancia independiente).
+## 5) Jugadores pueden aplicar condiciones a enemigos en combate
 
-### i18n
+Archivo: `src/components/app/ConditionsPanel.tsx`.
 
-Todas las claves listadas en la Parte 12 entran en `es.ts` y `en.ts`.
+- Cuando exista un `combat_encounters` activo en la campaña del personaje y el personaje sea participante, mostrar un toggle "Aplicar a..." en el formulario de añadir condición con dos pestañas:
+  - **A mí / aliado** (comportamiento actual → `character_conditions`).
+  - **A enemigo en combate** (nuevo): muestra tags con los enemigos vivos del encuentro y crea una fila en `combat_temporary_effects` con `effect_type: "debuff" | "control" | "note"` según el catálogo, `target_enemy_participant_id`, `source_character_id`, `duration_rounds` y `label` del catálogo.
+- El panel se suscribe a `combat_encounters` para actualizar la disponibilidad del toggle en tiempo real.
+- El DM verá la condición aparecer al instante en el `EnemyEffectsStrip` ya implementado en Fase 1.
 
----
+## 6) i18n
 
-## Fase 3 — Escudos, defensa extra y panel global de efectos
+Añadir claves en `src/lib/locales/es.ts` y `en.ts`:
 
-Lógica numérica + panel del DM. Depende de Fase 2.
+- `combat.skillUse.blockTitle` → "Uso de Skill" / "Skill Use".
+- `combat.skillUse.charactersHeading` → "Personajes" / "Characters".
+- `combat.skillUse.enemiesHeading` → "Enemigos" / "Enemies".
+- `combat.skillUse.youTag` → "(Tú)" / "(You)".
+- `combat.skillUse.distributionLabel`, `distDirect`, `distWithDefense`, `distSplit`, `distLinkGroup`.
+- `combat.conditions.applyToHeading`, `applyToSelfAlly`, `applyToEnemy`, `pickEnemy`, `appliedToEnemy`.
 
-### Escudos (Parte 4, 5, 7)
-
-- Cada aplicación de escudo = una fila `kind = "shield"` con `remaining_value` y `duration_rounds` propios.
-- Helper `applyDamageWithShields(targetType, targetId, dmg)`:
-  1. Calcular daño bruto.
-  2. Restar `extra_def` activa si la fuente lo pide.
-  3. Consumir escudos por orden de menor `duration_rounds` (FIFO entre empates), restando `remaining_value`.
-  4. Sobrante baja HP (sin pasar de 0).
-  5. Log: `Shield absorbed X` y `Y to HP`.
-- Reglas: valores se suman en la vista total pero duraciones NUNCA se combinan; un nuevo escudo no renueva los anteriores.
-- Distribución grupal (Parte 7) en `ApplyEffectModal`: opciones `Same`, `Split total`, `Manual` con preview antes de aplicar.
-
-### Defensa extra (Parte 6)
-
-- Filas `kind = "extra_def"` con `value` positivo o negativo.
-- Helper `effectiveDefense(target)` = DEF base + suma de buffs - debuffs activos.
-- Daño con defensa pasa por `effectiveDefense`.
-
-### Panel global del DM (Parte 9)
-
-- Nuevo bloque colapsable `Active Effects` en `CombatDMPanel`:
-  - Lista plana de efectos del encuentro: target | emoji | name | type | value | duration | source | botones reducir/eliminar.
-
-### Realtime (Parte 10)
-
-- Suscripción `postgres_changes` sobre `combat_temporary_effects` filtrada por `encounter_id` para refrescar tarjetas, sheet y panel DM.
-
-### Integración con flujos existentes
-
-- `EnemyDamageModal`: usar `applyDamageWithShields` para enemigos (no rompe DEF actual: añade escudos como una capa nueva).
-- `applyEnemyDamage` sobre jugadores: idem.
+Nota: no se deja texto hardcodeado en español/inglés en los componentes nuevos.
 
 ---
 
-## Detalles técnicos (referencia)
+## Detalles técnicos
+
+- **Sin migraciones**: `combat_temporary_effects` ya tiene `target_enemy_participant_id`, `source_character_id`, `effect_type`, `value`, `label`, `duration_rounds`. La condición aplicada por un jugador a un enemigo se mapea a esa tabla. `character_conditions` solo se sigue usando para condiciones sobre jugadores (sin combate o sobre aliados).
+- **Cálculo de defensa de personaje**: usar `totals(character, equippedItems).defense` (helper existente en `@/lib/game`).
+- **Consumo de escudos**: extraer los efectos `shield` del personaje (`listShieldsForEncounter` + `totalShieldForCharacter`) y reducir uno por uno con `reduceShield` antes de tocar HP.
+- **Modo "Grupo de Enlace"**: usar `groupForCharacter`/`groupForParticipant` ya existentes para expandir los objetivos antes de aplicar el daño.
+- **Suscripciones realtime**: usar `supabase.channel("skill-modal-" + encounter.id).on("postgres_changes", ..., "combat_participants", filter: encounter_id=eq...)`.
+- **Reset de selección**: al cambiar el modo de distribución no se borran los objetivos.
+
+---
+
+## Archivos afectados
 
 ```text
-combat_temporary_effects (existente, se amplía)
- ├── kind            text
- ├── icon            text   -- emoji
- ├── name            text
- ├── description     text
- ├── value           int    -- escudo: total inicial; def: bonus; etc.
- ├── remaining_value int    -- sólo escudos
- ├── duration_rounds int    -- ya existe
- ├── is_manual       bool
- ├── visibility      text   -- 'public' | 'dm'
- └── source_label    text
+src/components/app/SkillUseModal.tsx       (UI + realtime + distribución)
+src/components/app/ConditionsPanel.tsx     (toggle aplicar a enemigo)
+src/lib/combat-skills.ts                   (daño a personajes, distribución, helpers)
+src/lib/locales/es.ts                      (claves nuevas)
+src/lib/locales/en.ts                      (claves nuevas)
 ```
 
-Orden de cálculo de daño:
-
-```text
-raw -> (− effective_def si aplica) -> hits shields FIFO -> remainder hits HP
-```
-
----
-
-## ¿Cómo procedemos?
-
-Por tamaño no es realista entregar las 3 fases en un solo turno sin romper algo. Te propongo:
-
-- **Empezar por Fase 1** (UI compacta + visualización de efectos existentes). Es la que más impacto visual te da y no toca lógica de combate.
-- Confirmar que todo sigue funcionando.
-- Pasar a Fase 2 (modelo de datos + `ApplyEffectModal`).
-- Cerrar con Fase 3 (escudos, defensa extra, panel DM, realtime).
-
-Dime si arranco con la Fase 1 tal cual está descrita, o si quieres reordenar (por ejemplo, hacer escudos antes que el panel DM).
+Sin cambios en base de datos, sin tocar `client.ts`, `types.ts` ni el flujo de turnos.
