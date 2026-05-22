@@ -1176,6 +1176,7 @@ export type Database = {
           hp_bonus: number
           id: string
           in_dm_vault: boolean
+          inventory_slot_type: string
           max_uses: number | null
           name: string
           owner_character_id: string | null
@@ -1194,6 +1195,7 @@ export type Database = {
           hp_bonus?: number
           id?: string
           in_dm_vault?: boolean
+          inventory_slot_type?: string
           max_uses?: number | null
           name: string
           owner_character_id?: string | null
@@ -1212,6 +1214,7 @@ export type Database = {
           hp_bonus?: number
           id?: string
           in_dm_vault?: boolean
+          inventory_slot_type?: string
           max_uses?: number | null
           name?: string
           owner_character_id?: string | null
