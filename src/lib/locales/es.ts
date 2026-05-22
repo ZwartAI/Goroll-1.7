@@ -1035,6 +1035,8 @@ export const es = {
       done: "{n} de daño aplicado a {k} objetivo(s).",
       errDamage: "Ingresa un valor de daño.",
       errTargets: "Selecciona al menos un objetivo.",
+      useSkill: "Usar skill del enemigo",
+      useSkillHint: "Selecciona una skill para usarla sobre los objetivos marcados. Las skills no dañinas también se registran.",
     },
     duplicate: "Duplicar",
     edit: "Editar",
