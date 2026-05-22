@@ -1171,6 +1171,18 @@ export const en: Dict = {
       cannotUseNotUnlocked: "Skill is locked.",
       success: "Skill used.",
       genericError: "Could not use the skill.",
+      // Phase 6 — Skill Use
+      blockTitle: "Skill Use",
+      charactersHeading: "Characters",
+      enemiesHeading: "Enemies",
+      youTag: "(You)",
+      noEnemies: "No enemies in combat.",
+      noCharacters: "No characters in combat.",
+      distributionLabel: "Distribution mode",
+      distDirect: "Direct (ignore defense)",
+      distWithDefense: "With defense",
+      distSplit: "Split between targets",
+      distLinkGroup: "Link group",
     },
   },
   bestiary: {
