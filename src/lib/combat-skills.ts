@@ -782,7 +782,10 @@ export async function applyDotToCharacter(
   const cur = (ch as Character).current_hp;
   const newHp = Math.max(0, cur - remaining);
   const applied = cur - newHp;
-  await supabase.from("characters").update({ current_hp: newHp } as any).eq("id", characterId);
+  const { data: equippedItems } = await supabase.from("items").select("*").eq("owner_character_id", characterId).eq("equipped", true);
+  const maxAfter = totals(ch as Character, (equippedItems || []) as Item[]).maxHp;
+  const { applyHpDelta } = await import("@/lib/hp");
+  await applyHpDelta(characterId, newHp, maxAfter);
   return { absorbed, applied, defeated: newHp <= 0 };
 }
 
