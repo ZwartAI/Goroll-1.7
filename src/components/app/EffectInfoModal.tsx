@@ -72,12 +72,13 @@ export function EffectInfoModal({ effect, onClose }: Props) {
 
   useEffect(() => {
     let alive = true;
-    if (!normalized.sourceCharacterId) { setSourceName(null); return; }
+    const sid = normalized.sourceCharacterId;
+    if (!sid) { setSourceName(null); return; }
     (async () => {
       const { data } = await supabase
         .from("characters")
         .select("name")
-        .eq("id", normalized.sourceCharacterId)
+        .eq("id", sid)
         .maybeSingle();
       if (alive) setSourceName((data as any)?.name || null);
     })();
