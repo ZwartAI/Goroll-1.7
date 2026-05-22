@@ -206,29 +206,12 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
         <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
       )}
       {pickingTemplate && encounter && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={() => setPickingTemplate(false)}>
-          <div className="ornate-card max-w-md w-full max-h-[80vh] overflow-y-auto p-3 space-y-2" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">{t("bestiary.addFromBestiary")}</h3>
-            {templates.length === 0 && <p className="text-xs text-muted-foreground py-3 text-center">{t("bestiary.empty")}</p>}
-            {templates.map(tpl => (
-              <button key={tpl.id}
-                className="w-full ornate-card !p-2 flex items-center gap-2 text-left hover:border-[var(--gold)]"
-                onClick={async () => {
-                  const r = await spawnFromTemplate(tpl, encounter, { count: 1, initiative: 10, position: "byInitiative" }, dm);
-                  if (!r.ok) toast.error(t("bestiary.spawnError"));
-                  else { toast.success(t("bestiary.spawned")); setPickingTemplate(false); }
-                }}>
-                <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center bg-card shrink-0"
-                  style={{ borderColor: tpl.color, color: tpl.color }}>★</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-display truncate" style={{ color: tpl.color }}>{tpl.name}</p>
-                  <p className="text-[10px] text-muted-foreground">HP {tpl.max_hp} · DEF {tpl.defense}</p>
-                </div>
-              </button>
-            ))}
-            <button className="btn-fantasy w-full text-xs" onClick={() => setPickingTemplate(false)}>{t("common.close")}</button>
-          </div>
-        </div>
+        <BestiaryPickerModal
+          campaignId={campaignId}
+          encounter={encounter}
+          dm={dm}
+          onClose={() => setPickingTemplate(false)}
+        />
       )}
 
       {confirmState && (
