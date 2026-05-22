@@ -22,6 +22,8 @@ import {
   tickEnemyEffect,
 } from "@/lib/combat-skills";
 import { EffectInfoModal } from "@/components/app/EffectInfoModal";
+import { HpShieldBar } from "@/components/app/HpShieldBar";
+import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
