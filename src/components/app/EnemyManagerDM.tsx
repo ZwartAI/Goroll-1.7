@@ -22,6 +22,8 @@ import {
   tickEnemyEffect,
 } from "@/lib/combat-skills";
 import { EffectInfoModal } from "@/components/app/EffectInfoModal";
+import { HpShieldBar } from "@/components/app/HpShieldBar";
+import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
@@ -48,6 +50,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
   const enemies = participants.filter(isEnemy).sort((a, b) => a.order_index - b.order_index);
   const blocks = buildOrderedTurns(participants, groups, pins);
   const active = activeBlock(encounter, blocks);
+  const { byEnemyParticipant: shieldByEnemy } = useEncounterShields(encounter.id);
 
   const [editing, setEditing] = useState<CombatParticipant | null>(null);
   const [attacking, setAttacking] = useState<CombatParticipant | null>(null);
@@ -81,6 +84,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
           <div key={p.id} className="space-y-1">
             <EnemyRow
               p={p}
+              shield={shieldByEnemy[p.id] || 0}
               isActive={isActive}
               encounter={encounter}
               blocks={blocks}
@@ -185,10 +189,11 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
 }
 
 function EnemyRow({
-  p, isActive, encounter, blocks, actionsOpen, onToggleActions,
+  p, shield, isActive, encounter, blocks, actionsOpen, onToggleActions,
   onEdit, onDamage, onHeal, onSheet, onDuplicate, onRemove, onAddPin,
 }: {
   p: CombatParticipant;
+  shield: number;
   isActive: boolean;
   encounter: CombatEncounter;
   blocks: ReturnType<typeof buildOrderedTurns>;
@@ -200,8 +205,6 @@ function EnemyRow({
   const { t } = useT();
   const max = p.enemy_max_hp || 1;
   const cur = p.enemy_hp || 0;
-  const pct = Math.max(0, Math.min(100, (cur / max) * 100));
-  const hpBg = pct > 60 ? "var(--gain)" : pct > 30 ? "#eab308" : "var(--loss)";
   const baseColor = p.enemy_color || "var(--loss)";
   const lp = useLongPress(onSheet, 450);
   const isTierAsset = !!getEnemyAssetUrl(p.enemy_icon);
@@ -240,14 +243,10 @@ function EnemyRow({
             </div>
           </div>
 
-          <div className="space-y-0.5">
-            <div className="relative h-2.5 rounded-full bg-card border border-border overflow-hidden">
-              <div className="h-full transition-all" style={{ width: `${pct}%`, background: hpBg }} />
-            </div>
-            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-display text-center">
-              {cur} / {max} HP
-            </p>
-          </div>
+          <HpShieldBar current={cur} max={max} shield={shield} height={10} hideLabel />
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground font-display text-center">
+            {cur} / {max} HP{shield > 0 && <span className="ml-1.5 text-cyan-300">· 🛡️ +{shield}</span>}
+          </p>
 
           {/* Active effects strip (Phase 1) */}
           <EnemyEffectsStrip participantId={p.id} encounterId={encounter.id} />

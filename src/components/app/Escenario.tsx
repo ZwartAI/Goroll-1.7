@@ -6,6 +6,8 @@ import type { Character, Item, LogRow } from "@/lib/game";
 import { totals } from "@/lib/game";
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
+import { useEncounterShields } from "@/hooks/useEncounterShields";
+import { HpShieldBar } from "@/components/app/HpShieldBar";
 
 type Props = {
   characters: Character[];
@@ -41,6 +43,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   const { combat } = useGameData();
   const combatActive = combat.encounter?.status === "active";
   const [logTab, setLogTab] = useState<"log" | "combat">(combatActive && !hideCombatTab ? "combat" : "log");
+  const { byCharacter: shieldByCharacter } = useEncounterShields(combat.encounter?.id);
   const dmSet = dmCharacterIds || new Set<string>();
   const players = characters.filter(c => c.role !== "dm" && !dmSet.has(c.id));
   const online = players.filter(p => (onlineIds.has(p.id) || p.id === selfId));
@@ -65,7 +68,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
           <span className="w-2 h-2 rounded-full bg-[var(--gain)] inline-block" /> {t("escenario.online")}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-3">
-          {online.map(p => <PlayerCard key={p.id} c={p} maxHp={maxHpById[p.id]} online onClick={() => onOpenChar(p.id)} onImageClick={onOpenImage ? () => onOpenImage(p.id) : undefined} isSelf={p.id === selfId} t={t} speaking={!!speakingIds?.has(p.id)} />)}
+          {online.map(p => <PlayerCard key={p.id} c={p} maxHp={maxHpById[p.id]} shield={shieldByCharacter[p.id] || 0} online onClick={() => onOpenChar(p.id)} onImageClick={onOpenImage ? () => onOpenImage(p.id) : undefined} isSelf={p.id === selfId} t={t} speaking={!!speakingIds?.has(p.id)} />)}
           {online.length === 0 && <p className="col-span-full text-[10px] text-muted-foreground text-center py-2">{t("escenario.nobodyOnline")}</p>}
         </div>
         {offline.length > 0 && (
@@ -140,9 +143,8 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   );
 }
 
-function PlayerCard({ c, maxHp, online, onClick, onImageClick, isSelf, t, speaking }: { c: any; maxHp?: number; online: boolean; onClick: () => void; onImageClick?: () => void; isSelf?: boolean; t: (p: string) => string; speaking?: boolean }) {
+function PlayerCard({ c, maxHp, shield = 0, online, onClick, onImageClick, isSelf, t, speaking }: { c: any; maxHp?: number; shield?: number; online: boolean; onClick: () => void; onImageClick?: () => void; isSelf?: boolean; t: (p: string) => string; speaking?: boolean }) {
   const max = maxHp ?? c.max_hp ?? c.base_hp ?? 1;
-  const pct = Math.max(0, Math.min(100, (c.current_hp / max) * 100));
   return (
     <button onClick={onClick}
       className={`ornate-card !p-2 text-center transition hover:border-[var(--gold)]/70 ${online ? "" : "opacity-50 grayscale"} ${speaking ? "voice-speaking" : ""}`}>
@@ -167,10 +169,10 @@ function PlayerCard({ c, maxHp, online, onClick, onImageClick, isSelf, t, speaki
       </span>
       <p className="font-display text-xs mt-1 truncate" style={{ color: c.color }}>{c.name}</p>
       <p className="text-[9px] text-muted-foreground truncate">{c.race || "—"} / {c.class || "—"}</p>
-      <p className="text-[10px] mt-0.5">❤️ {c.current_hp}/{max}</p>
-      <div className="h-1 rounded-full bg-secondary overflow-hidden mt-0.5">
-        <div className="h-full" style={{ width: `${pct}%`, background: pct > 50 ? "var(--gain)" : pct > 25 ? "var(--gold)" : "var(--loss)" }} />
+      <div className="mt-0.5">
+        <HpShieldBar current={c.current_hp} max={max} shield={shield} height={5} hideLabel />
       </div>
+      <p className="text-[10px] mt-0.5">❤️ {c.current_hp}/{max}{shield > 0 && <span className="ml-1 text-cyan-300">🛡️+{shield}</span>}</p>
       <p className={`text-[9px] mt-1 ${speaking ? "text-[var(--gain)] font-semibold" : online ? "text-[var(--gain)]" : "text-muted-foreground"}`}>
         {speaking ? "🎙️ Hablando" : isSelf && online ? <span className="inline-flex items-center gap-0.5">{t("escenario.activeNow")}<span className="animate-pulse">···</span></span> : online ? t("escenario.onlineShort") : t("escenario.offlineShort")}
       </p>
