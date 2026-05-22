@@ -43,6 +43,21 @@ export function EnemyAttackPlayersModal({ enemy, onClose }: Props) {
   const [distribution, setDistribution] = useState<EnemyAttackDistribution>("individual");
   const [spread, setSpread] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [skills, setSkills] = useState<CombatEnemySkill[]>([]);
+  const [useSkill, setUseSkill] = useState<CombatEnemySkill | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listEnemySkills(enemy.id).then(s => { if (!cancelled) setSkills(s); });
+    return () => { cancelled = true; };
+  }, [enemy.id]);
+
+  const selectedNames = useMemo(() => {
+    return Array.from(selected)
+      .map(id => characters.find(c => c.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
+  }, [selected, characters]);
 
   const selectedArr = useMemo(() => Array.from(selected), [selected]);
 
