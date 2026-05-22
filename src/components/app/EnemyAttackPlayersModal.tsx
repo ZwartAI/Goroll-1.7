@@ -209,6 +209,42 @@ export function EnemyAttackPlayersModal({ enemy, onClose }: Props) {
           </label>
         )}
 
+        {/* Enemy skills (may be damaging or not) */}
+        <div className="space-y-1.5 pt-2 border-t border-border">
+          <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+            <Sparkles size={12} /> {t("combat.attack.useSkill")}
+          </label>
+          {skills.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">{t("combat.enemy.noSkills")}</p>
+          ) : (
+            <>
+              <p className="text-[10px] text-muted-foreground">{t("combat.attack.useSkillHint")}</p>
+              <div className="flex flex-col gap-1.5">
+                {skills.map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setUseSkill(s)}
+                    className="text-left rounded border border-border bg-card hover:border-[var(--gold)]/50 px-2 py-1.5 transition flex items-center gap-2"
+                  >
+                    <RarityBadge rarity={(s.rarity as Rarity) || "white"} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-display truncate">{s.name}</p>
+                      {(s.dice || s.effect) && (
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {s.dice ? <span className="text-[var(--gold)]">{s.dice}</span> : null}
+                          {s.dice && s.effect ? " · " : ""}
+                          {s.effect}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
         <div className="flex gap-2 pt-2 border-t border-border">
           <button className="btn-fantasy flex-1" onClick={onClose} disabled={busy}>
             {t("common.cancel")}
@@ -223,6 +259,15 @@ export function EnemyAttackPlayersModal({ enemy, onClose }: Props) {
           </button>
         </div>
       </div>
+
+      {useSkill && (
+        <EnemySkillUseModal
+          participant={enemy}
+          skill={useSkill}
+          initialResolvedTargets={selectedNames}
+          onClose={() => { setUseSkill(null); onClose(); }}
+        />
+      )}
     </div>
   );
 }
