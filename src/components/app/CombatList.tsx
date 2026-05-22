@@ -200,7 +200,12 @@ function TurnRow({
           <p className="font-display text-sm truncate" style={{ color: p.color || undefined }}>
             {p.display_name}{isSelf && <span className="text-[10px] text-[var(--gain)] ml-1">●</span>}
           </p>
-          <p className="text-[10px] text-muted-foreground">{p.has_ended_turn ? "—" : " "}</p>
+          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+            <p className="text-[10px] text-muted-foreground">{p.has_ended_turn ? "—" : " "}</p>
+            {p.character_id && (
+              <TurnEffectChips kind="character" id={p.character_id} encounterId={p.encounter_id} />
+            )}
+          </div>
         </div>
         <InitiativeChip n={p.initiative} />
         {isActive && <ActiveBadge label={activeLabel} />}
