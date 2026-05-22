@@ -376,6 +376,13 @@ export const es = {
     logGave: "entregó",
     logTo: "a",
     notAvailable: "Objeto no disponible.",
+    temporarySlots: "Slots temporales",
+    tempTag: "Temp",
+    temporaryWarning: "Tienes objetos en slots temporales. Libera espacio en tu mochila.",
+    logToTemp: "(a un slot temporal)",
+    backpackFull: "Mochila llena",
+    tempCreated: "Se creó un slot temporal para guardar el equipo desequipado.",
+    swap: "Intercambiar equipo",
   },
   equipment: {
     title: "Equipamiento",

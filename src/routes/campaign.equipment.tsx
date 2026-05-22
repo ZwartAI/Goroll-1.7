@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { ArrowLeft } from "lucide-react";
-import { SLOTS, RARITY_COLOR, RARITY_BONUS, isWeapon, totals, type Slot, type Item, type Rarity } from "@/lib/game";
-import { supabase } from "@/integrations/supabase/client";
+import { SLOTS, RARITY_COLOR, RARITY_BONUS, isWeapon, type Slot, type Item, type Rarity } from "@/lib/game";
 import { pushLog } from "@/lib/log";
+import { equipItem, unequipItem, getSlotKind } from "@/lib/inventory";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ItemView } from "@/components/app/ItemView";
 import { useState } from "react";
@@ -22,32 +22,19 @@ function Equipment() {
   const owned = items.filter(i => i.owner_character_id === character.id && (i.category === "equipo" || !i.category));
   const equipped = (slot: Slot) => owned.find(i => i.equipped && i.slot === slot);
 
-  async function syncHpAfter(nextEquipped: Item[], isEquipping: boolean) {
-    const oldMax = totals(character!, owned.filter(i => i.equipped)).maxHp;
-    const newMax = totals(character!, nextEquipped).maxHp;
-    const { nextHpOnEquipChange } = await import("@/lib/hp");
-    const nextHp = nextHpOnEquipChange(character!.current_hp, oldMax, newMax, isEquipping);
-    if (nextHp !== character!.current_hp) {
-      await supabase.from("characters").update({ current_hp: nextHp }).eq("id", character!.id);
-    }
-  }
-
   async function unequip(item: Item) {
-    await supabase.from("items").update({ equipped: false }).eq("id", item.id);
-    const next = owned.filter(i => i.equipped && i.id !== item.id);
-    await syncHpAfter(next, false);
-    await pushLog(campaign!.id, [
+    const kind = await unequipItem(item, character!, owned);
+    const segs: any[] = [
       { t: "char", v: character!.name, color: character!.color, id: character!.id },
       { t: "text", v: t("inventory.logUnequipped") },
       { t: "item", v: item.name, rarity: item.rarity as any, id: item.id },
-    ], { kind: "item.update", id: item.id, prev: { equipped: true } });
+    ];
+    if (kind === "temporary") segs.push({ t: "text", v: t("inventory.logToTemp") });
+    await pushLog(campaign!.id, segs, { kind: "item.update", id: item.id, prev: { equipped: true } });
   }
 
-  async function equipFrom(slot: Slot, item: Item) {
-    const cur = equipped(slot); if (cur) await supabase.from("items").update({ equipped: false }).eq("id", cur.id);
-    await supabase.from("items").update({ equipped: true }).eq("id", item.id);
-    const next = owned.filter(i => i.equipped && i.id !== cur?.id && i.id !== item.id).concat([{ ...item, equipped: true }]);
-    await syncHpAfter(next, true);
+  async function equipFrom(_slot: Slot, item: Item) {
+    await equipItem(item, character!, owned);
     await pushLog(campaign!.id, [
       { t: "char", v: character!.name, color: character!.color, id: character!.id },
       { t: "text", v: t("inventory.logEquipped") },
@@ -89,21 +76,30 @@ function Equipment() {
             )}
             <p className="text-xs uppercase text-muted-foreground tracking-widest mb-2">{t("equipment.backpack")}</p>
             <div className="space-y-2">
-              {owned.filter(i => i.slot === picker && !i.equipped).map(i => (
-                <button key={i.id} className="w-full ornate-card p-3 flex justify-between items-center text-left"
-                  onClick={() => equipFrom(picker, i)}
-                  style={{ borderColor: RARITY_COLOR[i.rarity as Rarity] }}>
-                  <div>
-                    <p className="font-display" style={{ color: RARITY_COLOR[i.rarity as Rarity] }}>{i.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {isWeapon(i.slot as any)
-                        ? t("equipment.damagePlus", { n: i.damage_bonus })
-                        : t("equipment.defHpPlus", { def: i.defense_bonus || RARITY_BONUS[i.rarity as Rarity].def, hp: i.hp_bonus || RARITY_BONUS[i.rarity as Rarity].hp })}
-                    </p>
-                  </div>
-                  <RarityBadge rarity={i.rarity as Rarity} />
-                </button>
-              ))}
+              {owned.filter(i => i.slot === picker && !i.equipped).map(i => {
+                const temp = getSlotKind(i) === "temporary";
+                return (
+                  <button key={i.id} className="w-full ornate-card p-3 flex justify-between items-center text-left"
+                    onClick={() => equipFrom(picker, i)}
+                    style={{
+                      borderColor: RARITY_COLOR[i.rarity as Rarity],
+                      borderStyle: temp ? "dashed" : undefined,
+                    }}>
+                    <div>
+                      <p className="font-display flex items-center gap-2" style={{ color: RARITY_COLOR[i.rarity as Rarity] }}>
+                        {i.name}
+                        {temp && <span className="text-[9px] bg-[var(--gold)] text-black px-1 rounded uppercase">{t("inventory.tempTag")}</span>}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {isWeapon(i.slot as any)
+                          ? t("equipment.damagePlus", { n: i.damage_bonus })
+                          : t("equipment.defHpPlus", { def: i.defense_bonus || RARITY_BONUS[i.rarity as Rarity].def, hp: i.hp_bonus || RARITY_BONUS[i.rarity as Rarity].hp })}
+                      </p>
+                    </div>
+                    <RarityBadge rarity={i.rarity as Rarity} />
+                  </button>
+                );
+              })}
               {!owned.filter(i => i.slot === picker && !i.equipped).length && (
                 <p className="text-center text-xs text-muted-foreground py-6">{t("equipment.noItemsForSlot")}</p>
               )}

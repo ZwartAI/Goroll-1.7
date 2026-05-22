@@ -76,7 +76,7 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
       // 2. Transfer their items & boosters to the DM vault (instead of deleting)
       if (charIds.length) {
         await (supabase as any).from("items")
-          .update({ owner_character_id: null, in_dm_vault: true, equipped: false })
+          .update({ owner_character_id: null, in_dm_vault: true, equipped: false, inventory_slot_type: "normal" })
           .in("owner_character_id", charIds);
         await (supabase as any).from("boosters")
           .update({ owner_character_id: null, in_dm_vault: true })
