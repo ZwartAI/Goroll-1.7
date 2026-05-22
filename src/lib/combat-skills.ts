@@ -646,3 +646,75 @@ export async function decrementEffectDuration(effectId: string) {
   }
 }
 
+/**
+ * Tick an effect applied to an enemy: apply per-turn damage (bypassing defense),
+ * push a log entry, then decrement / remove the effect.
+ * Damage = effect.value when > 0.
+ */
+export async function tickEnemyEffect(effectId: string): Promise<void> {
+  const { data: eff } = await (supabase as any)
+    .from("combat_temporary_effects")
+    .select("*")
+    .eq("id", effectId)
+    .maybeSingle();
+  if (!eff) return;
+  const fx = eff as CombatTemporaryEffect;
+  const dmg = Math.max(0, Math.floor(fx.value || 0));
+  let appliedDmg = 0;
+  let participantName = "";
+  let participantColor: string | null = null;
+  let participantId: string | null = null;
+  let defeated = false;
+
+  if (fx.target_enemy_participant_id) {
+    const { data: p } = await (supabase as any)
+      .from("combat_participants")
+      .select("*")
+      .eq("id", fx.target_enemy_participant_id)
+      .maybeSingle();
+    if (p) {
+      const part = p as CombatParticipant;
+      participantName = (part as any).enemy_name || part.display_name || "";
+      participantColor = (part as any).enemy_color || part.color || null;
+      participantId = part.id;
+      if (dmg > 0 && !part.is_defeated) {
+        const max = part.enemy_max_hp || 1;
+        const newHp = Math.max(0, Math.min(max, (part.enemy_hp || 0) - dmg));
+        appliedDmg = (part.enemy_hp || 0) - newHp;
+        defeated = newHp <= 0;
+        await (supabase as any).from("combat_participants")
+          .update({ enemy_hp: newHp, is_defeated: defeated })
+          .eq("id", part.id);
+      }
+    }
+  }
+
+  if (fx.campaign_id) {
+    const label = fx.label || fx.effect_type || "";
+    const segs: any[] = [];
+    if (participantName) {
+      segs.push({ t: "enemy", v: participantName, color: participantColor, id: participantId });
+      segs.push({ t: "text", v: " " });
+    }
+    if (appliedDmg > 0) {
+      segs.push({ t: "text", v: `${label} → ` });
+      segs.push({ t: "loss", v: `-${appliedDmg} HP` });
+      if (defeated) segs.push({ t: "text", v: " ☠️" });
+    } else {
+      segs.push({ t: "text", v: `${label} −1t` });
+    }
+    if (segs.length > 0) {
+      await pushLog(fx.campaign_id, segs as any);
+    }
+  }
+
+  const cur = typeof fx.duration_rounds === "number" ? fx.duration_rounds : 0;
+  const next = cur - 1;
+  if (next <= 0) {
+    await (supabase as any).from("combat_temporary_effects").delete().eq("id", effectId);
+  } else {
+    await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", effectId);
+  }
+}
+
+
