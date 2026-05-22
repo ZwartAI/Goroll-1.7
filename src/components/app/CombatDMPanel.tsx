@@ -63,20 +63,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
         </button>
       )}
 
-      {canAddEnemy && (
-        <div className="grid grid-cols-2 gap-2">
-          <button className="btn-fantasy text-xs"
-            style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
-            onClick={() => setAddingEnemy(true)}>
-            <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
-          </button>
-          <button className="btn-fantasy text-xs"
-            style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
-            onClick={() => setPickingTemplate(true)}>
-            <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
-          </button>
-        </div>
-      )}
 
       {encounter && groups.length > 0 && status !== "ended" && (
         <div className="space-y-1.5">
@@ -119,14 +105,32 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
 
       {status === "collecting" && encounter && (
         <>
-
           <p className="text-[11px] text-muted-foreground">{t("combat.collectingHint", { n: participants.length })}</p>
-          <CombatList encounter={encounter} participants={participants} groups={groups} pins={pins}
-            onReorder={async (key, toIndex) => {
-              const r = await reorderBlockWithAutoInitiative(encounter, buildOrderedTurns(participants, groups, pins), key, toIndex);
-              if (!r.ok) toast.error(t("combat.reorderError") || "Reorder failed");
-            }} />
-          <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+          <div className="ornate-card !p-2 space-y-1.5">
+            <p className="text-[10px] font-display uppercase tracking-widest text-[var(--gold)]">{t("combat.round")}</p>
+            <CombatList encounter={encounter} participants={participants} groups={groups} pins={pins}
+              onReorder={async (key, toIndex) => {
+                const r = await reorderBlockWithAutoInitiative(encounter, buildOrderedTurns(participants, groups, pins), key, toIndex);
+                if (!r.ok) toast.error(t("combat.reorderError") || "Reorder failed");
+              }} />
+          </div>
+          <div className="ornate-card !p-2 space-y-2">
+            {canAddEnemy && (
+              <div className="grid grid-cols-2 gap-2">
+                <button className="btn-fantasy text-xs"
+                  style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
+                  onClick={() => setAddingEnemy(true)}>
+                  <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
+                </button>
+                <button className="btn-fantasy text-xs"
+                  style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
+                  onClick={() => setPickingTemplate(true)}>
+                  <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
+                </button>
+              </div>
+            )}
+            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+          </div>
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button className="btn-fantasy" style={{ background: "var(--loss)", color: "white" }}
               onClick={() => setConfirmState({
@@ -152,12 +156,31 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
 
       {status === "active" && encounter && (
         <>
-          <CombatList encounter={encounter} participants={participants} groups={groups} pins={pins}
-            onReorder={async (key, toIndex) => {
-              const r = await reorderBlockWithAutoInitiative(encounter, buildOrderedTurns(participants, groups, pins), key, toIndex);
-              if (!r.ok) toast.error(t("combat.reorderError") || "Reorder failed");
-            }} />
-          <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+          <div className="ornate-card !p-2 space-y-1.5">
+            <p className="text-[10px] font-display uppercase tracking-widest text-[var(--gold)]">{t("combat.round")}</p>
+            <CombatList encounter={encounter} participants={participants} groups={groups} pins={pins}
+              onReorder={async (key, toIndex) => {
+                const r = await reorderBlockWithAutoInitiative(encounter, buildOrderedTurns(participants, groups, pins), key, toIndex);
+                if (!r.ok) toast.error(t("combat.reorderError") || "Reorder failed");
+              }} />
+          </div>
+          <div className="ornate-card !p-2 space-y-2">
+            {canAddEnemy && (
+              <div className="grid grid-cols-2 gap-2">
+                <button className="btn-fantasy text-xs"
+                  style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
+                  onClick={() => setAddingEnemy(true)}>
+                  <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
+                </button>
+                <button className="btn-fantasy text-xs"
+                  style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
+                  onClick={() => setPickingTemplate(true)}>
+                  <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
+                </button>
+              </div>
+            )}
+            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+          </div>
           <div className="grid grid-cols-3 gap-2 pt-1">
             <button className="btn-fantasy text-xs"
               onClick={() => dmShiftTurn(encounter, buildOrderedTurns(participants, groups, pins), -1)}>
@@ -182,6 +205,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           </div>
         </>
       )}
+
 
       {addingEnemy && encounter && (
         <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
