@@ -386,44 +386,45 @@ function IconBtn({
   );
 }
 
-// ─────────────────── Effects strip + detail ───────────────────
+// ─────────────────── Effects strip ───────────────────
 
+/**
+ * Effect labels are stored as "{emoji} {localized label}" when applied from
+ * ConditionsPanel. Extract the leading emoji (everything before the first
+ * space). Fall back to a small map by effect_type, then "✨".
+ */
 function emojiForEffect(e: EffectRow): string {
-  // explicit icon column doesn't exist yet (Phase 2). Derive from effect_type/label.
-  const type = (e.effect_type || "").toLowerCase();
-  const label = (e.label || "").toLowerCase();
-  const map: Record<string, string> = {
-    poison: "☠️", venom: "☠️", veneno: "☠️",
-    burn: "🔥", quemadura: "🔥", fire: "🔥",
-    bleed: "🩸", sangrado: "🩸",
-    freeze: "❄️", congelación: "❄️", frozen: "❄️",
-    stun: "💫", aturdimiento: "💫",
-    fear: "👁️", miedo: "👁️",
-    blind: "🙈", ceguera: "🙈",
-    silence: "🔇", silencio: "🔇",
-    knockdown: "⬇️", derribo: "⬇️",
-    restrain: "⛓️", restricción: "⛓️",
-    vulnerable: "🎯",
-    mark: "📍", marcado: "📍",
-    shield: "🛡️", escudo: "🛡️",
-    defense: "🛡️", defensa: "🛡️",
-    damage: "⚔️", "daño extra": "⚔️",
-    heal: "💚", regeneration: "💚", regeneración: "💚",
-    buff: "✨",
-    note: "📜",
-  };
-  for (const [k, v] of Object.entries(map)) {
-    if (type === k || label.includes(k)) return v;
+  const raw = (e.label || "").trim();
+  if (raw) {
+    // Take the first whitespace-separated token. It should be the emoji.
+    const first = raw.split(/\s+/)[0] || "";
+    // Heuristic: if it contains no ASCII letters/digits, treat as the emoji.
+    if (first && !/[a-z0-9]/i.test(first)) return first;
   }
+  const type = (e.effect_type || "").toLowerCase();
   if (type === "shield") return "🛡️";
   if (type === "note") return "📜";
+  if (type === "buff") return "✨";
+  if (type === "control") return "💫";
+  if (type === "debuff") return "☠️";
   return "✨";
+}
+
+/** Strip the leading emoji from a stored label, returning just the text. */
+function textOfEffectLabel(e: EffectRow): string {
+  const raw = (e.label || "").trim();
+  if (!raw) return e.effect_type || "";
+  const parts = raw.split(/\s+/);
+  if (parts.length > 1 && !/[a-z0-9]/i.test(parts[0])) {
+    return parts.slice(1).join(" ");
+  }
+  return raw;
 }
 
 function EnemyEffectsStrip({ participantId, encounterId }: { participantId: string; encounterId: string }) {
   const { t } = useT();
   const [effects, setEffects] = useState<EffectRow[]>([]);
-  const [detail, setDetail] = useState<EffectRow | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const load = async () => {
     const rows = await listEffectsForEnemy(participantId);
@@ -446,95 +447,45 @@ function EnemyEffectsStrip({ participantId, encounterId }: { participantId: stri
 
   if (effects.length === 0) return null;
 
-  return (
-    <>
-      <div className="flex flex-wrap gap-1.5 pt-0.5">
-        {effects.map(e => {
-          const emoji = emojiForEffect(e);
-          const dur = typeof e.duration_rounds === "number" ? e.duration_rounds : null;
-          return (
-            <div key={e.id} className="flex flex-col items-center gap-0.5">
-              <button
-                type="button"
-                onClick={() => setDetail(e)}
-                className="w-7 h-7 rounded-md border border-border bg-card hover:border-[var(--gold)]/60 flex items-center justify-center text-base leading-none"
-                title={e.label || e.effect_type || ""}
-                aria-label={t("combat.effects.detail")}
-              >
-                <span>{emoji}</span>
-              </button>
-              {dur !== null && (
-                <button
-                  type="button"
-                  onClick={async () => { await decrementEffectDuration(e.id); load(); }}
-                  className="min-w-[20px] h-4 px-1 rounded-sm border border-border bg-secondary/50 text-[9px] font-display leading-none flex items-center justify-center hover:border-[var(--gold)]/60"
-                  title={t("combat.effects.reduce")}
-                  aria-label={t("combat.effects.reduce")}
-                >
-                  {dur}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {detail && (
-        <EffectDetailModal
-          effect={detail}
-          emoji={emojiForEffect(detail)}
-          onClose={() => setDetail(null)}
-          onRemove={async () => { await removeEffect(detail.id); setDetail(null); load(); }}
-          onReduce={async () => { await decrementEffectDuration(detail.id); setDetail(null); load(); }}
-        />
-      )}
-    </>
-  );
-}
+  const longPressRemove = (id: string) => {
+    if (window.confirm(t("combat.effects.remove") + "?")) {
+      removeEffect(id).then(load);
+    }
+  };
 
-function EffectDetailModal({
-  effect, emoji, onClose, onRemove, onReduce,
-}: { effect: EffectRow; emoji: string; onClose: () => void; onRemove: () => void; onReduce: () => void }) {
-  const { t } = useT();
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={onClose}>
-      <div className="ornate-card max-w-sm w-full p-4 space-y-3" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-2">
-          <span className="text-2xl leading-none">{emoji}</span>
-          <h3 className="font-display text-[var(--gold)] text-base uppercase tracking-widest flex-1 truncate">
-            {effect.label || effect.effect_type || t("combat.effects.detail")}
-          </h3>
-        </div>
-        <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-xs">
-          <dt className="text-muted-foreground">{t("combat.effects.type")}</dt>
-          <dd>{effect.effect_type || "—"}</dd>
-          <dt className="text-muted-foreground">{t("combat.effects.value")}</dt>
-          <dd>{effect.value ?? 0}</dd>
-          <dt className="text-muted-foreground">{t("combat.effects.duration")}</dt>
-          <dd>{effect.duration_rounds ?? "—"}</dd>
-          {effect.source_character_id && (
-            <>
-              <dt className="text-muted-foreground">{t("combat.effects.source")}</dt>
-              <dd className="truncate">{effect.source_character_id.slice(0, 8)}…</dd>
-            </>
-          )}
-        </dl>
-        <div className="flex gap-2 pt-1">
-          <button className="btn-fantasy flex-1 text-xs py-1.5" onClick={onReduce}>
-            {t("combat.effects.reduce")}
-          </button>
+    <div className="flex flex-wrap gap-1.5 pt-0.5">
+      {effects.map(e => {
+        const emoji = emojiForEffect(e);
+        const dur = typeof e.duration_rounds === "number" ? e.duration_rounds : null;
+        const dmg = Math.max(0, Math.floor(e.value || 0));
+        const text = textOfEffectLabel(e);
+        const title = `${text}${dmg > 0 ? ` · -${dmg}/t` : ""}${dur !== null ? ` · ${dur}t` : ""} — ${t("combat.effects.reduce")}`;
+        return (
           <button
-            className="btn-fantasy flex-1 text-xs py-1.5"
-            style={{ background: "color-mix(in oklab, var(--loss) 60%, var(--card))", color: "white" }}
-            onClick={onRemove}
+            key={e.id}
+            type="button"
+            disabled={busy === e.id}
+            onClick={async () => {
+              if (busy) return;
+              setBusy(e.id);
+              try { await tickEnemyEffect(e.id); } finally { setBusy(null); load(); }
+            }}
+            onContextMenu={(ev) => { ev.preventDefault(); longPressRemove(e.id); }}
+            className="relative w-8 h-8 rounded-md border border-border bg-card hover:border-[var(--gold)]/60 flex items-center justify-center text-base leading-none disabled:opacity-50"
+            title={title}
+            aria-label={title}
           >
-            <Trash2 size={12} className="inline -mt-0.5 mr-1" />
-            {t("combat.effects.remove")}
+            <span>{emoji}</span>
+            {dur !== null && (
+              <span className="absolute -bottom-1 -right-1 min-w-[14px] h-[14px] px-[3px] rounded-full bg-secondary border border-border text-[8px] font-display leading-none flex items-center justify-center">
+                {dur}
+              </span>
+            )}
           </button>
-        </div>
-        <button className="btn-fantasy w-full text-xs py-1.5" onClick={onClose}>
-          {t("common.close")}
-        </button>
-      </div>
+        );
+      })}
     </div>
   );
 }
+
