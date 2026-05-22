@@ -946,7 +946,7 @@ export const en: Dict = {
     btnInitiative: "Initiative",
     btnWaitingDm: "Waiting for DM",
     btnWaitingTurn: "Waiting turn",
-    btnPassTurn: "Pass turn",
+    btnPassTurn: "Finish Turn",
     passError: "It's not your turn",
     rollInitiativeTitle: "Roll initiative",
     rollInitiativeHint: "Enter your initiative (max 20).",
