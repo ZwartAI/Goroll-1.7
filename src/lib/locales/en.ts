@@ -374,6 +374,13 @@ export const en: Dict = {
     logGave: "gave",
     logTo: "to",
     notAvailable: "Item not available.",
+    temporarySlots: "Temporary slots",
+    tempTag: "Temp",
+    temporaryWarning: "You have items in temporary slots. Free up space in your backpack.",
+    logToTemp: "(to a temporary slot)",
+    backpackFull: "Backpack full",
+    tempCreated: "A temporary slot was created to store the unequipped gear.",
+    swap: "Swap equipment",
   },
   equipment: {
     title: "Equipment",
