@@ -2,12 +2,45 @@ import { supabase } from "@/integrations/supabase/client";
 import { totals, type Character, type Item } from "./game";
 
 /**
- * Recomputes max HP for a character based on currently equipped items
- * and adjusts current_hp preserving the damage taken (oldMax - currentHp).
+ * Centralized HP recalculation rule when max HP changes due to equipment.
  *
- * `oldMaxHint` MUST be the max HP BEFORE the equipment change. When provided,
- * damage is preserved exactly. When omitted, falls back to a simple clamp
- * (current_hp <= newMax) to avoid accidentally healing the character.
+ * Equipment HP bonus modifies MAX HP only. It must NEVER be subtracted from
+ * current HP as if it were damage, nor added as free healing.
+ *
+ *  - If newMax <= oldMax  (unequip / hp_bonus lowered / item removed):
+ *      newCurrent = clamp(currentHp, 0, newMax)
+ *      i.e. keep current HP unless it no longer fits in the new max.
+ *
+ *  - If newMax > oldMax   (equip / hp_bonus raised):
+ *      wasFull = currentHp >= oldMax
+ *      newCurrent = wasFull ? newMax : currentHp
+ *      i.e. only top up the bar if the character was already full.
+ *
+ *  Final value is always clamped to [0, newMax].
+ */
+export function nextHpOnMaxChange(currentHp: number, oldMax: number, newMax: number): number {
+  const safeOld = Math.max(1, oldMax);
+  const safeNew = Math.max(1, newMax);
+  let next: number;
+  if (safeNew > safeOld) {
+    const wasFull = currentHp >= safeOld;
+    next = wasFull ? safeNew : currentHp;
+  } else {
+    next = Math.min(currentHp, safeNew);
+  }
+  return Math.max(0, Math.min(safeNew, next));
+}
+
+/** Backwards-compatible alias used across the equip/unequip call sites. */
+export function nextHpOnEquipChange(currentHp: number, oldMax: number, newMax: number, _isEquipping?: boolean): number {
+  return nextHpOnMaxChange(currentHp, oldMax, newMax);
+}
+
+/**
+ * Recomputes a character's max HP from currently equipped items and adjusts
+ * current_hp following {@link nextHpOnMaxChange}. `oldMaxHint` MUST be the
+ * max HP BEFORE the equipment change; if omitted we fall back to a plain
+ * clamp (current_hp <= newMax) so we never accidentally heal.
  */
 export async function clampHpForOwner(ownerId: string | null | undefined, oldMaxHint?: number) {
   if (!ownerId) return;
@@ -18,31 +51,10 @@ export async function clampHpForOwner(ownerId: string | null | undefined, oldMax
   const ch = chRes.data as Character | null;
   if (!ch) return;
   const newMax = totals(ch, (itRes.data || []) as Item[]).maxHp;
-  let nextHp: number;
-  if (typeof oldMaxHint === "number") {
-    const damage = Math.max(0, oldMaxHint - ch.current_hp);
-    nextHp = Math.max(0, Math.min(newMax, newMax - damage));
-  } else {
-    nextHp = Math.min(ch.current_hp, newMax);
-  }
+  const nextHp = typeof oldMaxHint === "number"
+    ? nextHpOnMaxChange(ch.current_hp, oldMaxHint, newMax)
+    : Math.max(0, Math.min(newMax, ch.current_hp));
   if (nextHp !== ch.current_hp) {
     await supabase.from("characters").update({ current_hp: nextHp }).eq("id", ownerId);
   }
-}
-
-/**
- * Compute new current HP after equipment change (equip OR unequip).
- *
- * The rule: equipment is NEVER a healing potion and unequipping NEVER erases damage.
- * We always preserve the damage taken:  damage = oldMax - currentHp
- *  newCurrent = clamp(newMax - damage, 0, newMax)
- *
- * Examples (per spec):
- *  - 58/60 → unequip → newMax 35 → 33/35
- *  - 36/60 → unequip → newMax 35 → 11/35
- *  - 33/35 → equip   → newMax 60 → 58/60   (damage 2 preserved, no free heal)
- */
-export function nextHpOnEquipChange(currentHp: number, oldMax: number, newMax: number, _isEquipping: boolean): number {
-  const damage = Math.max(0, oldMax - currentHp);
-  return Math.max(0, Math.min(newMax, newMax - damage));
 }

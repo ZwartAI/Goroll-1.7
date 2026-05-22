@@ -42,7 +42,25 @@ export function ItemEditor({ item, dm, campaignId, onClose }: {
       max_uses: isEq ? null : Math.max(1, uses),
       description,
     };
+    // If this is an equipped item on a character, capture oldMax before the
+    // update so HP can be re-clamped using the centralized rule.
+    let oldMaxForOwner: number | undefined;
+    const ownerId = item.equipped ? item.owner_character_id : null;
+    if (ownerId) {
+      const { totals } = await import("@/lib/game");
+      const [chRes, itRes] = await Promise.all([
+        supabase.from("characters").select("*").eq("id", ownerId).maybeSingle(),
+        supabase.from("items").select("*").eq("owner_character_id", ownerId).eq("equipped", true),
+      ]);
+      if (chRes.data) {
+        oldMaxForOwner = totals(chRes.data as any, (itRes.data || []) as any).maxHp;
+      }
+    }
     await supabase.from("items").update(next).eq("id", item.id);
+    if (ownerId) {
+      const { clampHpForOwner } = await import("@/lib/hp");
+      await clampHpForOwner(ownerId, oldMaxForOwner);
+    }
     await pushLog(campaignId, [
       { t: "char", v: dm.name, color: dm.color, id: dm.id },
       { t: "text", v: t("itemEditor.editedLog") },
@@ -51,6 +69,7 @@ export function ItemEditor({ item, dm, campaignId, onClose }: {
     toastSaved();
     onClose();
   }
+
 
   return (
     <div className="ornate-card p-4 space-y-3 max-w-sm w-full max-h-[85vh] overflow-y-auto">
