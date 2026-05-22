@@ -725,7 +725,7 @@ function ItemActions({ item, players, dm, campaignId, allItems, allCharacters, o
     const prev = { owner_character_id: item.owner_character_id, in_dm_vault: item.in_dm_vault, equipped: item.equipped };
     const prevOwner = item.owner_character_id;
     const oldMax = oldMaxFor(prevOwner);
-    await supabase.from("items").update({ owner_character_id: target, in_dm_vault: false, equipped: false }).eq("id", item.id);
+    await supabase.from("items").update({ owner_character_id: target, in_dm_vault: false, equipped: false, inventory_slot_type: "normal" } as any).eq("id", item.id);
     await clampHpForOwner(prevOwner, oldMax);
     await pushLog(campaignId, [
       {t:"char",v:dm.name,color:dm.color,id:dm.id},{t:"text",v:tr("dm.handedItem")},
