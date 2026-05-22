@@ -536,7 +536,7 @@ export async function endActiveTurn(
       ]);
     } else if (block.kind === "solo") {
       const name = actor?.name || block.participant.display_name;
-      const color = actor?.color || block.participant.color || undefined;
+      const color = actor?.color || block.participant.color || "#cccccc";
       const id = actor?.id || block.participant.character_id || block.participant.id;
       await pushLog(encounter.campaign_id, [
         { t: "char", v: name, color, id },
@@ -546,7 +546,7 @@ export async function endActiveTurn(
       const leader = block.members.find(m => m.is_leader) || block.members[0];
       await pushLog(encounter.campaign_id, [
         { t: "text", v: "El Enlace de " },
-        { t: "char", v: leader?.display_name || "?", color: leader?.color || undefined, id: leader?.character_id || undefined },
+        { t: "char", v: leader?.display_name || "?", color: leader?.color || "#cccccc", id: leader?.character_id || leader?.id || "" },
         { t: "text", v: " termin\u00f3 su turno." },
       ]);
     } else if (block.kind === "pin") {
