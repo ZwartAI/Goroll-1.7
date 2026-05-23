@@ -45,31 +45,10 @@ import portraitFrameDefault from "@/assets/character-sheet/portrait-frame-defaul
 
 import { useLongPress } from "@/hooks/useLongPress";
 
-// Eagerly preload all character-sheet visual assets in parallel as soon as this
-// route module is imported. Avoids the "assets pop in one by one" effect.
-const CHARACTER_SHEET_ASSETS = [
-  tabActiveBg,
-  tabInactiveBg,
-  hpFrameBg,
-  hpButtonImg,
-  statsPanelImg,
-  pursePanelImg,
-  portraitFrameDefault,
-  navEquipo,
-  navMochila,
-  navLogros,
-  navPotenciadores,
-  navHabilidades,
-  navNotas,
-];
-if (typeof window !== "undefined") {
-  for (const src of CHARACTER_SHEET_ASSETS) {
-    const img = new Image();
-    img.decoding = "async";
-    (img as any).fetchPriority = "high";
-    img.src = src;
-  }
-}
+// Kick off character-sheet asset preloading as soon as this route module is
+// imported (idempotent — the home screen also calls this when Player/Spectator
+// role is selected, so assets are usually already warm by the time we get here).
+preloadCharacterSheetAssets();
 
 export const Route = createFileRoute("/campaign/profile")({
   head: () => ({
@@ -82,6 +61,7 @@ export const Route = createFileRoute("/campaign/profile")({
   }),
   component: Profile,
 });
+
 
 
 function Profile() {
