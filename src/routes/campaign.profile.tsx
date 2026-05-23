@@ -163,7 +163,7 @@ function Profile() {
       {activeTab === "personaje" && (
         <>
           {/* Top: framed portrait (left) + right column with 3 stat assets above, purse/initiative below */}
-          <div className="grid grid-cols-2 gap-2 mb-3 items-start">
+          <div className="grid grid-cols-2 gap-2 mb-3 items-start pl-0 border-none border-0 ml-0">
             <div>
               <FramedCharacterPortrait
                 character={character}
