@@ -17,11 +17,12 @@ type Props = {
 // - levelX/levelY: percentage position of the level number (relative to the scaled frame)
 const PORTRAIT_FRAME_LAYOUT = {
   frameScale: 1.08,
-  frameOffsetX: -2, // % translate to the left
-  frameOffsetY: -2, // % translate upward
-  levelX: 10.5,
-  levelY: 15.5,
+  frameOffsetX: -2,
+  frameOffsetY: -2,
+  levelX: 13,
+  levelY: 17,
 };
+
 
 export function FramedCharacterPortrait({ character, onClick, ariaLabel, className = "", level }: Props) {
   const frameUrl = (character as any).portrait_frame_url || portraitFrameDefault;
@@ -93,13 +94,15 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
           aria-label={`Level ${lvl}`}
         >
           <span
-            className="font-display font-bold leading-none text-[var(--gold)] text-base sm:text-lg"
+            className="font-display font-bold leading-none text-base sm:text-lg text-center"
             style={{
+              color: "rgba(255,255,255,0.85)",
               textShadow: "0 1px 2px rgba(0,0,0,0.85), 0 0 6px rgba(0,0,0,0.6)",
             }}
           >
             {lvl}
           </span>
+
         </div>
       </div>
     </div>
