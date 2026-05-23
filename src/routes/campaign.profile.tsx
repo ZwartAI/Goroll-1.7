@@ -244,7 +244,9 @@ function Profile() {
                     alt=""
                     className="block w-full h-auto pointer-events-none"
                     draggable={false}
+                    style={{ marginTop: "-8%", marginBottom: "-8%" }}
                   />
+
                   <div
                     className="absolute pointer-events-none flex items-center justify-center"
                     style={{ left: "55%", top: "50%", transform: "translate(-50%, -50%)", lineHeight: 1 }}
