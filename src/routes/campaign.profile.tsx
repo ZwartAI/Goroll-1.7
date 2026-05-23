@@ -420,19 +420,91 @@ function ImageEditor({
   const initialOy = isFace
     ? (character.image_offset_y ?? 50)
     : (character.body_image_offset_y ?? character.image_offset_y ?? 50);
-  const initialRot = isFace
-    ? (character.image_rotation || 0)
-    : (character.body_image_rotation || 0);
 
   const [url, setUrl] = useState<string>(initialUrl);
   const [scale, setScale] = useState<number>(initialScale);
   const [ox, setOx] = useState<number>(initialOx);
   const [oy, setOy] = useState<number>(initialOy);
-  const [rot, setRot] = useState<number>(initialRot);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const zoomMax = isFace ? 6 : 3;
+  const zoomMin = 0.5;
+
+  // Touch/mouse drag + pinch-zoom + wheel-zoom on the preview.
+  // Translation in the CSS transform uses % of the image's own size (= container
+  // width/height), then scale multiplies it. So a pixel delta dx maps to
+  // (dx / (W * scale)) * 100 on ox.
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const gestureRef = useRef<{ startDist: number; startScale: number; startOx: number; startOy: number; startMidX: number; startMidY: number } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+
+  function clampScale(s: number) { return Math.min(zoomMax, Math.max(zoomMin, s)); }
+  function clampOffset(v: number) { return Math.min(200, Math.max(-100, v)); }
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (!url) return;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 1) {
+      dragRef.current = { x: e.clientX, y: e.clientY, ox, oy };
+      gestureRef.current = null;
+    } else if (pointersRef.current.size === 2) {
+      const pts = Array.from(pointersRef.current.values());
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      gestureRef.current = {
+        startDist: Math.hypot(dx, dy) || 1,
+        startScale: scale,
+        startOx: ox,
+        startOy: oy,
+        startMidX: (pts[0].x + pts[1].x) / 2,
+        startMidY: (pts[0].y + pts[1].y) / 2,
+      };
+      dragRef.current = null;
+    }
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const rect = previewRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    if (pointersRef.current.size >= 2 && gestureRef.current) {
+      const pts = Array.from(pointersRef.current.values());
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const newScale = clampScale(gestureRef.current.startScale * (dist / gestureRef.current.startDist));
+      setScale(newScale);
+      // Pan with midpoint movement for natural feel
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      const ddx = midX - gestureRef.current.startMidX;
+      const ddy = midY - gestureRef.current.startMidY;
+      setOx(clampOffset(gestureRef.current.startOx + (ddx / (rect.width * newScale)) * 100));
+      setOy(clampOffset(gestureRef.current.startOy + (ddy / (rect.height * newScale)) * 100));
+    } else if (dragRef.current) {
+      const ddx = e.clientX - dragRef.current.x;
+      const ddy = e.clientY - dragRef.current.y;
+      setOx(clampOffset(dragRef.current.ox + (ddx / (rect.width * scale)) * 100));
+      setOy(clampOffset(dragRef.current.oy + (ddy / (rect.height * scale)) * 100));
+    }
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) gestureRef.current = null;
+    if (pointersRef.current.size === 0) dragRef.current = null;
+  }
+
+  function onWheel(e: React.WheelEvent<HTMLDivElement>) {
+    if (!url) return;
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
+    setScale(s => clampScale(s * factor));
+  }
 
   async function uploadFile(file: File) {
     setUploading(true);
@@ -453,7 +525,7 @@ function ImageEditor({
       patch.image_scale = scale;
       patch.image_offset_x = ox;
       patch.image_offset_y = oy;
-      patch.image_rotation = rot;
+      patch.image_rotation = 0;
       // Auto-mirror to body if user has no body image yet (saves duplicate uploads)
       if (!character.body_image_url && url) {
         patch.body_image_url = url;
@@ -467,7 +539,7 @@ function ImageEditor({
       patch.body_image_scale = scale;
       patch.body_image_offset_x = ox;
       patch.body_image_offset_y = oy;
-      patch.body_image_rotation = rot;
+      patch.body_image_rotation = 0;
     }
     await supabase.from("characters").update(patch).eq("id", character.id);
     onClose();
@@ -482,16 +554,27 @@ function ImageEditor({
       <div className="ornate-card p-4 max-w-sm w-full space-y-3 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {isFace && <h3 className="font-display text-lg text-center">{title}</h3>}
         {isFace && <p className="text-[11px] text-muted-foreground text-center -mt-1">{hint}</p>}
-        <div className={`${previewAspect} rounded-lg overflow-hidden bg-[var(--secondary)] relative border border-border`}>
+        <div
+          ref={previewRef}
+          className={`${previewAspect} rounded-lg overflow-hidden bg-[var(--secondary)] relative border border-border ${url ? "cursor-grab active:cursor-grabbing" : ""}`}
+          style={{ touchAction: "none" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onWheel={onWheel}
+        >
           {url
             ? <img src={url} alt="preview"
-                className="absolute inset-0 w-full h-full object-cover"
+                draggable={false}
+                className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
                 style={{
-                  transform: `translate(${(ox - 50)}%, ${(oy - 50)}%) scale(${scale}) rotate(${rot}deg)`,
+                  transform: `translate(${(ox - 50)}%, ${(oy - 50)}%) scale(${scale})`,
                   transformOrigin: "center center",
                 }} />
             : <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">{t("profile.imgNone")}</div>}
         </div>
+        {url && <p className="text-[10px] text-muted-foreground text-center -mt-1">{t("profile.imgGestureHint")}</p>}
 
         {isFace && <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />}
@@ -505,7 +588,7 @@ function ImageEditor({
           <>
             <label className="text-xs flex items-center justify-between gap-2">
               <span className="text-muted-foreground">{t("profile.zoom")}</span>
-              <input type="range" min={0.5} max={zoomMax} step={0.05} value={scale} onChange={e => setScale(+e.target.value)} className="flex-1" />
+              <input type="range" min={zoomMin} max={zoomMax} step={0.05} value={scale} onChange={e => setScale(+e.target.value)} className="flex-1" />
               <span className="font-mono text-[10px] w-10 text-right">{scale.toFixed(2)}x</span>
             </label>
             <label className="text-xs flex items-center justify-between gap-2">
@@ -517,11 +600,6 @@ function ImageEditor({
               <span className="text-muted-foreground">{t("profile.posY")}</span>
               <input type="range" min={-100} max={200} value={oy} onChange={e => setOy(+e.target.value)} className="flex-1" />
               <span className="font-mono text-[10px] w-10 text-right">{oy|0}</span>
-            </label>
-            <label className="text-xs flex items-center justify-between gap-2">
-              <span className="text-muted-foreground inline-flex items-center gap-1"><RotateCw size={11}/>{t("profile.rotation")}</span>
-              <input type="range" min={-180} max={180} value={rot} onChange={e => setRot(+e.target.value)} className="flex-1" />
-              <span className="font-mono text-[10px] w-10 text-right">{rot|0}°</span>
             </label>
           </>
         )}
