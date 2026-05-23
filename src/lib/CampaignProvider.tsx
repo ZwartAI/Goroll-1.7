@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSession, setSession, type Campaign, type Character, type Item, type LogRow, type Achievement } from "./game";
 import type { CombatEncounter, CombatParticipant, CombatTurnGroup, CombatTurnPin } from "./combat";
-import { useT } from "./i18n";
+import { CampaignLoadingOverlay } from "@/components/app/CampaignLoadingOverlay";
 
 export type DmLabel = { name: string; color: string };
 
@@ -288,23 +288,6 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function CampaignLoadingOverlay({ onCancel }: { onCancel: () => void }) {
-  const { t } = useT();
-  return (
-    <div className="fixed inset-0 z-[300] bg-black/85 flex items-center justify-center p-4">
-      <div className="ornate-card p-5 w-full max-w-sm space-y-4 text-center">
-        <div className="flex justify-center">
-          <div className="w-10 h-10 rounded-full border-2 border-[var(--gold)]/30 border-t-[var(--gold)] animate-spin" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="font-display text-lg text-[var(--gold)]">{t("campaign.loadingTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("campaign.loadingBody")}</p>
-        </div>
-        <button className="btn-fantasy w-full" onClick={onCancel}>{t("common.cancel")}</button>
-      </div>
-    </div>
-  );
-}
 
 /** Reads cached campaign data. Falls back to one-shot fetch if used outside the provider. */
 export function useGameData(): GameData {

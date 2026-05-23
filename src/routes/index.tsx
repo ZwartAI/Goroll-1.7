@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { attemptLogin } from "@/lib/auth.functions";
 import { CampaignActionsModal } from "@/components/app/CampaignActionsModal";
+import { CampaignLoadingOverlay } from "@/components/app/CampaignLoadingOverlay";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { Settings as SettingsIcon } from "lucide-react";
 import { CharacterPortrait } from "@/components/app/CharacterPortrait";
@@ -58,6 +59,7 @@ function Home() {
   const [actionCampaign, setActionCampaign] = useState<Campaign | null>(null);
   const [expelledCampaign, setExpelledCampaign] = useState<Campaign | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
+  const [entering, setEntering] = useState(false);
 
   // character
   const [myChars, setMyChars] = useState<Character[]>([]);
@@ -342,6 +344,10 @@ function Home() {
 
   function enterCampaign(c: Campaign, ch: Character | null) {
     if (!user) return;
+    // Ensure the blocking overlay is visible across the navigation hand-off
+    // so the player never sees a brief flash of the campaign list / character
+    // picker between click and the new route mounting.
+    setEntering(true);
     setSession({
       userId: user.id, username: user.username,
       campaignId: c.id, characterId: ch?.id || null, role,
@@ -702,11 +708,29 @@ function Home() {
           campaign={actionCampaign}
           currentUserId={user.id}
           role={role}
-          onPlay={() => { const c = actionCampaign; setActionCampaign(null); pickCampaign(c); }}
+          onPlay={() => {
+            const c = actionCampaign;
+            setActionCampaign(null);
+            // Show the loading overlay IMMEDIATELY so the user cannot keep
+            // interacting with the campaign list while we transition. For
+            // the "player" role the next step is choosing a character
+            // (no campaign load yet), so skip the overlay there.
+            if (role !== "player") setEntering(true);
+            pickCampaign(c).catch(() => setEntering(false));
+          }}
           onClose={() => setActionCampaign(null)}
           onDeleted={() => {
             setCampaigns(cs => cs.filter(c => c.id !== actionCampaign.id));
             setActionCampaign(null);
+          }}
+        />
+      )}
+
+      {entering && (
+        <CampaignLoadingOverlay
+          onCancel={() => {
+            setEntering(false);
+            setCampaign(null);
           }}
         />
       )}
