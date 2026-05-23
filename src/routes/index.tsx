@@ -730,13 +730,44 @@ function Home() {
           campaign={actionCampaign}
           currentUserId={user.id}
           role={role}
-          onPlay={() => { const c = actionCampaign; setActionCampaign(null); pickCampaign(c); }}
-          onClose={() => setActionCampaign(null)}
+          onPlay={() => { if (campaignLoading.active) return; pickCampaign(actionCampaign); }}
+          onClose={() => { if (campaignLoading.active) return; setActionCampaign(null); }}
           onDeleted={() => {
             setCampaigns(cs => cs.filter(c => c.id !== actionCampaign.id));
             setActionCampaign(null);
           }}
         />
+      )}
+      {campaignLoading.active && (
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="ornate-card p-6 text-center space-y-4 max-w-sm w-full">
+            <div className="text-5xl">⏳</div>
+            <h2 className="font-display text-lg text-[var(--gold)]">{t("home.loadingCampaignTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("home.loadingCampaignBody", { name: campaignLoading.name })}</p>
+            <div className="animate-spin w-8 h-8 border-2 border-[var(--gold)] border-t-transparent rounded-full mx-auto" />
+            {loadingSlow && (
+              <div className="space-y-2 pt-2">
+                <p className="text-xs text-[var(--loss)]">{t("home.loadingSlow")}</p>
+                <button
+                  className="btn-fantasy w-full"
+                  onClick={() => {
+                    const c = actionCampaign || campaign;
+                    stopCampaignLoading();
+                    if (c) pickCampaign(c);
+                  }}
+                >
+                  {t("home.retry")}
+                </button>
+              </div>
+            )}
+            <button
+              className="text-xs underline text-muted-foreground"
+              onClick={() => { stopCampaignLoading(); setCampaign(null); }}
+            >
+              {t("common.cancel")}
+            </button>
+          </div>
+        </div>
       )}
     </PageFrame>
   );
