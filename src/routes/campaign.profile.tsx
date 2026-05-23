@@ -175,7 +175,7 @@ function Profile() {
                 <img src={character.image_url} alt={character.name}
                   className="absolute inset-0 w-full h-full object-cover"
                   style={{
-                    transform: `translate(${((character.image_offset_x ?? 50) - 50)}%, ${((character.image_offset_y ?? 50) - 50)}%) scale(${character.image_scale || 1}) rotate(${(character as any).image_rotation || 0}deg)`,
+                    transform: `translate(${((character.image_offset_x ?? 50) - 50)}%, ${((character.image_offset_y ?? 50) - 50)}%) scale(${character.image_scale || 1})`,
                     transformOrigin: "center center",
                   }} />
               ) : (
