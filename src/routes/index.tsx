@@ -640,7 +640,8 @@ function Home() {
           <div className="max-h-56 overflow-y-auto space-y-2">
             {campaigns.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
               <button key={c.id} onClick={() => setActionCampaign(c)}
-                className="w-full rounded-lg border border-border bg-card px-3 py-3 text-left hover:border-[var(--gold)]/60 transition">
+                disabled={campaignLoading.active}
+                className="w-full rounded-lg border border-border bg-card px-3 py-3 text-left hover:border-[var(--gold)]/60 transition disabled:opacity-60">
                 <span className="font-display text-base">{c.name}</span>
               </button>
             ))}
@@ -651,8 +652,8 @@ function Home() {
             <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("home.joinByCode")}</p>
             <div className="flex flex-wrap gap-2">
               <input className="flex-1 min-w-0 basis-[12rem] rounded-md bg-input border border-border px-3 py-2 text-sm"
-                placeholder={t("home.joinPlaceholder")} value={joinCode} onChange={e => setJoinCode(e.target.value)} />
-              <button className="btn-fantasy shrink-0" onClick={joinByCode}>{t("home.join")}</button>
+                placeholder={t("home.joinPlaceholder")} value={joinCode} onChange={e => setJoinCode(e.target.value)} disabled={campaignLoading.active} />
+              <button className="btn-fantasy shrink-0" disabled={campaignLoading.active} onClick={joinByCode}>{t("home.join")}</button>
             </div>
           </div>
           {role === "dm" && (
