@@ -283,6 +283,7 @@ export const en: Dict = {
     imgBodyTitle: "Upload full-body image",
     imgFaceHint: "This face is used everywhere your character appears.",
     imgBodyHint: "Shown when someone taps your portrait. Defaults to the face image.",
+    imgGestureHint: "Drag to move · pinch or scroll to zoom",
     imgEditFace: "Edit face",
     imgEditBody: "Edit body",
     imgViewerNone: "No image yet — tap edit to upload.",
