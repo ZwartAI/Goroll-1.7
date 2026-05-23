@@ -36,13 +36,48 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { AttributesBar } from "@/components/app/AttributesBar";
 import { FramedCharacterPortrait } from "@/components/app/FramedCharacterPortrait";
+import portraitFrameDefault from "@/assets/character-sheet/portrait-frame-default.png";
 
 import { useLongPress } from "@/hooks/useLongPress";
 
+// Eagerly preload all character-sheet visual assets in parallel as soon as this
+// route module is imported. Avoids the "assets pop in one by one" effect.
+const CHARACTER_SHEET_ASSETS = [
+  tabActiveBg,
+  tabInactiveBg,
+  hpFrameBg,
+  hpButtonImg,
+  statsPanelImg,
+  pursePanelImg,
+  portraitFrameDefault,
+  navEquipo,
+  navMochila,
+  navLogros,
+  navPotenciadores,
+  navHabilidades,
+  navNotas,
+];
+if (typeof window !== "undefined") {
+  for (const src of CHARACTER_SHEET_ASSETS) {
+    const img = new Image();
+    img.decoding = "async";
+    (img as any).fetchPriority = "high";
+    img.src = src;
+  }
+}
 
 export const Route = createFileRoute("/campaign/profile")({
+  head: () => ({
+    links: CHARACTER_SHEET_ASSETS.map((href) => ({
+      rel: "preload",
+      as: "image" as const,
+      href,
+      fetchpriority: "high",
+    })),
+  }),
   component: Profile,
 });
+
 
 function Profile() {
   const { campaign, character, characters, items, logs, onlineIds, loading, combat } = useGameData();
