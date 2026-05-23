@@ -164,9 +164,9 @@ function Profile() {
 
       {activeTab === "personaje" && (
         <>
-          {/* Top: framed portrait (left) + 3 stat assets + purse (right) */}
-          <div className="grid grid-cols-5 gap-2 mb-3 items-start">
-            <div className="col-span-2">
+          {/* Top: framed portrait (left) + 3 stat assets (right), equal halves */}
+          <div className="grid grid-cols-2 gap-2 mb-2 items-stretch">
+            <div>
               <FramedCharacterPortrait
                 character={character}
                 level={(character as any).level ?? 1}
@@ -181,56 +181,54 @@ function Profile() {
               />
             </div>
 
-            <div className="col-span-3 flex flex-col gap-1.5">
-              {/* Row: 3 vertical stat assets */}
-              <div className="grid grid-cols-3 gap-1.5">
-                <StatAsset
-                  src={statAttackImg}
-                  ariaLabel={`${t("profile.damage")} ${stats.damage}`}
-                  value={stats.damage > 0 ? `+${stats.damage}` : stats.damage}
-                />
-                <StatAsset
-                  src={statDefenseImg}
-                  ariaLabel={`${t("profile.defense")} ${stats.defense}`}
-                  value={stats.defense}
-                />
-                <StatAsset
-                  src={statSpeedImg}
-                  ariaLabel={`${t("profile.velocity")} ${character.velocity}`}
-                  value={<>{character.velocity}<span className="text-[0.55em] ml-0.5">ft</span></>}
-                />
-              </div>
-
-              {/* Purse — horizontal asset, long-press to open modal */}
-              <button
-                type="button"
-                {...coinsPress}
-                onContextMenu={(e) => { e.preventDefault(); setPurseOpen(true); }}
-                onDoubleClick={() => setPurseOpen(true)}
-                aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
-                title={t("purse.openHint")}
-                className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96]"
-                style={{ aspectRatio: "295 / 95", WebkitTapHighlightColor: "transparent" }}
-              >
-                <img
-                  src={pursePanelImg}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                  draggable={false}
-                />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span
-                    className="font-display font-bold leading-none text-[var(--gold)] text-2xl sm:text-3xl"
-                    style={{
-                      textShadow: "0 1px 2px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)",
-                    }}
-                  >
-                    {character.coins}
-                  </span>
-                </div>
-              </button>
+            {/* 3 vertical stat assets — fill same height as portrait */}
+            <div className="grid grid-cols-3 gap-1 h-full">
+              <StatAsset
+                src={statAttackImg}
+                ariaLabel={`${t("profile.damage")} ${stats.damage}`}
+                value={stats.damage > 0 ? `+${stats.damage}` : stats.damage}
+              />
+              <StatAsset
+                src={statDefenseImg}
+                ariaLabel={`${t("profile.defense")} ${stats.defense}`}
+                value={stats.defense}
+              />
+              <StatAsset
+                src={statSpeedImg}
+                ariaLabel={`${t("profile.velocity")} ${character.velocity}`}
+                value={<>{character.velocity}<span className="text-[0.55em] ml-0.5">ft</span></>}
+              />
             </div>
           </div>
+
+          {/* Purse — long horizontal asset occupying full width (initiative's old slot) */}
+          <button
+            type="button"
+            {...coinsPress}
+            onContextMenu={(e) => { e.preventDefault(); setPurseOpen(true); }}
+            onDoubleClick={() => setPurseOpen(true)}
+            aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
+            title={t("purse.openHint")}
+            className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96] mb-2"
+            style={{ aspectRatio: "620 / 110", WebkitTapHighlightColor: "transparent" }}
+          >
+            <img
+              src={pursePanelImg}
+              alt=""
+              className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+              draggable={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span
+                className="font-display font-bold leading-none text-[var(--gold)] text-3xl sm:text-4xl"
+                style={{
+                  textShadow: "0 1px 2px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)",
+                }}
+              >
+                {character.coins}
+              </span>
+            </div>
+          </button>
 
           {/* Initiative / Pass Turn — only when combat is active or collecting */}
           {combat.encounter?.status && combat.encounter.status !== "ended" && (
@@ -245,6 +243,7 @@ function Profile() {
               />
             </div>
           )}
+
 
           {/* HP bar — bigger heart icon, integrated with frame */}
           <div
