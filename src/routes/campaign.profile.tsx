@@ -180,7 +180,7 @@ function Profile() {
             </div>
 
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-0">
               {/* Combined stats panel: attack / defense / speed in a single asset */}
               <div
                 className="relative w-full select-none"
