@@ -285,6 +285,7 @@ export const es = {
     imgBodyTitle: "Subir imagen de cuerpo completo",
     imgFaceHint: "Este rostro se usa en todas las representaciones del personaje.",
     imgBodyHint: "Se muestra al tocar el retrato. Por defecto usa la misma del rostro.",
+    imgGestureHint: "Arrastra para mover · pellizca o rueda para zoom",
     imgEditFace: "Editar rostro",
     imgEditBody: "Editar cuerpo",
     imgViewerNone: "Aún no hay imagen — toca editar para subir.",
