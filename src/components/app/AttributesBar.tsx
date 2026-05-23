@@ -8,12 +8,12 @@ type Char = {
 };
 
 const ATTRS = [
-  { k: "fue",      color: "var(--stat-fue)", esLabel: "Fuerza",       enLabel: "Strength" },
-  { k: "des",      color: "var(--stat-des)", esLabel: "Destreza",     enLabel: "Dexterity" },
-  { k: "con",      color: "var(--stat-con)", esLabel: "Constitución", enLabel: "Constitution" },
-  { k: "int_stat", color: "var(--stat-int)", esLabel: "Inteligencia", enLabel: "Intelligence" },
-  { k: "wis",      color: "var(--stat-sab)", esLabel: "Sabiduría",    enLabel: "Wisdom" },
-  { k: "car",      color: "var(--stat-car)", esLabel: "Carisma",      enLabel: "Charisma" },
+  { k: "fue",      color: "var(--stat-fue)", esLabel: "Fuerza",       enLabel: "Strength",     x: 10.2, y: 61 },
+  { k: "des",      color: "var(--stat-des)", esLabel: "Destreza",     enLabel: "Dexterity",    x: 26.8, y: 61 },
+  { k: "con",      color: "var(--stat-con)", esLabel: "Constitución", enLabel: "Constitution", x: 42.8, y: 61 },
+  { k: "int_stat", color: "var(--stat-int)", esLabel: "Inteligencia", enLabel: "Intelligence", x: 58.4, y: 61 },
+  { k: "wis",      color: "var(--stat-sab)", esLabel: "Sabiduría",    enLabel: "Wisdom",       x: 73.6, y: 61 },
+  { k: "car",      color: "var(--stat-car)", esLabel: "Carisma",      enLabel: "Charisma",     x: 89.4, y: 61 },
 ] as const;
 
 export function AttributesBar({ character }: { character: Char }) {
@@ -33,41 +33,41 @@ export function AttributesBar({ character }: { character: Char }) {
           draggable={false}
           className="w-full h-auto block pointer-events-none select-none"
         />
-        <div
-          className="absolute inset-x-0 grid grid-cols-6"
-          style={{ top: "62%", transform: "translateY(-50%)" }}
-        >
-          {ATTRS.map(({ k, color, esLabel, enLabel }) => {
-            const v = (character as any)[k] as number;
-            const mod = fmtMod(modifier(v));
-            const label = lang === "en" ? enLabel : esLabel;
-            const aria = lang === "en"
-              ? `${label} modifier ${mod}`
-              : `${label} modificador ${mod}`;
-            return (
-              <button
-                key={k}
-                type="button"
-                aria-label={aria}
-                className="flex items-center justify-center font-display font-bold leading-none transition-transform duration-100 ease-out active:scale-[0.92] active:translate-y-px focus:outline-none"
-                style={{
-                  color,
-                  fontSize: "clamp(1.4rem, 5.5vw, 2.6rem)",
-                  textShadow: `0 0 10px color-mix(in oklab, ${color} 55%, transparent), 0 0 2px color-mix(in oklab, ${color} 80%, transparent)`,
-                  WebkitUserSelect: "none",
-                  userSelect: "none",
-                  WebkitTapHighlightColor: "transparent",
-                  touchAction: "manipulation",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                }}
-              >
-                <span className="pointer-events-none">{mod}</span>
-              </button>
-            );
-          })}
-        </div>
+        {ATTRS.map(({ k, color, esLabel, enLabel, x, y }) => {
+          const v = (character as any)[k] as number;
+          const mod = fmtMod(modifier(v));
+          const label = lang === "en" ? enLabel : esLabel;
+          const aria = lang === "en"
+            ? `${label} modifier ${mod}`
+            : `${label} modificador ${mod}`;
+          return (
+            <button
+              key={k}
+              type="button"
+              aria-label={aria}
+              className="absolute flex items-center justify-center font-display font-bold leading-none transition-transform duration-100 ease-out active:scale-[0.92] active:translate-y-px focus:outline-none"
+              style={{
+                left: `${x}%`,
+                top: `${y}%`,
+                width: "14%",
+                height: "35%",
+                transform: "translate(-50%, -50%)",
+                color,
+                fontSize: "clamp(1.25rem, 4.4vw, 2.25rem)",
+                textShadow: `0 0 10px color-mix(in oklab, ${color} 55%, transparent), 0 0 2px color-mix(in oklab, ${color} 80%, transparent)`,
+                WebkitUserSelect: "none",
+                userSelect: "none",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+                background: "transparent",
+                border: "none",
+                padding: 0,
+              }}
+            >
+              <span className="pointer-events-none" style={{ WebkitUserSelect: "none", userSelect: "none" }}>{mod}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
