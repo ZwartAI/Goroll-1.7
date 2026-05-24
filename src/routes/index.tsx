@@ -362,9 +362,9 @@ function Home() {
       <button
         onClick={() => setShowAppSettings(true)}
         aria-label={t("home.settingsAria")}
-        className="fixed top-1.5 left-1.5 z-[200] rounded-md border border-border bg-card/60 backdrop-blur p-1.5 text-muted-foreground hover:text-[var(--gold)] hover:border-[var(--gold)] transition-colors"
+        className="fixed top-2 left-2 z-[200] rounded-lg border border-[var(--gold)]/60 bg-black/70 backdrop-blur-md p-2.5 text-[var(--gold)] hover:bg-black/90 hover:border-[var(--gold)] transition-colors shadow-[0_0_12px_rgba(212,175,55,0.35)] min-w-[40px] min-h-[40px] flex items-center justify-center"
       >
-        <SettingsIcon size={14} />
+        <SettingsIcon size={18} />
       </button>
       <div className="flex flex-col items-center pt-4 text-center">
         <img

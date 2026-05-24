@@ -23,9 +23,9 @@ export function FullscreenButton({ className = "" }: { className?: string }) {
     <button
       onClick={toggle}
       aria-label={fs ? t("shell.exitFs") : t("shell.enterFs")}
-      className={`rounded-md border border-border bg-card/60 backdrop-blur p-1.5 text-muted-foreground hover:text-[var(--gold)] hover:border-[var(--gold)] transition-colors ${className}`}
+      className={`rounded-lg border border-[var(--gold)]/60 bg-black/70 backdrop-blur-md p-2.5 text-[var(--gold)] hover:bg-black/90 hover:border-[var(--gold)] transition-colors shadow-[0_0_12px_rgba(212,175,55,0.35)] min-w-[40px] min-h-[40px] flex items-center justify-center ${className}`}
     >
-      {fs ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+      {fs ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
     </button>
   );
 }
@@ -57,5 +57,5 @@ export function AppShell() {
 
   // Floating button only on the landing/login screen.
   if (loc.pathname !== "/") return null;
-  return <FullscreenButton className="fixed top-1.5 right-1.5 z-[200]" />;
+  return <FullscreenButton className="fixed top-2 right-2 z-[200]" />;
 }

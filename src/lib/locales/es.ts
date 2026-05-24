@@ -356,7 +356,7 @@ export const es = {
     title: "Mochila",
     slots: "{used}/{max} slots",
     equipDamage: "Daño permanente:",
-    equipDefHp: "Defensa +{def} · Vida +{hp}",
+    equipDefHp: "Defensa +{def} · Vida Máx. +{hp}",
     usesRemaining: "Usos restantes:",
     equip: "Equipar",
     unequip: "Desequipar",
@@ -392,7 +392,7 @@ export const es = {
     backpack: "Mochila",
     noItemsForSlot: "No tienes objetos para esta ranura.",
     damagePlus: "Daño +{n}",
-    defHpPlus: "Def +{def} · Vida +{hp}",
+    defHpPlus: "Def +{def} · Vida Máx. +{hp}",
   },
   boosters: {
     title: "Potenciadores",
@@ -445,7 +445,7 @@ export const es = {
     cancelPlain: "Cancelar",
     pickRecipient: "— a quién —",
     rollBooster: "➤ Tirar Potenciador",
-    showInChat: "💬 Mostrar en chat",
+    showInChat: "Mostrar en chat",
     discardTitle: "Enviar al cofre del DM",
     discardConfirm: "¿Enviar este potenciador al cofre del DM?",
     showedLog: "mostró el potenciador",
@@ -893,7 +893,7 @@ export const es = {
     createSkillSectionTitle: "Crear habilidad",
     createSkillSectionHint: "Crea una skill permanente o disponible para adquirir con Skill Points.",
     acquireOpen: "Adquirir habilidades",
-    acquireOpenSubtitle: "Ver habilidades disponibles",
+    acquireOpenSubtitle: "Usar Skill Points para aprender · Disponibles",
     shopTitle: "Tienda de habilidades",
     shopSubtitle: "Potencia tu estilo",
     learn: "Aprender",
@@ -1368,8 +1368,55 @@ export const es = {
     immunity_blind: "Ceguera", immunity_silence: "Silencio", immunity_mindControl: "Control mental",
     immunity_defenseReduction: "Reducción de defensa", immunity_movementRestriction: "Restricción de movimiento",
   },
+  levelUp: {
+    title: "¡Subiste de nivel!",
+    body: "Has alcanzado el nivel {level}.",
+    spReward: "Recibiste +1 Skill Point",
+    ok: "Ok",
+  },
+  spMgmt: {
+    title: "Gestión de nivel y Skill Points",
+    levelUp: "Subir nivel",
+    levelDown: "Bajar nivel",
+    revertLevel: "Revertir nivel",
+    giveSp: "Dar Skill Points",
+    giveSpHint: "Dar Skill Points sin subir nivel",
+    pickPlayers: "Selecciona uno o varios personajes",
+    confirm: "Aplicar",
+    leveledUpToast: "Subiste a {name} al nivel {level}",
+    leveledDownToast: "Bajaste a {name} al nivel {level}",
+    spGivenToast: "Diste {n} SP a {name}",
+    levelingUp: "Subiendo nivel…",
+    applying: "Aplicando…",
+  },
+  turnControl: {
+    advanceTurn: "Avanzar turno",
+    advanceTurnHint: "Resta 1 turno a todos los efectos y aplica daño por turno",
+    infinite: "Infinito",
+    requestRemove: "Pedir aprobación al DM",
+    requestRemoveBody: "El jugador {player} quiere quitar el efecto {effect} antes de tiempo.",
+    approve: "Aprobar",
+    reject: "Rechazar",
+    removeRequested: "Solicitud enviada al DM",
+  },
+  notify: {
+    received: "Has recibido algo nuevo",
+    receivedItem: "Recibiste {label}",
+    inboxTitle: "Bandeja",
+    inboxEmpty: "Sin novedades.",
+    markAllRead: "Marcar todo como leído",
+  },
+  collapseUI: {
+    showMore: "Ver más",
+    collapse: "Contraer",
+  },
+  acquireSkills: {
+    title: "Adquirir habilidades",
+    subtitle: "Usar Skill Points para aprender nuevas habilidades",
+  },
 };
 
 
 export type Dict = typeof es;
+
 

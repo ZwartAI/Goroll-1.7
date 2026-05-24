@@ -121,7 +121,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
               onOpenChar={onOpenChar}
             />
           ) : (
-            <LogList rows={logs} initial={30} maxH="max-h-[50vh]" empty={t("escenario.noActivity")}
+            <LogList rows={logs} initial={30} maxH="max-h-[50vh]" empty={t("escenario.noActivity")} collapsible collapsedRows={2}
               renderRow={(l: any) => (
                 <div key={l.id} className={`text-xs bg-secondary/40 rounded px-2 py-1.5 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
                   <LogSegments segments={l.segments as any}

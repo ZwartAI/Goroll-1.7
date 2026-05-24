@@ -678,10 +678,6 @@ function HpModal({
   const sub = parseInt(subVal, 10);
   const add = parseInt(addVal, 10);
 
-  async function quick(delta: number) {
-    await onApply(delta);
-  }
-
   return (
     <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={onClose}>
       <div className="ornate-card p-4 max-w-xs w-full space-y-4" onClick={e => e.stopPropagation()}>
@@ -692,30 +688,6 @@ function HpModal({
         <p className="text-center text-xs text-muted-foreground -mt-2">
           {current}/{max}
         </p>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center mb-1">
-            {t("profile.hpQuickAdjust")}
-          </p>
-          <div className="grid grid-cols-4 gap-1">
-            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]" onClick={() => quick(-5)}>
-              <Minus size={11} className="inline" />5
-            </button>
-            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]" onClick={() => quick(-1)}>
-              <Minus size={11} className="inline" />1
-            </button>
-            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]"
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-              onClick={() => quick(1)}>
-              <Plus size={11} className="inline" />1
-            </button>
-            <button className="btn-fantasy !py-1.5 !px-2 !text-[11px]"
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-              onClick={() => quick(5)}>
-              <Plus size={11} className="inline" />5
-            </button>
-          </div>
-        </div>
 
         <div>
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground text-center mb-1">

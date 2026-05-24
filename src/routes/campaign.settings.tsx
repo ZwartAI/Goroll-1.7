@@ -23,7 +23,7 @@ function Settings() {
 
   async function save() {
     const changes: string[] = [];
-    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense","damage_boost","level"] as const).forEach(k => {
+    (["fue","des","con","int_stat","wis","car","velocity","initiative","base_hp","base_defense","damage_boost"] as const).forEach(k => {
       if ((character as any)[k] !== form[k]) changes.push(`${k}:${(character as any)[k]}→${form[k]}`);
     });
     await supabase.from("characters").update({
@@ -32,7 +32,6 @@ function Settings() {
       velocity: +form.velocity, initiative: +form.initiative,
       base_hp: +form.base_hp, base_defense: +form.base_defense,
       damage_boost: Math.max(0, +form.damage_boost || 0),
-      level: Math.max(1, +form.level || 1),
     } as any).eq("id", character!.id);
     if (changes.length) {
       await pushLog(campaign!.id, [
@@ -114,21 +113,10 @@ function Settings() {
         <div>
           <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">{t("settingsPage.baseCombat")}</p>
           <div className="grid grid-cols-2 gap-2">
-            {num("level", t("level.label"))}
             {num("base_hp", t("settingsPage.baseHp"))}
             {num("base_defense", t("settingsPage.baseDefense"))}
             {num("velocity", t("settingsPage.velocity"))}
             {num("damage_boost", t("settingsPage.damageBoost"))}
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-2 ornate-card !p-2">
-            <span className="text-[11px] text-muted-foreground">{t("settingsPage.levelUpHint")}</span>
-            <button
-              className="btn-fantasy !px-3 !py-1 text-[11px]"
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-              onClick={() => setForm({ ...form, level: Math.max(1, (+form.level || 1) + 1) })}
-            >
-              +1 {t("level.label")}
-            </button>
           </div>
         </div>
         <button className="btn-fantasy w-full" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} onClick={save}>{t("settingsPage.save")}</button>
