@@ -146,6 +146,10 @@ function Profile() {
 
   return (
     <PageFrame>
+      <LevelUpModal
+        level={(character as any).level ?? 1}
+        enabled={character.role === "player"}
+      />
       <ProfileHeader
         campaignName={campaign.name}
         characterName={character.name}
