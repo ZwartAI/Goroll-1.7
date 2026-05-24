@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 type Props = {
   campaignId: string;
