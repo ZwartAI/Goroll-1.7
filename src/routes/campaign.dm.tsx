@@ -138,6 +138,7 @@ function DM() {
 
       {tab === "log" && (
         <>
+          <EffectRemoveRequestsPanel campaignId={campaign.id} />
           <LogList rows={logs} initial={20} maxH="max-h-[70vh]"
             renderRow={(l: LogRow) => (
               <div key={l.id} className={`text-sm bg-secondary/40 rounded px-3 py-2 leading-relaxed ${l.undone ? "opacity-50 line-through" : ""}`}>
