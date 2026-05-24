@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
 import { CharacterPortrait } from "./CharacterPortrait";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 type Props = {
   campaignId: string;
@@ -881,6 +882,7 @@ export function ManualCreate({ campaignId, target, dm, players, onDone }: {
 function GrantSp({ campaignId, target, dm }: { campaignId: string; target: Character; dm: { id: string; name: string; color: string } }) {
   const { t } = useT();
   const [amount, setAmount] = useState(1);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   async function grant() {
     if (amount === 0) return;
     const cur = (target as any).skill_points ?? 0;
@@ -894,6 +896,7 @@ function GrantSp({ campaignId, target, dm }: { campaignId: string; target: Chara
       { t: "text", v: t("skills.logTo") },
       { t: "char", v: target.name, color: target.color, id: target.id },
     ], { kind: "character.update", id: target.id, prev });
+    setConfirmOpen(false);
   }
   return (
     <div className="ornate-card p-3 space-y-2">
@@ -905,8 +908,22 @@ function GrantSp({ campaignId, target, dm }: { campaignId: string; target: Chara
       </p>
       <div className="flex items-center gap-2">
         <input type="number" className="flex-1 bg-input border border-border rounded px-2 py-2 text-sm text-right" value={amount} onChange={e => setAmount(+e.target.value)} />
-        <button className="btn-fantasy flex-1" onClick={grant}>{amount >= 0 ? t("skills.give") : t("skills.take")}</button>
+        <button className="btn-fantasy flex-1" onClick={() => amount !== 0 && setConfirmOpen(true)}>{amount >= 0 ? t("skills.give") : t("skills.take")}</button>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t("skills.confirmGrantSpTitle")}
+        description={t("skills.confirmGrantSpDesc", {
+          amount: Math.abs(amount),
+          verb: amount > 0 ? t("skills.verbGranted") : t("skills.verbRemoved"),
+          target: target.name,
+        })}
+        confirmLabel={t("skills.confirmYes")}
+        cancelLabel={t("skills.cancelBtn")}
+        variant={amount < 0 ? "warning" : "normal"}
+        onConfirm={grant}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
@@ -918,6 +935,8 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [sp, setSp] = useState(1);
   const [lvl, setLvl] = useState(1);
+  const [confirmKind, setConfirmKind] = useState<null | "sp" | "lvl">(null);
+
 
   useEffect(() => {
     if (sel.size === 0 && onlineIds.size > 0) {
@@ -955,6 +974,7 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
       ], { kind: "character.update", id: p.id, prev: { skill_points: cur } });
     }
     toast.success(t("skills.massGrantDone", { n: sel.size }));
+    setConfirmKind(null);
   }
 
   async function levelUpAll() {
@@ -973,6 +993,7 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
       ], { kind: "character.update", id: p.id, prev: { level: cur } });
     }
     toast.success(t("skills.massLevelDone", { n: sel.size }));
+    setConfirmKind(null);
   }
 
   return (
@@ -1006,19 +1027,47 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
       <div className="grid grid-cols-2 gap-2 pt-1">
         <div className="space-y-1">
           <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={sp} onChange={e => setSp(+e.target.value)} />
-          <button className="btn-fantasy w-full text-xs" disabled={!sel.size} onClick={grantSpAll}
+          <button className="btn-fantasy w-full text-xs" disabled={!sel.size || sp === 0} onClick={() => setConfirmKind("sp")}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
             {t("skills.giveSpToSelected", { n: sel.size })}
           </button>
         </div>
         <div className="space-y-1">
           <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={lvl} onChange={e => setLvl(+e.target.value)} />
-          <button className="btn-fantasy w-full text-xs" disabled={!sel.size} onClick={levelUpAll}
+          <button className="btn-fantasy w-full text-xs" disabled={!sel.size || lvl === 0} onClick={() => setConfirmKind("lvl")}
             style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
             {t("skills.levelUpSelected", { n: sel.size })}
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmKind === "sp"}
+        title={t("skills.confirmGrantSpTitle")}
+        description={t("skills.confirmGrantSpDesc", {
+          amount: Math.abs(sp),
+          verb: sp > 0 ? t("skills.verbGranted") : t("skills.verbRemoved"),
+          target: `${sel.size}`,
+        })}
+        confirmLabel={t("skills.confirmYes")}
+        cancelLabel={t("skills.cancelBtn")}
+        variant={sp < 0 ? "warning" : "normal"}
+        onConfirm={grantSpAll}
+        onCancel={() => setConfirmKind(null)}
+      />
+      <ConfirmDialog
+        open={confirmKind === "lvl"}
+        title={t("skills.confirmLevelTitle")}
+        description={t("skills.confirmLevelDesc", {
+          count: sel.size,
+          verb: lvl > 0 ? t("skills.verbGoUp") : t("skills.verbGoDown"),
+          amount: Math.abs(lvl),
+        })}
+        confirmLabel={t("skills.confirmYes")}
+        cancelLabel={t("skills.cancelBtn")}
+        variant={lvl < 0 ? "warning" : "normal"}
+        onConfirm={levelUpAll}
+        onCancel={() => setConfirmKind(null)}
+      />
     </div>
   );
 }
