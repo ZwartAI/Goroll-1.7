@@ -1418,6 +1418,17 @@ export const en: Dict = {
     showMore: "Show more",
     collapse: "Collapse",
   },
+  statsSetup: {
+    title: "Set your starting stats",
+    subtitle: "Your character is newly born. Distribute the points across their attributes to shape who they are.",
+    pointsLeft: "Points remaining",
+    confirm: "Confirm stats",
+    confirmAgain: "Lock in your character?",
+    confirmBody: "Once accepted, these starting stats are fixed. The DM can adjust them later.",
+    cancel: "Keep distributing",
+    needAllPoints: "You must distribute all points before continuing.",
+    saved: "Starting stats saved",
+  },
   acquireSkills: {
     title: "Acquire skills",
     subtitle: "Use Skill Points to learn new skills",

@@ -42,6 +42,7 @@ import { useT } from "@/lib/i18n";
 import { AttributesBar } from "@/components/app/AttributesBar";
 import { FramedCharacterPortrait } from "@/components/app/FramedCharacterPortrait";
 import { LevelUpModal } from "@/components/app/LevelUpModal";
+import { InitialStatsSetupModal } from "@/components/app/InitialStatsSetupModal";
 
 
 import { useLongPress } from "@/hooks/useLongPress";
@@ -150,6 +151,13 @@ function Profile() {
         level={(character as any).level ?? 1}
         enabled={character.role === "player"}
       />
+      {character.role === "player" && !(character as any).stats_setup_completed && (
+        <InitialStatsSetupModal
+          character={character}
+          campaignId={campaign.id}
+          onDone={() => { /* realtime update will refresh character.stats_setup_completed */ }}
+        />
+      )}
       <ProfileHeader
         campaignName={campaign.name}
         characterName={character.name}

@@ -462,6 +462,7 @@ export type Database = {
           race: string | null
           role: Database["public"]["Enums"]["character_role"]
           skill_points: number
+          stats_setup_completed: boolean
           user_id: string | null
           velocity: number
           wis: number
@@ -500,6 +501,7 @@ export type Database = {
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
           skill_points?: number
+          stats_setup_completed?: boolean
           user_id?: string | null
           velocity?: number
           wis?: number
@@ -538,6 +540,7 @@ export type Database = {
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
           skill_points?: number
+          stats_setup_completed?: boolean
           user_id?: string | null
           velocity?: number
           wis?: number

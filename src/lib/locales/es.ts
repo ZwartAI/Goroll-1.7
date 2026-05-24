@@ -1420,6 +1420,17 @@ export const es = {
     showMore: "Ver más",
     collapse: "Contraer",
   },
+  statsSetup: {
+    title: "Define tus estadísticas iniciales",
+    subtitle: "Tu personaje recién nace. Distribuye los puntos en sus atributos para forjar su esencia.",
+    pointsLeft: "Puntos restantes",
+    confirm: "Confirmar estadísticas",
+    confirmAgain: "¿Confirmar tu personaje?",
+    confirmBody: "Una vez aceptadas, estas estadísticas iniciales quedan fijadas. El DM podrá ajustarlas más adelante.",
+    cancel: "Seguir distribuyendo",
+    needAllPoints: "Debes distribuir todos los puntos antes de continuar.",
+    saved: "Estadísticas iniciales guardadas",
+  },
   acquireSkills: {
     title: "Adquirir habilidades",
     subtitle: "Usar Skill Points para aprender nuevas habilidades",
