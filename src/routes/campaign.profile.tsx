@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { AttributesBar } from "@/components/app/AttributesBar";
 import { FramedCharacterPortrait } from "@/components/app/FramedCharacterPortrait";
+import { LevelUpModal } from "@/components/app/LevelUpModal";
 
 
 import { useLongPress } from "@/hooks/useLongPress";
