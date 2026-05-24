@@ -151,6 +151,13 @@ function Profile() {
         level={(character as any).level ?? 1}
         enabled={character.role === "player"}
       />
+      {character.role === "player" && !(character as any).stats_setup_completed && (
+        <InitialStatsSetupModal
+          character={character}
+          campaignId={campaign.id}
+          onDone={() => { /* realtime update will refresh character.stats_setup_completed */ }}
+        />
+      )}
       <ProfileHeader
         campaignName={campaign.name}
         characterName={character.name}
