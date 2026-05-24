@@ -15,15 +15,14 @@ import { ConfirmDialog } from "./ConfirmDialog";
 const TOTAL_POOL = 12;
 const BASE = 10;
 const MAX_PER = 18;
-const ATTR_KEYS: { k: "fue"|"des"|"con"|"int_stat"|"wis"|"car"; label: keyof Messages }[] = [
-  { k: "fue", label: "attr.fue" as any },
-  { k: "des", label: "attr.des" as any },
-  { k: "con", label: "attr.con" as any },
-  { k: "int_stat", label: "attr.int" as any },
-  { k: "wis", label: "attr.wis" as any },
-  { k: "car", label: "attr.car" as any },
+const ATTR_KEYS: { k: "fue"|"des"|"con"|"int_stat"|"wis"|"car"; label: string }[] = [
+  { k: "fue", label: "attr.fue" },
+  { k: "des", label: "attr.des" },
+  { k: "con", label: "attr.con" },
+  { k: "int_stat", label: "attr.int" },
+  { k: "wis", label: "attr.wis" },
+  { k: "car", label: "attr.car" },
 ];
-type Messages = unknown;
 
 type Props = {
   character: Character;
