@@ -87,7 +87,8 @@ export function ConditionsPanel({
   }, [character.id]);
 
   async function tick(c: ConditionRow) {
-    const next = c.turns_left - 1;
+    const infinite = c.turns_left === 0;
+    const next = infinite ? 0 : c.turns_left - 1;
     const label = getRowLabel(c);
     if (c.damage_per_turn > 0) {
       const newHp = Math.max(0, character.current_hp - c.damage_per_turn);
@@ -104,13 +105,13 @@ export function ConditionsPanel({
         { t: "text", v: `(${newHp})` },
       ], { kind: "character.update", id: character.id, prev });
     }
-    if (next <= 0) {
+    if (!infinite && next <= 0) {
       await (supabase as any).from("character_conditions").delete().eq("id", c.id);
       await pushLog(campaignId, [
         { t: "char", v: character.name, color: character.color, id: character.id },
         { t: "text", v: t("conditions.noLonger", { icon: c.icon, label }) },
       ]);
-    } else {
+    } else if (!infinite) {
       await (supabase as any).from("character_conditions").update({ turns_left: next }).eq("id", c.id);
     }
     reload();
