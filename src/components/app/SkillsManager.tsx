@@ -1027,19 +1027,47 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
       <div className="grid grid-cols-2 gap-2 pt-1">
         <div className="space-y-1">
           <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={sp} onChange={e => setSp(+e.target.value)} />
-          <button className="btn-fantasy w-full text-xs" disabled={!sel.size} onClick={grantSpAll}
+          <button className="btn-fantasy w-full text-xs" disabled={!sel.size || sp === 0} onClick={() => setConfirmKind("sp")}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
             {t("skills.giveSpToSelected", { n: sel.size })}
           </button>
         </div>
         <div className="space-y-1">
           <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={lvl} onChange={e => setLvl(+e.target.value)} />
-          <button className="btn-fantasy w-full text-xs" disabled={!sel.size} onClick={levelUpAll}
+          <button className="btn-fantasy w-full text-xs" disabled={!sel.size || lvl === 0} onClick={() => setConfirmKind("lvl")}
             style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
             {t("skills.levelUpSelected", { n: sel.size })}
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmKind === "sp"}
+        title={t("skills.confirmGrantSpTitle")}
+        description={t("skills.confirmGrantSpDesc", {
+          amount: Math.abs(sp),
+          verb: sp > 0 ? t("skills.verbGranted") : t("skills.verbRemoved"),
+          target: `${sel.size}`,
+        })}
+        confirmLabel={t("skills.confirmYes")}
+        cancelLabel={t("skills.cancelBtn")}
+        variant={sp < 0 ? "warning" : "normal"}
+        onConfirm={grantSpAll}
+        onCancel={() => setConfirmKind(null)}
+      />
+      <ConfirmDialog
+        open={confirmKind === "lvl"}
+        title={t("skills.confirmLevelTitle")}
+        description={t("skills.confirmLevelDesc", {
+          count: sel.size,
+          verb: lvl > 0 ? t("skills.verbGoUp") : t("skills.verbGoDown"),
+          amount: Math.abs(lvl),
+        })}
+        confirmLabel={t("skills.confirmYes")}
+        cancelLabel={t("skills.cancelBtn")}
+        variant={lvl < 0 ? "warning" : "normal"}
+        onConfirm={levelUpAll}
+        onCancel={() => setConfirmKind(null)}
+      />
     </div>
   );
 }
