@@ -893,7 +893,7 @@ export const es = {
     createSkillSectionTitle: "Crear habilidad",
     createSkillSectionHint: "Crea una skill permanente o disponible para adquirir con Skill Points.",
     acquireOpen: "Adquirir habilidades",
-    acquireOpenSubtitle: "Ver habilidades disponibles",
+    acquireOpenSubtitle: "Usar Skill Points para aprender · Disponibles",
     shopTitle: "Tienda de habilidades",
     shopSubtitle: "Potencia tu estilo",
     learn: "Aprender",
