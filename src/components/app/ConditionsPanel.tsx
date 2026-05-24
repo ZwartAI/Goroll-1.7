@@ -480,8 +480,9 @@ export function DMConditionsCreator({
           </select>
           <div className="grid grid-cols-2 gap-2">
             <label className="flex items-center justify-between text-sm">{t("conditions.turns")}
-              <input type="number" min={1} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
-                value={turns} onChange={e => setTurns(Math.max(1, +e.target.value))} />
+              <input type="number" min={0} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
+                value={turns} onChange={e => setTurns(Math.max(0, +e.target.value))}
+                title={t("turnControl.infinite")} placeholder="∞" />
             </label>
             {picked?.is_damage && (
               <label className="flex items-center justify-between text-sm">{t("conditions.damagePerTurn")}
