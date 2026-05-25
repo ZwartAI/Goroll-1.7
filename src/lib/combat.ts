@@ -723,6 +723,11 @@ export async function updateEnemy(participant: CombatParticipant, patch: Partial
   if (patch.biome !== undefined) upd.enemy_biome = patch.biome;
   if (patch.base_damage !== undefined) upd.enemy_base_damage = patch.base_damage;
   if (patch.behavior !== undefined) upd.enemy_behavior = patch.behavior;
+  if (patch.image_url !== undefined) upd.image_url = patch.image_url || null;
+  if (patch.image_offset_x !== undefined) upd.enemy_image_offset_x = patch.image_offset_x ?? 50;
+  if (patch.image_offset_y !== undefined) upd.enemy_image_offset_y = patch.image_offset_y ?? 50;
+  if (patch.image_scale !== undefined) upd.enemy_image_scale = patch.image_scale ?? 1;
+
 
   const { error } = await (supabase as any).from("combat_participants").update(upd).eq("id", participant.id);
   if (error) return { ok: false, error: error.message };
