@@ -208,7 +208,8 @@ function EnemyRow({
   const cur = p.enemy_hp || 0;
   const baseColor = p.enemy_color || "var(--loss)";
   const lp = useLongPress(onSheet, 450);
-  const isTierAsset = !!getEnemyAssetUrl(p.enemy_icon);
+  const customImg = getEnemyCustomImage(p);
+  const isTierAsset = !!customImg || !!getEnemyAssetUrl(p.enemy_icon);
 
   return (
     <div
