@@ -906,9 +906,9 @@ function GrantSp({ campaignId, target, dm }: { campaignId: string; target: Chara
       <p className="text-[10px] text-muted-foreground">
         {t("skills.spBalance")}: <span className="font-display text-[var(--gold)]">{(target as any).skill_points ?? 0}</span>
       </p>
-      <div className="flex items-center gap-2">
-        <input type="number" className="flex-1 bg-input border border-border rounded px-2 py-2 text-sm text-right" value={amount} onChange={e => setAmount(+e.target.value)} />
-        <button className="btn-fantasy flex-1" onClick={() => amount !== 0 && setConfirmOpen(true)}>{amount >= 0 ? t("skills.give") : t("skills.take")}</button>
+      <div className="flex flex-col gap-2">
+        <input type="number" className="w-full bg-input border border-border rounded px-2 py-2 text-sm text-left" value={amount} onChange={e => setAmount(+e.target.value)} />
+        <button className="btn-fantasy w-full" onClick={() => amount !== 0 && setConfirmOpen(true)}>{amount >= 0 ? t("skills.give") : t("skills.take")}</button>
       </div>
       <ConfirmDialog
         open={confirmOpen}
@@ -1026,14 +1026,14 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
       </div>
       <div className="grid grid-cols-2 gap-2 pt-1">
         <div className="space-y-1">
-          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={sp} onChange={e => setSp(+e.target.value)} />
+          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-left" value={sp} onChange={e => setSp(+e.target.value)} />
           <button className="btn-fantasy w-full text-xs" disabled={!sel.size || sp === 0} onClick={() => setConfirmKind("sp")}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
             {t("skills.giveSpToSelected", { n: sel.size })}
           </button>
         </div>
         <div className="space-y-1">
-          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={lvl} onChange={e => setLvl(+e.target.value)} />
+          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-left" value={lvl} onChange={e => setLvl(+e.target.value)} />
           <button className="btn-fantasy w-full text-xs" disabled={!sel.size || lvl === 0} onClick={() => setConfirmKind("lvl")}
             style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
             {t("skills.levelUpSelected", { n: sel.size })}
