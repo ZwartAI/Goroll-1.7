@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
+import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { setSession, type LogRow } from "@/lib/game";
 import { LogSegments } from "@/components/app/LogSegments";
 import { LogList } from "@/components/app/LogList";
@@ -152,10 +153,12 @@ function SpectatorHeader({
   voice: { enabled: boolean; toggle: () => void };
 }) {
   const [mailboxOpen, setMailboxOpen] = useState(false);
+  const [appSettingsOpen, setAppSettingsOpen] = useState(false);
   const items = useStandardHeaderItems({
     achievements: true,
     mic: { enabled: voice.enabled, toggle: voice.toggle },
     fullscreen: true,
+    settings: { onOpen: () => setAppSettingsOpen(true) },
     exit: { onExit: onLogout },
   });
   return (
@@ -168,6 +171,7 @@ function SpectatorHeader({
         <HeaderMenu items={items} />
       </div>
       <MailboxInlineModal open={mailboxOpen} onClose={() => setMailboxOpen(false)} />
+      {appSettingsOpen && <AppSettingsModal onClose={() => setAppSettingsOpen(false)} />}
     </header>
   );
 }

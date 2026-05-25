@@ -14,7 +14,7 @@ import { CoinsPurseModal } from "@/components/app/CoinsAdjuster";
 import { Escenario } from "@/components/app/Escenario";
 import { CombatList } from "@/components/app/CombatList";
 import { InitiativeButton } from "@/components/app/InitiativeButton";
-import { User, Minus, Plus, Camera, Heart, HeartPulse, Coins } from "lucide-react";
+import { Camera, Heart, HeartPulse, Coins } from "lucide-react";
 import tabActiveBg from "@/assets/tab-active.png";
 import hpFrameBg from "@/assets/hp-frame.png";
 import hpButtonImg from "@/assets/hp-button.png";
@@ -726,46 +726,40 @@ function HpModal({
           </p>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[oklch(0.72_0.18_25)]">
+                {t("profile.hpSubtract")}
+              </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={subVal}
                 onChange={e => setSubVal(e.target.value.replace(/[^0-9]/g, ""))}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && sub && sub > 0) {
+                    await onApply(-sub);
+                    setSubVal("");
+                  }
+                }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
-              <button
-                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
-                style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
-                disabled={!sub || sub <= 0}
-                onClick={async () => {
-                  if (!sub || sub <= 0) return;
-                  await onApply(-sub);
-                  setSubVal("");
-                }}
-              >
-                <Minus size={11} /> {t("profile.hpSubtract")}
-              </button>
             </div>
             <div className="space-y-1">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[var(--gold)]">
+                {t("profile.hpAdd")}
+              </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={addVal}
                 onChange={e => setAddVal(e.target.value.replace(/[^0-9]/g, ""))}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && add && add > 0) {
+                    await onApply(add);
+                    setAddVal("");
+                  }
+                }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
-              <button
-                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
-                style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-                disabled={!add || add <= 0}
-                onClick={async () => {
-                  if (!add || add <= 0) return;
-                  await onApply(add);
-                  setAddVal("");
-                }}
-              >
-                <Plus size={11} /> {t("profile.hpAdd")}
-              </button>
             </div>
           </div>
         </div>
@@ -840,26 +834,27 @@ function ProfileHeader({
   settingsAria: string;
 }) {
   const [mailboxOpen, setMailboxOpen] = useState(false);
+  const [appSettingsOpen, setAppSettingsOpen] = useState(false);
   const items = useStandardHeaderItems({
+    stats: { to: "/campaign/settings" },
     achievements: true,
     mic: { enabled: voice.enabled, toggle: voice.toggle },
     fullscreen: true,
+    settings: { onOpen: () => setAppSettingsOpen(true) },
     exit: { onExit: onLogout },
   });
   return (
-    <header className="relative mb-3 min-h-[64px]">
+    <header className="relative mb-3 min-h-[64px]" aria-label={settingsAria}>
       <div className="text-center px-2">
         <p className="text-[10px] uppercase tracking-widest text-muted-foreground truncate">{campaignName}</p>
         <h1 className="font-display text-xl rune-glow truncate">{characterName}</h1>
         <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
       </div>
       <div className="absolute right-0 top-1 flex items-center gap-1">
-        <Link to="/campaign/settings" className="text-muted-foreground hover:text-foreground p-1" aria-label={settingsAria}>
-          <User size={20} />
-        </Link>
         <HeaderMenu items={items} />
       </div>
       <MailboxInlineModal open={mailboxOpen} onClose={() => setMailboxOpen(false)} />
+      {appSettingsOpen && <AppSettingsModal onClose={() => setAppSettingsOpen(false)} />}
     </header>
   );
 }

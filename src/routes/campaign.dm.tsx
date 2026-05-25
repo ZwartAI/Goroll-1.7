@@ -24,6 +24,7 @@ import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
+import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { useVoice } from "@/lib/useVoice";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -856,12 +857,14 @@ function DMHeader({
   onLogout: () => void;
 }) {
   const [mailboxOpen, setMailboxOpen] = useState(false);
+  const [appSettingsOpen, setAppSettingsOpen] = useState(false);
   const items = useStandardHeaderItems({
     achievements: true,
     bestiary: true,
     mailbox: { onOpen: () => setMailboxOpen(true) },
     mic: { enabled: voice.enabled, toggle: voice.toggle },
     fullscreen: true,
+    settings: { onOpen: () => setAppSettingsOpen(true) },
     exit: { onExit: onLogout },
   });
   return (
@@ -875,6 +878,7 @@ function DMHeader({
         <HeaderMenu items={items} />
       </div>
       <MailboxInlineModal open={mailboxOpen} onClose={() => setMailboxOpen(false)} />
+      {appSettingsOpen && <AppSettingsModal onClose={() => setAppSettingsOpen(false)} />}
     </header>
   );
 }
