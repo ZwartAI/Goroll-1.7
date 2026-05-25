@@ -336,13 +336,10 @@
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
     position: relative;
-  }
-  .ornate-card::before {
-    content: "";
-    position: absolute; inset: 4px;
-    border: 1px solid color-mix(in oklab, var(--blood) 50%, transparent);
-    border-radius: calc(var(--radius-xl) - 4px);
-    pointer-events: none;
+    /* Inner red frame drawn with outline so it tracks the visible
+       border-box even when the card itself scrolls. */
+    outline: 1px solid color-mix(in oklab, var(--blood) 50%, transparent);
+    outline-offset: -5px;
   }
   .gem-divider {
     height: 1px;
@@ -402,13 +399,15 @@
   }
 
   /* Global hover grow for pressable buttons on devices with a real pointer
-     (desktop / mouse). Mobile/touch keeps only the press-shrink effect. */
+     (desktop / mouse). Mobile/touch keeps only the press-shrink effect.
+     Buttons opted-out with .no-hover-grow keep their original size — used for
+     items inside scroll containers where the scale would trigger scrollbars. */
   @media (hover: hover) and (pointer: fine) {
-    button:not(:disabled):hover {
+    button:not(:disabled):not(.no-hover-grow):hover {
       transform: scale(1.04);
       transition: transform 0.15s ease-out;
     }
-    a[role="button"]:not([aria-disabled="true"]):hover {
+    a[role="button"]:not([aria-disabled="true"]):not(.no-hover-grow):hover {
       transform: scale(1.04);
       transition: transform 0.15s ease-out;
     }
