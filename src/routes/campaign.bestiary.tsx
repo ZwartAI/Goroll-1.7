@@ -13,7 +13,7 @@ import {
   PRIMARY_TIERS,
   type EnemyTemplate,
 } from "@/lib/bestiary";
-import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { MonsterEditor } from "@/components/app/MonsterEditor";
 import { MonsterSheetModal } from "@/components/app/MonsterSheetModal";
 import { AddFromBestiaryModal } from "@/components/app/AddFromBestiaryModal";
