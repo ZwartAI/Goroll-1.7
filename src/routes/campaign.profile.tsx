@@ -439,6 +439,7 @@ function Profile() {
               <Link
                 key={b.to}
                 to={b.to}
+                role="button"
                 aria-label={b.label}
                 data-sfx
                 onPointerDown={() => playSfx(b.sfx)}
