@@ -43,7 +43,15 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
       {/* Inner portrait area, inset to match the frame's inner opening (base, unscaled) */}
       <div
         className="absolute overflow-hidden bg-[var(--secondary)]"
-        style={{ inset: "9%", borderRadius: "6%", transform: `translate(${portraitOffsetX}%, ${portraitOffsetY}%) scale(${1 / 1.1})`, transformOrigin: "center center" }}
+        style={{
+          top: "calc(9% - 3px)",
+          right: "calc(9% - 6px)",
+          bottom: "calc(9% - 4px)",
+          left: "calc(9% - 3px)",
+          borderRadius: "6%",
+          transform: `translate(${portraitOffsetX}%, ${portraitOffsetY}%) scale(${1 / 1.1})`,
+          transformOrigin: "center center",
+        }}
       >
         {character.image_url ? (
           <img
