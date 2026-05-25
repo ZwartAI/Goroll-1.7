@@ -208,6 +208,7 @@ function Profile() {
 
   return (
     <PageFrame>
+      <div key={shakeKey ?? "cs-static"} className={shakeKey ? "cs-shake" : undefined}>
       <LevelUpModal
         level={(character as any).level ?? 1}
         enabled={character.role === "player"}
