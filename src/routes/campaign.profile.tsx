@@ -75,6 +75,8 @@ const CHARACTER_SHEET_SFX = [
   sfxNotas,
   sfxMonedero,
   sfxHp,
+  sfxSubtract,
+  sfxHeal,
 ];
 
 preloadSfx(CHARACTER_SHEET_SFX);
