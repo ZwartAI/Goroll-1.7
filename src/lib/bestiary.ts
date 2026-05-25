@@ -212,6 +212,10 @@ export async function duplicateTemplate(template: EnemyTemplate, dm: { id: strin
       is_boss: template.is_boss,
       is_elite: template.is_elite,
       created_by_character_id: dm.id,
+      image_url: template.image_url ?? "",
+      image_offset_x: template.image_offset_x ?? 50,
+      image_offset_y: template.image_offset_y ?? 50,
+      image_scale: template.image_scale ?? 1,
     })
     .select("*")
     .single();
