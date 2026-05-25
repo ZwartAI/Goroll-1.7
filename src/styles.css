@@ -401,6 +401,64 @@
     .btn-press:active { animation: none; }
   }
 
+  /* Global hover grow for pressable buttons on devices with a real pointer
+     (desktop / mouse). Mobile/touch keeps only the press-shrink effect. */
+  @media (hover: hover) and (pointer: fine) {
+    button:not(:disabled):hover {
+      transform: scale(1.04);
+      transition: transform 0.15s ease-out;
+    }
+    a[role="button"]:not([aria-disabled="true"]):hover {
+      transform: scale(1.04);
+      transition: transform 0.15s ease-out;
+    }
+  }
+
+  /* Character sheet damage / heal feedback (scoped to portrait inner box) */
+  @keyframes cs-damage-flash {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes cs-heal-pulse {
+    0%   { opacity: 0; transform: scale(0.85); }
+    35%  { opacity: 0.9; transform: scale(1.05); }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+  .cs-damage-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(220,38,38,0.6) 0%, rgba(127,29,29,0.4) 70%, transparent 100%);
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    animation: cs-damage-flash 650ms ease-out forwards;
+  }
+  .cs-heal-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(34,197,94,0.55) 0%, rgba(16,122,55,0.3) 65%, transparent 100%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transform-origin: center;
+    animation: cs-heal-pulse 850ms ease-out forwards;
+  }
+
+  @keyframes cs-shake {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    10% { transform: translate3d(-6px, 1px, 0); }
+    20% { transform: translate3d(7px, -2px, 0); }
+    30% { transform: translate3d(-5px, 2px, 0); }
+    40% { transform: translate3d(5px, -1px, 0); }
+    50% { transform: translate3d(-4px, 2px, 0); }
+    60% { transform: translate3d(4px, -2px, 0); }
+    70% { transform: translate3d(-3px, 1px, 0); }
+    80% { transform: translate3d(2px, -1px, 0); }
+    90% { transform: translate3d(-1px, 0, 0); }
+  }
+  .cs-shake { animation: cs-shake 520ms cubic-bezier(.36,.07,.19,.97) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .cs-shake { animation: none; }
+    .cs-damage-overlay, .cs-heal-overlay { animation: none; opacity: 0; }
+  }
+
   @keyframes login-text-glow {
     0% {
       text-shadow: 0 0 2px color-mix(in oklab, var(--gold) 60%, transparent);

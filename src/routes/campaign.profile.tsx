@@ -35,6 +35,8 @@ import sfxHabilidades from "@/assets/sounds/Habilidades.mp3";
 import sfxNotas from "@/assets/sounds/Notas.mp3";
 import sfxMonedero from "@/assets/sounds/Monedero.mp3";
 import sfxHp from "@/assets/sounds/HP.mp3";
+import sfxSubtract from "@/assets/sounds/Subtract.mp3";
+import sfxHeal from "@/assets/sounds/Heal.mp3";
 import { playSfx, preloadSfx } from "@/lib/sound";
 import {
   CHARACTER_SHEET_ASSETS,
@@ -47,7 +49,7 @@ import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { FrameSelectorModal } from "@/components/app/FrameSelectorModal";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
 import { useVoice } from "@/lib/useVoice";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { AttributesBar } from "@/components/app/AttributesBar";
@@ -73,6 +75,8 @@ const CHARACTER_SHEET_SFX = [
   sfxNotas,
   sfxMonedero,
   sfxHp,
+  sfxSubtract,
+  sfxHeal,
 ];
 
 preloadSfx(CHARACTER_SHEET_SFX);
@@ -121,6 +125,29 @@ function Profile() {
 
   const voice = useVoice(campaign?.id, character?.id);
   const [micSettingsOpen, setMicSettingsOpen] = useState(false);
+
+  // HP feedback (sound + visual). Plays Subtract.mp3 on damage, Heal.mp3 on healing,
+  // and triggers a localized portrait overlay + screen shake on damage.
+  const [damageKey, setDamageKey] = useState<number | null>(null);
+  const [healKey, setHealKey] = useState<number | null>(null);
+  const [shakeKey, setShakeKey] = useState<number | null>(null);
+  const prevHpRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!character) return;
+    const cur = character.current_hp;
+    const prev = prevHpRef.current;
+    prevHpRef.current = cur;
+    if (prev == null || prev === cur) return;
+    if (cur < prev) {
+      playSfx(sfxSubtract);
+      const k = Date.now();
+      setDamageKey(k);
+      setShakeKey(k);
+    } else if (cur > prev) {
+      playSfx(sfxHeal);
+      setHealKey(Date.now());
+    }
+  }, [character?.current_hp]);
 
   if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("profile.loading")}</p></PageFrame>;
 
@@ -181,6 +208,7 @@ function Profile() {
 
   return (
     <PageFrame>
+      <div key={shakeKey ?? "cs-static"} className={shakeKey ? "cs-shake" : undefined}>
       <LevelUpModal
         level={(character as any).level ?? 1}
         enabled={character.role === "player"}
@@ -241,6 +269,8 @@ function Profile() {
               <FramedCharacterPortrait
                 character={character}
                 level={(character as any).level ?? 1}
+                damageFlashKey={damageKey}
+                healFlashKey={healKey}
                 ariaLabel={t("profile.editImageAria")}
                 onClick={() => {
                   if (character.image_url || (character as any).body_image_url) {
@@ -515,6 +545,7 @@ function Profile() {
           onClose={() => setPurseOpen(false)}
         />
       )}
+      </div>
     </PageFrame>
   );
 }
@@ -751,6 +782,21 @@ function HpModal({
   const [addVal, setAddVal] = useState("");
   const sub = parseInt(subVal, 10);
   const add = parseInt(addVal, 10);
+  const subValid = Number.isFinite(sub) && sub > 0;
+  const addValid = Number.isFinite(add) && add > 0;
+
+  async function applySubtract() {
+    if (!subValid) return;
+    await onApply(-sub);
+    setSubVal("");
+    onClose();
+  }
+  async function applyAdd() {
+    if (!addValid) return;
+    await onApply(add);
+    setAddVal("");
+    onClose();
+  }
 
   return (
     <div className="fixed inset-0 bg-black/85 z-[80] flex items-center justify-center p-4" onClick={onClose}>
@@ -769,40 +815,48 @@ function HpModal({
           </p>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <p className="text-[9px] uppercase tracking-widest text-center text-[oklch(0.72_0.18_25)]">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[oklch(0.72_0.18_300)]">
                 {t("profile.hpSubtract")}
               </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={subVal}
                 onChange={e => setSubVal(e.target.value.replace(/[^0-9]/g, ""))}
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter" && sub && sub > 0) {
-                    await onApply(-sub);
-                    setSubVal("");
-                  }
-                }}
+                onKeyDown={(e) => { if (e.key === "Enter") applySubtract(); }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
+              <button
+                type="button"
+                disabled={!subValid}
+                onClick={applySubtract}
+                className="w-full rounded-md px-2 py-1.5 text-xs font-display uppercase tracking-wider text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg, oklch(0.45 0.18 300), oklch(0.32 0.16 295))" }}
+              >
+                {t("profile.hpSubtract")}
+              </button>
             </div>
             <div className="space-y-1">
-              <p className="text-[9px] uppercase tracking-widest text-center text-[var(--gold)]">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[oklch(0.78_0.18_145)]">
                 {t("profile.hpAdd")}
               </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={addVal}
                 onChange={e => setAddVal(e.target.value.replace(/[^0-9]/g, ""))}
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter" && add && add > 0) {
-                    await onApply(add);
-                    setAddVal("");
-                  }
-                }}
+                onKeyDown={(e) => { if (e.key === "Enter") applyAdd(); }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
+              <button
+                type="button"
+                disabled={!addValid}
+                onClick={applyAdd}
+                className="w-full rounded-md px-2 py-1.5 text-xs font-display uppercase tracking-wider text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg, oklch(0.62 0.18 145), oklch(0.42 0.16 150))" }}
+              >
+                {t("profile.hpAdd")}
+              </button>
             </div>
           </div>
         </div>

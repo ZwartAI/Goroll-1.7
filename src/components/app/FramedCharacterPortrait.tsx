@@ -10,6 +10,9 @@ type Props = {
   ariaLabel?: string;
   className?: string;
   level?: number;
+  /** Trigger keys: when changed and non-null, plays a one-shot damage/heal overlay inside the portrait. */
+  damageFlashKey?: number | null;
+  healFlashKey?: number | null;
 };
 
 // Adjustable layout constants for the framed portrait.
@@ -26,7 +29,7 @@ const PORTRAIT_FRAME_LAYOUT = {
 };
 
 
-export function FramedCharacterPortrait({ character, onClick, ariaLabel, className = "", level }: Props) {
+export function FramedCharacterPortrait({ character, onClick, ariaLabel, className = "", level, damageFlashKey, healFlashKey }: Props) {
   const frameUrl = (character as any).portrait_frame_url || portraitFrameDefault;
   const ox = character.image_offset_x ?? 50;
   const oy = character.image_offset_y ?? 50;
@@ -71,6 +74,12 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
             </span>
           </div>
         )}
+        {damageFlashKey ? (
+          <div key={`dmg-${damageFlashKey}`} className="cs-damage-overlay" aria-hidden />
+        ) : null}
+        {healFlashKey ? (
+          <div key={`heal-${healFlashKey}`} className="cs-heal-overlay" aria-hidden />
+        ) : null}
       </div>
 
       {/* Scaled frame + level wrapper — overflows base square upward/left */}
