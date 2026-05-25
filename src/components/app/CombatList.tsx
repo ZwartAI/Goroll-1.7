@@ -163,7 +163,7 @@ function TurnRow({
         {dragHandle}
         <div className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
           style={{ borderColor: baseColor, color: baseColor }}>
-          <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} assetScale={isTierAsset && !customImg ? 4 : 1} customImage={customImg} />
+          <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} customImage={customImg} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-sm truncate" style={{ color: baseColor }}>
