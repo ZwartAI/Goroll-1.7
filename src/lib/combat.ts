@@ -1419,7 +1419,10 @@ export async function duplicateEnemyMulti(
       character_id: null,
       participant_type: "enemy",
       display_name: `${baseName} ${startInstance + i}`,
-      image_url: null,
+      image_url: participant.image_url || null,
+      enemy_image_offset_x: participant.enemy_image_offset_x ?? 50,
+      enemy_image_offset_y: participant.enemy_image_offset_y ?? 50,
+      enemy_image_scale: participant.enemy_image_scale ?? 1,
       color: participant.enemy_color || null,
       initiative: participant.initiative,
       order_index: startOrder + i, // provisional; reassigned below
