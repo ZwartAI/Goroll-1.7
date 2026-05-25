@@ -669,6 +669,9 @@ export type Database = {
           enemy_defense: number | null
           enemy_hp: number | null
           enemy_icon: string | null
+          enemy_image_offset_x: number
+          enemy_image_offset_y: number
+          enemy_image_scale: number
           enemy_instance_number: number | null
           enemy_max_hp: number | null
           enemy_name: string | null
@@ -701,6 +704,9 @@ export type Database = {
           enemy_defense?: number | null
           enemy_hp?: number | null
           enemy_icon?: string | null
+          enemy_image_offset_x?: number
+          enemy_image_offset_y?: number
+          enemy_image_scale?: number
           enemy_instance_number?: number | null
           enemy_max_hp?: number | null
           enemy_name?: string | null
@@ -733,6 +739,9 @@ export type Database = {
           enemy_defense?: number | null
           enemy_hp?: number | null
           enemy_icon?: string | null
+          enemy_image_offset_x?: number
+          enemy_image_offset_y?: number
+          enemy_image_scale?: number
           enemy_instance_number?: number | null
           enemy_max_hp?: number | null
           enemy_name?: string | null
@@ -1156,6 +1165,10 @@ export type Database = {
           description: string | null
           icon_key: string
           id: string
+          image_offset_x: number
+          image_offset_y: number
+          image_scale: number
+          image_url: string
           immunities: Json
           is_boss: boolean
           is_elite: boolean
@@ -1179,6 +1192,10 @@ export type Database = {
           description?: string | null
           icon_key?: string
           id?: string
+          image_offset_x?: number
+          image_offset_y?: number
+          image_scale?: number
+          image_url?: string
           immunities?: Json
           is_boss?: boolean
           is_elite?: boolean
@@ -1202,6 +1219,10 @@ export type Database = {
           description?: string | null
           icon_key?: string
           id?: string
+          image_offset_x?: number
+          image_offset_y?: number
+          image_scale?: number
+          image_url?: string
           immunities?: Json
           is_boss?: boolean
           is_elite?: boolean

@@ -13,7 +13,7 @@ import {
   PRIMARY_TIERS,
   type EnemyTemplate,
 } from "@/lib/bestiary";
-import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { MonsterEditor } from "@/components/app/MonsterEditor";
 import { MonsterSheetModal } from "@/components/app/MonsterSheetModal";
 import { AddFromBestiaryModal } from "@/components/app/AddFromBestiaryModal";
@@ -127,7 +127,8 @@ function Bestiary() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {filtered.map(tpl => {
-          const hasAsset = !!getEnemyAssetUrl(tpl.icon_key);
+          const customImg = getEnemyCustomImage(tpl);
+          const hasAsset = !!customImg || !!getEnemyAssetUrl(tpl.icon_key);
           return (
             <article key={tpl.id} className="ornate-card p-3 space-y-2"
               style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}>
@@ -136,7 +137,7 @@ function Bestiary() {
                   className="w-14 h-14 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 relative"
                   style={{ borderColor: tpl.color, color: tpl.color }}
                 >
-                  <EnemyIcon name={tpl.icon_key} size={28} fill={hasAsset} />
+                  <EnemyIcon name={tpl.icon_key} size={28} fill={hasAsset} customImage={customImg} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-display truncate" style={{ color: tpl.color }}>{tpl.name}</p>

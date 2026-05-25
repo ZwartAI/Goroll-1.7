@@ -22,7 +22,8 @@ import {
   deleteTemplateSkill,
   reorderTemplateSkill,
 } from "@/lib/bestiary";
-import { EnemyIconPicker, EnemyColorPicker, ENEMY_COLORS, ENEMY_ASSETS } from "@/components/app/EnemyIconPicker";
+import { EnemyIconPicker, EnemyColorPicker, ENEMY_COLORS, ENEMY_ASSETS, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import { EnemyImageEditor, type EnemyImageState } from "@/components/app/EnemyImageEditor";
 import { ConfirmDialog } from "@/components/app/ConfirmDialog";
 
 type Props = {
@@ -66,6 +67,12 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
   const [behavior, setBehavior] = useState(editing?.behavior_notes || "");
   const [weaknesses, setWeaknesses] = useState(editing?.weaknesses_text || "");
   const [immunities, setImmunities] = useState<string[]>(editing?.immunities || []);
+  const [image, setImage] = useState<EnemyImageState>({
+    url: (editing as any)?.image_url || "",
+    offsetX: (editing as any)?.image_offset_x ?? 50,
+    offsetY: (editing as any)?.image_offset_y ?? 50,
+    scale: (editing as any)?.image_scale ?? 1,
+  });
   const [busy, setBusy] = useState(false);
 
   // Saved-side skills (when editing) + local-only skills (pre-save).
@@ -108,6 +115,10 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
     is_boss: tier === "boss" || tier === "god",
     is_elite: tier === "elite",
     created_by_character_id: dm.id,
+    image_url: image.url || "",
+    image_offset_x: image.offsetX,
+    image_offset_y: image.offsetY,
+    image_scale: image.scale,
   });
 
   /** All skills (saved + local) shown in the editor. */
@@ -233,6 +244,14 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
           </div>
           <Field label={t("combat.icon")}>
             <EnemyIconPicker value={icon} onChange={setIcon} />
+          </Field>
+          <Field label={t("bestiary.customImage")}>
+            <EnemyImageEditor
+              value={image}
+              onChange={setImage}
+              fallbackUrl={getEnemyAssetUrl(icon)}
+              storageKey={`enemy/${campaignId}`}
+            />
           </Field>
           <Field label={t("bestiary.visualAsset")}>
             <div className="grid grid-cols-6 gap-1.5">

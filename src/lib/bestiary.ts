@@ -33,6 +33,11 @@ export type EnemyTemplate = {
   created_by_character_id: string | null;
   created_at: string;
   updated_at: string;
+  // Custom uploaded image + framing (overrides the visual asset when set).
+  image_url: string;
+  image_offset_x: number;
+  image_offset_y: number;
+  image_scale: number;
 };
 
 export type EnemyTemplateSkill = {
@@ -153,6 +158,10 @@ export async function createTemplate(
     is_boss: draft.is_boss,
     is_elite: draft.is_elite,
     created_by_character_id: dm.id,
+    image_url: draft.image_url ?? "",
+    image_offset_x: draft.image_offset_x ?? 50,
+    image_offset_y: draft.image_offset_y ?? 50,
+    image_scale: draft.image_scale ?? 1,
   };
   const { data, error } = await (supabase as any)
     .from("enemy_templates")
@@ -203,6 +212,10 @@ export async function duplicateTemplate(template: EnemyTemplate, dm: { id: strin
       is_boss: template.is_boss,
       is_elite: template.is_elite,
       created_by_character_id: dm.id,
+      image_url: template.image_url ?? "",
+      image_offset_x: template.image_offset_x ?? 50,
+      image_offset_y: template.image_offset_y ?? 50,
+      image_scale: template.image_scale ?? 1,
     })
     .select("*")
     .single();
@@ -334,7 +347,10 @@ export async function spawnFromTemplate(
       character_id: null,
       participant_type: "enemy",
       display_name: qty > 1 || instance > 1 ? `${template.name} ${instance}` : template.name,
-      image_url: null,
+      image_url: template.image_url || null,
+      enemy_image_offset_x: template.image_offset_x ?? 50,
+      enemy_image_offset_y: template.image_offset_y ?? 50,
+      enemy_image_scale: template.image_scale ?? 1,
       color: template.color,
       initiative,
       order_index: baseOrder + i,

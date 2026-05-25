@@ -65,7 +65,10 @@ export type CombatParticipant = {
   enemy_biome: string | null;
   enemy_base_damage: string | null;
   enemy_behavior: string | null;
-
+  // Custom image framing (image_url already lives above).
+  enemy_image_offset_x: number | null;
+  enemy_image_offset_y: number | null;
+  enemy_image_scale: number | null;
 };
 
 export function isEnemy(p: CombatParticipant): boolean {
@@ -590,6 +593,11 @@ export type EnemyDraft = {
   biome?: string | null;
   base_damage?: string | null;
   behavior?: string | null;
+  // Custom image (uploaded asset) + framing.
+  image_url?: string | null;
+  image_offset_x?: number | null;
+  image_offset_y?: number | null;
+  image_scale?: number | null;
 };
 
 
@@ -652,7 +660,10 @@ export async function addEnemies(
       character_id: null,
       participant_type: "enemy",
       display_name: qty > 1 ? `${name} ${instance}` : name,
-      image_url: null,
+      image_url: draft.image_url || null,
+      enemy_image_offset_x: draft.image_offset_x ?? 50,
+      enemy_image_offset_y: draft.image_offset_y ?? 50,
+      enemy_image_scale: draft.image_scale ?? 1,
       color: draft.color || null,
       initiative,
       order_index: baseOrder + i,
@@ -712,6 +723,11 @@ export async function updateEnemy(participant: CombatParticipant, patch: Partial
   if (patch.biome !== undefined) upd.enemy_biome = patch.biome;
   if (patch.base_damage !== undefined) upd.enemy_base_damage = patch.base_damage;
   if (patch.behavior !== undefined) upd.enemy_behavior = patch.behavior;
+  if (patch.image_url !== undefined) upd.image_url = patch.image_url || null;
+  if (patch.image_offset_x !== undefined) upd.enemy_image_offset_x = patch.image_offset_x ?? 50;
+  if (patch.image_offset_y !== undefined) upd.enemy_image_offset_y = patch.image_offset_y ?? 50;
+  if (patch.image_scale !== undefined) upd.enemy_image_scale = patch.image_scale ?? 1;
+
 
   const { error } = await (supabase as any).from("combat_participants").update(upd).eq("id", participant.id);
   if (error) return { ok: false, error: error.message };
@@ -761,7 +777,10 @@ export async function duplicateEnemy(participant: CombatParticipant, encounter: 
     character_id: null,
     participant_type: "enemy",
     display_name: `${baseName} ${instance}`,
-    image_url: null,
+    image_url: participant.image_url || null,
+    enemy_image_offset_x: participant.enemy_image_offset_x ?? 50,
+    enemy_image_offset_y: participant.enemy_image_offset_y ?? 50,
+    enemy_image_scale: participant.enemy_image_scale ?? 1,
     color: participant.enemy_color || null,
     initiative: participant.initiative,
     order_index: order,
@@ -1400,7 +1419,10 @@ export async function duplicateEnemyMulti(
       character_id: null,
       participant_type: "enemy",
       display_name: `${baseName} ${startInstance + i}`,
-      image_url: null,
+      image_url: participant.image_url || null,
+      enemy_image_offset_x: participant.enemy_image_offset_x ?? 50,
+      enemy_image_offset_y: participant.enemy_image_offset_y ?? 50,
+      enemy_image_scale: participant.enemy_image_scale ?? 1,
       color: participant.enemy_color || null,
       initiative: participant.initiative,
       order_index: startOrder + i, // provisional; reassigned below

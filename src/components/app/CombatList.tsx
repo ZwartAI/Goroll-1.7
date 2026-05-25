@@ -12,7 +12,7 @@ import {
   type TurnBlock,
 } from "@/lib/combat";
 import { Crown, GripVertical } from "lucide-react";
-import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLongPress } from "@/hooks/useLongPress";
@@ -156,13 +156,14 @@ function TurnRow({
       opacity: defeated ? 0.55 : 1,
       ...dragStyle,
     } as const;
-    const isTierAsset = !!getEnemyAssetUrl(p.enemy_icon);
+    const customImg = getEnemyCustomImage(p);
+    const isTierAsset = !!customImg || !!getEnemyAssetUrl(p.enemy_icon);
     return (
       <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
         {dragHandle}
         <div className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
           style={{ borderColor: baseColor, color: baseColor }}>
-          <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} assetScale={isTierAsset ? 4 : 1} />
+          <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} assetScale={isTierAsset && !customImg ? 4 : 1} customImage={customImg} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-sm truncate" style={{ color: baseColor }}>
@@ -229,7 +230,7 @@ function TurnRow({
         {dragHandle}
         <div className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
           style={{ borderColor: baseColor, color: baseColor }}>
-          <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyAssetUrl(l.enemy_icon)} assetScale={getEnemyAssetUrl(l.enemy_icon) ? 4 : 1} />
+          <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyCustomImage(l) || !!getEnemyAssetUrl(l.enemy_icon)} assetScale={!getEnemyCustomImage(l) && getEnemyAssetUrl(l.enemy_icon) ? 4 : 1} customImage={getEnemyCustomImage(l)} />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-xs truncate" style={{ color: baseColor }}>
