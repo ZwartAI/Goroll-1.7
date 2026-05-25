@@ -23,6 +23,7 @@ const PORTRAIT_FRAME_LAYOUT = {
   levelY: 18.5,
   portraitOffsetX: -2,
   portraitOffsetY: -2,
+  portraitScale: 1.2,
 };
 
 
@@ -33,7 +34,7 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
   const scale = character.image_scale || 1;
   const lvl = level ?? (character as any).level ?? 1;
 
-  const { frameScale, frameOffsetX, frameOffsetY, levelX, levelY, portraitOffsetX, portraitOffsetY } = PORTRAIT_FRAME_LAYOUT;
+  const { frameScale, frameOffsetX, frameOffsetY, levelX, levelY, portraitOffsetX, portraitOffsetY, portraitScale } = PORTRAIT_FRAME_LAYOUT;
 
   const Inner = (
     <div
@@ -43,7 +44,7 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
       {/* Inner portrait area, inset to match the frame's inner opening (base, unscaled) */}
       <div
         className="absolute overflow-hidden bg-[var(--secondary)]"
-        style={{ inset: "9%", borderRadius: "6%", transform: `translate(${portraitOffsetX}%, ${portraitOffsetY}%)` }}
+        style={{ inset: "9%", borderRadius: "6%", transform: `translate(${portraitOffsetX}%, ${portraitOffsetY}%) scale(${portraitScale})`, transformOrigin: "center center" }}
       >
         {character.image_url ? (
           <img
