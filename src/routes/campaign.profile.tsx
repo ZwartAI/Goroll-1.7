@@ -87,7 +87,7 @@ function Profile() {
   // When opened from Escenario tab (or from the log), force read-only sheet.
   const [openCharReadOnly, setOpenCharReadOnly] = useState(false);
 
-  const coinsPress = useLongPress(() => setPurseOpen(true), 500);
+  
 
   const voice = useVoice(campaign?.id, character?.id);
   const [micSettingsOpen, setMicSettingsOpen] = useState(false);
