@@ -1033,7 +1033,7 @@ function MassGrant({ campaignId, dm, players, onlineIds }: {
           </button>
         </div>
         <div className="space-y-1">
-          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-right" value={lvl} onChange={e => setLvl(+e.target.value)} />
+          <input type="number" className="w-full bg-input border border-border rounded px-2 py-1 text-sm text-left" value={lvl} onChange={e => setLvl(+e.target.value)} />
           <button className="btn-fantasy w-full text-xs" disabled={!sel.size || lvl === 0} onClick={() => setConfirmKind("lvl")}
             style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}>
             {t("skills.levelUpSelected", { n: sel.size })}
