@@ -459,6 +459,7 @@ export type Database = {
           int_stat: number
           level: number
           name: string
+          portrait_frame_url: string | null
           race: string | null
           role: Database["public"]["Enums"]["character_role"]
           skill_points: number
@@ -498,6 +499,7 @@ export type Database = {
           int_stat?: number
           level?: number
           name: string
+          portrait_frame_url?: string | null
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
           skill_points?: number
@@ -537,6 +539,7 @@ export type Database = {
           int_stat?: number
           level?: number
           name?: string
+          portrait_frame_url?: string | null
           race?: string | null
           role?: Database["public"]["Enums"]["character_role"]
           skill_points?: number
