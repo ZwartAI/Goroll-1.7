@@ -139,6 +139,17 @@ export const es = {
     languagePromptTitle: "Elige tu idioma",
     languagePromptBody: "Selecciona cómo quieres ver toda la app. Esta preferencia se guardará en tu cuenta.",
   },
+  playerJoin: {
+    waitingTitle: "Esperando al Dungeon Master",
+    waitingBody: "Tu solicitud para unirte a {name} como jugador está pendiente.",
+    cancel: "Cancelar solicitud",
+    approved: "El DM aprobó tu solicitud de ingreso",
+    rejected: "El DM rechazó tu solicitud de ingreso",
+    alreadyPending: "Ya tienes una solicitud de ingreso pendiente.",
+    closedTitle: "Sin plazas disponibles",
+    closedBody: "Esta campaña no acepta nuevos jugadores en este momento. Aún puedes entrar como espectador.",
+    close: "Cerrar",
+  },
   conditionNames: {
     poisoned: "Envenenado",
     paralyzed: "Paralizado",
