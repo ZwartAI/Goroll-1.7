@@ -53,12 +53,17 @@ function hardenInput(el: HTMLInputElement | HTMLTextAreaElement) {
   if (!el.hasAttribute("data-dashlane-ignore")) el.setAttribute("data-dashlane-ignore", "true");
   if (!el.hasAttribute("data-form-type")) el.setAttribute("data-form-type", "other");
 
-  // Strip credential-ish name/id tokens so Chromium's heuristic classifier
-  // can't tag the field as a credential / payment / address input.
+  // Always replace name/id with a neutral token so Chromium's heuristic
+  // classifier (Android Chrome keyboard strip: passwords / cards / contacts /
+  // addresses) can't tag the field as anything. Opt out per-field with
+  // data-allow-autofill="true". The app does not rely on native form
+  // submission, so renaming `name` is safe.
+  // Keep CREDENTIAL_NAME_RE around as a doc of which tokens are dangerous.
+  void CREDENTIAL_NAME_RE;
   const nm = el.getAttribute("name");
-  if (!nm || CREDENTIAL_NAME_RE.test(nm)) el.setAttribute("name", neutralName());
+  if (!nm || !/^rpg-field-\d+$/.test(nm)) el.setAttribute("name", neutralName());
   const id = el.getAttribute("id");
-  if (id && CREDENTIAL_NAME_RE.test(id)) el.setAttribute("id", neutralName());
+  if (id && !/^rpg-field-\d+$/.test(id)) el.setAttribute("id", neutralName());
 }
 
 function hardenForm(form: HTMLFormElement) {
