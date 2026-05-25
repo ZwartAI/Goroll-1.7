@@ -27,6 +27,15 @@ import navHabilidades from "@/assets/nav/habilidades.png";
 import navNotas from "@/assets/nav/notas.png";
 import statsPanelImg from "@/assets/character-sheet/stats-panel.png";
 import pursePanelImg from "@/assets/character-sheet/purse-panel.png";
+import sfxEquipo from "@/assets/sounds/Equipamiento.mp3";
+import sfxMochila from "@/assets/sounds/Mochila.mp3";
+import sfxLogros from "@/assets/sounds/Logros.mp3";
+import sfxPotenciador from "@/assets/sounds/Potenciador.mp3";
+import sfxHabilidades from "@/assets/sounds/Habilidades.mp3";
+import sfxNotas from "@/assets/sounds/Notas.mp3";
+import sfxMonedero from "@/assets/sounds/Monedero.mp3";
+import sfxHp from "@/assets/sounds/HP.mp3";
+import { playSfx } from "@/lib/sound";
 import {
   CHARACTER_SHEET_ASSETS,
   preloadCharacterSheetAssets,
