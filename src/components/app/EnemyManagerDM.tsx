@@ -229,7 +229,7 @@ function EnemyRow({
           onClick={() => { if (!lp.didLongPress()) onSheet(); }}
           title={t("combat.enemy.openSheet")}
         >
-          <EnemyIcon name={p.enemy_icon} size={56} fill={isTierAsset} assetScale={isTierAsset && !customImg ? 4 : 1} customImage={customImg} />
+          <EnemyIcon name={p.enemy_icon} size={56} fill={isTierAsset} customImage={customImg} />
         </div>
 
         {/* Right: info + actions */}
