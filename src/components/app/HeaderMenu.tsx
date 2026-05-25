@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import {
   ChevronLeft, ChevronRight, X,
-  Mail, Trophy, Skull, Mic, MicOff, Maximize2, Minimize2, LogOut,
+  Mail, Trophy, Skull, Mic, MicOff, Maximize2, Minimize2, LogOut, BarChart3, Settings as SettingsIcon,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -270,6 +270,10 @@ export function useStandardHeaderItems(opts: {
   mailbox?: { onOpen: () => void };
   mic?: { enabled: boolean; toggle: () => void };
   fullscreen?: boolean;
+  /** Player-only: link to the per-character Stats page (replaces the old top icon). */
+  stats?: { to: string };
+  /** Opens the global app settings modal (theme/language). Available to every role. */
+  settings?: { onOpen: () => void };
   exit: { onExit: () => void };
 }): HeaderMenuItem[] {
   const { t } = useT();
@@ -285,6 +289,13 @@ export function useStandardHeaderItems(opts: {
 
   return useMemo(() => {
     const items: HeaderMenuItem[] = [];
+    // Stats is intentionally the very first entry when present (player only).
+    if (opts.stats) {
+      items.push({
+        key: "stats", label: t("headerMenu.stats"),
+        icon: BarChart3, to: opts.stats.to, color: "var(--gold)",
+      });
+    }
     if (opts.achievements) {
       items.push({
         key: "achievements", label: t("headerMenu.achievements"),
@@ -337,11 +348,18 @@ export function useStandardHeaderItems(opts: {
         },
       });
     }
+    if (opts.settings) {
+      items.push({
+        key: "appSettings", label: t("headerMenu.settings"),
+        icon: SettingsIcon, color: "oklch(0.75 0.06 220)",
+        onClick: opts.settings.onOpen,
+      });
+    }
     items.push({
       key: "exit", label: t("headerMenu.exit"),
       icon: LogOut, color: "oklch(0.65 0.12 25)",
       onClick: opts.exit.onExit,
     });
     return items;
-  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.exit]);
+  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.stats?.to, opts.settings, opts.exit]);
 }
