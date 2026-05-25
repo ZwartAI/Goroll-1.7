@@ -744,7 +744,8 @@ function Home() {
               const pct = Math.max(0, Math.min(100, (cur / max) * 100));
               return (
                 <button key={c.id} onClick={() => enterCampaign(campaign, c)}
-                  className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left hover:border-[var(--gold)]/60 transition flex items-center gap-3">
+                  className="no-hover-grow w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left hover:border-[var(--gold)]/60 transition flex items-center gap-3">
+
                   <CharacterPortrait character={c as any} className="w-12 h-12 shrink-0 border-2"
                     rounded="rounded-full" />
                   <div className="flex-1 min-w-0">
