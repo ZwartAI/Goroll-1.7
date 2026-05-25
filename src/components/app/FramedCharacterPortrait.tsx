@@ -29,7 +29,7 @@ const PORTRAIT_FRAME_LAYOUT = {
 };
 
 
-export function FramedCharacterPortrait({ character, onClick, ariaLabel, className = "", level }: Props) {
+export function FramedCharacterPortrait({ character, onClick, ariaLabel, className = "", level, damageFlashKey, healFlashKey }: Props) {
   const frameUrl = (character as any).portrait_frame_url || portraitFrameDefault;
   const ox = character.image_offset_x ?? 50;
   const oy = character.image_offset_y ?? 50;
