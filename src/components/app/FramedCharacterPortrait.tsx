@@ -106,7 +106,7 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
             top: `${levelY}%`,
             width: "12%",
             height: "12%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(calc(-50% + 2px), calc(-50% - 1px))",
             lineHeight: 1,
             zIndex: 10,
           }}
