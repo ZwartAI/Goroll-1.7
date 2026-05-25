@@ -726,46 +726,40 @@ function HpModal({
           </p>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[oklch(0.72_0.18_25)]">
+                {t("profile.hpSubtract")}
+              </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={subVal}
                 onChange={e => setSubVal(e.target.value.replace(/[^0-9]/g, ""))}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && sub && sub > 0) {
+                    await onApply(-sub);
+                    setSubVal("");
+                  }
+                }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
-              <button
-                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
-                style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
-                disabled={!sub || sub <= 0}
-                onClick={async () => {
-                  if (!sub || sub <= 0) return;
-                  await onApply(-sub);
-                  setSubVal("");
-                }}
-              >
-                <Minus size={11} /> {t("profile.hpSubtract")}
-              </button>
             </div>
             <div className="space-y-1">
+              <p className="text-[9px] uppercase tracking-widest text-center text-[var(--gold)]">
+                {t("profile.hpAdd")}
+              </p>
               <input
                 type="number" min={1} inputMode="numeric"
                 value={addVal}
                 onChange={e => setAddVal(e.target.value.replace(/[^0-9]/g, ""))}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && add && add > 0) {
+                    await onApply(add);
+                    setAddVal("");
+                  }
+                }}
                 placeholder={t("profile.hpAmountPh")}
                 className="w-full bg-input border border-border rounded px-2 py-1.5 text-center text-sm"
               />
-              <button
-                className="btn-fantasy w-full !py-1 !text-[11px] flex items-center justify-center gap-1"
-                style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-                disabled={!add || add <= 0}
-                onClick={async () => {
-                  if (!add || add <= 0) return;
-                  await onApply(add);
-                  setAddVal("");
-                }}
-              >
-                <Plus size={11} /> {t("profile.hpAdd")}
-              </button>
             </div>
           </div>
         </div>
