@@ -202,22 +202,57 @@ function Home() {
       data = r.data;
     }
     if (!data) return toast.error(t("home.errCampaignNotFound"));
-    // For player joins: check ban first; if banned, request rejoin instead of auto-joining.
     if (role === "player") {
+      // Already a member? enter directly.
+      const { data: mem } = await (supabase as any).from("campaign_members")
+        .select("role").eq("campaign_id", data.id).eq("user_id", user.id).maybeSingle();
+      if (mem) {
+        setJoinCode("");
+        await pickCampaign(data as Campaign);
+        return;
+      }
       const banned = await checkBan(data.id);
       if (banned) {
         setJoinCode("");
         setExpelledCampaign(data as Campaign);
         return;
       }
-      await (supabase as any).from("campaign_members")
-        .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
+      // Closed campaigns reject new players outright.
+      if ((data as any).player_join_mode === "closed") {
+        setJoinCode("");
+        setClosedCampaign(data as Campaign);
+        return;
+      }
+      // Otherwise: send a join request to the DM mailbox.
+      await requestPlayerJoin(data as Campaign);
+      setJoinCode("");
+      return;
     } else if (role === "spectator") {
       await (supabase as any).from("campaign_members")
         .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
     }
     setJoinCode("");
     await pickCampaign(data as Campaign);
+  }
+
+  async function requestPlayerJoin(c: Campaign) {
+    if (!user) return;
+    const { data: existing } = await (supabase as any).from("dm_join_requests")
+      .select("*").eq("campaign_id", c.id).eq("requester_user_id", user.id)
+      .eq("status", "pending").maybeSingle();
+    let reqId = existing?.id as string | undefined;
+    if (!reqId) {
+      const { data: ins, error } = await (supabase as any).from("dm_join_requests")
+        .insert({ campaign_id: c.id, requester_user_id: user.id, requester_username: user.username, status: "pending", kind: "player_join" })
+        .select().single();
+      if (error) { toast.error(error.message); return; }
+      reqId = ins.id as string;
+    } else {
+      toast.info(t("playerJoin.alreadyPending"));
+    }
+    setCampaign(c);
+    setWaitingKind("player_join");
+    setWaitingReqId(reqId!);
   }
 
   const COOLDOWN_KEY = (cid: string) => `codice.dmreq.cooldown.${cid}`;
