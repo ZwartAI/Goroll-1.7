@@ -274,9 +274,7 @@ function Profile() {
               ) : (
                 <button
                   type="button"
-                  {...coinsPress}
-                  onContextMenu={(e) => { e.preventDefault(); setPurseOpen(true); }}
-                  onDoubleClick={() => setPurseOpen(true)}
+                  onClick={() => setPurseOpen(true)}
                   aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
                   title={t("purse.openHint")}
                   className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96]"
