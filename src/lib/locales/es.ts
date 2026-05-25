@@ -218,6 +218,8 @@ export const es = {
     title: "Menú",
     achievements: "Logros",
     bestiary: "Bestiario",
+    stats: "Estadísticas",
+    settings: "Configuración",
     exit: "Salir / cambiar rol",
   },
   escenario: {
