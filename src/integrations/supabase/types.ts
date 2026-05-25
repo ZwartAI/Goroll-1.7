@@ -270,6 +270,7 @@ export type Database = {
           max_players: number
           name: string
           owner_user_id: string | null
+          player_join_mode: string
           single_dm_only: boolean
         }
         Insert: {
@@ -279,6 +280,7 @@ export type Database = {
           max_players?: number
           name: string
           owner_user_id?: string | null
+          player_join_mode?: string
           single_dm_only?: boolean
         }
         Update: {
@@ -288,6 +290,7 @@ export type Database = {
           max_players?: number
           name?: string
           owner_user_id?: string | null
+          player_join_mode?: string
           single_dm_only?: boolean
         }
         Relationships: []

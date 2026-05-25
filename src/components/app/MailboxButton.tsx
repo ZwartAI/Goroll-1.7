@@ -11,7 +11,7 @@ type Req = {
   requester_user_id: string;
   requester_username: string;
   status: string;
-  kind: "codm" | "player_rejoin";
+  kind: "codm" | "player_rejoin" | "player_join";
   created_at: string;
 };
 
@@ -64,6 +64,10 @@ export function MailboxButton({ className = "text-white" }: { className?: string
         await (supabase as any).from("campaign_members")
           .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "player" },
             { onConflict: "campaign_id,user_id" });
+      } else if (r.kind === "player_join") {
+        await (supabase as any).from("campaign_members")
+          .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "player" },
+            { onConflict: "campaign_id,user_id" });
       } else {
         await (supabase as any).from("campaign_members")
           .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "dm" },
@@ -107,7 +111,11 @@ export function MailboxButton({ className = "text-white" }: { className?: string
                 <div key={r.id} className="ornate-card p-3 space-y-2">
                   <p className="text-sm">
                     <span className="font-display text-[var(--gold)]">{r.requester_username}</span>{" "}
-                    {r.kind === "player_rejoin" ? t("mailbox.reqRejoin") : t("mailbox.reqCoDM")}
+                    {r.kind === "player_rejoin"
+                      ? t("mailbox.reqRejoin")
+                      : r.kind === "player_join"
+                        ? t("mailbox.reqPlayerJoin")
+                        : t("mailbox.reqCoDM")}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
                     {t("mailbox.ofCampaign", { name: campaignNames[r.campaign_id] || "—" })}

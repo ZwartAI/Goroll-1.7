@@ -29,7 +29,7 @@ export function DMRequestGate({ campaignId, ownerUserId }: { campaignId: string;
   const reload = useCallback(async () => {
     if (!isOwner) return;
     const { data } = await (supabase as any).from("dm_join_requests")
-      .select("*").eq("campaign_id", campaignId).eq("status", "pending")
+      .select("*").eq("campaign_id", campaignId).eq("status", "pending").eq("kind", "codm")
       .order("created_at", { ascending: true });
     setPending((data || []) as Req[]);
   }, [campaignId, isOwner]);

@@ -57,7 +57,8 @@ function Home() {
   const [singleDmOnly, setSingleDmOnly] = useState(false);
   const [lockNames, setLockNames] = useState(false);
   const [waitingReqId, setWaitingReqId] = useState<string | null>(null);
-  const [waitingKind, setWaitingKind] = useState<"codm" | "player_rejoin">("codm");
+  const [waitingKind, setWaitingKind] = useState<"codm" | "player_rejoin" | "player_join">("codm");
+  const [closedCampaign, setClosedCampaign] = useState<Campaign | null>(null);
   const [actionCampaign, setActionCampaign] = useState<Campaign | null>(null);
   const [expelledCampaign, setExpelledCampaign] = useState<Campaign | null>(null);
   const [showAppSettings, setShowAppSettings] = useState(false);
@@ -201,22 +202,57 @@ function Home() {
       data = r.data;
     }
     if (!data) return toast.error(t("home.errCampaignNotFound"));
-    // For player joins: check ban first; if banned, request rejoin instead of auto-joining.
     if (role === "player") {
+      // Already a member? enter directly.
+      const { data: mem } = await (supabase as any).from("campaign_members")
+        .select("role").eq("campaign_id", data.id).eq("user_id", user.id).maybeSingle();
+      if (mem) {
+        setJoinCode("");
+        await pickCampaign(data as Campaign);
+        return;
+      }
       const banned = await checkBan(data.id);
       if (banned) {
         setJoinCode("");
         setExpelledCampaign(data as Campaign);
         return;
       }
-      await (supabase as any).from("campaign_members")
-        .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
+      // Closed campaigns reject new players outright.
+      if ((data as any).player_join_mode === "closed") {
+        setJoinCode("");
+        setClosedCampaign(data as Campaign);
+        return;
+      }
+      // Otherwise: send a join request to the DM mailbox.
+      await requestPlayerJoin(data as Campaign);
+      setJoinCode("");
+      return;
     } else if (role === "spectator") {
       await (supabase as any).from("campaign_members")
         .upsert({ campaign_id: data.id, user_id: user.id, role }, { onConflict: "campaign_id,user_id" });
     }
     setJoinCode("");
     await pickCampaign(data as Campaign);
+  }
+
+  async function requestPlayerJoin(c: Campaign) {
+    if (!user) return;
+    const { data: existing } = await (supabase as any).from("dm_join_requests")
+      .select("*").eq("campaign_id", c.id).eq("requester_user_id", user.id)
+      .eq("status", "pending").maybeSingle();
+    let reqId = existing?.id as string | undefined;
+    if (!reqId) {
+      const { data: ins, error } = await (supabase as any).from("dm_join_requests")
+        .insert({ campaign_id: c.id, requester_user_id: user.id, requester_username: user.username, status: "pending", kind: "player_join" })
+        .select().single();
+      if (error) { toast.error(error.message); return; }
+      reqId = ins.id as string;
+    } else {
+      toast.info(t("playerJoin.alreadyPending"));
+    }
+    setCampaign(c);
+    setWaitingKind("player_join");
+    setWaitingReqId(reqId!);
   }
 
   const COOLDOWN_KEY = (cid: string) => `codice.dmreq.cooldown.${cid}`;
@@ -299,6 +335,15 @@ function Home() {
           toast.success(t("rejoin.approved"));
           setWaitingReqId(null);
           setStep("character");
+        } else if (waitingKind === "player_join") {
+          // DM accepted: server-side membership was created by the approval handler.
+          // Make sure we are registered as a player member here too (safety net).
+          await (supabase as any).from("campaign_members")
+            .upsert({ campaign_id: campaign.id, user_id: user.id, role: "player" },
+              { onConflict: "campaign_id,user_id" });
+          toast.success(t("playerJoin.approved"));
+          setWaitingReqId(null);
+          setStep("character");
         } else {
           toast.success(t("home.reqApproved"));
           await enterAsDM(campaign);
@@ -306,6 +351,8 @@ function Home() {
       } else {
         if (waitingKind === "player_rejoin") {
           toast.error(t("rejoin.rejected"));
+        } else if (waitingKind === "player_join") {
+          toast.error(t("playerJoin.rejected"));
         } else {
           const cooldownUntil = Date.now() + 60_000;
           try { localStorage.setItem(COOLDOWN_KEY(campaign.id), String(cooldownUntil)); } catch {}
@@ -597,24 +644,46 @@ function Home() {
         </div>
       )}
 
-      {waitingReqId && campaign && (
+      {!waitingReqId && closedCampaign && (
         <div className="ornate-card p-6 space-y-4 text-center">
-          <div className="text-5xl">⏳</div>
-          <h2 className="font-display text-lg text-[var(--gold)]">
-            {waitingKind === "player_rejoin" ? t("rejoin.waitingTitle") : t("home.waitingTitle")}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {waitingKind === "player_rejoin"
-              ? t("rejoin.waitingBody", { name: campaign.name })
-              : t("home.waitingBody", { name: campaign.name })}
-          </p>
-          <button className="btn-fantasy w-full" onClick={cancelCoDMRequest}>
-            {waitingKind === "player_rejoin" ? t("rejoin.cancel") : t("home.cancelRequest")}
+          <div className="text-5xl">🔒</div>
+          <h2 className="font-display text-lg text-[var(--loss)]">{t("playerJoin.closedTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("playerJoin.closedBody")}</p>
+          <p className="text-xs text-muted-foreground">{closedCampaign.name}</p>
+          <button className="btn-fantasy w-full" onClick={() => setClosedCampaign(null)}>
+            {t("playerJoin.close")}
           </button>
         </div>
       )}
 
-      {!waitingReqId && !expelledCampaign && step === "campaign" && user && (
+      {waitingReqId && campaign && (
+        <div className="ornate-card p-6 space-y-4 text-center">
+          <div className="text-5xl">⏳</div>
+          <h2 className="font-display text-lg text-[var(--gold)]">
+            {waitingKind === "player_rejoin"
+              ? t("rejoin.waitingTitle")
+              : waitingKind === "player_join"
+                ? t("playerJoin.waitingTitle")
+                : t("home.waitingTitle")}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {waitingKind === "player_rejoin"
+              ? t("rejoin.waitingBody", { name: campaign.name })
+              : waitingKind === "player_join"
+                ? t("playerJoin.waitingBody", { name: campaign.name })
+                : t("home.waitingBody", { name: campaign.name })}
+          </p>
+          <button className="btn-fantasy w-full" onClick={cancelCoDMRequest}>
+            {waitingKind === "player_rejoin"
+              ? t("rejoin.cancel")
+              : waitingKind === "player_join"
+                ? t("playerJoin.cancel")
+                : t("home.cancelRequest")}
+          </button>
+        </div>
+      )}
+
+      {!waitingReqId && !expelledCampaign && !closedCampaign && step === "campaign" && user && (
         <div className="ornate-card p-5 space-y-4">
           <h2 className="text-center font-display text-lg">{t("home.myCampaigns")}</h2>
           <input className="w-full rounded-md bg-input border border-border px-3 py-2 text-sm"

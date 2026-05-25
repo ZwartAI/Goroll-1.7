@@ -14,7 +14,7 @@ type Req = {
   requester_user_id: string;
   requester_username: string;
   status: string;
-  kind: "codm" | "player_rejoin";
+  kind: "codm" | "player_rejoin" | "player_join";
   created_at: string;
 };
 
@@ -24,6 +24,9 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
   const [requests, setRequests] = useState<Req[]>([]);
   const [singleDmOnly, setSingleDmOnly] = useState<boolean>(!!(campaign as any).single_dm_only);
   const [lockNames, setLockNames] = useState<boolean>(!!(campaign as any).lock_character_names);
+  const [joinMode, setJoinMode] = useState<"request" | "closed">(
+    ((campaign as any).player_join_mode as "request" | "closed") || "request",
+  );
   const [busy, setBusy] = useState(false);
   const { t } = useT();
   const me = getStoredUser();
@@ -129,6 +132,10 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
           await (supabase as any).from("campaign_members")
             .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "player" },
               { onConflict: "campaign_id,user_id" });
+        } else if (r.kind === "player_join") {
+          await (supabase as any).from("campaign_members")
+            .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "player" },
+              { onConflict: "campaign_id,user_id" });
         } else {
           await (supabase as any).from("campaign_members")
             .upsert({ campaign_id: r.campaign_id, user_id: r.requester_user_id, role: "dm" },
@@ -146,7 +153,7 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
     setBusy(true);
     try {
       await (supabase as any).from("campaigns")
-        .update({ single_dm_only: singleDmOnly, lock_character_names: lockNames })
+        .update({ single_dm_only: singleDmOnly, lock_character_names: lockNames, player_join_mode: joinMode })
         .eq("id", campaign.id);
       toastSaved();
     } finally { setBusy(false); }
@@ -170,6 +177,27 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
           <input type="checkbox" checked={lockNames} onChange={e => setLockNames(e.target.checked)} />
           {t("campaign.lockNamesRule")}
         </label>
+        <div className="pt-1 space-y-1">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("campaign.joinModeLabel")}</p>
+          <label className="flex items-center gap-2 text-xs cursor-pointer">
+            <input
+              type="radio"
+              name="joinMode"
+              checked={joinMode === "request"}
+              onChange={() => setJoinMode("request")}
+            />
+            {t("campaign.joinModeRequest")}
+          </label>
+          <label className="flex items-center gap-2 text-xs cursor-pointer">
+            <input
+              type="radio"
+              name="joinMode"
+              checked={joinMode === "closed"}
+              onChange={() => setJoinMode("closed")}
+            />
+            {t("campaign.joinModeClosed")}
+          </label>
+        </div>
         <button className="btn-fantasy w-full text-xs" disabled={busy} onClick={saveFlags}>{t("campaign.saveRules")}</button>
       </div>
 
@@ -184,10 +212,18 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
           <div key={r.id} className="bg-secondary/40 rounded px-2 py-2 space-y-1">
             <p className="text-xs">
               <span className="font-display text-[var(--gold)]">{r.requester_username}</span>{" "}
-              {r.kind === "player_rejoin" ? t("mailbox.reqRejoin") : t("mailbox.reqCoDM")}
+              {r.kind === "player_rejoin"
+                ? t("mailbox.reqRejoin")
+                : r.kind === "player_join"
+                  ? t("mailbox.reqPlayerJoin")
+                  : t("mailbox.reqCoDM")}
             </p>
             <p className="text-[9px] uppercase text-muted-foreground tracking-widest">
-              {r.kind === "player_rejoin" ? t("membersExtra.kindRejoin") : t("membersExtra.kindCoDM")}
+              {r.kind === "player_rejoin"
+                ? t("membersExtra.kindRejoin")
+                : r.kind === "player_join"
+                  ? t("membersExtra.kindPlayerJoin")
+                  : t("membersExtra.kindCoDM")}
             </p>
             <div className="grid grid-cols-2 gap-1">
               <button disabled={busy} onClick={() => decideRequest(r, true)}
