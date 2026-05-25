@@ -38,6 +38,8 @@ export function LevelUpModal({
     if (lvl > lastLevelRef.current) {
       lastLevelRef.current = lvl;
       setShownLevel(lvl);
+      // One-shot victory SFX (preloaded above for instant playback).
+      try { playSfx(sfxVictory); } catch { /* ignore */ }
       // fire confetti shortly after mount
       requestAnimationFrame(() => {
         try {
