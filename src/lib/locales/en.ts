@@ -783,6 +783,7 @@ export const en: Dict = {
     ofCampaign: "in {name}",
     reqCoDM: "wants to join as Co-DM",
     reqRejoin: "is asking to rejoin the campaign",
+    reqPlayerJoin: "wants to join as a player",
     accept: "Accept",
     reject: "Reject",
     acceptedToast: "Request accepted",
