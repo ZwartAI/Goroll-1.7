@@ -12,7 +12,7 @@ import {
   type TurnBlock,
 } from "@/lib/combat";
 import { Crown, GripVertical } from "lucide-react";
-import { EnemyIcon, getEnemyAssetUrl } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLongPress } from "@/hooks/useLongPress";
