@@ -268,6 +268,8 @@ function Profile() {
               <FramedCharacterPortrait
                 character={character}
                 level={(character as any).level ?? 1}
+                damageFlashKey={damageKey}
+                healFlashKey={healKey}
                 ariaLabel={t("profile.editImageAria")}
                 onClick={() => {
                   if (character.image_url || (character as any).body_image_url) {
