@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { useT } from "@/lib/i18n";
 import { Sparkles, X } from "lucide-react";
+import sfxVictory from "@/assets/sounds/Victory.mp3";
+import { playSfx, preloadSfx } from "@/lib/sound";
+
+// Warm the buffer as soon as this module loads so the SFX is essentially
+// instant the first time a player levels up.
+preloadSfx([sfxVictory]);
 
 /**
  * Watches a character's level. When it goes UP (and only for the player viewing
