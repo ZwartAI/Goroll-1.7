@@ -35,6 +35,8 @@ import sfxHabilidades from "@/assets/sounds/Habilidades.mp3";
 import sfxNotas from "@/assets/sounds/Notas.mp3";
 import sfxMonedero from "@/assets/sounds/Monedero.mp3";
 import sfxHp from "@/assets/sounds/HP.mp3";
+import sfxSubtract from "@/assets/sounds/Subtract.mp3";
+import sfxHeal from "@/assets/sounds/Heal.mp3";
 import { playSfx, preloadSfx } from "@/lib/sound";
 import {
   CHARACTER_SHEET_ASSETS,
