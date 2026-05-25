@@ -74,6 +74,12 @@ export function FramedCharacterPortrait({ character, onClick, ariaLabel, classNa
             </span>
           </div>
         )}
+        {damageFlashKey ? (
+          <div key={`dmg-${damageFlashKey}`} className="cs-damage-overlay" aria-hidden />
+        ) : null}
+        {healFlashKey ? (
+          <div key={`heal-${healFlashKey}`} className="cs-heal-overlay" aria-hidden />
+        ) : null}
       </div>
 
       {/* Scaled frame + level wrapper — overflows base square upward/left */}
