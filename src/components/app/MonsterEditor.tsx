@@ -67,6 +67,12 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
   const [behavior, setBehavior] = useState(editing?.behavior_notes || "");
   const [weaknesses, setWeaknesses] = useState(editing?.weaknesses_text || "");
   const [immunities, setImmunities] = useState<string[]>(editing?.immunities || []);
+  const [image, setImage] = useState<EnemyImageState>({
+    url: (editing as any)?.image_url || "",
+    offsetX: (editing as any)?.image_offset_x ?? 50,
+    offsetY: (editing as any)?.image_offset_y ?? 50,
+    scale: (editing as any)?.image_scale ?? 1,
+  });
   const [busy, setBusy] = useState(false);
 
   // Saved-side skills (when editing) + local-only skills (pre-save).
