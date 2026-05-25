@@ -70,9 +70,9 @@ export function MonsterEditor({ campaignId, dm, editing, onClose, onSaved }: Pro
   const [immunities, setImmunities] = useState<string[]>(editing?.immunities || []);
   const [image, setImage] = useState<EnemyImageState>({
     url: (editing as any)?.image_url || "",
-    offsetX: (editing as any)?.image_offset_x ?? 50,
-    offsetY: (editing as any)?.image_offset_y ?? 50,
-    scale: (editing as any)?.image_scale ?? 1,
+    offsetX: Number((editing as any)?.image_offset_x ?? 50),
+    offsetY: Number((editing as any)?.image_offset_y ?? 50),
+    scale: Number((editing as any)?.image_scale ?? 1),
   });
   const [busy, setBusy] = useState(false);
 
