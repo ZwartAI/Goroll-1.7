@@ -785,6 +785,7 @@ export const es = {
     ofCampaign: "en {name}",
     reqCoDM: "quiere unirse como Co-DM",
     reqRejoin: "pide reingresar a la campaña",
+    reqPlayerJoin: "quiere unirse como jugador",
     accept: "Aceptar",
     reject: "Rechazar",
     acceptedToast: "Solicitud aceptada",
