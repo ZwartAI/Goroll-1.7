@@ -35,7 +35,7 @@ import sfxHabilidades from "@/assets/sounds/Habilidades.mp3";
 import sfxNotas from "@/assets/sounds/Notas.mp3";
 import sfxMonedero from "@/assets/sounds/Monedero.mp3";
 import sfxHp from "@/assets/sounds/HP.mp3";
-import { playSfx } from "@/lib/sound";
+import { playSfx, preloadSfx } from "@/lib/sound";
 import {
   CHARACTER_SHEET_ASSETS,
   preloadCharacterSheetAssets,
@@ -64,14 +64,35 @@ import { InitialStatsSetupModal } from "@/components/app/InitialStatsSetupModal"
 // role is selected, so assets are usually already warm by the time we get here).
 preloadCharacterSheetAssets();
 
+const CHARACTER_SHEET_SFX = [
+  sfxEquipo,
+  sfxMochila,
+  sfxLogros,
+  sfxPotenciador,
+  sfxHabilidades,
+  sfxNotas,
+  sfxMonedero,
+  sfxHp,
+];
+
+preloadSfx(CHARACTER_SHEET_SFX);
+
 export const Route = createFileRoute("/campaign/profile")({
   head: () => ({
-    links: CHARACTER_SHEET_ASSETS.map((href) => ({
-      rel: "preload",
-      as: "image" as const,
-      href,
-      fetchpriority: "high",
-    })),
+    links: [
+      ...CHARACTER_SHEET_ASSETS.map((href) => ({
+        rel: "preload",
+        as: "image" as const,
+        href,
+        fetchpriority: "high",
+      })),
+      ...CHARACTER_SHEET_SFX.map((href) => ({
+        rel: "preload",
+        as: "audio" as const,
+        href,
+        type: "audio/mpeg",
+      })),
+    ],
   }),
   component: Profile,
 });
@@ -284,7 +305,11 @@ function Profile() {
                 <button
                   type="button"
                   data-sfx
-                  onClick={() => { playSfx(sfxMonedero); setPurseOpen(true); }}
+                  onPointerDown={() => playSfx(sfxMonedero)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") playSfx(sfxMonedero);
+                  }}
+                  onClick={() => { setPurseOpen(true); }}
                   aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
                   title={t("purse.openHint")}
                   className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96]"
@@ -334,7 +359,11 @@ function Profile() {
               <button
                 type="button"
                 data-sfx
-                onClick={() => { playSfx(sfxHp); setHpModal(true); }}
+                onPointerDown={() => playSfx(sfxHp)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") playSfx(sfxHp);
+                }}
+                onClick={() => { setHpModal(true); }}
                 aria-label={`${t("profile.modifyHpAria")} (${character.current_hp}/${stats.maxHp})`}
                 title={t("profile.modifyHpAria")}
                 className="shrink-0 flex items-center justify-center transition-transform active:scale-95 bg-transparent border-0 p-0 -ml-2"
@@ -375,7 +404,10 @@ function Profile() {
                 to={b.to}
                 aria-label={b.label}
                 data-sfx
-                onClick={() => playSfx(b.sfx)}
+                onPointerDown={() => playSfx(b.sfx)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") playSfx(b.sfx);
+                }}
                 className="block min-w-0 transition-transform duration-150 ease-out active:scale-[0.94]"
                 style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
               >
