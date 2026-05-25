@@ -126,6 +126,22 @@ export function mountGlobalClickSound() {
     const t = e.target as HTMLElement | null;
     if (!t) return;
     const el = t.closest("button, a, [role='button'], input[type='button'], input[type='submit']");
-    if (el) playClick();
+    if (!el) return;
+    // Skip if this element (or ancestor) opts out via data-sfx (custom SFX handles its own sound).
+    if ((el as HTMLElement).closest("[data-sfx]")) return;
+    playClick();
   }, true);
+}
+
+/**
+ * Play a one-shot sound effect from a URL. Each call plays once and survives
+ * client-side navigation (detached HTMLAudioElement tied to the document).
+ */
+export function playSfx(url: string) {
+  if (!isSoundOn() || typeof window === "undefined") return;
+  try {
+    const a = new Audio(url);
+    a.volume = 0.9;
+    void a.play().catch(() => {});
+  } catch { /* ignore */ }
 }

@@ -27,6 +27,15 @@ import navHabilidades from "@/assets/nav/habilidades.png";
 import navNotas from "@/assets/nav/notas.png";
 import statsPanelImg from "@/assets/character-sheet/stats-panel.png";
 import pursePanelImg from "@/assets/character-sheet/purse-panel.png";
+import sfxEquipo from "@/assets/sounds/Equipamiento.mp3";
+import sfxMochila from "@/assets/sounds/Mochila.mp3";
+import sfxLogros from "@/assets/sounds/Logros.mp3";
+import sfxPotenciador from "@/assets/sounds/Potenciador.mp3";
+import sfxHabilidades from "@/assets/sounds/Habilidades.mp3";
+import sfxNotas from "@/assets/sounds/Notas.mp3";
+import sfxMonedero from "@/assets/sounds/Monedero.mp3";
+import sfxHp from "@/assets/sounds/HP.mp3";
+import { playSfx } from "@/lib/sound";
 import {
   CHARACTER_SHEET_ASSETS,
   preloadCharacterSheetAssets,
@@ -274,7 +283,8 @@ function Profile() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setPurseOpen(true)}
+                  data-sfx
+                  onClick={() => { playSfx(sfxMonedero); setPurseOpen(true); }}
                   aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
                   title={t("purse.openHint")}
                   className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96]"
@@ -323,7 +333,8 @@ function Profile() {
             <div className="flex items-center gap-2 h-full">
               <button
                 type="button"
-                onClick={() => setHpModal(true)}
+                data-sfx
+                onClick={() => { playSfx(sfxHp); setHpModal(true); }}
                 aria-label={`${t("profile.modifyHpAria")} (${character.current_hp}/${stats.maxHp})`}
                 title={t("profile.modifyHpAria")}
                 className="shrink-0 flex items-center justify-center transition-transform active:scale-95 bg-transparent border-0 p-0 -ml-2"
@@ -352,17 +363,19 @@ function Profile() {
           {/* Quick links — single row of 6 vertical asset buttons */}
           <div className="grid grid-cols-6 gap-1 mb-4">
             {[
-              { to: "/campaign/equipment", src: navEquipo, label: t("profile.quickEquip") },
-              { to: "/campaign/inventory", src: navMochila, label: t("profile.quickInv") },
-              { to: "/campaign/achievements", src: navLogros, label: t("profile.quickAch") },
-              { to: "/campaign/boosters", src: navPotenciadores, label: t("profile.quickBoost") },
-              { to: "/campaign/skills", src: navHabilidades, label: t("skills.title") },
-              { to: "/campaign/notes", src: navNotas, label: t("profile.quickNotes") },
+              { to: "/campaign/equipment", src: navEquipo, label: t("profile.quickEquip"), sfx: sfxEquipo },
+              { to: "/campaign/inventory", src: navMochila, label: t("profile.quickInv"), sfx: sfxMochila },
+              { to: "/campaign/achievements", src: navLogros, label: t("profile.quickAch"), sfx: sfxLogros },
+              { to: "/campaign/boosters", src: navPotenciadores, label: t("profile.quickBoost"), sfx: sfxPotenciador },
+              { to: "/campaign/skills", src: navHabilidades, label: t("skills.title"), sfx: sfxHabilidades },
+              { to: "/campaign/notes", src: navNotas, label: t("profile.quickNotes"), sfx: sfxNotas },
             ].map((b) => (
               <Link
                 key={b.to}
                 to={b.to}
                 aria-label={b.label}
+                data-sfx
+                onClick={() => playSfx(b.sfx)}
                 className="block min-w-0 transition-transform duration-150 ease-out active:scale-[0.94]"
                 style={{ WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
               >
