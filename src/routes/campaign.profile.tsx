@@ -126,6 +126,29 @@ function Profile() {
   const voice = useVoice(campaign?.id, character?.id);
   const [micSettingsOpen, setMicSettingsOpen] = useState(false);
 
+  // HP feedback (sound + visual). Plays Subtract.mp3 on damage, Heal.mp3 on healing,
+  // and triggers a localized portrait overlay + screen shake on damage.
+  const [damageKey, setDamageKey] = useState<number | null>(null);
+  const [healKey, setHealKey] = useState<number | null>(null);
+  const [shakeKey, setShakeKey] = useState<number | null>(null);
+  const prevHpRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!character) return;
+    const cur = character.current_hp;
+    const prev = prevHpRef.current;
+    prevHpRef.current = cur;
+    if (prev == null || prev === cur) return;
+    if (cur < prev) {
+      playSfx(sfxSubtract);
+      const k = Date.now();
+      setDamageKey(k);
+      setShakeKey(k);
+    } else if (cur > prev) {
+      playSfx(sfxHeal);
+      setHealKey(Date.now());
+    }
+  }, [character?.current_hp]);
+
   if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("profile.loading")}</p></PageFrame>;
 
   const equipped = items.filter(i => i.owner_character_id === character.id && i.equipped);
