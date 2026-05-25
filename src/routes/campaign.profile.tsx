@@ -283,7 +283,8 @@ function Profile() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setPurseOpen(true)}
+                  data-sfx
+                  onClick={() => { playSfx(sfxMonedero); setPurseOpen(true); }}
                   aria-label={`${t("purse.openHint")} — ${t("profile.coins")} ${character.coins}`}
                   title={t("purse.openHint")}
                   className="relative w-full block p-0 bg-transparent border-0 select-none transition-transform active:scale-[0.96]"
