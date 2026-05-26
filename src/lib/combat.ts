@@ -1294,6 +1294,10 @@ export type EnemyAttackOptions = {
   distribution: EnemyAttackDistribution;
   /** If true, expand selected targets to include all members of their turn_group_id. */
   spreadToLinkGroup: boolean;
+  /** Optional label for the log header (e.g. enemy skill name). */
+  sourceLabel?: string;
+  /** Encounter id; required to consume per-character temporary shields. */
+  encounterId?: string;
 };
 
 /**
@@ -1301,7 +1305,8 @@ export type EnemyAttackOptions = {
  * Per-target flow:
  *   1) Compute base hit (from distribution).
  *   2) Subtract that character's total defense (if useDefense).
- *   3) Reduce current_hp; clamp at 0.
+ *   3) Absorb remainder with temporary shields (oldest first).
+ *   4) Reduce current_hp; clamp at 0.
  * Writes one consolidated log entry.
  */
 export async function applyEnemyAttackToPlayers(
@@ -1315,6 +1320,7 @@ export async function applyEnemyAttackToPlayers(
 
   // Expand to link groups if requested.
   let targetIds = Array.from(new Set(opts.targetCharacterIds));
+  const linkAdded = new Set<string>();
   if (opts.spreadToLinkGroup) {
     const groupIds = new Set<string>();
     for (const id of targetIds) {
@@ -1326,30 +1332,79 @@ export async function applyEnemyAttackToPlayers(
         .filter(pp => pp.participant_type === "player" && pp.turn_group_id && groupIds.has(pp.turn_group_id))
         .map(pp => pp.character_id!)
         .filter(Boolean);
+      const before = new Set(targetIds);
       targetIds = Array.from(new Set([...targetIds, ...extra]));
+      for (const id of targetIds) if (!before.has(id)) linkAdded.add(id);
     }
   }
   if (targetIds.length === 0) return { ok: false as const, reason: "no_targets" };
 
-  // Per-target hit pre-defense.
-  const perHit = opts.distribution === "split"
-    ? Math.max(1, Math.ceil(baseDamage / targetIds.length))
-    : baseDamage;
+  // Per-target hit pre-defense. Split distributes as evenly as possible
+  // with leftover going to the first targets (e.g. 10/3 → 4,3,3).
+  let perHits: number[];
+  if (opts.distribution === "split") {
+    const base = Math.floor(baseDamage / targetIds.length);
+    const remainder = baseDamage - base * targetIds.length;
+    perHits = targetIds.map((_, i) => Math.max(0, base + (i < remainder ? 1 : 0)));
+  } else {
+    perHits = targetIds.map(() => baseDamage);
+  }
 
-  // Fetch characters + equipped items in parallel.
-  const [chRes, itRes] = await Promise.all([
+  // Fetch characters, equipped items, and active shields in parallel.
+  const [chRes, itRes, shRes] = await Promise.all([
     supabase.from("characters").select("*").in("id", targetIds),
     supabase.from("items").select("*").in("owner_character_id", targetIds).eq("equipped", true),
+    opts.encounterId
+      ? (supabase as any)
+          .from("combat_temporary_effects")
+          .select("id,target_character_id,value,created_at")
+          .eq("encounter_id", opts.encounterId)
+          .eq("effect_type", "shield")
+          .in("target_character_id", targetIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
   const chars = (chRes.data || []) as Character[];
   const items = (itRes.data || []) as Item[];
+  const shields = (((shRes as any).data) || []) as Array<{
+    id: string; target_character_id: string; value: number; created_at: string;
+  }>;
 
-  const results: { name: string; color: string | null; id: string; applied: number; def: number; defeated: boolean }[] = [];
+  const results: {
+    name: string; color: string | null; id: string;
+    applied: number; def: number; absorbed: number;
+    defeated: boolean; viaLink: boolean;
+  }[] = [];
 
-  for (const ch of chars) {
-    const equipped = items.filter(i => i.owner_character_id === ch.id);
+  for (let i = 0; i < targetIds.length; i++) {
+    const cid = targetIds[i];
+    const ch = chars.find(c => c.id === cid);
+    if (!ch) continue;
+    const equipped = items.filter(it => it.owner_character_id === ch.id);
     const def = totals(ch, equipped).defense;
-    const applied = Math.max(0, perHit - (opts.useDefense ? def : 0));
+    const afterDef = Math.max(0, perHits[i] - (opts.useDefense ? def : 0));
+
+    // Absorb with shields, oldest first.
+    let remaining = afterDef;
+    let absorbed = 0;
+    const charShields = shields
+      .filter(s => s.target_character_id === ch.id && (s.value || 0) > 0)
+      .sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
+    for (const sh of charShields) {
+      if (remaining <= 0) break;
+      const take = Math.min(sh.value, remaining);
+      if (take > 0) {
+        absorbed += take;
+        remaining -= take;
+        sh.value -= take;
+        if (sh.value <= 0) {
+          await (supabase as any).from("combat_temporary_effects").delete().eq("id", sh.id);
+        } else {
+          await (supabase as any).from("combat_temporary_effects").update({ value: sh.value }).eq("id", sh.id);
+        }
+      }
+    }
+
+    const applied = remaining;
     const newHp = Math.max(0, ch.current_hp - applied);
     if (applied > 0) {
       const maxHp = totals(ch, equipped).maxHp;
@@ -1362,18 +1417,27 @@ export async function applyEnemyAttackToPlayers(
       id: ch.id,
       applied,
       def: opts.useDefense ? def : 0,
+      absorbed,
       defeated: newHp <= 0 && ch.current_hp > 0,
+      viaLink: linkAdded.has(cid),
     });
   }
 
-  // Log: "<Enemy> atacó: [name] -X (DEF Y), [name] -X (DEF Y)..."
-  const segs: any[] = [
-    { t: "text", v: `${enemy.display_name} atacó: ` },
-  ];
-  results.forEach((r, i) => {
-    if (i > 0) segs.push({ t: "text", v: ", " });
+  // Log header: include skill name if provided.
+  const header = opts.sourceLabel
+    ? `${enemy.display_name} · ${opts.sourceLabel}: `
+    : `${enemy.display_name} atacó: `;
+  const segs: any[] = [{ t: "text", v: header }];
+  results.forEach((r, idx) => {
+    if (idx > 0) segs.push({ t: "text", v: ", " });
     segs.push({ t: "char", v: r.name, color: r.color || undefined, id: r.id });
-    segs.push({ t: "text", v: ` -${r.applied}${opts.useDefense ? ` (DEF ${r.def})` : ""}${r.defeated ? " ☠" : ""}` });
+    const parts: string[] = [];
+    if (r.absorbed > 0) parts.push(`🛡-${r.absorbed}`);
+    parts.push(`-${r.applied}`);
+    if (opts.useDefense) parts.push(`(DEF ${r.def})`);
+    if (r.viaLink) parts.push("⛓");
+    if (r.defeated) parts.push("☠");
+    segs.push({ t: "text", v: ` ${parts.join(" ")}` });
   });
   await pushLog(enemy.campaign_id, segs as any);
 
