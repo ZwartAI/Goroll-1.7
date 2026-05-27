@@ -607,10 +607,12 @@ export type Database = {
           encounter_id: string
           id: string
           name: string
+          npc_template_id: string | null
           order_index: number
           range_text: string | null
           rarity: Database["public"]["Enums"]["item_rarity"]
           skill_type: string | null
+          source_kind: string
           target_shape: string | null
           targets: string | null
           template_skill_id: string | null
@@ -625,10 +627,12 @@ export type Database = {
           encounter_id: string
           id?: string
           name: string
+          npc_template_id?: string | null
           order_index?: number
           range_text?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
           skill_type?: string | null
+          source_kind?: string
           target_shape?: string | null
           targets?: string | null
           template_skill_id?: string | null
@@ -643,10 +647,12 @@ export type Database = {
           encounter_id?: string
           id?: string
           name?: string
+          npc_template_id?: string | null
           order_index?: number
           range_text?: string | null
           rarity?: Database["public"]["Enums"]["item_rarity"]
           skill_type?: string | null
+          source_kind?: string
           target_shape?: string | null
           targets?: string | null
           template_skill_id?: string | null
@@ -686,6 +692,8 @@ export type Database = {
           is_defeated: boolean
           is_enemy_visible: boolean
           is_leader: boolean
+          npc_disposition: string | null
+          npc_template_id: string | null
           order_index: number
           participant_type: string
           turn_group_id: string | null
@@ -721,6 +729,8 @@ export type Database = {
           is_defeated?: boolean
           is_enemy_visible?: boolean
           is_leader?: boolean
+          npc_disposition?: string | null
+          npc_template_id?: string | null
           order_index?: number
           participant_type?: string
           turn_group_id?: string | null
@@ -756,6 +766,8 @@ export type Database = {
           is_defeated?: boolean
           is_enemy_visible?: boolean
           is_leader?: boolean
+          npc_disposition?: string | null
+          npc_template_id?: string | null
           order_index?: number
           participant_type?: string
           turn_group_id?: string | null
@@ -1381,6 +1393,167 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      npc_template_skills: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          dice: string | null
+          effect: string | null
+          id: string
+          name: string
+          npc_template_id: string
+          order_index: number
+          range_text: string | null
+          rarity: Database["public"]["Enums"]["item_rarity"]
+          skill_type: string | null
+          target_shape: string | null
+          targets: string | null
+          updated_at: string
+          visual_brief: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          id?: string
+          name: string
+          npc_template_id: string
+          order_index?: number
+          range_text?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          skill_type?: string | null
+          target_shape?: string | null
+          targets?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          dice?: string | null
+          effect?: string | null
+          id?: string
+          name?: string
+          npc_template_id?: string
+          order_index?: number
+          range_text?: string | null
+          rarity?: Database["public"]["Enums"]["item_rarity"]
+          skill_type?: string | null
+          target_shape?: string | null
+          targets?: string | null
+          updated_at?: string
+          visual_brief?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "npc_template_skills_npc_template_id_fkey"
+            columns: ["npc_template_id"]
+            isOneToOne: false
+            referencedRelation: "npc_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      npc_templates: {
+        Row: {
+          base_damage: string | null
+          behavior_notes: string | null
+          biome: string | null
+          campaign_id: string
+          color: string
+          created_at: string
+          created_by_character_id: string | null
+          defense: number
+          description: string | null
+          disposition: string
+          icon_key: string
+          id: string
+          image_offset_x: number
+          image_offset_y: number
+          image_scale: number
+          image_url: string
+          immunities: Json
+          is_boss: boolean
+          is_elite: boolean
+          lore: string | null
+          max_hp: number
+          name: string
+          npc_type: string
+          personality: string | null
+          role: string
+          service_notes: string | null
+          speed: string
+          tier: string
+          updated_at: string
+          weaknesses_text: string | null
+        }
+        Insert: {
+          base_damage?: string | null
+          behavior_notes?: string | null
+          biome?: string | null
+          campaign_id: string
+          color?: string
+          created_at?: string
+          created_by_character_id?: string | null
+          defense?: number
+          description?: string | null
+          disposition?: string
+          icon_key?: string
+          id?: string
+          image_offset_x?: number
+          image_offset_y?: number
+          image_scale?: number
+          image_url?: string
+          immunities?: Json
+          is_boss?: boolean
+          is_elite?: boolean
+          lore?: string | null
+          max_hp?: number
+          name: string
+          npc_type?: string
+          personality?: string | null
+          role?: string
+          service_notes?: string | null
+          speed?: string
+          tier?: string
+          updated_at?: string
+          weaknesses_text?: string | null
+        }
+        Update: {
+          base_damage?: string | null
+          behavior_notes?: string | null
+          biome?: string | null
+          campaign_id?: string
+          color?: string
+          created_at?: string
+          created_by_character_id?: string | null
+          defense?: number
+          description?: string | null
+          disposition?: string
+          icon_key?: string
+          id?: string
+          image_offset_x?: number
+          image_offset_y?: number
+          image_scale?: number
+          image_url?: string
+          immunities?: Json
+          is_boss?: boolean
+          is_elite?: boolean
+          lore?: string | null
+          max_hp?: number
+          name?: string
+          npc_type?: string
+          personality?: string | null
+          role?: string
+          service_notes?: string | null
+          speed?: string
+          tier?: string
+          updated_at?: string
+          weaknesses_text?: string | null
+        }
+        Relationships: []
       }
       skill_templates: {
         Row: {
