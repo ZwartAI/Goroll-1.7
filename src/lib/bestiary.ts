@@ -335,7 +335,26 @@ export async function spawnFromTemplate(
   const initiative = clampInitiative(options.initiative || 10);
   let baseOrder = await nextOrderIndex(encounter.id);
   if (options.position === "afterCurrent" && encounter.status === "active") {
-    baseOrder = encounter.current_turn_index + 1;
+    // Find the actual order_index of the participant whose turn it is now,
+    // then insert immediately after them, shifting everyone after down by qty.
+    const { data: ordered } = await (supabase as any)
+      .from("combat_participants")
+      .select("id, order_index")
+      .eq("encounter_id", encounter.id)
+      .order("order_index", { ascending: true });
+    const list = (ordered || []) as Array<{ id: string; order_index: number }>;
+    const currentIdx = Math.max(0, Math.min(list.length - 1, encounter.current_turn_index));
+    const currentRow = list[currentIdx];
+    const insertAfter = currentRow ? Number(currentRow.order_index) : -1;
+    baseOrder = insertAfter + 1;
+    // Shift subsequent participants to make room.
+    const toShift = list.filter((r) => Number(r.order_index) > insertAfter);
+    for (const r of toShift) {
+      await (supabase as any)
+        .from("combat_participants")
+        .update({ order_index: Number(r.order_index) + qty })
+        .eq("id", r.id);
+    }
   }
   const startInstance = await nextInstanceNumber(encounter.id, template.name);
   const rows: any[] = [];
