@@ -253,7 +253,7 @@ function EnemyCardCompact({
       <div className="flex items-start gap-2">
         <button
           type="button"
-          className="w-[52px] h-[52px] rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 select-none"
+          className="relative w-[52px] h-[52px] rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 select-none"
           style={{ borderColor: baseColor, color: baseColor }}
           {...{ onMouseDown: lp.onMouseDown, onMouseUp: lp.onMouseUp, onMouseLeave: lp.onMouseLeave, onTouchStart: lp.onTouchStart, onTouchEnd: lp.onTouchEnd, onTouchCancel: lp.onTouchCancel }}
           onClick={() => { if (!lp.didLongPress()) onSheet(); }}
