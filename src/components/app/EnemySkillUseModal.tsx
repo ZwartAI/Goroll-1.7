@@ -33,12 +33,18 @@ export function EnemySkillUseModal({
   skill,
   onClose,
   initialResolvedTargets,
+  initialRollResult,
+  initialSelectedCharIds,
+  initialDistribution,
   skipDamageApplication,
 }: {
   participant: CombatParticipant;
   skill: CombatEnemySkill;
   onClose: () => void;
   initialResolvedTargets?: string;
+  initialRollResult?: number;
+  initialSelectedCharIds?: string[];
+  initialDistribution?: DamageMode;
   skipDamageApplication?: boolean;
 }) {
   const { t } = useT();
@@ -51,13 +57,18 @@ export function EnemySkillUseModal({
   const presentCharIds = new Set(playerParticipants.map(p => p.character_id).filter(Boolean) as string[]);
   const players = characters.filter(c => c.role === "player" && presentCharIds.has(c.id));
 
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [rollResult, setRollResult] = useState<number>(0);
-  const [mode, setMode] = useState<DamageMode>(skipDamageApplication ? "logOnly" : "individual");
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set((initialSelectedCharIds || []).filter(id => presentCharIds.has(id)))
+  );
+  const [rollResult, setRollResult] = useState<number>(initialRollResult ?? 0);
+  const [mode, setMode] = useState<DamageMode>(
+    skipDamageApplication ? "logOnly" : (initialDistribution ?? "individual")
+  );
   const [includeLink, setIncludeLink] = useState(false);
   const [dmNote, setDmNote] = useState("");
   const [visibility, setVisibility] = useState<EnemySkillVisibility>("full");
   const [busy, setBusy] = useState(false);
+
 
   const color = participant.enemy_color || "var(--loss)";
   const selectedArr = useMemo(() => Array.from(selected), [selected]);

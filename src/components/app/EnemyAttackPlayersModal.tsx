@@ -267,10 +267,15 @@ export function EnemyAttackPlayersModal({ enemy, onClose }: Props) {
           participant={enemy}
           skill={useSkill}
           initialResolvedTargets={selectedNames}
-          skipDamageApplication
+          initialRollResult={damage}
+          initialSelectedCharIds={selectedArr}
+          initialDistribution={
+            selected.size > 1 && distribution === "split" ? "split" : "individual"
+          }
           onClose={() => setUseSkill(null)}
         />
       )}
+
     </div>
   );
 }
