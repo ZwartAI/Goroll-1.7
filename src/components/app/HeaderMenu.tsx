@@ -268,6 +268,7 @@ export function useStandardHeaderItems(opts: {
   /** Show achievements? (Yes for DM/Player/Spectator) */
   achievements?: boolean;
   bestiary?: boolean;
+  npcs?: boolean;
   mailbox?: { onOpen: () => void };
   mic?: { enabled: boolean; toggle: () => void };
   fullscreen?: boolean;
