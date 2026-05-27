@@ -261,6 +261,39 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           </div>
         </div>
       )}
+
+      {showManager && encounter && (
+        <CombatManagerModal
+          encounter={encounter}
+          participants={participants}
+          groups={groups}
+          pins={pins}
+          dm={dm}
+          onClose={() => setShowManager(false)}
+        />
+      )}
+
+      {confirmingEndTurn && encounter && (
+        <EndTurnConfirmModal
+          encounter={encounter}
+          participants={participants}
+          groups={groups}
+          pins={pins}
+          onConfirm={async () => {
+            setEndingTurn(true);
+            try {
+              const r = await endActiveTurn(encounter, buildOrderedTurns(participants, groups, pins), dm);
+              if (!r.ok && r.error !== "stale" && r.error !== "busy") {
+                toast.error(t("combat.endTurn.error"));
+              }
+            } finally {
+              setEndingTurn(false);
+            }
+          }}
+          onClose={() => setConfirmingEndTurn(false)}
+        />
+      )}
+
     </div>
   );
 }
