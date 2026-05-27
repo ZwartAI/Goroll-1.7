@@ -36,6 +36,7 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
   const [showNotes, setShowNotes] = useState(false);
   const [vaultConfirm, setVaultConfirm] = useState<Booster | null>(null);
   const [peekBooster, setPeekBooster] = useState<Booster | null>(null);
+  const [levelAdjustOpen, setLevelAdjustOpen] = useState(false);
 
   async function reload() {
     const [a, b, c, d, e] = await Promise.all([
