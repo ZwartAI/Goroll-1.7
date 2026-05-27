@@ -16,6 +16,7 @@ import { Route as CampaignSpectatorRouteImport } from './routes/campaign.spectat
 import { Route as CampaignSkillsRouteImport } from './routes/campaign.skills'
 import { Route as CampaignSettingsRouteImport } from './routes/campaign.settings'
 import { Route as CampaignProfileRouteImport } from './routes/campaign.profile'
+import { Route as CampaignNpcsRouteImport } from './routes/campaign.npcs'
 import { Route as CampaignNotesRouteImport } from './routes/campaign.notes'
 import { Route as CampaignInventoryRouteImport } from './routes/campaign.inventory'
 import { Route as CampaignEquipmentRouteImport } from './routes/campaign.equipment'
@@ -57,6 +58,11 @@ const CampaignSettingsRoute = CampaignSettingsRouteImport.update({
 const CampaignProfileRoute = CampaignProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => CampaignRoute,
+} as any)
+const CampaignNpcsRoute = CampaignNpcsRouteImport.update({
+  id: '/npcs',
+  path: '/npcs',
   getParentRoute: () => CampaignRoute,
 } as any)
 const CampaignNotesRoute = CampaignNotesRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
   '/campaign/notes': typeof CampaignNotesRoute
+  '/campaign/npcs': typeof CampaignNpcsRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/skills': typeof CampaignSkillsRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
   '/campaign/notes': typeof CampaignNotesRoute
+  '/campaign/npcs': typeof CampaignNpcsRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/skills': typeof CampaignSkillsRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/campaign/equipment': typeof CampaignEquipmentRoute
   '/campaign/inventory': typeof CampaignInventoryRoute
   '/campaign/notes': typeof CampaignNotesRoute
+  '/campaign/npcs': typeof CampaignNpcsRoute
   '/campaign/profile': typeof CampaignProfileRoute
   '/campaign/settings': typeof CampaignSettingsRoute
   '/campaign/skills': typeof CampaignSkillsRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/campaign/equipment'
     | '/campaign/inventory'
     | '/campaign/notes'
+    | '/campaign/npcs'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/skills'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/campaign/equipment'
     | '/campaign/inventory'
     | '/campaign/notes'
+    | '/campaign/npcs'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/skills'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/campaign/equipment'
     | '/campaign/inventory'
     | '/campaign/notes'
+    | '/campaign/npcs'
     | '/campaign/profile'
     | '/campaign/settings'
     | '/campaign/skills'
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignProfileRouteImport
       parentRoute: typeof CampaignRoute
     }
+    '/campaign/npcs': {
+      id: '/campaign/npcs'
+      path: '/npcs'
+      fullPath: '/campaign/npcs'
+      preLoaderRoute: typeof CampaignNpcsRouteImport
+      parentRoute: typeof CampaignRoute
+    }
     '/campaign/notes': {
       id: '/campaign/notes'
       path: '/notes'
@@ -312,6 +331,7 @@ interface CampaignRouteChildren {
   CampaignEquipmentRoute: typeof CampaignEquipmentRoute
   CampaignInventoryRoute: typeof CampaignInventoryRoute
   CampaignNotesRoute: typeof CampaignNotesRoute
+  CampaignNpcsRoute: typeof CampaignNpcsRoute
   CampaignProfileRoute: typeof CampaignProfileRoute
   CampaignSettingsRoute: typeof CampaignSettingsRoute
   CampaignSkillsRoute: typeof CampaignSkillsRoute
@@ -326,6 +346,7 @@ const CampaignRouteChildren: CampaignRouteChildren = {
   CampaignEquipmentRoute: CampaignEquipmentRoute,
   CampaignInventoryRoute: CampaignInventoryRoute,
   CampaignNotesRoute: CampaignNotesRoute,
+  CampaignNpcsRoute: CampaignNpcsRoute,
   CampaignProfileRoute: CampaignProfileRoute,
   CampaignSettingsRoute: CampaignSettingsRoute,
   CampaignSkillsRoute: CampaignSkillsRoute,
@@ -344,3 +365,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
