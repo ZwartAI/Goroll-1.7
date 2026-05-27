@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import {
   ChevronLeft, ChevronRight, X,
-  Mail, Trophy, Skull, Mic, MicOff, Maximize2, Minimize2, LogOut, BarChart3, Settings as SettingsIcon,
+  Mail, Trophy, Skull, Users, Mic, MicOff, Maximize2, Minimize2, LogOut, BarChart3, Settings as SettingsIcon,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -268,6 +268,7 @@ export function useStandardHeaderItems(opts: {
   /** Show achievements? (Yes for DM/Player/Spectator) */
   achievements?: boolean;
   bestiary?: boolean;
+  npcs?: boolean;
   mailbox?: { onOpen: () => void };
   mic?: { enabled: boolean; toggle: () => void };
   fullscreen?: boolean;
@@ -307,6 +308,12 @@ export function useStandardHeaderItems(opts: {
       items.push({
         key: "bestiary", label: t("headerMenu.bestiary"),
         icon: Skull, to: "/campaign/bestiary", color: "oklch(0.72 0.18 50)",
+      });
+    }
+    if (opts.npcs) {
+      items.push({
+        key: "npcs", label: t("headerMenu.npcs"),
+        icon: Users, to: "/campaign/npcs", color: "oklch(0.72 0.14 200)",
       });
     }
     if (opts.mailbox) {
@@ -362,5 +369,5 @@ export function useStandardHeaderItems(opts: {
       onClick: opts.exit.onExit,
     });
     return items;
-  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.stats?.to, opts.settings, opts.exit]);
+  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.npcs, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.stats?.to, opts.settings, opts.exit]);
 }

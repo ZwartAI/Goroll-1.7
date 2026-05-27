@@ -225,6 +225,15 @@ function DM() {
               </a>
             </div>
           </div>
+
+          <div className="ornate-card p-4 space-y-2">
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2">🧝 {t("dm.createNpcTitle")}</h3>
+            <p className="text-xs text-muted-foreground">{t("dm.createNpcHint")}</p>
+            <Link to="/campaign/npcs" className="btn-fantasy w-full inline-flex items-center justify-center gap-1.5"
+              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
+              <Plus size={14} /> {t("dm.openNpcs")}
+            </Link>
+          </div>
         </div>
       )}
 
@@ -862,6 +871,7 @@ function DMHeader({
   const items = useStandardHeaderItems({
     achievements: false,
     bestiary: true,
+    npcs: true,
     mailbox: { onOpen: () => setMailboxOpen(true) },
     mic: { enabled: voice.enabled, toggle: voice.toggle },
     fullscreen: true,
