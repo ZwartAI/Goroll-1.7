@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Swords, Flag, Play, ChevronLeft, ChevronRight, X, Plus, BookOpen, Sparkles } from "lucide-react";
+import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users } from "lucide-react";
 import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { DMApplyEffectModal } from "@/components/app/DMApplyEffectModal";
+import { CombatManagerModal } from "@/components/app/CombatManagerModal";
+import { EndTurnConfirmModal } from "@/components/app/EndTurnConfirmModal";
 import {
   buildOrderedTurns,
   cancelInitiative,
   dissolveLink,
-  dmShiftTurn,
   endActiveTurn,
   endCombat,
   requestInitiative,
@@ -24,6 +25,7 @@ import { Crown, Link as LinkIcon } from "lucide-react";
 import { EnemyEditorModal } from "@/components/app/EnemyEditorModal";
 import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 type Props = {
   campaignId: string;
@@ -41,6 +43,10 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
   const [pickingTemplate, setPickingTemplate] = useState(false);
   const [applyingEffect, setApplyingEffect] = useState(false);
   const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
+  const [showManager, setShowManager] = useState(false);
+  const [confirmingEndTurn, setConfirmingEndTurn] = useState(false);
+  const [endingTurn, setEndingTurn] = useState(false);
+
 
   const canAddEnemy = encounter && status !== "ended";
 
@@ -187,13 +193,15 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           </button>
           <div className="grid grid-cols-3 gap-2 pt-1">
             <button className="btn-fantasy text-xs"
-              onClick={() => dmShiftTurn(encounter, buildOrderedTurns(participants, groups, pins), -1)}>
-              <ChevronLeft size={14} className="inline" /> {t("combat.prevTurn")}
+              style={{ background: "color-mix(in oklab, var(--gold) 25%, var(--card))", color: "var(--gold)" }}
+              onClick={() => setShowManager(true)}>
+              <Users size={14} className="inline mr-1" /> {t("combat.combatManager")}
             </button>
-            <button className="btn-fantasy text-xs"
+            <button className="btn-fantasy text-xs disabled:opacity-60"
+              disabled={endingTurn}
               style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-              onClick={() => endActiveTurn(encounter, buildOrderedTurns(participants, groups, pins), dm)}>
-              {t("combat.nextTurn")} <ChevronRight size={14} className="inline" />
+              onClick={() => setConfirmingEndTurn(true)}>
+              {endingTurn ? t("combat.endTurn.resolving") : t("combat.nextTurn")} <ChevronRight size={14} className="inline" />
             </button>
             <button className="btn-fantasy text-xs"
               style={{ background: "var(--loss)", color: "white" }}
@@ -207,6 +215,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               <X size={14} className="inline mr-1" /> {t("combat.end")}
             </button>
           </div>
+
         </>
       )}
 
@@ -252,6 +261,39 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           </div>
         </div>
       )}
+
+      {showManager && encounter && (
+        <CombatManagerModal
+          encounter={encounter}
+          participants={participants}
+          groups={groups}
+          pins={pins}
+          dm={dm}
+          onClose={() => setShowManager(false)}
+        />
+      )}
+
+      {confirmingEndTurn && encounter && (
+        <EndTurnConfirmModal
+          encounter={encounter}
+          participants={participants}
+          groups={groups}
+          pins={pins}
+          onConfirm={async () => {
+            setEndingTurn(true);
+            try {
+              const r = await endActiveTurn(encounter, buildOrderedTurns(participants, groups, pins), dm);
+              if (!r.ok && r.error !== "stale" && r.error !== "busy") {
+                toast.error(t("combat.endTurn.error"));
+              }
+            } finally {
+              setEndingTurn(false);
+            }
+          }}
+          onClose={() => setConfirmingEndTurn(false)}
+        />
+      )}
+
     </div>
   );
 }

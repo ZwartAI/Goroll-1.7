@@ -807,14 +807,14 @@ export async function duplicateEnemy(participant: CombatParticipant, encounter: 
 export async function removeEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
   if (!isEnemy(participant)) return { ok: false as const };
 
+  const isNpc = !!(participant as any).npc_template_id;
+
   // Archive to bestiary BEFORE deleting so the enemy can be reused later.
-  // Strategy:
-  //   1. If the participant was spawned from an existing template (enemy_template_id), skip — the template already lives in the bestiary.
-  //   2. Otherwise look for a template in this campaign with the same base name (case-insensitive). If found, skip duplicate.
-  //   3. Otherwise create a new template from the participant's stats + snapshot its combat skills as template skills.
+  // Skip archival for NPCs (they live in the NPC compendium) and for participants
+  // already spawned from a template.
   let archived = false;
   try {
-    if (!participant.enemy_template_id) {
+    if (!isNpc && !participant.enemy_template_id) {
       const baseName = (participant.enemy_name || participant.display_name || "").trim();
       if (baseName) {
         const { data: existing } = await (supabase as any)
@@ -851,7 +851,6 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
             .single();
           if (tpl) {
             archived = true;
-            // Copy combat enemy skills (if any) as template skills.
             const skills = await listEnemySkills(participant.id);
             if (skills.length) {
               const rows = skills.map(s => ({
@@ -878,9 +877,23 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
     // Archival is best-effort — never block the removal itself.
   }
 
+  // Remove linked pins first so the turn order doesn't reference a missing participant.
+  let removedPins = 0;
+  try {
+    const { data: linkedPins } = await (supabase as any)
+      .from("combat_turn_pins")
+      .select("id")
+      .eq("linked_participant_id", participant.id);
+    if (linkedPins && linkedPins.length) {
+      removedPins = linkedPins.length;
+      await (supabase as any).from("combat_turn_pins").delete().eq("linked_participant_id", participant.id);
+    }
+  } catch {
+    // best-effort
+  }
+
   const { error } = await (supabase as any).from("combat_participants").delete().eq("id", participant.id);
   if (error) return { ok: false as const, error: error.message };
-  // If the removed participant was before/at the current turn, adjust current_turn_index.
   if (encounter.status === "active") {
     const removedOrder = participant.order_index;
     if (removedOrder <= encounter.current_turn_index && encounter.current_turn_index > 0) {
@@ -892,11 +905,12 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
   await pushLog(encounter.campaign_id, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: archived
-        ? ` eliminó enemigo: ${participant.display_name}. Guardado en el Bestiario.`
-        : ` eliminó enemigo: ${participant.display_name}.` },
+        ? ` retiró del combate a ${participant.display_name}. Guardado en el Bestiario.`
+        : ` retiró del combate a ${participant.display_name}.` },
   ]);
-  return { ok: true as const, archived };
+  return { ok: true as const, archived, removedPins };
 }
+
 
 export async function moveParticipant(
   encounter: CombatEncounter,
