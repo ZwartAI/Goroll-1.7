@@ -310,6 +310,12 @@ export function useStandardHeaderItems(opts: {
         icon: Skull, to: "/campaign/bestiary", color: "oklch(0.72 0.18 50)",
       });
     }
+    if (opts.npcs) {
+      items.push({
+        key: "npcs", label: t("headerMenu.npcs"),
+        icon: Users, to: "/campaign/npcs", color: "oklch(0.72 0.14 200)",
+      });
+    }
     if (opts.mailbox) {
       const hasPending = pending > 0;
       items.push({
