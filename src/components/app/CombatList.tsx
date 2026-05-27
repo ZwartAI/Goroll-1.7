@@ -116,6 +116,7 @@ function TurnRow({
   onOpenChar?: (id: string) => void;
   draggable?: boolean;
 }) {
+  const { t } = useT();
   const sortable = useSortable({ id: block.key, disabled: !draggable });
   const dragStyle = draggable
     ? {
