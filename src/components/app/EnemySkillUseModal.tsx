@@ -295,7 +295,7 @@ export function EnemySkillUseModal({
           <button className="btn-fantasy" disabled={busy}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
             onClick={submit}>
-            {showApplyControls && mode !== "logOnly" ? t("combat.enemy.confirmImpact") : t("common.confirm")}
+            {busy ? t("combat.enemy.applying") : (showApplyControls && mode !== "logOnly" ? t("combat.enemy.confirmImpact") : t("common.confirm"))}
           </button>
         </div>
       </div>
