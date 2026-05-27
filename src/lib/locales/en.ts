@@ -1043,6 +1043,7 @@ export const en: Dict = {
     addEnemy: "Add Enemy",
     editEnemy: "Edit Enemy",
     enemyLabel: "Enemy",
+    npcLabel: "NPC",
     enemies: "Enemies",
     name: "Name",
     icon: "Icon",
