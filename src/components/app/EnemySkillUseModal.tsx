@@ -8,7 +8,7 @@ import {
   type CombatParticipant,
   type EnemySkillVisibility,
 } from "@/lib/combat";
-import { EnemyIcon } from "@/components/app/EnemyIconPicker";
+import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { StatText } from "@/components/app/StatText";
 import { NumberInput } from "@/components/app/NumberInput";
 import { backdropProps } from "@/lib/modalBackdrop";
