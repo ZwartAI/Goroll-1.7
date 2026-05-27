@@ -140,14 +140,19 @@ export function EnemySkillUseModal({
 
   const showApplyControls = !skipDamageApplication;
 
+  const customImg = getEnemyCustomImage(participant);
+  const hasImageVisual = !!customImg || !!getEnemyAssetUrl(participant.enemy_icon);
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-2 sm:p-3" {...backdropProps(onClose)}>
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-2 sm:p-3" {...backdropProps(onClose)}>
       <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-y-auto p-4 space-y-3" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center"
-            style={{ borderColor: color, color }}>
-            <EnemyIcon name={participant.enemy_icon} size={18} />
+        <div className="flex items-center gap-3">
+          <div
+            className="relative w-16 h-16 rounded-full border-2 overflow-hidden flex items-center justify-center shrink-0 bg-[var(--secondary)]"
+            style={{ borderColor: color, color }}
+          >
+            <EnemyIcon name={participant.enemy_icon} size={36} fill={hasImageVisual} customImage={customImg} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("combat.enemy.useSkill")}</p>
