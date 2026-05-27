@@ -1140,6 +1140,11 @@ export const en: Dict = {
     confirmDeletePin: "Remove this extra turn?",
     actions: "Actions",
     hideActions: "Hide actions",
+    activeTurnBadge: "ACTIVE TURN",
+    extraTurnActive: "Extra turn active",
+    extraTurnsCount: "{n} extra turns",
+    extraTurnsCountOne: "1 extra turn",
+    activeEntity: "Active entity",
     sheet: "Sheet",
     effects: {
       title: "Active effects",
