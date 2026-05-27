@@ -398,6 +398,14 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             onClose={() => setPeekBooster(null)}
           />
         )}
+        {levelAdjustOpen && editor && character && (
+          <LevelAdjustModal
+            character={character}
+            campaignId={campaignId}
+            editor={editor}
+            onClose={() => setLevelAdjustOpen(false)}
+          />
+        )}
         </div>
       </div>
     </div>
