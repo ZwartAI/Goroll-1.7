@@ -149,15 +149,22 @@ function TurnRow({
   if (block.kind === "solo" && isEnemy(block.participant)) {
     const p = block.participant;
     const defeated = p.is_defeated;
+    const isNpc = !!(p as any).npc_template_id;
+    const disposition = (p as any).npc_disposition as ("ally" | "neutral" | "hostile" | null | undefined);
+    const accentColor = isNpc
+      ? (disposition === "hostile" ? "var(--loss)" : disposition === "ally" ? "var(--gain)" : "var(--gold)")
+      : "var(--loss)";
     const containerStyle = {
-      borderColor: isActive ? "var(--loss)" : `color-mix(in oklab, ${baseColor} 70%, transparent)`,
+      borderColor: isActive ? accentColor : `color-mix(in oklab, ${baseColor} 70%, transparent)`,
       background: `linear-gradient(180deg, color-mix(in oklab, ${baseColor} 18%, var(--card)), var(--card))`,
-      boxShadow: isActive ? `0 0 0 1px var(--loss), 0 0 18px color-mix(in oklab, ${baseColor} 50%, transparent)` : undefined,
+      boxShadow: isActive ? `0 0 0 1px ${accentColor}, 0 0 18px color-mix(in oklab, ${baseColor} 50%, transparent)` : undefined,
       opacity: defeated ? 0.55 : 1,
       ...dragStyle,
     } as const;
     const customImg = getEnemyCustomImage(p);
     const isTierAsset = !!customImg || !!getEnemyAssetUrl(p.enemy_icon);
+    const npcLabel = isNpc ? t("combat.npcLabel") : enemyLabel;
+    const dispLabel = isNpc && disposition ? t(`npcs.disp_${disposition}`) : null;
     return (
       <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
         {dragHandle}
@@ -170,9 +177,18 @@ function TurnRow({
             {p.display_name}
           </p>
           <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-            <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-[var(--loss)]/25 text-[var(--loss)]">
-              {enemyLabel}
+            <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
+              style={isNpc
+                ? { background: `color-mix(in oklab, ${accentColor} 25%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }
+                : { background: "color-mix(in oklab, var(--loss) 25%, transparent)", color: "var(--loss)" }}>
+              {npcLabel}
             </span>
+            {dispLabel && (
+              <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
+                style={{ background: `color-mix(in oklab, ${accentColor} 18%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }}>
+                {dispLabel}
+              </span>
+            )}
             {defeated && (
               <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                 {defeatedLabel}
