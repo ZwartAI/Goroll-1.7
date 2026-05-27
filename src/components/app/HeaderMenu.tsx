@@ -369,5 +369,5 @@ export function useStandardHeaderItems(opts: {
       onClick: opts.exit.onExit,
     });
     return items;
-  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.stats?.to, opts.settings, opts.exit]);
+  }, [t, pending, isFs, opts.achievements, opts.bestiary, opts.npcs, opts.mailbox, opts.mic?.enabled, opts.fullscreen, opts.stats?.to, opts.settings, opts.exit]);
 }
