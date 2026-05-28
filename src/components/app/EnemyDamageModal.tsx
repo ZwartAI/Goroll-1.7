@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { applyEnemyDamage, healEnemy, type CombatParticipant } from "@/lib/combat";
+import { type CombatParticipant } from "@/lib/combat";
+import { resolveDamageAgainstEntity } from "@/lib/combat-logic";
 import { NumberInput } from "@/components/app/NumberInput";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 type Props = {
   participant: CombatParticipant;
@@ -25,29 +27,53 @@ export function EnemyDamageModal({ participant, onClose, mode = "both" }: Props)
   const doDirect = async () => {
     if (directDmg <= 0) return;
     setBusy(true);
-    const r = await applyEnemyDamage(participant, directDmg, { useDefense: false });
+    const r = await resolveDamageAgainstEntity({
+      targetId: participant.id,
+      targetType: "enemy",
+      encounterId: participant.encounter_id,
+      campaignId: participant.campaign_id,
+      amount: directDmg,
+      mode: "directDamage"
+    });
     setBusy(false);
-    if (!r.ok) toast.error(t("combat.saveError"));
+    if (!r) toast.error(t("combat.saveError"));
     else toast.success(t("combat.damageApplied", { n: r.applied, def: 0 }));
+
     onClose();
   };
 
   const doWithDef = async () => {
     if (defDmg <= 0) return;
     setBusy(true);
-    const r = await applyEnemyDamage(participant, defDmg, { useDefense: true });
+    const r = await resolveDamageAgainstEntity({
+      targetId: participant.id,
+      targetType: "enemy",
+      encounterId: participant.encounter_id,
+      campaignId: participant.campaign_id,
+      amount: defDmg,
+      mode: "damageWithDefense"
+    });
     setBusy(false);
-    if (!r.ok) toast.error(t("combat.saveError"));
-    else toast.success(t("combat.damageApplied", { n: r.applied, def }));
+    if (!r) toast.error(t("combat.saveError"));
+    else toast.success(t("combat.damageApplied", { n: r.applied, def: r.def }));
+
     onClose();
   };
 
   const doHeal = async () => {
     if (heal <= 0) return;
     setBusy(true);
-    const r = await healEnemy(participant, heal);
+    const r = await resolveDamageAgainstEntity({
+      targetId: participant.id,
+      targetType: "enemy",
+      encounterId: participant.encounter_id,
+      campaignId: participant.campaign_id,
+      amount: heal,
+      mode: "heal"
+    });
     setBusy(false);
-    if (!r.ok) toast.error(t("combat.saveError"));
+    if (!r) toast.error(t("combat.saveError"));
+
     onClose();
   };
 

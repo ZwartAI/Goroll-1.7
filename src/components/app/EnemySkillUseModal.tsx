@@ -2,12 +2,13 @@ import { useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
-  applyEnemyAttackToPlayers,
   logEnemySkillUse,
   type CombatEnemySkill,
   type CombatParticipant,
   type EnemySkillVisibility,
 } from "@/lib/combat";
+import { resolveDamageAgainstEntity } from "@/lib/combat-logic";
+
 import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
 import { StatText } from "@/components/app/StatText";
 import { NumberInput } from "@/components/app/NumberInput";
@@ -112,23 +113,33 @@ export function EnemySkillUseModal({
         return;
       }
 
-      const r = await applyEnemyAttackToPlayers(participant, combat.participants, {
-        damage: rollResult,
-        targetCharacterIds: selectedArr,
-        useDefense: mode !== "direct",
-        distribution: mode === "split" && selected.size > 1 ? "split" : "individual",
-        spreadToLinkGroup: includeLink && anySelectedLinked,
-        encounterId: encounterId || undefined,
-        sourceLabel: skill.name,
-      });
-
-      if (!r.ok) {
-        damageOk = false;
-        toast.error(t("combat.saveError"));
-      } else {
-        resolvedTargetsLabel = r.results.map(x => x.name).join(", ");
-        toast.success(t("combat.enemy.impactDone", { k: r.results.length }));
+      let results: any[] = [];
+      const distributionMode = mode === "split" && selected.size > 1 ? "split" : "individual";
+      
+      for (const charId of selectedArr) {
+        let amount = rollResult;
+        if (distributionMode === "split") {
+          amount = Math.floor(rollResult / selected.size); // simpler split for now
+        }
+        
+        const r = await resolveDamageAgainstEntity({
+          targetId: charId,
+          targetType: "character",
+          encounterId: encounterId!,
+          campaignId: combat.encounter?.campaign_id!,
+          amount,
+          mode: mode === "direct" ? "directDamage" : "damageWithDefense",
+          sourceName: participant.display_name,
+          skillName: skill.name,
+          skipLogging: true // logEnemySkillUse will handle the main log
+        });
+        
+        if (r) results.push({ name: characters.find(c => c.id === charId)?.name || "---" });
       }
+
+      resolvedTargetsLabel = results.map(x => x.name).join(", ");
+      toast.success(t("combat.enemy.impactDone", { k: results.length }));
+
     } else if (mode === "logOnly" && !initialResolvedTargets) {
       // No damage requested: still surface the selected names in the log.
       resolvedTargetsLabel = selectedArr
