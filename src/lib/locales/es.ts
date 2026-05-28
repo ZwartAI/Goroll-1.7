@@ -1262,6 +1262,18 @@ export const es = {
       errorLabel: "Añade un nombre o emoji al efecto.",
       errorApply: "No se pudo aplicar el efecto.",
     },
+    logDetail: {
+      title: "Datos de entidades en log",
+      minimal: "Mínimo",
+      minimalDesc: "Mostrar solo acciones básicas.",
+      normal: "Normal",
+      normalDesc: "Mostrar resultado de daño.",
+      detailed: "Detallado",
+      detailedDesc: "Mostrar defensa, escudos y detalle completo.",
+      dmPrivate: "Privado para DM",
+      dmPrivateDesc: "Los jugadores ven versión mínima y el DM ve detalle completo.",
+      saved: "Configuración de log guardada",
+    },
     enemy: {
       openSheet: "Abrir ficha",
       sheet: "Ficha",
