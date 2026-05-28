@@ -65,14 +65,31 @@ export function SkillDetailModal({ skill, onClose, onAcquire, dmActions, canAcqu
         )}
 
         {dmActions && (
-          <div className="grid grid-cols-2 gap-2">
-            {dmActions.onUnlockFree && !skill.is_unlocked && (
-              <button className="btn-fantasy" onClick={dmActions.onUnlockFree}>{t("skills.unlockFree")}</button>
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {dmActions.onUnlockFree && !skill.is_unlocked && (
+                <button className="btn-fantasy" onClick={dmActions.onUnlockFree}>{t("skills.unlockFree")}</button>
+              )}
+              {dmActions.onLock && skill.is_unlocked && (
+                <button
+                  className="btn-fantasy"
+                  style={{ background: "color-mix(in oklab, var(--gold) 70%, var(--loss))", color: "oklch(0.15 0.03 25)" }}
+                  onClick={dmActions.onLock}
+                >
+                  {t("skills.lockSkill")}
+                </button>
+              )}
+              {dmActions.onDelete && (
+                <button className="btn-fantasy" style={{ background: "var(--gradient-blood)" }} onClick={dmActions.onDelete}>
+                  {t("common.delete")}
+                </button>
+              )}
+            </div>
+            {dmActions.onLock && skill.is_unlocked && (
+              <p className="text-[10px] text-muted-foreground italic">{t("skills.lockHelp")}</p>
             )}
-            {dmActions.onDelete && (
-              <button className="btn-fantasy" style={{ background: "var(--gradient-blood)" }} onClick={dmActions.onDelete}>
-                {t("common.delete")}
-              </button>
+            {dmActions.onLock && !skill.is_unlocked && (
+              <p className="text-[10px] text-muted-foreground italic">{t("skills.alreadyInShop")}</p>
             )}
           </div>
         )}
