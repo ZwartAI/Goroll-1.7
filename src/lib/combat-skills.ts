@@ -12,7 +12,10 @@ import {
 
   activeBlock,
   blockContainsCharacter,
+  resolveDamageAgainstEntity,
+  type TargetType,
   buildOrderedTurns,
+
   groupForCharacter,
   isEnemy,
   type CombatEncounter,
@@ -622,21 +625,8 @@ export async function listEffectsForCharacter(characterId: string): Promise<Comb
  * Decrement an effect's remaining duration by 1.
  * If duration reaches 0 (or is already null/0), the effect is deleted.
  */
-export async function decrementEffectDuration(effectId: string) {
-  const { data } = await (supabase as any)
-    .from("combat_temporary_effects")
-    .select("duration_rounds")
-    .eq("id", effectId)
-    .maybeSingle();
-  if (!data) return;
-  const cur = typeof data.duration_rounds === "number" ? data.duration_rounds : 0;
-  const next = cur - 1;
-  if (next <= 0) {
-    await (supabase as any).from("combat_temporary_effects").delete().eq("id", effectId);
-  } else {
-    await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", effectId);
-  }
-}
+// ... keep existing code
+
 
 /**
  * Tick an effect applied to an enemy: apply per-turn damage (bypassing defense),
