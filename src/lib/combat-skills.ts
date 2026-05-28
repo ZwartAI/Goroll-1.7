@@ -820,10 +820,6 @@ export async function tickPlayerTurnEnd(args: {
 }): Promise<void> {
   const { characterId, campaignId, encounterId, i18n } = args;
 
-  // Fetch log detail mode from campaign
-  const { data: campaign } = await supabase.from("campaigns").select("combat_log_detail_mode").eq("id", campaignId).maybeSingle();
-  const logMode = (campaign as any)?.combat_log_detail_mode || "normal";
-
   // Character name for logs.
   const { data: chRow } = await supabase
     .from("characters")
@@ -846,29 +842,17 @@ export async function tickPlayerTurnEnd(args: {
     if (dmg > 0) {
       const r = await applyDotToCharacter(characterId, dmg, encounterId);
       if (r) {
-        const buildSegments = (detail: string) => {
-          if (detail === "minimal") {
-            return [{ t: "text", v: tplOne("{target} sufrió {effect}.", { target: charName, effect: label }) }];
-          }
-          const segs: any[] =
-            r.absorbed > 0 && r.applied > 0
-              ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: r.applied }) }]
-              : r.absorbed > 0 && r.applied === 0
-                ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: 0 }) }]
-                : [
-                    { t: "char", v: charName, color: charColor, id: characterId },
-                    { t: "text", v: " " },
-                    { t: "text", v: tplOne(i18n.damaged, { effect: label, amount: r.applied, target: charName }) },
-                  ];
-          return segs;
-        };
-
-        if (logMode === "dm_private") {
-          await pushLog(campaignId, buildSegments("minimal") as any);
-          await pushLog(campaignId, buildSegments("detailed") as any, undefined, { dmOnly: true });
-        } else {
-          await pushLog(campaignId, buildSegments(logMode || "normal") as any);
-        }
+        const segs: any[] =
+          r.absorbed > 0 && r.applied > 0
+            ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: r.applied }) }]
+            : r.absorbed > 0 && r.applied === 0
+              ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: 0 }) }]
+              : [
+                  { t: "char", v: charName, color: charColor, id: characterId },
+                  { t: "text", v: " " },
+                  { t: "text", v: tplOne(i18n.damaged, { effect: label, amount: r.applied, target: charName }) },
+                ];
+        await pushLog(campaignId, segs as any);
       }
     }
     const next = (c.turns_left || 0) - 1;

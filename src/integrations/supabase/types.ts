@@ -264,7 +264,6 @@ export type Database = {
       }
       campaigns: {
         Row: {
-          combat_log_detail_mode: string
           created_at: string
           id: string
           lock_character_names: boolean
@@ -275,7 +274,6 @@ export type Database = {
           single_dm_only: boolean
         }
         Insert: {
-          combat_log_detail_mode?: string
           created_at?: string
           id?: string
           lock_character_names?: boolean
@@ -286,7 +284,6 @@ export type Database = {
           single_dm_only?: boolean
         }
         Update: {
-          combat_log_detail_mode?: string
           created_at?: string
           id?: string
           lock_character_names?: boolean

@@ -1260,18 +1260,6 @@ export const en: Dict = {
       errorLabel: "Add a name or emoji to the effect.",
       errorApply: "Could not apply the effect.",
     },
-    logDetail: {
-      title: "Entity data in log",
-      minimal: "Minimal",
-      minimalDesc: "Show only basic actions.",
-      normal: "Normal",
-      normalDesc: "Show damage result.",
-      detailed: "Detailed",
-      detailedDesc: "Show defense, shields and full detail.",
-      dmPrivate: "DM private",
-      dmPrivateDesc: "Players see minimal version and DM sees full detail.",
-      saved: "Log configuration saved",
-    },
     enemy: {
       openSheet: "Open sheet",
       sheet: "Sheet",

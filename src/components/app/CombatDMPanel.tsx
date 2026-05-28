@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
-import { useGameData } from "@/lib/useGame";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users, Settings2 } from "lucide-react";
+import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users } from "lucide-react";
 import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { DMApplyEffectModal } from "@/components/app/DMApplyEffectModal";
 import { CombatManagerModal } from "@/components/app/CombatManagerModal";
@@ -43,9 +41,6 @@ type Props = {
 
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups, pins = [] }: Props) {
   const { t } = useT();
-  const { campaign } = useGameData();
-  const [logSettingsOpen, setLogSettingsOpen] = useState(false);
-  const [savingLogSettings, setSavingLogSettings] = useState(false);
   const status = encounter?.status ?? null;
   const [addingEnemy, setAddingEnemy] = useState(false);
   const [pickingTemplate, setPickingTemplate] = useState(false);
@@ -62,18 +57,9 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
 
   return (
     <div className="ornate-card p-2 space-y-1.5">
-      <div className="flex items-center justify-between gap-1.5">
-        <div className="flex items-center gap-1.5">
-          <Swords size={14} className="text-[var(--gold)]" />
-          <h3 className="font-display text-xs uppercase tracking-widest text-[var(--gold)]">{t("combat.dmTitle")}</h3>
-        </div>
-        <button 
-          onClick={() => setLogSettingsOpen(true)}
-          className="p-1 rounded hover:bg-white/10 text-muted-foreground transition-colors"
-          title={t("combat.logDetail.title")}
-        >
-          <Settings2 size={14} />
-        </button>
+      <div className="flex items-center gap-1.5">
+        <Swords size={14} className="text-[var(--gold)]" />
+        <h3 className="font-display text-xs uppercase tracking-widest text-[var(--gold)]">{t("combat.dmTitle")}</h3>
       </div>
 
       {(!encounter || status === "ended") && (
@@ -322,58 +308,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
         />
       )}
 
-
-      {logSettingsOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" {...backdropProps(() => setLogSettingsOpen(false))}>
-          <div className="ornate-card max-w-md w-full p-4 space-y-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[var(--gold)]/30 pb-2">
-              <div className="flex items-center gap-2">
-                <Settings2 size={16} className="text-[var(--gold)]" />
-                <h2 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">
-                  {t("combat.logDetail.title")}
-                </h2>
-              </div>
-              <button onClick={() => setLogSettingsOpen(false)} className="p-1 rounded hover:bg-white/10">
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {(["minimal", "normal", "detailed", "dm_private"] as const).map(mode => (
-                <button
-                  key={mode}
-                  disabled={savingLogSettings}
-                  onClick={async () => {
-                    setSavingLogSettings(true);
-                    const { error } = await supabase.from("campaigns").update({ combat_log_detail_mode: mode } as any).eq("id", campaignId);
-                    setSavingLogSettings(false);
-                    if (error) toast.error(t("common.saveError"));
-                    else {
-                      toast.success(t("combat.logDetail.saved"));
-                      setLogSettingsOpen(false);
-                    }
-                  }}
-                  className={`w-full text-left p-3 rounded border transition-colors ${
-                    (campaign as any)?.combat_log_detail_mode === mode 
-                      ? "bg-[var(--gold)]/10 border-[var(--gold)]/60 text-[var(--gold)]" 
-                      : "border-[var(--gold)]/20 hover:bg-white/5"
-                  }`}
-                >
-                  <p className="text-xs font-bold uppercase tracking-wide">{t(`combat.logDetail.${mode}`)}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{t(`combat.logDetail.${mode}Desc`)}</p>
-                </button>
-              ))}
-            </div>
-
-            <button 
-              onClick={() => setLogSettingsOpen(false)}
-              className="btn-fantasy w-full py-2 text-xs uppercase"
-            >
-              {t("common.close")}
-            </button>
-          </div>
-        </div>
-      )}
 
     </div>
   );

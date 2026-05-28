@@ -17,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLongPress } from "@/hooks/useLongPress";
 import { EffectInfoModal, type EffectInfoInput } from "@/components/app/EffectInfoModal";
-import { EntityPortraitModal } from "@/components/app/EntityPortraitModal";
 import {
   DndContext,
   PointerSensor,
@@ -51,7 +50,6 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
   const { t } = useT();
   const blocks = buildOrderedTurns(participants, groups, pins || []);
   const active = activeBlock(encounter, blocks);
-  const [peekPortrait, setPeekPortrait] = useState<{ name: string; icon: string | null; customImage: any } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -76,7 +74,6 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
       extraTurnLabel={t("combat.extraTurn")}
       enemyTurnOfLabel={t("combat.enemyTurnOf")}
       onOpenChar={onOpenChar}
-      onPeekPortrait={(name, icon, customImage) => setPeekPortrait({ name, icon, customImage })}
       draggable={!!onReorder}
     />
   ));
@@ -106,26 +103,17 @@ export function CombatList({ encounter, participants, groups, pins, selfCharacte
           <div className="space-y-2">{rows}</div>
         </SortableContext>
       </DndContext>
-      {peekPortrait && (
-        <EntityPortraitModal
-          name={peekPortrait.name}
-          icon={peekPortrait.icon}
-          customImage={peekPortrait.customImage}
-          onClose={() => setPeekPortrait(null)}
-        />
-      )}
     </div>
   );
 }
 
 function TurnRow({
-  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, extraTurnLabel, enemyTurnOfLabel, onOpenChar, onPeekPortrait, draggable,
+  block, isActive, isSelf, activeLabel, activeEnemyLabel, enlaceLabel, enemyLabel, defeatedLabel, extraTurnLabel, enemyTurnOfLabel, onOpenChar, draggable,
 }: {
   block: TurnBlock; isActive: boolean; isSelf: boolean;
   activeLabel: string; activeEnemyLabel: string; enlaceLabel: string; enemyLabel: string; defeatedLabel: string;
   extraTurnLabel: string; enemyTurnOfLabel: string;
   onOpenChar?: (id: string) => void;
-  onPeekPortrait?: (name: string, icon: string | null, customImage: any) => void;
   draggable?: boolean;
 }) {
   const { t } = useT();
@@ -181,13 +169,10 @@ function TurnRow({
     return (
       <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
         {dragHandle}
-        <button 
-          onClick={() => onPeekPortrait?.(p.display_name, p.enemy_icon, customImg)}
-          className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative transition-transform active:scale-95"
-          style={{ borderColor: baseColor, color: baseColor }}
-        >
+        <div className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
+          style={{ borderColor: baseColor, color: baseColor }}>
           <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} customImage={customImg} />
-        </button>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-sm truncate" style={{ color: baseColor }}>
             {p.display_name}
@@ -260,13 +245,10 @@ function TurnRow({
           borderStyle: "dashed",
         }}>
         {dragHandle}
-        <button 
-          onClick={() => onPeekPortrait?.(l.display_name, l.enemy_icon, getEnemyCustomImage(l))}
-          className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative transition-transform active:scale-95"
-          style={{ borderColor: baseColor, color: baseColor }}
-        >
+        <div className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
+          style={{ borderColor: baseColor, color: baseColor }}>
           <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyCustomImage(l) || !!getEnemyAssetUrl(l.enemy_icon)} customImage={getEnemyCustomImage(l)} />
-        </button>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-xs truncate" style={{ color: baseColor }}>
             {block.pin.label || `${enemyTurnOfLabel} ${l.display_name}`}
