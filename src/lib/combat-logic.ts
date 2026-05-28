@@ -79,13 +79,25 @@ async function resolveCharacterDamage(
     await applyHpDelta(targetId, newHp, maxHp);
     
     if (applied > 0 && !skipLogging) {
-      await pushLog(campaignId, [
-        { t: "char", v: ch.name, color: ch.color, id: ch.id },
-        { t: "text", v: " " },
-        { t: "i18n", v: { key: "combat.heal", params: {} } as any } as any,
-        { t: "text", v: `: ` },
-        { t: "gain", v: `+${applied} HP` }
-      ]);
+      const buildHealSegments = (detail: string) => {
+        const segs: any[] = [{ t: "char", v: ch.name, color: ch.color, id: ch.id }];
+        if (detail === "minimal") {
+          segs.push({ t: "text", v: " se curó." });
+        } else {
+          segs.push({ t: "text", v: " " });
+          segs.push({ t: "i18n", v: { key: "combat.heal", params: {} } as any } as any);
+          segs.push({ t: "text", v: `: ` });
+          segs.push({ t: "gain", v: `+${applied} HP` });
+        }
+        return segs;
+      };
+
+      if (logMode === "dm_private") {
+        await pushLog(campaignId, buildHealSegments("minimal"));
+        await pushLog(campaignId, buildHealSegments("detailed"), undefined, { dmOnly: true });
+      } else {
+        await pushLog(campaignId, buildHealSegments(logMode || "normal"));
+      }
     }
 
     return { raw, applied, def: 0, absorbed: 0, newHp, maxHp, defeated: false };
@@ -217,12 +229,24 @@ async function resolveEnemyDamage(
       .eq("id", targetId);
     
     if (applied > 0 && !skipLogging) {
-      await pushLog(campaignId, [
-        { t: "text", v: `${name} ` },
-        { t: "i18n", v: { key: "combat.heal" } as any } as any,
-        { t: "text", v: `: ` },
-        { t: "gain", v: `+${applied} HP` }
-      ]);
+      const buildHealSegments = (detail: string) => {
+        const segs: any[] = [{ t: "text", v: `${name} ` }];
+        if (detail === "minimal") {
+          segs.push({ t: "text", v: "se curó." });
+        } else {
+          segs.push({ t: "i18n", v: { key: "combat.heal" } as any } as any);
+          segs.push({ t: "text", v: `: ` });
+          segs.push({ t: "gain", v: `+${applied} HP` });
+        }
+        return segs;
+      };
+
+      if (logMode === "dm_private") {
+        await pushLog(campaignId, buildHealSegments("minimal"));
+        await pushLog(campaignId, buildHealSegments("detailed"), undefined, { dmOnly: true });
+      } else {
+        await pushLog(campaignId, buildHealSegments(logMode || "normal"));
+      }
     }
     return { raw, applied, def: 0, absorbed: 0, newHp, maxHp, defeated: false };
   }
