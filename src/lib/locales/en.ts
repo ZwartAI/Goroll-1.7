@@ -1351,7 +1351,21 @@ export const en: Dict = {
       distSplit: "Split between targets",
       distLinkGroup: "Link group",
     },
+    ended: {
+      title: "Combat ended",
+      summaryTitle: "Combat summary",
+      survivor: "Survivor",
+      defeated: "Defeated",
+      survivors: "Survivors",
+      defeatedGroup: "Defeated",
+      survivedMsg: "Your character survived the combat.",
+      defeatedMsg: "Your character ended the combat at 0 HP.",
+      noDefeated: "No characters were defeated.",
+      logMsg: "DM ended the combat. Survivors: {survivors}. Defeated: {defeated}.",
+      logMsgNoDefeated: "DM ended the combat. Survivors: {survivors}. Defeated: none.",
+    },
   },
+
   bestiary: {
     title: "Bestiary",
     tab: "Bestiary",
