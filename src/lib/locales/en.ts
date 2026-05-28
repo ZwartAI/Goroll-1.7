@@ -1112,6 +1112,17 @@ export const en: Dict = {
     damageWithDefense: "Damage with defense",
     applyDamageWithDefense: "Apply damage with defense",
     damageApplied: "Damage applied: {n} after DEF {def}.",
+    shield: "Shield",
+    shieldRemaining: "Shield remaining",
+    turnsRemaining: "Turns remaining",
+    shieldAbsorbedMsg: "The shield of {name} absorbed {amount} damage.",
+    shieldBrokenMsg: "The shield of {name} broke.",
+    shieldEndedMsg: "The shield of {name} ended and lost {amount} remaining shields.",
+    defenseBlockedMsg: "{name} blocked the damage. Damage {amount} against DEF {def}.",
+    ignoreDefenseShieldsHint: "Ignores defense and shields.",
+    absorbBeforeHpHint: "Absorbs damage before losing HP.",
+
+
     attack: {
       title: "Enemy attacks players",
       subtitle: "Select targets and damage",

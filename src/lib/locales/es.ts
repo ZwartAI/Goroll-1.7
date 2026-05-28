@@ -1111,9 +1111,20 @@ export const es = {
     applyWithDefense: "Aplicar con defensa",
     directDamage: "Daño directo",
     applyDirectDamage: "Aplicar daño directo",
-    damageWithDefense: "Daño contemplando defensa",
+    damageWithDefense: "Daño con defensa",
     applyDamageWithDefense: "Aplicar daño con defensa",
     damageApplied: "Daño aplicado: {n} después de DEF {def}.",
+    shield: "Escudo",
+    shieldRemaining: "Escudo restante",
+    turnsRemaining: "Turnos restantes",
+    shieldAbsorbedMsg: "El escudo de {name} absorbió {amount} daño.",
+    shieldBrokenMsg: "El escudo de {name} se rompió.",
+    shieldEndedMsg: "El escudo de {name} terminó y perdió {amount} escudos restantes.",
+    defenseBlockedMsg: "{name} bloqueó el daño. Daño {amount} contra DEF {def}.",
+    ignoreDefenseShieldsHint: "Ignora defensa y escudos.",
+    absorbBeforeHpHint: "Absorbe daño antes de perder HP.",
+
+
     attack: {
       title: "Enemigo ataca a jugadores",
       subtitle: "Elige objetivos y daño",

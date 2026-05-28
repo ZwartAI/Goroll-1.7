@@ -7,6 +7,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
+import { resolveDamageAgainstEntity, type TargetType } from "./combat-logic";
 import {
   activeBlock,
   blockContainsCharacter,
@@ -18,6 +19,7 @@ import {
   type CombatTurnGroup,
   type CombatTurnPin,
 } from "@/lib/combat";
+
 import type { Character, Item, Rarity } from "@/lib/game";
 import { totals } from "@/lib/game";
 
@@ -185,31 +187,39 @@ async function applyDamageToEnemy(
   participant: CombatParticipant,
   raw: number,
   applyDefense: boolean,
+  encounterId: string,
 ): Promise<{ applied: number; defeated: boolean; def: number }> {
-  const def = participant.enemy_defense || 0;
-  const applied = Math.max(0, Math.floor(raw) - (applyDefense ? def : 0));
-  const max = participant.enemy_max_hp || 1;
-  const newHp = Math.max(0, Math.min(max, (participant.enemy_hp || 0) - applied));
-  const defeated = newHp <= 0;
-  await (supabase as any).from("combat_participants")
-    .update({ enemy_hp: newHp, is_defeated: defeated })
-    .eq("id", participant.id);
-  return { applied, defeated: defeated && !participant.is_defeated, def };
+  const r = await resolveDamageAgainstEntity({
+    targetId: participant.id,
+    targetType: "enemy",
+    encounterId,
+    campaignId: participant.campaign_id,
+    amount: raw,
+    mode: applyDefense ? "damageWithDefense" : "directDamage",
+  });
+  return { 
+    applied: r?.applied ?? 0, 
+    defeated: r?.defeated ?? false, 
+    def: r?.def ?? 0 
+  };
 }
 
-async function applyHealToCharacter(targetId: string, amount: number): Promise<{ applied: number; newHp: number; max: number } | null> {
-  const [{ data: ch }, { data: its }] = await Promise.all([
-    supabase.from("characters").select("*").eq("id", targetId).maybeSingle(),
-    supabase.from("items").select("*").eq("owner_character_id", targetId).eq("equipped", true),
-  ]);
-  if (!ch) return null;
-  const max = totals(ch as Character, (its || []) as Item[]).maxHp;
-  const cur = (ch as Character).current_hp;
-  const newHp = Math.max(0, Math.min(max, cur + Math.max(0, Math.floor(amount))));
-  const applied = newHp - cur;
-  const { applyHpDelta } = await import("@/lib/hp");
-  await applyHpDelta(targetId, newHp, max);
-  return { applied, newHp, max };
+async function applyHealToCharacter(
+  targetId: string, 
+  amount: number, 
+  encounterId: string, 
+  campaignId: string
+): Promise<{ applied: number; newHp: number; max: number } | null> {
+  const r = await resolveDamageAgainstEntity({
+    targetId,
+    targetType: "character",
+    encounterId,
+    campaignId,
+    amount,
+    mode: "heal",
+  });
+  if (!r) return null;
+  return { applied: r.applied, newHp: r.newHp, max: r.maxHp };
 }
 
 /**
@@ -221,44 +231,20 @@ async function applyDamageToCharacter(
   raw: number,
   applyDefense: boolean,
   encounterId: string,
+  campaignId: string,
 ): Promise<{ applied: number; def: number; absorbed: number } | null> {
-  const [{ data: ch }, { data: its }, { data: shields }] = await Promise.all([
-    supabase.from("characters").select("*").eq("id", targetId).maybeSingle(),
-    supabase.from("items").select("*").eq("owner_character_id", targetId).eq("equipped", true),
-    (supabase as any).from("combat_temporary_effects")
-      .select("*")
-      .eq("encounter_id", encounterId)
-      .eq("target_character_id", targetId)
-      .eq("effect_type", "shield")
-      .order("created_at", { ascending: true }),
-  ]);
-  if (!ch) return null;
-  const t = totals(ch as Character, (its || []) as Item[]);
-  const def = applyDefense ? t.defense : 0;
-  let remaining = Math.max(0, Math.floor(raw) - def);
-  const totalRaw = remaining;
-  let absorbed = 0;
-  // Consume shields FIFO.
-  for (const sh of (shields || []) as CombatTemporaryEffect[]) {
-    if (remaining <= 0) break;
-    const take = Math.min(sh.value || 0, remaining);
-    if (take <= 0) continue;
-    absorbed += take;
-    remaining -= take;
-    const next = (sh.value || 0) - take;
-    if (next <= 0) {
-      await (supabase as any).from("combat_temporary_effects").delete().eq("id", sh.id);
-    } else {
-      await (supabase as any).from("combat_temporary_effects").update({ value: next }).eq("id", sh.id);
-    }
-  }
-  const cur = (ch as Character).current_hp;
-  const newHp = Math.max(0, cur - remaining);
-  const maxAfter = totals(ch as Character, (its || []) as Item[]).maxHp;
-  const { applyHpDelta } = await import("@/lib/hp");
-  await applyHpDelta(targetId, newHp, maxAfter);
-  return { applied: totalRaw, def, absorbed };
+  const r = await resolveDamageAgainstEntity({
+    targetId,
+    targetType: "character",
+    encounterId,
+    campaignId,
+    amount: raw,
+    mode: applyDefense ? "damageWithDefense" : "directDamage",
+  });
+  if (!r) return null;
+  return { applied: r.applied, def: r.def, absorbed: r.absorbed };
 }
+
 
 async function createShield(args: {
   encounter: CombatEncounter;
@@ -430,7 +416,7 @@ export async function useSkill(args: {
     for (const tg of enemies) {
       const raw = perTarget + (leftover > 0 ? 1 : 0);
       if (leftover > 0) leftover--;
-      const r = await applyDamageToEnemy(tg.participant, raw, applyDefense);
+      const r = await applyDamageToEnemy(tg.participant, raw, applyDefense, encounter.id);
       damageDetail.push({ raw, applied: r.applied, def: r.def, targetName: tg.participant.display_name });
       targetNames.push(tg.participant.display_name);
       if (r.defeated) defeatedNames.push(tg.participant.display_name);
@@ -438,7 +424,7 @@ export async function useSkill(args: {
     for (const tg of allies) {
       const raw = perTarget + (leftover > 0 ? 1 : 0);
       if (leftover > 0) leftover--;
-      const r = await applyDamageToCharacter(tg.character.id, raw, applyDefense, encounter.id);
+      const r = await applyDamageToCharacter(tg.character.id, raw, applyDefense, encounter.id, encounter.campaign_id);
       if (r) {
         damageDetail.push({ raw, applied: r.applied, def: r.def, targetName: tg.character.name });
         targetNames.push(tg.character.name);
@@ -455,7 +441,7 @@ export async function useSkill(args: {
     for (const tg of allies) {
       const amt = per + (leftover > 0 ? 1 : 0);
       if (leftover > 0) leftover--;
-      const r = await applyHealToCharacter(tg.character.id, amt);
+      const r = await applyHealToCharacter(tg.character.id, amt, encounter.id, encounter.campaign_id);
       if (r) {
         healDetail.push({ amount: r.applied, targetName: tg.character.name });
         targetNames.push(tg.character.name);
@@ -636,21 +622,8 @@ export async function listEffectsForCharacter(characterId: string): Promise<Comb
  * Decrement an effect's remaining duration by 1.
  * If duration reaches 0 (or is already null/0), the effect is deleted.
  */
-export async function decrementEffectDuration(effectId: string) {
-  const { data } = await (supabase as any)
-    .from("combat_temporary_effects")
-    .select("duration_rounds")
-    .eq("id", effectId)
-    .maybeSingle();
-  if (!data) return;
-  const cur = typeof data.duration_rounds === "number" ? data.duration_rounds : 0;
-  const next = cur - 1;
-  if (next <= 0) {
-    await (supabase as any).from("combat_temporary_effects").delete().eq("id", effectId);
-  } else {
-    await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", effectId);
-  }
-}
+// ... keep existing code
+
 
 /**
  * Tick an effect applied to an enemy: apply per-turn damage (bypassing defense),
@@ -665,11 +638,18 @@ export async function tickEnemyEffect(effectId: string): Promise<void> {
     .maybeSingle();
   if (!eff) return;
   const fx = eff as CombatTemporaryEffect;
+  const type = (fx.effect_type || "").toLowerCase();
+  
+  if (type === "shield") {
+    // Shields only decrement duration.
+    await decrementEffectDuration(effectId, fx.campaign_id, fx.target_enemy_participant_id ? "enemy" : "character");
+    return;
+  }
+
   const dmg = Math.max(0, Math.floor(fx.value || 0));
   let appliedDmg = 0;
   let participantName = "";
   let defeated = false;
-
 
   if (fx.target_enemy_participant_id) {
     const { data: p } = await (supabase as any)
@@ -681,43 +661,71 @@ export async function tickEnemyEffect(effectId: string): Promise<void> {
       const part = p as CombatParticipant;
       participantName = (part as any).enemy_name || part.display_name || "";
       if (dmg > 0 && !part.is_defeated) {
-        const max = part.enemy_max_hp || 1;
-        const newHp = Math.max(0, Math.min(max, (part.enemy_hp || 0) - dmg));
-        appliedDmg = (part.enemy_hp || 0) - newHp;
-        defeated = newHp <= 0;
-        await (supabase as any).from("combat_participants")
-          .update({ enemy_hp: newHp, is_defeated: defeated })
-          .eq("id", part.id);
+        // DOT for enemies.
+        const r = await resolveDamageAgainstEntity({
+          targetId: part.id,
+          targetType: "enemy",
+          encounterId: fx.encounter_id,
+          campaignId: fx.campaign_id,
+          amount: dmg,
+          mode: "directDamage", // Defaults to direct for now, could be improved if effects store mode.
+          sourceName: fx.label || type,
+        });
+        if (r) {
+          appliedDmg = r.applied;
+          defeated = r.defeated;
+        }
       }
     }
   }
 
-  if (fx.campaign_id) {
-    const label = fx.label || fx.effect_type || "";
-    const segs: any[] = [];
-    if (participantName) {
-      segs.push({ t: "text", v: participantName + " " });
-    }
-    if (appliedDmg > 0) {
-      segs.push({ t: "text", v: `${label} → ` });
-      segs.push({ t: "loss", v: `-${appliedDmg} HP` });
-      if (defeated) segs.push({ t: "text", v: " ☠️" });
-    } else {
-      segs.push({ t: "text", v: `${label} −1t` });
-    }
-    if (segs.length > 0) {
-      await pushLog(fx.campaign_id, segs as any);
-    }
+  if (fx.campaign_id && appliedDmg > 0) {
+    // resolveDamageAgainstEntity already logs. We only log here if it was a duration tick without damage?
+    // Actually resolveDamageAgainstEntity logs are more detailed. 
+    // We can keep this for extra feedback if needed, but it might be redundant.
   }
 
-  const cur = typeof fx.duration_rounds === "number" ? fx.duration_rounds : 0;
-  const next = cur - 1;
-  if (next <= 0) {
-    await (supabase as any).from("combat_temporary_effects").delete().eq("id", effectId);
-  } else {
-    await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", effectId);
+  // Decrement duration for non-shield effects (shields handled above).
+  await decrementEffectDuration(effectId, fx.campaign_id, fx.target_enemy_participant_id ? "enemy" : "character");
+}
+
+export async function decrementEffectDuration(effectId: string, campaignId: string, targetType: TargetType) {
+  const { data: fx } = await (supabase as any)
+    .from("combat_temporary_effects")
+    .select("*")
+    .eq("id", effectId)
+    .maybeSingle();
+  if (!fx) return;
+  
+  if (typeof fx.duration_rounds === "number") {
+    const next = fx.duration_rounds - 1;
+    if (next <= 0) {
+      await (supabase as any).from("combat_temporary_effects").delete().eq("id", effectId);
+      
+      // Log expiration
+      const label = fx.label || fx.effect_type;
+      const targetName = await fetchTargetName(fx);
+      
+      await pushLog(campaignId, [
+        { t: "i18n", v: { key: "combat.shieldEndedMsg", params: { name: targetName, amount: fx.value } } as any } as any
+      ]);
+    } else {
+      await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", effectId);
+    }
   }
 }
+
+async function fetchTargetName(fx: any): Promise<string> {
+  if (fx.target_enemy_participant_id) {
+    const { data: p } = await (supabase as any).from("combat_participants").select("display_name, enemy_name").eq("id", fx.target_enemy_participant_id).maybeSingle();
+    return p?.display_name || p?.enemy_name || "---";
+  } else if (fx.target_character_id) {
+    const { data: c } = await supabase.from("characters").select("name").eq("id", fx.target_character_id).maybeSingle();
+    return c?.name || "---";
+  }
+  return "---";
+}
+
 
 /**
  * Tick ALL temporary effects attached to a given enemy participant.
@@ -866,37 +874,38 @@ export async function tickPlayerTurnEnd(args: {
     .eq("target_character_id", characterId);
   for (const e of (tmpRows || []) as CombatTemporaryEffect[]) {
     const type = (e.effect_type || "").toLowerCase();
-    if (type === "shield" || type === "note") {
-      // Don't damage. Don't auto-decrement either (shields keep their own lifecycle).
+    if (type === "shield") {
+      // Shields only decrement duration.
+      await decrementEffectDuration(e.id, campaignId, "character");
       continue;
     }
+    if (type === "note") {
+      await decrementEffectDuration(e.id, campaignId, "character");
+      continue;
+    }
+
     const dmg = Math.max(0, Math.floor(e.value || 0));
     const label = (e.label || type).trim();
     if (dmg > 0 && (type === "debuff" || type === "control")) {
-      const r = await applyDotToCharacter(characterId, dmg, encounterId);
+      const r = await resolveDamageAgainstEntity({
+        targetId: characterId,
+        targetType: "character",
+        encounterId,
+        campaignId,
+        amount: dmg,
+        mode: "directDamage",
+        sourceName: label,
+      });
       if (r) {
-        const segs: any[] =
-          r.absorbed > 0
-            ? [{ t: "text", v: tplOne(i18n.shieldAbsorbed, { absorbed: r.absorbed, target: charName, applied: r.applied }) }]
-            : [
-                { t: "char", v: charName, color: charColor, id: characterId },
-                { t: "text", v: " " },
-                { t: "text", v: tplOne(i18n.damaged, { effect: label, amount: r.applied, target: charName }) },
-              ];
-        await pushLog(campaignId, segs as any);
+        // resolveDamageAgainstEntity already logs.
       }
     }
-    // Decrement duration if it has one.
-    if (typeof e.duration_rounds === "number") {
-      const next = (e.duration_rounds || 0) - 1;
-      if (next <= 0) {
-        await (supabase as any).from("combat_temporary_effects").delete().eq("id", e.id);
-      } else {
-        await (supabase as any).from("combat_temporary_effects").update({ duration_rounds: next }).eq("id", e.id);
-      }
-    }
+    
+    // Decrement duration for buffs/debuffs/control.
+    await decrementEffectDuration(e.id, campaignId, "character");
   }
 }
+
 
 
 // ─────────────────────── DM-driven effect application ───────────────────────

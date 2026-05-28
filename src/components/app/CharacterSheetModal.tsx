@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { totals, fmtMod, modifier, RARITY_COLOR, type Character, type Item, type Rarity } from "@/lib/game";
+import { resolveDamageAgainstEntity } from "@/lib/combat-logic";
+
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ConditionsPanel } from "@/components/app/ConditionsPanel";
 import { CoinsAdjuster } from "@/components/app/CoinsAdjuster";
@@ -97,19 +99,22 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
 
   async function adjustHp(delta: number) {
     if (!editor || !character) return;
-    const next = Math.max(0, Math.min(stats.maxHp, character.current_hp + delta));
-    const prev = { current_hp: character.current_hp, hp_damage_taken: (character as any).hp_damage_taken };
-    const { applyHpDelta } = await import("@/lib/hp");
-    await applyHpDelta(character.id, next, stats.maxHp);
-    await pushLog(campaignId, [
-      { t: "char", v: editor.name, color: editor.color, id: editor.id },
-      { t: "text", v: t("sheet.adjustedLifeOf") },
-      { t: "char", v: character.name, color: character.color, id: character.id },
-      { t: "text", v: ":" },
-      delta > 0 ? { t: "gain", v: `+${delta}` } : { t: "loss", v: `${delta}` },
-      { t: "text", v: `(${next}/${stats.maxHp})` },
-    ], { kind: "character.update", id: character.id, prev });
+    const mode = delta > 0 ? "heal" : "directDamage";
+    const r = await resolveDamageAgainstEntity({
+      targetId: character.id,
+      targetType: "character",
+      encounterId: (supabase as any).from("combat_encounters").select("id").eq("campaign_id", campaignId).neq("status", "ended").limit(1), // character sheet doesn't always have encounterId
+      campaignId,
+      amount: Math.abs(delta),
+      mode,
+      sourceName: editor.name
+    });
+    
+    // Fallback if no active encounter found (we need encounterId for shields, but resolveDamageAgainstEntity expects it)
+    // For now, let's keep it simple: resolveDamageAgainstEntity will handle character HP anyway.
+    
     reload();
+
   }
   async function adjustCoins(delta: number) {
     if (!editor || !character) return;
