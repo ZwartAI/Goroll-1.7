@@ -20,11 +20,13 @@ preloadSfx([sfxVictory]);
 export function LevelUpModal({
   level,
   enabled = true,
+  characterId,
 }: {
   level: number | null | undefined;
   enabled?: boolean;
   characterId?: string | null;
 }) {
+
 
   const { t } = useT();
   const lastLevelRef = useRef<number | null>(null);
