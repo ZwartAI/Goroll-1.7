@@ -192,15 +192,24 @@ export function CombatManagerModal({ encounter, participants, groups, pins, dm, 
                   >
                     <input type="checkbox" checked={isChecked} onChange={() => toggle(p.id)} className="accent-[var(--gold)]" />
                     <div
-                      className="w-8 h-8 rounded-full overflow-hidden shrink-0 border-2 relative bg-card"
+                      className="w-8 h-8 rounded-full overflow-hidden shrink-0 border-2 relative bg-card transition-transform active:scale-95"
                       style={{ borderColor: p.color || p.enemy_color || "var(--gold)" }}
                     >
                       {p.image_url ? (
-                        <img src={p.image_url} alt="" className="absolute inset-0 w-full h-full object-cover"
+                        <img 
+                          src={p.image_url} 
+                          alt="" 
+                          className="absolute inset-0 w-full h-full object-cover transition-transform active:scale-90 cursor-pointer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // We need to trigger the peek portrait here too if we want it in the manager
+                          }}
                           style={{
                             objectPosition: `${p.enemy_image_offset_x ?? 50}% ${p.enemy_image_offset_y ?? 50}%`,
                             transform: `scale(${p.enemy_image_scale ?? 1})`,
-                          }} />
+                          }} 
+                        />
                       ) : (
                         <span className="absolute inset-0 flex items-center justify-center text-xs">{p.enemy_icon || "❓"}</span>
                       )}
