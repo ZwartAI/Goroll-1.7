@@ -3,7 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSession, setSession, type Campaign, type Character, type Item, type LogRow, type Achievement } from "./game";
 import type { CombatEncounter, CombatParticipant, CombatTurnGroup, CombatTurnPin } from "./combat";
+import { CombatEndModal } from "@/components/app/CombatEndModal";
 import { CampaignLoadingOverlay } from "@/components/app/CampaignLoadingOverlay";
+
 
 export type DmLabel = { name: string; color: string };
 
@@ -71,7 +73,9 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; created_at: string }>>([]);
 
   const [combat, setCombat] = useState<CombatState>({ encounter: null, participants: [], groups: [], pins: [] });
+  const [endedCombatData, setEndedCombatData] = useState<{ characterName: string; isSurvivor: boolean } | null>(null);
   const logsLimitRef = useRef(LOGS_INITIAL_LIMIT);
+
   const charIdsRef = useRef<string[]>([]);
 
   // -------- Targeted loaders --------
@@ -201,7 +205,28 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "campaigns", filter: `id=eq.${campaignId}` }, (payload: any) => {
         if (payload?.new) setCampaign(payload.new as Campaign);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "combat_encounters", filter: `campaign_id=eq.${campaignId}` }, () => loadCombat(campaignId))
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "combat_encounters", filter: `campaign_id=eq.${campaignId}` }, async (payload: any) => {
+        if (payload.new?.status === "ended" && payload.old?.status !== "ended") {
+          // Combat just ended. Check if current character was involved.
+          const encId = payload.new.id;
+          const { data: parts } = await (supabase as any).from("combat_participants").select("*").eq("encounter_id", encId);
+          const s = getSession();
+          const myPart = (parts || []).find((p: any) => p.character_id === s?.characterId);
+          if (myPart) {
+            // Fetch my character to get latest HP
+            const { data: char } = await supabase.from("characters").select("name, current_hp").eq("id", s!.characterId).single();
+            if (char) {
+              setEndedCombatData({
+                characterName: char.name,
+                isSurvivor: (char.current_hp ?? 0) > 0
+              });
+            }
+          }
+        }
+        loadCombat(campaignId);
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "combat_encounters", filter: `campaign_id=eq.${campaignId}` }, () => loadCombat(campaignId))
+
       .on("postgres_changes", { event: "*", schema: "public", table: "combat_participants", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
         setCombat(prev => ({ ...prev, participants: applyChange(prev.participants, payload) as CombatParticipant[] }));
       })
@@ -283,8 +308,16 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ campaign, character, characters, items, logs: visibleLogs, achievements, loading, onlineIds, dmLabels, dmCharacterIds, combat, reload: load, loadMoreLogs }}>
       {loading && <CampaignLoadingOverlay onCancel={() => { setSession(null); nav({ to: "/" }); }} />}
+      {endedCombatData && (
+        <CombatEndModal 
+          characterName={endedCombatData.characterName}
+          isSurvivor={endedCombatData.isSurvivor}
+          onClose={() => setEndedCombatData(null)}
+        />
+      )}
       {children}
     </Ctx.Provider>
+
   );
 }
 

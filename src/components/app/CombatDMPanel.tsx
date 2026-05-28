@@ -13,6 +13,7 @@ import {
   endActiveTurn,
   endCombat,
   requestInitiative,
+
   reorderBlockWithAutoInitiative,
   startCombat,
   type CombatEncounter,
@@ -25,6 +26,8 @@ import { Crown, Link as LinkIcon } from "lucide-react";
 import { EnemyEditorModal } from "@/components/app/EnemyEditorModal";
 import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { CombatSummaryModal } from "@/components/app/CombatSummaryModal";
+
 
 
 type Props = {
@@ -46,6 +49,8 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
   const [showManager, setShowManager] = useState(false);
   const [confirmingEndTurn, setConfirmingEndTurn] = useState(false);
   const [endingTurn, setEndingTurn] = useState(false);
+  const [endSummary, setEndSummary] = useState<any[] | null>(null);
+
 
 
   const canAddEnemy = encounter && status !== "ended";
@@ -210,6 +215,8 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                 onConfirm: async () => {
                   const r = await endCombat(encounter, dm);
                   if (!r.ok) toast.error(t("combat.endError"));
+                  else if (r.summary) setEndSummary(r.summary);
+
                 },
               })}>
               <X size={14} className="inline mr-1" /> {t("combat.end")}
@@ -293,6 +300,14 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           onClose={() => setConfirmingEndTurn(false)}
         />
       )}
+      
+      {endSummary && (
+        <CombatSummaryModal 
+          summary={endSummary} 
+          onClose={() => setEndSummary(null)} 
+        />
+      )}
+
 
     </div>
   );
