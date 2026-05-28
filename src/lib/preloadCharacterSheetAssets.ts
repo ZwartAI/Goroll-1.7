@@ -1,9 +1,9 @@
-import esperandoTurno from "@/assets/combat-buttons/esperando-turno.png";
-import terminarTurno from "@/assets/combat-buttons/terminar-turno.png";
-import iniciativa from "@/assets/combat-buttons/iniciativa.png";
-import esperandoTurnoEng from "@/assets/combat-buttons/esperando-turno-eng.png";
-import terminarTurnoEng from "@/assets/combat-buttons/terminar-turno-eng.png";
-import iniciativaEng from "@/assets/combat-buttons/iniciativa-eng.png";
+import esperandoTurno from "/uploads/esperando-turno.png";
+import terminarTurno from "/uploads/terminar-turno.png";
+import iniciativa from "/uploads/iniciativa.png";
+import esperandoTurnoEng from "/uploads/esperando-turno-eng.png";
+import terminarTurnoEng from "/uploads/terminar-turno-eng.png";
+import iniciativaEng from "/uploads/iniciativa-eng.png";
 
 // Centralized list + preloader for character-sheet visual assets.
 // Imported by both the home/role-selection screen (to warm the cache early)
