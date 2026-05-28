@@ -141,11 +141,8 @@ export function LevelUpModal({
         >
           {t("levelUp.title")}
         </h2>
-        <p className="text-sm text-foreground/90 mb-1">
+        <p className="text-sm text-foreground/90 mb-5">
           {t("levelUp.body", { level: String(shownLevel) })}
-        </p>
-        <p className="text-xs text-[var(--gold)] mb-5">
-          {t("levelUp.spReward")}
         </p>
         <button
           className="btn-fantasy w-full"
