@@ -1353,7 +1353,21 @@ export const es = {
       distSplit: "Dividir entre golpeados",
       distLinkGroup: "Grupo de Enlace",
     },
+    ended: {
+      title: "Combate finalizado",
+      summaryTitle: "Resumen de combate",
+      survivor: "Sobreviviente",
+      defeated: "Derrotado",
+      survivors: "Sobrevivientes",
+      defeatedGroup: "Derrotados",
+      survivedMsg: "Tu personaje sobrevivió al combate.",
+      defeatedMsg: "Tu personaje terminó el combate en 0 HP.",
+      noDefeated: "No hubo personajes derrotados.",
+      logMsg: "DM terminó el combate. Sobrevivientes: {survivors}. Derrotados: {defeated}.",
+      logMsgNoDefeated: "DM terminó el combate. Sobrevivientes: {survivors}. Derrotados: ninguno.",
+    },
   },
+
   bestiary: {
     title: "Bestiario",
     tab: "Bestiario",
