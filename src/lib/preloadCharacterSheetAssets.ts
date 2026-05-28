@@ -1,9 +1,9 @@
-import esperandoTurno from "/uploads/esperando-turno.png";
-import terminarTurno from "/uploads/terminar-turno.png";
-import iniciativa from "/uploads/iniciativa.png";
-import esperandoTurnoEng from "/uploads/esperando-turno-eng.png";
-import terminarTurnoEng from "/uploads/terminar-turno-eng.png";
-import iniciativaEng from "/uploads/iniciativa-eng.png";
+const esperandoTurno = "/uploads/esperando-turno.png";
+const terminarTurno = "/uploads/terminar-turno.png";
+const iniciativa = "/uploads/iniciativa.png";
+const esperandoTurnoEng = "/uploads/esperando-turno-eng.png";
+const terminarTurnoEng = "/uploads/terminar-turno-eng.png";
+const iniciativaEng = "/uploads/iniciativa-eng.png";
 
 // Centralized list + preloader for character-sheet visual assets.
 // Imported by both the home/role-selection screen (to warm the cache early)
