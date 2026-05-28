@@ -259,19 +259,59 @@ export async function endCombat(
   encounter: CombatEncounter,
   dm: { id: string; name: string; color: string },
 ) {
+  // Fetch participants before ending to generate summary
+  const { data: participants } = await (supabase as any)
+    .from("combat_participants")
+    .select("*")
+    .eq("encounter_id", encounter.id);
+
+  const players = (participants || []).filter((p: any) => p.participant_type === "player" && p.character_id);
+  
+  const survivors = players.filter((p: any) => (p.enemy_hp ?? 1) > 0); // For players we might need to check current_hp from characters table if we want most up to date, but usually the participant has it synced if we implemented it, wait, participants don't store player HP.
+  
+  // Re-fetch character HPs to be sure
+  const charIds = players.map((p: any) => p.character_id);
+  const { data: chars } = await supabase.from("characters").select("id, name, current_hp, max_hp, color, image_url").in("id", charIds);
+  
+  const results = players.map(p => {
+    const char = (chars || []).find(c => c.id === p.character_id);
+    return {
+      id: p.character_id,
+      name: char?.name || p.display_name,
+      current_hp: char?.current_hp ?? 0,
+      max_hp: char?.max_hp ?? 1,
+      color: char?.color || p.color,
+      image_url: char?.image_url || p.image_url,
+      is_survivor: (char?.current_hp ?? 0) > 0
+    };
+  });
+
+  const survivorNames = results.filter(r => r.is_survivor).map(r => r.name).join(", ");
+  const defeatedNames = results.filter(r => !r.is_survivor).map(r => r.name).join(", ");
+
   const { error } = await supabase
     .from("combat_encounters" as any)
     .update({ status: "ended", ended_at: new Date().toISOString() })
     .eq("id", encounter.id);
   if (error) return { ok: false, error: error.message };
+
   // Phase 5 cleanup: drop ephemeral skill-use counters and temporary effects.
   await clearEncounterSkillState(encounter.id);
+
+  // Compact summary log
+  const logMsg = defeatedNames 
+    ? { key: "combat.ended.logMsg", params: { survivors: survivorNames || "---", defeated: defeatedNames } }
+    : { key: "combat.ended.logMsgNoDefeated", params: { survivors: survivorNames || "---" } };
+
   await pushLog(encounter.campaign_id, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
-    { t: "text", v: " terminó el combate." },
+    { t: "text", v: " " },
+    { t: "i18n", v: logMsg as any },
   ]);
-  return { ok: true };
+
+  return { ok: true, summary: results };
 }
+
 
 export async function dmShiftTurn(
   encounter: CombatEncounter,
