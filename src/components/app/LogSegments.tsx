@@ -79,23 +79,23 @@ export function LogSegments({
           }}>
           <span className="flex items-center gap-2">
             <span className="inline-flex w-6 h-6 rounded-full items-center justify-center border" style={{ borderColor: color, color }}>
-              <EnemyIcon name={p.enemyIcon} size={12} />
+              <EnemyIcon name={p.enemyIcon} size={12} fill />
             </span>
-            <strong style={{ color }} className="text-xs">{p.enemyName}</strong>
-            <span className="text-[10px] text-muted-foreground">usó</span>
+            <strong style={{ color }} className="text-xs uppercase tracking-wider">{p.enemyName}</strong>
+            <span className="text-[10px] text-muted-foreground italic">{t("combat.playerSkill.usedSkill")}</span>
             <strong style={{ color: rarityColor }} className="text-xs">{p.skillName}</strong>
           </span>
           {full && (
             <span className="block mt-1 text-[10px] space-y-0.5">
-              {p.dice && <span className="block"><span className="text-muted-foreground">Dados: </span><span style={{ color: "var(--gold)" }}>{p.dice}</span></span>}
-              {p.rangeText && <span className="block"><span className="text-muted-foreground">Alcance: </span><span style={{ color: "#60a5fa" }}>{p.rangeText}</span></span>}
-              {(p.resolvedTargets || p.targets) && <span className="block"><span className="text-muted-foreground">Objetivos: </span><span style={{ color: "#34d399" }}>{p.resolvedTargets || p.targets}</span></span>}
-              {p.rollResult && <span className="block"><span className="text-muted-foreground">Tirada: </span><span style={{ color: "var(--gold)" }}>{p.rollResult}</span></span>}
+              {p.dice && <span className="block"><span className="text-muted-foreground uppercase tracking-tighter">{t("boosters.diceToRoll")}: </span><span style={{ color: "var(--gold)" }}>{p.dice}</span></span>}
+              {p.rangeText && <span className="block"><span className="text-muted-foreground uppercase tracking-tighter">{t("boosters.distance")}: </span><span style={{ color: "#60a5fa" }}>{p.rangeText}</span></span>}
+              {(p.resolvedTargets || p.targets) && <span className="block"><span className="text-muted-foreground uppercase tracking-tighter">{t("combat.enemy.resolvedTargets")}: </span><span style={{ color: "#34d399" }}>{p.resolvedTargets || p.targets}</span></span>}
+              {p.rollResult && <span className="block"><span className="text-muted-foreground uppercase tracking-tighter">Roll: </span><span style={{ color: "var(--gold)" }}>{p.rollResult}</span></span>}
             </span>
           )}
-          {p.effect && <span className="block mt-1 text-[11px] text-foreground/90"><StatText>{p.effect}</StatText></span>}
+          {p.detail !== ("private" as any) && p.effect && <span className="block mt-1 text-[11px] text-foreground/90 bg-white/5 p-1.5 rounded italic"><StatText>{p.effect}</StatText></span>}
           {full && p.visualBrief && <span className="block mt-0.5 text-[10px] italic" style={{ color: "#c4b5fd" }}><StatText>{p.visualBrief}</StatText></span>}
-          {full && p.dmNote && <span className="block mt-0.5 text-[10px] text-muted-foreground">— <StatText>{p.dmNote}</StatText></span>}
+          {full && p.dmNote && <span className="block mt-0.5 text-[10px] text-muted-foreground border-t border-white/5 pt-1 mt-1">— <span className="font-bold text-[var(--gold)]">DM:</span> <StatText>{p.dmNote}</StatText></span>}
         </span>
       );
     }

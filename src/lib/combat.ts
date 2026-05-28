@@ -1303,7 +1303,11 @@ export async function logEnemySkillUse(
   opts: { visibility: EnemySkillVisibility; resolvedTargets?: string; rollResult?: string; dmNote?: string },
 ) {
   if (opts.visibility === "private") return { ok: true };
-  const payload = {
+
+  const { data: campaign } = await supabase.from("campaigns").select("combat_log_detail_mode").eq("id", participant.campaign_id).maybeSingle();
+  const logMode = (campaign as any)?.combat_log_detail_mode || "normal";
+
+  const buildPayload = (visibility: EnemySkillVisibility) => ({
     enemyName: participant.display_name,
     enemyIcon: participant.enemy_icon,
     enemyColor: participant.enemy_color,
@@ -1316,12 +1320,19 @@ export async function logEnemySkillUse(
     rangeText: skill.range_text,
     effect: skill.effect,
     visualBrief: skill.visual_brief,
-    detail: opts.visibility,
+    detail: visibility,
     resolvedTargets: opts.resolvedTargets || null,
     rollResult: opts.rollResult || null,
     dmNote: opts.dmNote || null,
-  };
-  await pushLog(participant.campaign_id, [{ t: "enemy_skill", v: payload } as any]);
+  });
+
+  if (logMode === "dm_private") {
+    await pushLog(participant.campaign_id, [{ t: "enemy_skill", v: buildPayload("nameAndEffect") } as any]);
+    await pushLog(participant.campaign_id, [{ t: "enemy_skill", v: buildPayload("full") } as any], undefined, { dmOnly: true });
+  } else {
+    const finalVis = logMode === "minimal" ? "nameAndEffect" : (logMode === "detailed" ? "full" : opts.visibility);
+    await pushLog(participant.campaign_id, [{ t: "enemy_skill", v: buildPayload(finalVis) } as any]);
+  }
   return { ok: true };
 }
 
