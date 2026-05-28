@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Swords } from "lucide-react";
 import type { Character } from "@/lib/game";
 import {
   activeBlock,
@@ -15,6 +14,15 @@ import {
   type CombatTurnPin,
 } from "@/lib/combat";
 import { InitiativeRollModal } from "@/components/app/InitiativeRollModal";
+import { playSfx } from "@/lib/sound";
+import sfxBtn from "@/assets/sounds/Monedero.mp3"; // Reusing button sound
+
+import esperandoTurnoEs from "@/assets/combat-buttons/esperando-turno.png";
+import terminarTurnoEs from "@/assets/combat-buttons/terminar-turno.png";
+import iniciativaEs from "@/assets/combat-buttons/iniciativa.png";
+import esperandoTurnoEn from "@/assets/combat-buttons/esperando-turno-eng.png";
+import terminarTurnoEn from "@/assets/combat-buttons/terminar-turno-eng.png";
+import iniciativaEn from "@/assets/combat-buttons/iniciativa-eng.png";
 
 type Props = {
   character: Character;
@@ -27,7 +35,7 @@ type Props = {
 };
 
 export function InitiativeButton({ character, encounter, participants, groups, pins, online }: Props) {
-  const { t } = useT();
+  const { t, i18n } = useT();
   const [open, setOpen] = useState(false);
   const status = encounter?.status ?? null;
   const myPart = participantForCharacter(participants, character.id);
@@ -35,46 +43,60 @@ export function InitiativeButton({ character, encounter, participants, groups, p
   const active = activeBlock(encounter, blocks);
   const myTurn = active ? blockContainsCharacter(active, character.id) : false;
 
+  const isEn = i18n.language === "en";
+
+  const assets = {
+    waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
+    end: isEn ? terminarTurnoEn : terminarTurnoEs,
+    initiative: isEn ? iniciativaEn : iniciativaEs,
+  };
+
   const inLink = !!myPart?.turn_group_id;
 
-  let label = t("combat.btnInitiative");
+  let label = t("combat.playerSkill.initiative");
   let onClick: (() => void) | null = null;
-  let style: React.CSSProperties = { opacity: 0.45, cursor: "not-allowed" };
+  let asset = assets.initiative;
   let disabled = true;
+  let ariaLabel = t("combat.playerSkill.initiative");
 
   if (status === "collecting") {
     if (myPart) {
       label = inLink ? t("combat.btnInLink") : t("combat.btnWaitingDm");
+      asset = assets.waiting;
       disabled = true;
-      style = { opacity: 0.6 };
+      ariaLabel = label;
     } else {
-      label = t("combat.btnInitiative");
+      label = t("combat.playerSkill.initiative");
       onClick = () => setOpen(true);
       disabled = false;
-      style = { background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" };
+      asset = assets.initiative;
+      ariaLabel = label;
     }
   } else if (status === "active") {
     if (myTurn) {
-      label = t("combat.btnPassTurn");
+      label = t("combat.playerSkill.endTurn");
       disabled = false;
-      style = { background: "linear-gradient(135deg, var(--gain), oklch(0.45 0.16 145))", color: "white" };
+      asset = assets.end;
+      ariaLabel = label;
       onClick = async () => {
+        playSfx(sfxBtn);
         const r = await passTurn(encounter!, blocks, character);
         if (!r.ok) toast.error(t("combat.passError"));
       };
     } else if (myPart) {
-      label = t("combat.btnWaitingTurn");
+      label = t("combat.playerSkill.waitingTurn");
       disabled = true;
-      style = { opacity: 0.55 };
+      asset = assets.waiting;
+      ariaLabel = label;
     } else {
       // Combat is active but this character is not registered — allow late join.
       label = t("combat.btnJoinLate");
       onClick = () => setOpen(true);
       disabled = false;
-      style = { background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" };
+      asset = assets.initiative;
+      ariaLabel = label;
     }
   }
-
 
   // Exclude self, non-players, and characters already in a link in this encounter.
   const linkedIds = new Set(
@@ -89,12 +111,37 @@ export function InitiativeButton({ character, encounter, participants, groups, p
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onClick?.()}
-        className="btn-fantasy w-full flex items-center justify-center gap-2 font-display tracking-wider"
-        style={style}
+        onClick={() => {
+          if (!disabled) {
+            if (onClick) onClick();
+            else playSfx(sfxBtn);
+          }
+        }}
+        aria-label={ariaLabel}
+        className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
+        style={{ WebkitTapHighlightColor: "transparent" }}
       >
-        <Swords size={14} />
-        <span>{label}</span>
+        <img
+          src={asset}
+          alt=""
+          className="block w-full h-auto pointer-events-none"
+          draggable={false}
+          style={{ marginTop: "-2%", marginBottom: "-2%" }}
+        />
+
+        <div
+          className="absolute pointer-events-none flex items-center justify-center w-full"
+          style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)", lineHeight: 1 }}
+        >
+          <span
+            className="font-display font-bold leading-none text-white text-base sm:text-lg uppercase tracking-wider"
+            style={{
+              textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5)",
+            }}
+          >
+            {label}
+          </span>
+        </div>
       </button>
 
       {open && encounter && (
