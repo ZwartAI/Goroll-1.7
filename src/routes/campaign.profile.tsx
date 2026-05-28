@@ -54,8 +54,6 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { AttributesBar } from "@/components/app/AttributesBar";
 import { FramedCharacterPortrait } from "@/components/app/FramedCharacterPortrait";
-import { LevelUpModal } from "@/components/app/LevelUpModal";
-import { PlayerNotifier } from "@/components/app/PlayerNotifier";
 import { InitialStatsSetupModal } from "@/components/app/InitialStatsSetupModal";
 import { backdropProps } from "@/lib/modalBackdrop";
 
@@ -216,12 +214,7 @@ function Profile() {
   return (
     <PageFrame>
       <div key={shakeKey ?? "cs-static"} className={shakeKey ? "cs-shake" : undefined}>
-      <PlayerNotifier
-        characterId={character.id}
-        enabled={character.role === "player"}
-        initialSp={(character as any).skill_points ?? 0}
-        initialLevel={(character as any).level ?? 1}
-      />
+      {/* Global notifications handled by CampaignProvider */}
       {character.role === "player" && !(character as any).stats_setup_completed && (
         <InitialStatsSetupModal
           character={character}

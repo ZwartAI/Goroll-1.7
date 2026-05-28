@@ -1560,8 +1560,8 @@ export const es = {
   },
   levelUp: {
     title: "¡Subiste de nivel!",
-    body: "Has alcanzado el nivel {level}.",
-    spReward: "Recibiste +1 Skill Point",
+    body: "Tu personaje alcanzó el nivel {level} y recibió +1 Skill Point.",
+    spReward: "", // Now included in body
     ok: "Ok",
   },
   levelAdjust: {

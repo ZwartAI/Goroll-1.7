@@ -33,38 +33,37 @@ export function LevelUpModal({
   const characterIdRef = useRef<string | null>(null);
   const [shownLevel, setShownLevel] = useState<number | null>(null);
 
-
+  // Sync baseline on first mount or character change
   useEffect(() => {
-    if (!enabled) return;
-    const lvl = typeof level === "number" ? level : null;
-    if (lvl == null) return;
+    if (!enabled || !characterId || typeof level !== "number") return;
 
-    // If character changes, reset baseline
-    if (characterId && characterId !== characterIdRef.current) {
+    if (characterId !== characterIdRef.current) {
       characterIdRef.current = characterId;
-      lastLevelRef.current = lvl;
+      lastLevelRef.current = level;
       return;
     }
 
-    if (lastLevelRef.current == null) {
-      lastLevelRef.current = lvl; // baseline on first read, no celebration
+    if (lastLevelRef.current === null) {
+      lastLevelRef.current = level;
       return;
     }
-    if (lvl > lastLevelRef.current) {
-      // Protection against duplicate modals: check if we already showed this level
-      const seenKey = `level-up-seen-${characterId}-${lvl}`;
+
+    if (level > lastLevelRef.current) {
+      // Protection against duplicate modals in the same session
+      const seenKey = `level-up-seen-${characterId}-${level}`;
       if (sessionStorage.getItem(seenKey)) {
-        lastLevelRef.current = lvl;
+        lastLevelRef.current = level;
         return;
       }
 
-      lastLevelRef.current = lvl;
+      lastLevelRef.current = level;
       sessionStorage.setItem(seenKey, "1");
-      setShownLevel(lvl);
+      setShownLevel(level);
 
-      // One-shot victory SFX (preloaded above for instant playback).
+      // One-shot victory SFX
       try { playSfx(sfxVictory); } catch { /* ignore */ }
-      // fire confetti shortly after mount
+
+      // Fire confetti
       requestAnimationFrame(() => {
         try {
           confetti({
@@ -73,6 +72,7 @@ export function LevelUpModal({
             startVelocity: 45,
             origin: { y: 0.4 },
             colors: ["#f5c66b", "#b58a37", "#fff2c2", "#a78bfa", "#ffffff"],
+            zIndex: 500, // Higher than modal
           });
           setTimeout(() => {
             confetti({
@@ -81,21 +81,22 @@ export function LevelUpModal({
               startVelocity: 35,
               origin: { y: 0.5 },
               colors: ["#f5c66b", "#fff2c2"],
+              zIndex: 500,
             });
           }, 260);
         } catch { /* ignore */ }
       });
-    } else if (lvl < lastLevelRef.current) {
-      // sync down silently
-      lastLevelRef.current = lvl;
+    } else if (level < lastLevelRef.current) {
+      // Sync down silently if level was reduced
+      lastLevelRef.current = level;
     }
-  }, [level, enabled]);
+  }, [level, enabled, characterId]);
 
   if (shownLevel == null) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       {...backdropProps(() => setShownLevel(null))}
@@ -140,11 +141,8 @@ export function LevelUpModal({
         >
           {t("levelUp.title")}
         </h2>
-        <p className="text-sm text-foreground/90 mb-1">
+        <p className="text-sm text-foreground/90 mb-5">
           {t("levelUp.body", { level: String(shownLevel) })}
-        </p>
-        <p className="text-xs text-[var(--gold)] mb-5">
-          {t("levelUp.spReward")}
         </p>
         <button
           className="btn-fantasy w-full"

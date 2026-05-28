@@ -1558,8 +1558,8 @@ export const en: Dict = {
   },
   levelUp: {
     title: "You leveled up!",
-    body: "You reached level {level}.",
-    spReward: "You received +1 Skill Point",
+    body: "Your character reached level {level} and received +1 Skill Point.",
+    spReward: "", // Now included in body
     ok: "Ok",
   },
   levelAdjust: {

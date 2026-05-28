@@ -6,6 +6,7 @@ import type { CombatEncounter, CombatParticipant, CombatTurnGroup, CombatTurnPin
 import { CombatEndModal } from "@/components/app/CombatEndModal";
 import { LevelUpModal } from "@/components/app/LevelUpModal";
 import { CampaignLoadingOverlay } from "@/components/app/CampaignLoadingOverlay";
+import { PlayerNotifier } from "@/components/app/PlayerNotifier";
 
 
 
@@ -321,11 +322,19 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
         />
       )}
       {character && character.role === "player" && (
-        <LevelUpModal
-          level={(character as any).level ?? 1}
-          characterId={character.id}
-          enabled={true}
-        />
+        <>
+          <PlayerNotifier
+            characterId={character.id}
+            enabled={true}
+            initialSp={(character as any).skill_points ?? 0}
+            initialLevel={(character as any).level ?? 1}
+          />
+          <LevelUpModal
+            level={(character as any).level ?? 1}
+            characterId={character.id}
+            enabled={true}
+          />
+        </>
       )}
       {children}
 
