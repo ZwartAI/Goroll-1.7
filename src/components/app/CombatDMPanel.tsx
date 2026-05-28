@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
+import { useGameData } from "@/lib/useGame";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users, Settings2 } from "lucide-react";
@@ -42,6 +43,7 @@ type Props = {
 
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups, pins = [] }: Props) {
   const { t } = useT();
+  const { campaign } = useGameData();
   const [logSettingsOpen, setLogSettingsOpen] = useState(false);
   const [savingLogSettings, setSavingLogSettings] = useState(false);
   const status = encounter?.status ?? null;
@@ -352,7 +354,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                     }
                   }}
                   className={`w-full text-left p-3 rounded border transition-colors ${
-                    (encounter as any)?.campaign?.combat_log_detail_mode === mode 
+                    (campaign as any)?.combat_log_detail_mode === mode 
                       ? "bg-[var(--gold)]/10 border-[var(--gold)]/60 text-[var(--gold)]" 
                       : "border-[var(--gold)]/20 hover:bg-white/5"
                   }`}
