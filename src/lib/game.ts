@@ -132,7 +132,7 @@ export type EnemySkillLogPayload = {
   rangeText?: string | null;
   effect?: string | null;
   visualBrief?: string | null;
-  detail: "nameAndEffect" | "full";
+  detail: "nameAndEffect" | "full" | "private";
   resolvedTargets?: string | null;
   rollResult?: string | null;
   dmNote?: string | null;
