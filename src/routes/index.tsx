@@ -145,6 +145,7 @@ function Home() {
 
   function logout() {
     setStoredUser(null); setUser(null);
+    setSession(null); // Clear active campaign session on logout
     setUsername(""); setPin(""); setStep("login");
     setShowLanguagePrompt(false);
   }
