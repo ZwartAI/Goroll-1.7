@@ -35,7 +35,7 @@ type Props = {
 };
 
 export function InitiativeButton({ character, encounter, participants, groups, pins, online }: Props) {
-  const { t, i18n } = useT();
+  const { t, lang } = useT();
   const [open, setOpen] = useState(false);
   const status = encounter?.status ?? null;
   const myPart = participantForCharacter(participants, character.id);
@@ -43,7 +43,7 @@ export function InitiativeButton({ character, encounter, participants, groups, p
   const active = activeBlock(encounter, blocks);
   const myTurn = active ? blockContainsCharacter(active, character.id) : false;
 
-  const isEn = i18n.language === "en";
+  const isEn = lang === "en";
 
   const assets = {
     waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
