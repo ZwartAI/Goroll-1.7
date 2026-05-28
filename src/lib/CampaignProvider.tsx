@@ -211,20 +211,23 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
           const encId = payload.new.id;
           const { data: parts } = await (supabase as any).from("combat_participants").select("*").eq("encounter_id", encId);
           const s = getSession();
-          const myPart = (parts || []).find((p: any) => p.character_id === s?.characterId);
-          if (myPart) {
-            // Fetch my character to get latest HP
-            const { data: char } = await supabase.from("characters").select("name, current_hp").eq("id", s!.characterId).single();
-            if (char) {
-              setEndedCombatData({
-                characterName: char.name,
-                isSurvivor: (char.current_hp ?? 0) > 0
-              });
+          if (s?.characterId) {
+            const myPart = (parts || []).find((p: any) => p.character_id === s.characterId);
+            if (myPart) {
+              // Fetch my character to get latest HP
+              const { data: char } = await supabase.from("characters").select("name, current_hp").eq("id", s.characterId).single();
+              if (char) {
+                setEndedCombatData({
+                  characterName: char.name,
+                  isSurvivor: (char.current_hp ?? 0) > 0
+                });
+              }
             }
           }
         }
         loadCombat(campaignId);
       })
+
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "combat_encounters", filter: `campaign_id=eq.${campaignId}` }, () => loadCombat(campaignId))
 
       .on("postgres_changes", { event: "*", schema: "public", table: "combat_participants", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
