@@ -5,8 +5,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
-import type { Character } from "@/lib/game";
-import { resetUsedThisTurn, clearEncounterSkillState, tickPlayerTurnEnd, tickEnemyTurnEnd } from "@/lib/combat-skills";
+import { resolveDamageAgainstEntity } from "./combat-logic";
+import { resetUsedThisTurn, clearEncounterSkillState } from "@/lib/combat-skills";
+
 
 export type EncounterStatus = "collecting" | "active" | "ended";
 
@@ -779,31 +780,33 @@ export async function applyEnemyDamage(
   opts: { useDefense: boolean },
 ) {
   if (!isEnemy(participant)) return { ok: false, applied: 0 };
-  const def = participant.enemy_defense || 0;
-  const applied = Math.max(0, Math.floor(raw) - (opts.useDefense ? def : 0));
-  const max = participant.enemy_max_hp || 1;
-  const newHp = clampHp((participant.enemy_hp || 0) - applied, max);
-  const becameDefeated = newHp <= 0 && !participant.is_defeated;
-  await (supabase as any).from("combat_participants")
-    .update({ enemy_hp: newHp, is_defeated: newHp <= 0 })
-    .eq("id", participant.id);
-  if (becameDefeated) {
-    await pushLog(participant.campaign_id, [
-      { t: "text", v: `${participant.display_name} fue derrotado.` },
-    ]);
-  }
-  return { ok: true, applied };
+  
+  const r = await resolveDamageAgainstEntity({
+    targetId: participant.id,
+    targetType: "enemy",
+    encounterId: participant.encounter_id,
+    campaignId: participant.campaign_id,
+    amount: raw,
+    mode: opts.useDefense ? "damageWithDefense" : "directDamage",
+  });
+  
+  return { ok: true, applied: r?.applied ?? 0 };
 }
 
 export async function healEnemy(participant: CombatParticipant, amount: number) {
   if (!isEnemy(participant)) return { ok: false };
-  const max = participant.enemy_max_hp || 1;
-  const newHp = clampHp((participant.enemy_hp || 0) + Math.floor(amount), max);
-  await (supabase as any).from("combat_participants")
-    .update({ enemy_hp: newHp, is_defeated: newHp <= 0 })
-    .eq("id", participant.id);
-  return { ok: true };
+  
+  const r = await resolveDamageAgainstEntity({
+    targetId: participant.id,
+    targetType: "enemy",
+    encounterId: participant.encounter_id,
+    campaignId: participant.campaign_id,
+    amount: amount,
+    mode: "heal",
+  });
+  return { ok: !!r };
 }
+
 
 export async function duplicateEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
   if (!isEnemy(participant)) return { ok: false };
