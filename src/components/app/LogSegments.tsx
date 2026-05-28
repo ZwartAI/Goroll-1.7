@@ -93,7 +93,7 @@ export function LogSegments({
               {p.rollResult && <span className="block"><span className="text-muted-foreground uppercase tracking-tighter">Roll: </span><span style={{ color: "var(--gold)" }}>{p.rollResult}</span></span>}
             </span>
           )}
-          {p.detail !== "private" && p.effect && <span className="block mt-1 text-[11px] text-foreground/90 bg-white/5 p-1.5 rounded italic"><StatText>{p.effect}</StatText></span>}
+          {p.detail !== ("private" as any) && p.effect && <span className="block mt-1 text-[11px] text-foreground/90 bg-white/5 p-1.5 rounded italic"><StatText>{p.effect}</StatText></span>}
           {full && p.visualBrief && <span className="block mt-0.5 text-[10px] italic" style={{ color: "#c4b5fd" }}><StatText>{p.visualBrief}</StatText></span>}
           {full && p.dmNote && <span className="block mt-0.5 text-[10px] text-muted-foreground border-t border-white/5 pt-1 mt-1">— <span className="font-bold text-[var(--gold)]">DM:</span> <StatText>{p.dmNote}</StatText></span>}
         </span>
