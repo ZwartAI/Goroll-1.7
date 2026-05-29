@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { useT } from '@/lib/i18n';
 import type { LogRow } from '@/lib/game';
