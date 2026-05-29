@@ -83,7 +83,9 @@ export function CombatManagerModal({ encounter, participants, groups, pins, dm, 
     if (selectedList.length === 0) return;
     setWorking(true);
     
-    const r = await removeParticipants(selectedList, encounter, dm);
+    // Sort by descending order_index to keep turn logic consistent during removal
+    const ordered = [...selectedList].sort((a, b) => b.order_index - a.order_index);
+    const r = await removeParticipants(ordered, encounter, dm);
     
     setWorking(false);
     if (r.ok && r.okCount) toast.success(t("combat.manager.removedToast", { n: r.okCount }));

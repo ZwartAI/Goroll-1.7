@@ -164,7 +164,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                   onClick={async () => {
                     const { error } = await supabase
                       .from("combat_encounters")
-                      .update({ combat_log_detail_mode: mode.id })
+                      .update({ combat_log_detail_mode: mode.id as any })
                       .eq("id", encounter.id);
                     if (error) toast.error(error.message);
                   }}
