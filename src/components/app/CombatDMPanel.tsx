@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users } from "lucide-react";
+import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users, Settings2, Shield, EyeOff, List, Info } from "lucide-react";
 import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { DMApplyEffectModal } from "@/components/app/DMApplyEffectModal";
 import { CombatManagerModal } from "@/components/app/CombatManagerModal";
 import { EndTurnConfirmModal } from "@/components/app/EndTurnConfirmModal";
 import {
   buildOrderedTurns,
+
   cancelInitiative,
   dissolveLink,
   endActiveTurn,
@@ -141,6 +142,51 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
             )}
             <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
           </div>
+          <div className="gem-divider opacity-40" />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="font-display text-[10px] uppercase tracking-widest text-[var(--gold)] flex items-center gap-1.5">
+                <Settings2 size={12} /> {t("combat.settings.logDetailTitle")}
+              </h4>
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { id: "minimal", icon: List },
+                { id: "normal", icon: Info },
+                { id: "detailed", icon: Shield },
+                { id: "dm_private", icon: EyeOff },
+              ].map((mode) => (
+                <button
+                  key={mode.id}
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from("combat_encounters")
+                      .update({ combat_log_detail_mode: mode.id })
+                      .eq("id", encounter.id);
+                    if (error) toast.error(error.message);
+                  }}
+                  className={`p-2 rounded border flex flex-col items-center gap-1 transition-all ${
+                    encounter.combat_log_detail_mode === mode.id
+                      ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold)] shadow-[0_0_8px_rgba(212,175,55,0.2)]"
+                      : "border-border hover:border-[var(--gold)]/40 text-muted-foreground"
+                  }`}
+                  title={t(`combat.settings.logDetail.${mode.id}` as any)}
+                >
+                  <mode.icon size={14} />
+                  <span className="text-[8px] uppercase font-display tracking-tighter">
+                    {t(`combat.settings.logDetail.${mode.id}` as any).split(" ")[0]}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] text-muted-foreground text-center px-2">
+              {t(`combat.settings.logDetailHint.${encounter.combat_log_detail_mode}` as any)}
+            </p>
+          </div>
+
+          <div className="gem-divider opacity-40" />
+
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button className="btn-fantasy" style={{ background: "var(--loss)", color: "white" }}
               onClick={() => setConfirmState({
@@ -148,6 +194,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                 onConfirm: async () => {
                   const r = await cancelInitiative(encounter, dm);
                   if (!r.ok) toast.error(t("combat.cancelError"));
+
                 },
               })}>
               <X size={14} className="inline mr-1" /> {t("combat.cancel")}

@@ -11,8 +11,10 @@ import {
   type CombatTurnPin,
   type TurnBlock,
 } from "@/lib/combat";
-import { Crown, GripVertical } from "lucide-react";
+import { Crown, GripVertical, Maximize2 } from "lucide-react";
 import { EnemyIcon, getEnemyAssetUrl, getEnemyCustomImage } from "@/components/app/EnemyIconPicker";
+import { EntityPortraitModal } from "@/components/app/EntityPortraitModal";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useLongPress } from "@/hooks/useLongPress";

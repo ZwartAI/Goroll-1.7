@@ -41,20 +41,16 @@ export function EntityPortraitModal({ participant, onClose }: Props) {
             <div className="w-full h-full relative">
               <EnemyIcon 
                 name={participant.enemy_icon} 
-                size={160} 
+                size={320} 
                 fill={isTierAsset} 
                 customImage={customImg} 
-                className="w-full h-full object-cover"
-                style={{
-                  objectPosition: `${participant.enemy_image_offset_x ?? 50}% ${participant.enemy_image_offset_y ?? 50}%`,
-                  transform: `scale(${participant.enemy_image_scale ?? 1})`,
-                }}
               />
             </div>
           ) : (
             <div className="text-6xl" style={{ color }}>🧙</div>
           )}
         </div>
+
 
         <div className="gem-divider w-full opacity-50" />
 
