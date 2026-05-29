@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { totals, type Character, type Item } from "./game";
+import { totals, type Character, type Item, getSession } from "./game";
 import { pushLog } from "./log";
 import { applyHpDelta } from "./hp";
+import type { CombatEncounter } from "./combat";
+
 
 export type TargetType = "character" | "enemy";
 export type DamageMode = "heal" | "directDamage" | "damageWithDefense";
@@ -132,24 +134,38 @@ async function resolveCharacterDamage(
   await applyHpDelta(targetId, newHp, maxHp);
 
   // Logging
+  const { data: encounter } = await supabase.from("combat_encounters").select("combat_log_detail_mode").eq("id", encounterId).maybeSingle();
+  const detailMode = (encounter as unknown as CombatEncounter)?.combat_log_detail_mode || "normal";
+  const session = getSession();
+  const isDM = session?.role === "dm";
+
   const segments: any[] = [];
   if (sourceName) segments.push({ t: "text", v: `${sourceName} ` });
   if (skillName) segments.push({ t: "text", v: `(${skillName}) ` });
   
+  const isMinimal = detailMode === "minimal" || (detailMode === "dm_private" && !isDM);
+  const isDetailed = detailMode === "detailed" || (detailMode === "dm_private" && isDM);
+
   if (mode === "directDamage") {
     segments.push({ t: "char", v: ch.name, color: ch.color, id: ch.id });
     segments.push({ t: "text", v: ` ` });
     segments.push({ t: "i18n", v: { key: "combat.directDamage" } as any } as any);
-    segments.push({ t: "text", v: `: ` });
-    segments.push({ t: "loss", v: `-${applied} HP` });
+    if (!isMinimal) {
+      segments.push({ t: "text", v: `: ` });
+      segments.push({ t: "loss", v: `-${applied} HP` });
+    }
   } else {
     segments.push({ t: "char", v: ch.name, color: ch.color, id: ch.id });
     segments.push({ t: "text", v: ` ` });
     segments.push({ t: "i18n", v: { key: "combat.damageWithDefense" } as any } as any);
-    segments.push({ t: "text", v: `: ` });
-    segments.push({ t: "loss", v: `-${applied} HP` });
-    if (totalMitigatedByDef > 0) segments.push({ t: "text", v: ` (DEF ${def} -${totalMitigatedByDef})` });
-    if (absorbed > 0) segments.push({ t: "text", v: ` (🛡️ -${absorbed})` });
+    if (!isMinimal) {
+      segments.push({ t: "text", v: `: ` });
+      segments.push({ t: "loss", v: `-${applied} HP` });
+      if (isDetailed) {
+        if (totalMitigatedByDef > 0) segments.push({ t: "text", v: ` (DEF ${def} -${totalMitigatedByDef})` });
+        if (absorbed > 0) segments.push({ t: "text", v: ` (🛡️ -${absorbed})` });
+      }
+    }
   }
 
   if (segments.length > 0 && !skipLogging) {
@@ -162,6 +178,7 @@ async function resolveCharacterDamage(
 
   return { raw, applied, def: totalMitigatedByDef, absorbed, newHp, maxHp, defeated, shieldBroke };
 }
+
 
 async function resolveEnemyDamage(
   targetId: string,
@@ -254,22 +271,36 @@ async function resolveEnemyDamage(
     .eq("id", targetId);
 
   // Logging
+  const { data: encounter } = await supabase.from("combat_encounters").select("combat_log_detail_mode").eq("id", encounterId).maybeSingle();
+  const detailMode = (encounter as unknown as CombatEncounter)?.combat_log_detail_mode || "normal";
+  const session = getSession();
+  const isDM = session?.role === "dm";
+
   const segments: any[] = [];
   if (sourceName) segments.push({ t: "text", v: `${sourceName} ` });
   if (skillName) segments.push({ t: "text", v: `(${skillName}) ` });
   
+  const isMinimal = detailMode === "minimal" || (detailMode === "dm_private" && !isDM);
+  const isDetailed = detailMode === "detailed" || (detailMode === "dm_private" && isDM);
+
   if (mode === "directDamage") {
     segments.push({ t: "text", v: `${name} ` });
     segments.push({ t: "i18n", v: { key: "combat.directDamage" } as any } as any);
-    segments.push({ t: "text", v: `: ` });
-    segments.push({ t: "loss", v: `-${applied} HP` });
+    if (!isMinimal) {
+      segments.push({ t: "text", v: `: ` });
+      segments.push({ t: "loss", v: `-${applied} HP` });
+    }
   } else {
     segments.push({ t: "text", v: `${name} ` });
     segments.push({ t: "i18n", v: { key: "combat.damageWithDefense" } as any } as any);
-    segments.push({ t: "text", v: `: ` });
-    segments.push({ t: "loss", v: `-${applied} HP` });
-    if (totalMitigatedByDef > 0) segments.push({ t: "text", v: ` (DEF ${def} -${totalMitigatedByDef})` });
-    if (absorbed > 0) segments.push({ t: "text", v: ` (🛡️ -${absorbed})` });
+    if (!isMinimal) {
+      segments.push({ t: "text", v: `: ` });
+      segments.push({ t: "loss", v: `-${applied} HP` });
+      if (isDetailed) {
+        if (totalMitigatedByDef > 0) segments.push({ t: "text", v: ` (DEF ${def} -${totalMitigatedByDef})` });
+        if (absorbed > 0) segments.push({ t: "text", v: ` (🛡️ -${absorbed})` });
+      }
+    }
   }
 
   if (segments.length > 0 && !skipLogging) {
@@ -282,3 +313,4 @@ async function resolveEnemyDamage(
 
   return { raw, applied, def: totalMitigatedByDef, absorbed, newHp, maxHp, defeated, shieldBroke };
 }
+
