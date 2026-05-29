@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Group, Circle, Image } from 'react-konva';
 import Konva from 'konva';
 import useImage from 'use-image';
@@ -15,9 +15,14 @@ interface Props {
   gridSize: number;
   onSelect?: () => void;
   isSelected?: boolean;
+  onLongPress?: (x: number, y: number) => void;
+  onProjectionStart?: (type: 'distance' | 'area' | 'line' | 'cone', origin: { x: number; y: number }) => void;
 }
 
-export const MapToken: React.FC<Props> = ({ participant, x, y, gridSize, onSelect, isSelected }) => {
+export const MapToken: React.FC<Props> = ({ 
+  participant, x, y, gridSize, onSelect, isSelected, onLongPress, onProjectionStart 
+}) => {
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   // Obtener la imagen (custom o asset)
   const customImg = getEnemyCustomImage(participant);
   const assetUrl = getEnemyAssetUrl(participant.enemy_icon);
@@ -36,10 +41,38 @@ export const MapToken: React.FC<Props> = ({ participant, x, y, gridSize, onSelec
     <Group 
       x={x} 
       y={y} 
+      name="token-group"
+      participantId={participant.id}
       draggable 
       onClick={onSelect}
       onTap={onSelect}
+      onMouseDown={(e) => {
+        // Long press detection
+        longPressTimer.current = setTimeout(() => {
+          const stage = e.target.getStage();
+          if (stage) {
+            const pos = stage.getPointerPosition();
+            if (pos) onLongPress?.(pos.x, pos.y);
+          }
+        }, 600);
+      }}
+      onTouchStart={(e) => {
+        longPressTimer.current = setTimeout(() => {
+          const stage = e.target.getStage();
+          if (stage) {
+            const pos = stage.getPointerPosition();
+            if (pos) onLongPress?.(pos.x, pos.y);
+          }
+        }, 600);
+      }}
+      onMouseUp={() => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      }}
+      onTouchEnd={() => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      }}
       onDragStart={(e) => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
         e.target.moveToTop();
         e.target.to({
           scaleX: 1.1,

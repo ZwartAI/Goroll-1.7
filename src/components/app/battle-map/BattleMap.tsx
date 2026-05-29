@@ -8,6 +8,8 @@ import { BattleMapStage } from './BattleMapStage';
 import { BattleMapDiceButton } from './BattleMapDiceButton';
 import { BattleMapLog } from './BattleMapLog';
 import { BattleMapConfigModal } from './BattleMapConfigModal';
+import { BattleMapProjectionMenu } from './BattleMapProjectionMenu';
+import type { ProjectionType } from './BattleMapStage';
 
 // FASE 2: MapConfig interface
 export interface MapConfig {
@@ -49,6 +51,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     gridOpacity: 0.5,
     showGrid: true
   });
+  const [projectionMenu, setProjectionMenu] = useState<{ x: number, y: number, tokenId: string } | null>(null);
+  const stageRef = useRef<any>(null); // For future direct interaction if needed
 
   // Ajuste reactivo del tamaño del canvas
   useEffect(() => {
@@ -146,8 +150,33 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             height={dimensions.height - 56} 
             participants={combat.participants}
             config={mapConfig}
+            onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
           />
         </div>
+
+        {/* FASE 3: Menú de Proyecciones */}
+        {projectionMenu && (
+          <BattleMapProjectionMenu 
+            x={projectionMenu.x} 
+            y={projectionMenu.y}
+            onSelect={(type) => {
+              // Encontrar el token y su posición actual para el origen
+              const part = combat.participants.find(p => p.id === projectionMenu.tokenId);
+              if (part) {
+                // FASE 3: Esta lógica se activará en el stage
+                // Para simplificar, le pasamos la orden al stage de iniciar proyección
+                // Podríamos usar un ref o un estado compartido.
+                // Usemos un pequeño hack temporal: disparar un evento custom que el stage escuche
+                const event = new CustomEvent('start-projection', { 
+                  detail: { type, tokenId: projectionMenu.tokenId } 
+                });
+                window.dispatchEvent(event);
+              }
+              setProjectionMenu(null);
+            }}
+            onClose={() => setProjectionMenu(null)}
+          />
+        )}
 
         {/* Panel de Configuración (DM only) */}
         {useGameData().character?.role === 'dm' && (
