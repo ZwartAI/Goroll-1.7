@@ -251,6 +251,13 @@ export const es = {
     onlineShort: "En línea",
     offlineModalTitle: "Desconectados",
   },
+  battleMap: {
+    title: "Mapa de Batalla",
+    backToScene: "Volver a Escenario",
+    participants: "Participantes",
+    recentLog: "Log Reciente",
+    openMap: "Mapa de Batalla",
+  },
   profile: {
     loading: "Cargando...",
     logoutAria: "Salir",
