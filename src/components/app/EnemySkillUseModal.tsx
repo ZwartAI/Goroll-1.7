@@ -69,7 +69,11 @@ export function EnemySkillUseModal({
   );
   const [includeLink, setIncludeLink] = useState(false);
   const [dmNote, setDmNote] = useState("");
-  const [visibility, setVisibility] = useState<EnemySkillVisibility>("full");
+  const [visibility, setVisibility] = useState<EnemySkillVisibility>(() => {
+    if (combat.encounter?.combat_log_detail_mode === "dm_private") return "private";
+    if (combat.encounter?.combat_log_detail_mode === "minimal") return "nameAndEffect";
+    return "full";
+  });
   const [busy, setBusy] = useState(false);
 
 
