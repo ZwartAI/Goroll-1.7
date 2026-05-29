@@ -1625,8 +1625,26 @@ export const en: Dict = {
   acquireSkills: {
     title: "Acquire skills",
     subtitle: "Use Skill Points to learn new skills",
+  combat: {
+    // ... existing combat keys
+    settings: {
+      logDetailTitle: "Entity data in log",
+      logDetail: {
+        minimal: "Minimal",
+        normal: "Normal",
+        detailed: "Detailed",
+        dm_private: "DM Private",
+      },
+      logDetailHint: {
+        minimal: "Show only basic actions.",
+        normal: "Show damage result.",
+        detailed: "Show defense, shields and full detail.",
+        dm_private: "Players see minimal version and DM sees full detail.",
+      },
+    },
   },
 };
+
 
 
 

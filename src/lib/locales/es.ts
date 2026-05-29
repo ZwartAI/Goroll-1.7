@@ -1627,8 +1627,26 @@ export const es = {
   acquireSkills: {
     title: "Adquirir habilidades",
     subtitle: "Usar Skill Points para aprender nuevas habilidades",
+  combat: {
+    // ... existing combat keys
+    settings: {
+      logDetailTitle: "Datos de entidades en log",
+      logDetail: {
+        minimal: "Mínimo",
+        normal: "Normal",
+        detailed: "Detallado",
+        dm_private: "Privado DM",
+      },
+      logDetailHint: {
+        minimal: "Mostrar solo acciones básicas.",
+        normal: "Mostrar resultado de daño.",
+        detailed: "Mostrar defensa, escudos y detalle completo.",
+        dm_private: "Los jugadores ven versión mínima y el DM ve detalle completo.",
+      },
+    },
   },
 };
+
 
 
 export type Dict = typeof es;
