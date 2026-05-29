@@ -22,7 +22,7 @@ export function AddNpcToCombatModal({ template, encounter, dm, onClose }: Props)
 
   const submit = async () => {
     setBusy(true);
-    const r = await spawnNpcToCombat(template, encounter, { count, initiative, position, customName: customName || null }, dm);
+    const r = await spawnNpcToCombat(template, encounter, { count, initiative, position, customName: customName || null } as any, dm);
     setBusy(false);
     if (!r.ok) { toast.error(t("npcs.spawnError")); return; }
     toast.success(t("npcs.spawned"));
