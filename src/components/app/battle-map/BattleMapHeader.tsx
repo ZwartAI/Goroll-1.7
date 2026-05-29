@@ -1,29 +1,39 @@
 import React from 'react';
-import { Menu, ArrowLeft } from 'lucide-react';
+import { Menu, ArrowLeft, ScrollText } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 
 interface Props {
   title: string;
   onBack: () => void;
   onMenuToggle: () => void;
+  onLogToggle: () => void;
 }
 
-export const BattleMapHeader: React.FC<Props> = ({ title, onBack, onMenuToggle }) => {
+
+export const BattleMapHeader: React.FC<Props> = ({ title, onBack, onMenuToggle, onLogToggle }) => {
   const { t } = useT();
 
   return (
-    <header className="h-14 bg-[#0a0a0c] border-b border-border/50 flex items-center justify-between px-4 z-30 relative shadow-lg">
-      <div className="flex items-center gap-3">
+    <header className="h-14 bg-[#0a0a0c] border-b border-border/50 flex items-center justify-between px-3 z-50 relative shadow-lg">
+      <div className="flex items-center gap-2">
         <button 
           onClick={onMenuToggle}
           className="p-2 hover:bg-white/5 rounded-full transition-colors text-[var(--gold)]"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
-        <h1 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] truncate max-w-[200px] sm:max-w-none">
+        <button 
+          onClick={onLogToggle}
+          className="p-2 hover:bg-white/5 rounded-full transition-colors text-[var(--gold)]"
+        >
+          <ScrollText size={18} />
+        </button>
+        <h1 className="font-display text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[var(--gold)] truncate max-w-[100px] sm:max-w-none">
           {title}
         </h1>
       </div>
+
+
 
       <button
         onClick={onBack}
