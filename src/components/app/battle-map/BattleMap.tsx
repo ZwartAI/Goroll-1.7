@@ -21,8 +21,9 @@ interface Props {
 const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar }) => {
   const { combat, campaign } = useGameData();
   const { t } = useT();
-  const [activePanel, setActivePanel] = useState<'none' | 'participants' | 'log'>('none');
+  const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [isLogExpanded, setIsLogExpanded] = useState(false);
 
   // Ajuste reactivo del tamaño del canvas
   useEffect(() => {
@@ -35,48 +36,87 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   // Título dinámico para el header
   const headerTitle = useMemo(() => {
-    return `${campaign?.name || 'Campaña'} - ${t('battleMap.title')}`;
-  }, [campaign?.name, t]);
+    return `${campaign?.name || 'Campaña'}`;
+  }, [campaign?.name]);
 
   const handleDiceClick = useCallback(() => {
     console.log("Abrir panel de dados");
   }, []);
 
-  const togglePanel = useCallback((panel: 'participants' | 'log') => {
-    setActivePanel(prev => prev === panel ? 'none' : panel);
+  const toggleParticipants = useCallback(() => {
+    setActivePanel(prev => prev === 'participants' ? 'none' : 'participants');
   }, []);
+
+  // Ordenar participantes por iniciativa para la lista lateral
+  const sortedParticipants = useMemo(() => {
+    return [...combat.participants].sort((a, b) => (b.initiative || 0) - (a.initiative || 0));
+  }, [combat.participants]);
+
+  // Encontrar el participante en turno (ejemplo: el primero de la lista si hay combate activo)
+  const turnIndex = 0; // FASE 2: Conectar con el estado real de turnos del combate
+  const currentTurnId = sortedParticipants[turnIndex]?.id;
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#0a0a0c] flex flex-col overflow-hidden text-foreground animate-in fade-in duration-300">
       <BattleMapHeader 
         title={headerTitle} 
         onBack={onBack} 
-        onMenuToggle={() => togglePanel('participants')} 
-        onLogToggle={() => togglePanel('log')}
+        onMenuToggle={toggleParticipants} 
       />
 
-
       <main className="flex-1 relative overflow-hidden">
+        {/* Turn Tracker (Etiquetas laterales) */}
+        <div className="absolute left-0 top-1/4 z-40 flex flex-col gap-1 pointer-events-none">
+          {sortedParticipants.slice(0, 6).map((p, idx) => {
+            const isTurn = p.id === currentTurnId;
+            const color = p.enemy_color || p.color || "var(--gold)";
+            
+            return (
+              <div 
+                key={p.id}
+                className={`
+                  pointer-events-auto group flex items-center transition-all duration-300 transform
+                  ${isTurn ? 'translate-x-0' : '-translate-x-[75%] hover:translate-x-0'}
+                `}
+              >
+                <div 
+                  className={`
+                    px-3 py-1.5 rounded-r-full font-display text-[10px] uppercase tracking-widest shadow-lg flex items-center gap-2
+                    ${isTurn ? 'bg-secondary/90 border-y border-r border-white/20' : 'bg-black/60 border-y border-r border-white/10 opacity-70 hover:opacity-100'}
+                  `}
+                  style={{ borderRightColor: color }}
+                >
+                  {isTurn && (
+                    <div className="w-5 h-5 rounded-full bg-[var(--gold)] text-black flex items-center justify-center shadow-glow">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M18 12h.01"/></svg>
+                    </div>
+                  )}
+                  <span style={{ color }}>{p.display_name}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Overlay para cerrar paneles al tocar el mapa */}
         {activePanel !== 'none' && (
           <div 
-            className="absolute inset-0 bg-black/20 z-30 transition-opacity animate-in fade-in"
+            className="absolute inset-0 bg-black/40 z-30 transition-opacity animate-in fade-in"
             onClick={() => setActivePanel('none')}
           />
         )}
 
-        {/* Panel Lateral: Participantes */}
-
-        <div className={`absolute left-0 top-0 h-full z-40 transition-transform duration-300 transform ${activePanel === 'participants' ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Panel Lateral: Participantes (Drawer) */}
+        <div className={`absolute left-0 top-0 h-full z-50 transition-transform duration-300 transform ${activePanel === 'participants' ? 'translate-x-0' : '-translate-x-full'}`}>
           <BattleMapSidebar 
-            participants={combat.participants} 
-            isOpen={true} // Siempre true porque controlamos la visibilidad con el contenedor
+            participants={sortedParticipants} 
+            isOpen={true}
             onOpenChar={onOpenChar}
             onClose={() => setActivePanel('none')}
           />
         </div>
 
-        {/* Área del Canvas (Konva) - Siempre a pantalla completa tras el header */}
+        {/* Área del Canvas (Konva) */}
         <div className="w-full h-full">
           <BattleMapStage 
             width={dimensions.width} 
@@ -85,39 +125,46 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         </div>
 
-        {/* Botones Flotantes de Acceso Rápido (UX Mobile) */}
-        <div className="absolute right-4 bottom-24 flex flex-col gap-3 z-30">
-           <button 
-            onClick={() => togglePanel('log')}
-            className={`p-3 rounded-full border border-white/10 backdrop-blur-md transition-all ${activePanel === 'log' ? 'bg-[var(--gold)] text-black' : 'bg-black/40 text-[var(--gold)]'}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </button>
-        </div>
-
+        {/* Dados Flotantes */}
         <BattleMapDiceButton onClick={handleDiceClick} />
         
-        {/* Panel de Log (Slide-in desde la derecha o abajo) */}
-        <div className={`absolute right-0 top-0 h-full w-full sm:w-80 z-40 transition-transform duration-300 transform ${activePanel === 'log' ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="h-full bg-[#0a0a0c]/95 border-l border-border/50 backdrop-blur-md shadow-2xl flex flex-col pt-14">
-            <div className="p-4 border-b border-border/30 flex items-center justify-between">
-              <h2 className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Log de Batalla</h2>
-              <button onClick={() => setActivePanel('none')} className="text-muted-foreground hover:text-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+        {/* Log de Batalla Fijo Abajo */}
+        <div 
+          className={`
+            absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/90 border-t border-white/10 backdrop-blur-md cursor-pointer
+            ${isLogExpanded ? 'h-64' : 'h-14'}
+          `}
+          onClick={() => setIsLogExpanded(!isLogExpanded)}
+        >
+          <div className="absolute top-0 right-4 -translate-y-1/2">
+            <div className="p-1.5 rounded-full bg-black/60 border border-white/10 text-[var(--gold)]">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className={`transition-transform duration-300 ${isLogExpanded ? 'rotate-180' : ''}`}
+              >
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <BattleMapLog 
+          </div>
+          <div className="h-full overflow-hidden">
+             <BattleMapLog 
                 logs={logs} 
                 nameOverrides={nameOverrides} 
                 onOpenChar={onOpenChar}
+                isExpanded={isLogExpanded}
               />
-            </div>
           </div>
         </div>
       </main>
     </div>
-
   );
 };
 
