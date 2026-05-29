@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { LogList } from "@/components/app/LogList";
 import { LogSegments } from "@/components/app/LogSegments";
 import { CombatList } from "@/components/app/CombatList";
@@ -9,6 +9,10 @@ import { useGameData } from "@/lib/useGame";
 import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { HpShieldBar } from "@/components/app/HpShieldBar";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { Map as MapIcon } from "lucide-react";
+
+// FASE 1: Lazy loading del BattleMap
+const BattleMap = lazy(() => import("@/components/app/battle-map/BattleMap"));
 
 type Props = {
   characters: Character[];
@@ -40,6 +44,7 @@ type Props = {
  */
 export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenChar, onOpenItem, onOpenBooster, onOpenImage, dmCharacterIds, nameOverrides, showLog = true, speakingIds, hideCombatTab }: Props) {
   const [openOffline, setOpenOffline] = useState(false);
+  const [showBattleMap, setShowBattleMap] = useState(false);
   const { t } = useT();
   const { combat } = useGameData();
   const combatActive = combat.encounter?.status === "active";
@@ -64,7 +69,17 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   return (
     <>
       <div className="ornate-card p-3 mb-4">
-        <h2 className="font-display text-sm uppercase tracking-widest text-center mb-2 text-[var(--gold)]">{t("escenario.title")}</h2>
+        <div className="flex items-center justify-between mb-2">
+          <div className="w-8" /> {/* Spacer */}
+          <h2 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">{t("escenario.title")}</h2>
+          <button
+            onClick={() => setShowBattleMap(true)}
+            className="flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--gold)]/30 text-[var(--gold)] text-[9px] font-display uppercase tracking-widest hover:bg-[var(--gold)]/10 transition-colors"
+          >
+            <MapIcon size={12} />
+            {t("battleMap.openMap")}
+          </button>
+        </div>
         <div className="flex items-center gap-1.5 mb-2 text-[10px] uppercase text-[var(--gain)]">
           <span className="w-2 h-2 rounded-full bg-[var(--gain)] inline-block" /> {t("escenario.online")}
         </div>
@@ -140,6 +155,24 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
       {openOffline && (
         <OfflineListModal players={offline} onClose={() => setOpenOffline(false)}
           onPick={(id) => { setOpenOffline(false); onOpenChar(id); }} title={t("escenario.offlineModalTitle")} closeLabel={t("common.close")} />
+      )}
+
+      {showBattleMap && (
+        <Suspense fallback={
+          <div className="fixed inset-0 z-[110] bg-black/90 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-[var(--gold)]/30 border-t-[var(--gold)] rounded-full animate-spin mb-4" />
+            <p className="font-display text-[var(--gold)] text-xs uppercase tracking-widest animate-pulse">
+              {t("common.loading")}
+            </p>
+          </div>
+        }>
+          <BattleMap 
+            onBack={() => setShowBattleMap(false)} 
+            logs={logs}
+            nameOverrides={nameOverrides}
+            onOpenChar={onOpenChar}
+          />
+        </Suspense>
       )}
     </>
   );
