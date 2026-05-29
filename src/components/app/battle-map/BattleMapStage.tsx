@@ -79,9 +79,11 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
       
       videoRef.current = video;
       return () => {
-        video.pause();
-        videoRef.current.src = "";
-        video.load();
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.src = "";
+          videoRef.current.load();
+        }
       };
     }
   }, [config.backgroundUrl, config.backgroundType]);
