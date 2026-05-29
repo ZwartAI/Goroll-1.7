@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { Stage, Layer, Rect, Line, Group, Text, Circle } from 'react-konva';
+import { Stage, Layer, Rect, Line } from 'react-konva';
 import Konva from 'konva';
+import { MapToken } from './MapToken';
+import type { CombatParticipant } from '@/lib/combat';
 
 // FASE 1: Estructura base de Konva Stage
 // Optimizado para rendimiento con capas separadas y memoización.
@@ -8,9 +10,10 @@ import Konva from 'konva';
 interface Props {
   width: number;
   height: number;
+  participants: CombatParticipant[];
 }
 
-export const BattleMapStage: React.FC<Props> = React.memo(({ width, height }) => {
+export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, participants }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -106,26 +109,14 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height }) =>
 
         {/* PREPARADO PARA FASE 2: Capa de Tokens */}
         <Layer id="tokens-layer">
-          {/* Ejemplo de token circular (FASE 1) */}
-          <Group x={width / 2} y={height / 2} draggable>
-            <Circle
-              radius={24}
-              fill="rgba(234, 179, 8, 0.1)"
-              stroke="var(--gold)"
-              strokeWidth={2}
-              shadowBlur={10}
-              shadowColor="var(--gold)"
+          {participants.map((p, i) => (
+            <MapToken 
+              key={p.id} 
+              participant={p} 
+              x={width / 2 + (i % 3) * 60 - 60} 
+              y={height / 2 + Math.floor(i / 3) * 60 - 60} 
             />
-            <Text
-              text="Token"
-              fill="white"
-              fontSize={10}
-              align="center"
-              width={48}
-              x={-24}
-              y={28}
-            />
-          </Group>
+          ))}
         </Layer>
       </Stage>
     </div>

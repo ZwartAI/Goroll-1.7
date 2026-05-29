@@ -66,6 +66,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapStage 
             width={isSidebarOpen && window.innerWidth > 640 ? dimensions.width - 256 : dimensions.width} 
             height={dimensions.height - 56} 
+            participants={combat.participants}
           />
         </div>
 
