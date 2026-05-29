@@ -17,12 +17,12 @@ import { InitiativeRollModal } from "@/components/app/InitiativeRollModal";
 import { playSfx } from "@/lib/sound";
 import sfxBtn from "@/assets/sounds/Monedero.mp3"; // Reusing button sound
 
-import esperandoTurnoEs from "/uploads/esperando-turno.png";
-import terminarTurnoEs from "/uploads/terminar-turno.png";
-import iniciativaEs from "/uploads/iniciativa.png";
-import esperandoTurnoEn from "/uploads/esperando-turno-eng.png";
-import terminarTurnoEn from "/uploads/terminar-turno-eng.png";
-import iniciativaEn from "/uploads/iniciativa-eng.png";
+const esperandoTurnoEs = "/uploads/esperando-turno.png";
+const terminarTurnoEs = "/uploads/terminar-turno.png";
+const iniciativaEs = "/uploads/iniciativa.png";
+const esperandoTurnoEn = "/uploads/esperando-turno-eng.png";
+const terminarTurnoEn = "/uploads/terminar-turno-eng.png";
+const iniciativaEn = "/uploads/iniciativa-eng.png";
 
 type Props = {
   character: Character;
