@@ -20,10 +20,12 @@ export type CombatEncounter = {
   requested_by_character_id: string | null;
   current_turn_index: number;
   round_number: number;
+  combat_log_detail_mode: "minimal" | "normal" | "detailed" | "dm_private";
   created_at: string;
   started_at: string | null;
   ended_at: string | null;
 };
+
 
 export type CombatTurnGroup = {
   id: string;

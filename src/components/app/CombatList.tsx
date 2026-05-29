@@ -117,6 +117,7 @@ function TurnRow({
   draggable?: boolean;
 }) {
   const { t } = useT();
+  const [portraitTarget, setPortraitTarget] = useState<CombatParticipant | null>(null);
   const sortable = useSortable({ id: block.key, disabled: !draggable });
   const dragStyle = draggable
     ? {
@@ -167,42 +168,55 @@ function TurnRow({
     const npcLabel = isNpc ? t("combat.npcLabel") : enemyLabel;
     const dispLabel = isNpc && disposition ? t(`npcs.disp_${disposition}`) : null;
     return (
-      <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
-        {dragHandle}
-        <div className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
-          style={{ borderColor: baseColor, color: baseColor }}>
-          <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} customImage={customImg} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-sm truncate" style={{ color: baseColor }}>
-            {p.display_name}
-          </p>
-          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-            <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
-              style={isNpc
-                ? { background: `color-mix(in oklab, ${accentColor} 25%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }
-                : { background: "color-mix(in oklab, var(--loss) 25%, transparent)", color: "var(--loss)" }}>
-              {npcLabel}
-            </span>
-            {dispLabel && (
-              <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
-                style={{ background: `color-mix(in oklab, ${accentColor} 18%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }}>
-                {dispLabel}
-              </span>
-            )}
-            {defeated && (
-              <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                {defeatedLabel}
-              </span>
-            )}
-            <TurnEffectChips kind="enemy" id={p.id} encounterId={p.encounter_id} />
+      <>
+        <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow" style={containerStyle}>
+          {dragHandle}
+          <div className="relative group">
+            <button 
+              type="button"
+              onClick={() => setPortraitTarget(p)}
+              className="w-10 h-10 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative hover:brightness-125 transition-all"
+              style={{ borderColor: baseColor, color: baseColor }}
+            >
+              <EnemyIcon name={p.enemy_icon} size={20} fill={isTierAsset} customImage={customImg} />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Maximize2 size={12} className="text-white" />
+              </div>
+            </button>
           </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-sm truncate" style={{ color: baseColor }}>
+              {p.display_name}
+            </p>
+            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+              <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
+                style={isNpc
+                  ? { background: `color-mix(in oklab, ${accentColor} 25%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }
+                  : { background: "color-mix(in oklab, var(--loss) 25%, transparent)", color: "var(--loss)" }}>
+                {npcLabel}
+              </span>
+              {dispLabel && (
+                <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded"
+                  style={{ background: `color-mix(in oklab, ${accentColor} 18%, transparent)`, color: accentColor, border: `1px solid ${accentColor}` }}>
+                  {dispLabel}
+                </span>
+              )}
+              {defeated && (
+                <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                  {defeatedLabel}
+                </span>
+              )}
+              <TurnEffectChips kind="enemy" id={p.id} encounterId={p.encounter_id} />
+            </div>
+          </div>
+          <InitiativeChip n={p.initiative} />
+          {isActive && <ActiveBadge label={activeEnemyLabel} tone="enemy" />}
         </div>
-        <InitiativeChip n={p.initiative} />
-        {isActive && <ActiveBadge label={activeEnemyLabel} tone="enemy" />}
-      </div>
+        {portraitTarget && <EntityPortraitModal participant={portraitTarget} onClose={() => setPortraitTarget(null)} />}
+      </>
     );
   }
+
 
   const containerStyle = {
     borderColor: isActive ? "var(--gold)" : `color-mix(in oklab, ${baseColor} 55%, transparent)`,
@@ -238,30 +252,43 @@ function TurnRow({
     const l = block.linked;
     const inactive = l.is_defeated;
     return (
-      <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow"
-        style={{
-          ...containerStyle,
-          opacity: inactive ? 0.5 : 1,
-          borderStyle: "dashed",
-        }}>
-        {dragHandle}
-        <div className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative"
-          style={{ borderColor: baseColor, color: baseColor }}>
-          <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyCustomImage(l) || !!getEnemyAssetUrl(l.enemy_icon)} customImage={getEnemyCustomImage(l)} />
+      <>
+        <div ref={setNodeRef as any} className="ornate-card !p-2 flex items-center gap-2 transition-shadow"
+          style={{
+            ...containerStyle,
+            opacity: inactive ? 0.5 : 1,
+            borderStyle: "dashed",
+          }}>
+          {dragHandle}
+          <div className="relative group">
+            <button 
+              type="button"
+              onClick={() => setPortraitTarget(l)}
+              className="w-7 h-7 rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-card overflow-hidden relative hover:brightness-125 transition-all"
+              style={{ borderColor: baseColor, color: baseColor }}
+            >
+              <EnemyIcon name={l.enemy_icon} size={14} fill={!!getEnemyCustomImage(l) || !!getEnemyAssetUrl(l.enemy_icon)} customImage={getEnemyCustomImage(l)} />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Maximize2 size={8} className="text-white" />
+              </div>
+            </button>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-xs truncate" style={{ color: baseColor }}>
+              {block.pin.label || `${enemyTurnOfLabel} ${l.display_name}`}
+            </p>
+            <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-[var(--loss)]/25 text-[var(--loss)]">
+              {extraTurnLabel}
+            </span>
+          </div>
+          <InitiativeChip n={block.pin.initiative} />
+          {isActive && !inactive && <ActiveBadge label={activeEnemyLabel} tone="enemy" />}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-xs truncate" style={{ color: baseColor }}>
-            {block.pin.label || `${enemyTurnOfLabel} ${l.display_name}`}
-          </p>
-          <span className="text-[9px] font-display uppercase tracking-widest px-1.5 py-0.5 rounded bg-[var(--loss)]/25 text-[var(--loss)]">
-            {extraTurnLabel}
-          </span>
-        </div>
-        <InitiativeChip n={block.pin.initiative} />
-        {isActive && !inactive && <ActiveBadge label={activeEnemyLabel} tone="enemy" />}
-      </div>
+        {portraitTarget && <EntityPortraitModal participant={portraitTarget} onClose={() => setPortraitTarget(null)} />}
+      </>
     );
   }
+
 
   return (
     <div ref={setNodeRef as any} className="ornate-card !p-2 transition-shadow" style={containerStyle}>
