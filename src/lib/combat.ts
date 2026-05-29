@@ -1396,7 +1396,6 @@ export type EnemyAttackOptions = {
   encounterId?: string;
 };
 
-import { resolveDamageAgainstEntity } from "./combat-logic";
 
 /**
  * The DM applies an enemy's attack to one or more player characters.
