@@ -24,10 +24,13 @@ export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelec
   const [image] = useImage(imageUrl);
   
   const color = participant.enemy_color || participant.color || "var(--gold)";
-  const radius = 25;
-
+  const radius = 22; // Un poco más pequeño para mobile
+  
+  // PREPARADO PARA FASE 2: Conectar con combat.turn_id
+  const isMyTurn = false; 
 
   return (
+
     <Group 
       x={x} 
       y={y} 
@@ -76,6 +79,16 @@ export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelec
         </Group>
       ) : (
         <Circle radius={radius - 2} fill={color} opacity={0.3} />
+      )}
+
+      {/* Indicador de Turno (Game Controller icon) */}
+      {isMyTurn && (
+        <Group x={radius - 6} y={-radius + 6}>
+           <Circle radius={7} fill="var(--gold)" shadowBlur={5} shadowColor="black" />
+           {/* Simple icon representation */}
+           <Circle radius={2} fill="black" x={-2} y={0} />
+           <Circle radius={2} fill="black" x={2} y={0} />
+        </Group>
       )}
     </Group>
   );

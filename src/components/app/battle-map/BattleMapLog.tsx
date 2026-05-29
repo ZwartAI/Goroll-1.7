@@ -10,6 +10,7 @@ interface Props {
   onOpenItem?: (id: string) => void;
   onOpenBooster?: (id: string) => void;
   onOpenChar?: (id: string) => void;
+  isExpanded?: boolean;
 }
 
 export const BattleMapLog: React.FC<Props> = ({ 
@@ -17,20 +18,21 @@ export const BattleMapLog: React.FC<Props> = ({
   nameOverrides, 
   onOpenItem, 
   onOpenBooster, 
-  onOpenChar 
+  onOpenChar,
+  isExpanded
 }) => {
   const { t } = useT();
 
   return (
-    <div className="flex flex-col h-full w-full p-2">
-      <div className="flex-1 overflow-hidden">
+    <div className="flex flex-col h-full w-full">
+      <div className={`flex-1 overflow-y-auto px-4 py-3 custom-scrollbar ${!isExpanded ? 'mask-bottom-fade' : ''}`}>
         <LogList 
           rows={logs} 
-          initial={20} 
+          initial={isExpanded ? 30 : 5} 
           maxH="h-full" 
           empty={t("escenario.noActivity")} 
           renderRow={(l: any) => (
-            <div key={l.id} className={`text-[10px] bg-secondary/20 rounded px-2 py-1 leading-relaxed mb-1.5 ${l.undone ? "opacity-50 line-through" : ""}`}>
+            <div key={l.id} className="text-[10px] leading-relaxed mb-1 opacity-90 hover:opacity-100 transition-opacity">
               <LogSegments 
                 segments={l.segments as any}
                 nameOverrides={nameOverrides}
