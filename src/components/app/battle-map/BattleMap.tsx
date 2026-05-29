@@ -57,7 +57,16 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
       <main className="flex-1 relative overflow-hidden">
+        {/* Overlay para cerrar paneles al tocar el mapa */}
+        {activePanel !== 'none' && (
+          <div 
+            className="absolute inset-0 bg-black/20 z-30 transition-opacity animate-in fade-in"
+            onClick={() => setActivePanel('none')}
+          />
+        )}
+
         {/* Panel Lateral: Participantes */}
+
         <div className={`absolute left-0 top-0 h-full z-40 transition-transform duration-300 transform ${activePanel === 'participants' ? 'translate-x-0' : '-translate-x-full'}`}>
           <BattleMapSidebar 
             participants={combat.participants} 
