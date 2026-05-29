@@ -35,6 +35,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
 
+  // Sistema de Grid
+  const gridSize = config.gridSize;
+
   // FASE 3: Sistema de Proyecciones
   const startProjection = useCallback((type: ProjectionType, origin: { x: number; y: number }) => {
     setProjection({ type, origin, current: origin });
@@ -184,9 +187,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
     }
   }, [projection, gridSize]);
 
-  // Sistema de Grid
-  const gridSize = config.gridSize;
-  
   // Handlers para Touch (Pinch-to-zoom y Drag fluido)
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
