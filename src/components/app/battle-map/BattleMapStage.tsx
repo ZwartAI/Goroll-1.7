@@ -80,7 +80,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
       videoRef.current = video;
       return () => {
         video.pause();
-        videoRef.src = "";
+        videoRef.current.src = "";
         video.load();
       };
     }

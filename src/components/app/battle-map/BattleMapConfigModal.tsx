@@ -59,7 +59,7 @@ export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
         <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3 text-[var(--gold)]">
             <Grid className="w-5 h-5" />
-            <h2 className="font-display text-sm uppercase tracking-widest">{t('battleMap.configTitle', 'Configurar Mapa')}</h2>
+            <h2 className="font-display text-sm uppercase tracking-widest">{t('battleMap.configTitle')}</h2>
           </div>
           <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <X size={20} className="text-muted-foreground" />
@@ -70,7 +70,7 @@ export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
           {/* Background Section */}
           <div className="space-y-4">
             <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <ImageIcon size={12} /> {t('battleMap.background', 'Fondo')}
+              <ImageIcon size={12} /> {t('battleMap.background')}
             </h3>
             
             <div className="grid grid-cols-2 gap-3">
@@ -133,7 +133,7 @@ export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
           <div className="space-y-4 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Grid size={12} /> {t('battleMap.grid', 'Cuadrícula')}
+                <Grid size={12} /> {t('battleMap.grid')}
               </h3>
               <button 
                 onClick={() => handleChange('showGrid', !config.showGrid)}
