@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Group, Circle, Image } from 'react-konva';
 import useImage from 'use-image';
 import type { CombatParticipant } from '@/lib/combat';
+import { getEnemyCustomImage, getEnemyAssetUrl } from '@/components/app/EnemyIconPicker';
 
-// FASE 1: Preparación de Tokens
+// FASE 1: Preparación de Tokens (Mejorado con Framing)
 // Sistema de tokens circulares con imagen y animaciones básicas.
 
 interface Props {
@@ -15,11 +16,16 @@ interface Props {
 }
 
 export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelected }) => {
-  const imageUrl = participant.image_url;
-  const [image] = useImage(imageUrl || '');
+  // Obtener la imagen (custom o asset)
+  const customImg = getEnemyCustomImage(participant);
+  const assetUrl = getEnemyAssetUrl(participant.enemy_icon);
+  const imageUrl = participant.image_url || assetUrl || '';
+  
+  const [image] = useImage(imageUrl);
   
   const color = participant.enemy_color || participant.color || "var(--gold)";
   const radius = 25;
+
 
   return (
     <Group 
