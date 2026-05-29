@@ -17,6 +17,8 @@ export type CombatState = {
   participants: CombatParticipant[];
   groups: CombatTurnGroup[];
   pins: CombatTurnPin[];
+  effects: any[];
+  conditions: any[];
 };
 
 const LOGS_INITIAL_LIMIT = 50;
@@ -75,7 +77,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
   const [members, setMembers] = useState<Array<{ user_id: string; role: string; created_at: string }>>([]);
 
-  const [combat, setCombat] = useState<CombatState>({ encounter: null, participants: [], groups: [], pins: [] });
+  const [combat, setCombat] = useState<CombatState>({ encounter: null, participants: [], groups: [], pins: [], effects: [], conditions: [] });
   const [endedCombatData, setEndedCombatData] = useState<{ characterName: string; isSurvivor: boolean } | null>(null);
   const logsLimitRef = useRef(LOGS_INITIAL_LIMIT);
 
@@ -92,17 +94,23 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       .order("created_at", { ascending: false })
       .limit(1);
     const enc = (encs && encs[0]) as CombatEncounter | undefined;
-    if (!enc) { setCombat({ encounter: null, participants: [], groups: [], pins: [] }); return; }
-    const [{ data: parts }, { data: grps }, { data: pins }] = await Promise.all([
+    if (!enc) { setCombat({ encounter: null, participants: [], groups: [], pins: [], effects: [], conditions: [] }); return; }
+    
+    const [{ data: parts }, { data: grps }, { data: pins }, { data: fx }, { data: conds }] = await Promise.all([
       (supabase as any).from("combat_participants").select("*").eq("encounter_id", enc.id),
       (supabase as any).from("combat_turn_groups").select("*").eq("encounter_id", enc.id),
       (supabase as any).from("combat_turn_pins").select("*").eq("encounter_id", enc.id),
+      (supabase as any).from("combat_temporary_effects").select("*").eq("encounter_id", enc.id),
+      (supabase as any).from("character_conditions").select("*"), // filtered by campaign characters later if needed, but for now getting all is simpler for sync
     ]);
+
     setCombat({
       encounter: enc,
       participants: (parts || []) as CombatParticipant[],
       groups: (grps || []) as CombatTurnGroup[],
       pins: (pins || []) as CombatTurnPin[],
+      effects: (fx || []) as any[],
+      conditions: (conds || []) as any[],
     });
   }, []);
 
@@ -242,6 +250,12 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "combat_turn_pins", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
         setCombat(prev => ({ ...prev, pins: applyChange(prev.pins, payload) as CombatTurnPin[] }));
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "combat_temporary_effects", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
+        setCombat(prev => ({ ...prev, effects: applyChange(prev.effects, payload) }));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "character_conditions" }, (payload: any) => {
+        setCombat(prev => ({ ...prev, conditions: applyChange(prev.conditions, payload) }));
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [loadCombat]);
@@ -352,7 +366,7 @@ export function useGameData(): GameData {
   return {
     campaign: null, character: null, characters: [], items: [], logs: [], achievements: [],
     loading: true, onlineIds: new Set(), dmLabels: {}, dmCharacterIds: new Set(),
-    combat: { encounter: null, participants: [], groups: [], pins: [] },
+    combat: { encounter: null, participants: [], groups: [], pins: [], effects: [], conditions: [] },
     reload: async () => {}, loadMoreLogs: async () => {},
   };
 }

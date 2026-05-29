@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useT } from "@/lib/i18n";
 import {
   activeBlock,
@@ -382,36 +382,26 @@ function emojiOf(row: TempEffectRow | CondRow, kind: "temp" | "cond"): string {
   return "✨";
 }
 
+import { useGameData } from "@/lib/CampaignProvider";
+
 function TurnEffectChips({
   kind, id, encounterId,
 }: { kind: "enemy" | "character"; id: string; encounterId: string }) {
-  const [temp, setTemp] = useState<TempEffectRow[]>([]);
-  const [cond, setCond] = useState<CondRow[]>([]);
+  const { combat } = useGameData();
   const [info, setInfo] = useState<EffectInfoInput | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      const tempQ = (supabase as any).from("combat_temporary_effects")
-        .select("*").eq("encounter_id", encounterId)
-        .eq(kind === "enemy" ? "target_enemy_participant_id" : "target_character_id", id)
-        .order("created_at", { ascending: true });
-      const condQ = kind === "character"
-        ? (supabase as any).from("character_conditions").select("*").eq("character_id", id).order("created_at", { ascending: true })
-        : Promise.resolve({ data: [] });
-      const [{ data: t1 }, { data: t2 }] = await Promise.all([tempQ, condQ]);
-      if (!alive) return;
-      setTemp((t1 || []) as TempEffectRow[]);
-      setCond((t2 || []) as CondRow[]);
-    };
-    load();
-    const ch = (supabase as any)
-      .channel(`fx-${kind}-${id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "combat_temporary_effects", filter: `encounter_id=eq.${encounterId}` }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "character_conditions", filter: kind === "character" ? `character_id=eq.${id}` : `character_id=eq.${id}` }, () => load())
-      .subscribe();
-    return () => { alive = false; (supabase as any).removeChannel(ch); };
-  }, [kind, id, encounterId]);
+  const temp = useMemo(() => 
+    combat.effects.filter(e => 
+      e.encounter_id === encounterId && 
+      (kind === "enemy" ? e.target_enemy_participant_id === id : e.target_character_id === id)
+    ), [combat.effects, encounterId, kind, id]
+  );
+
+  const cond = useMemo(() => 
+    kind === "character" 
+      ? combat.conditions.filter(c => c.character_id === id)
+      : [], [combat.conditions, kind, id]
+  );
 
   const items: Array<{ key: string; emoji: string; dur: number | null; payload: EffectInfoInput }> = [
     ...temp.map(r => ({

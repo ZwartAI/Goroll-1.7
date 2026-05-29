@@ -850,14 +850,12 @@ export async function duplicateEnemy(participant: CombatParticipant, encounter: 
   return { ok: true };
 }
 
-export async function removeEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
+export async function removeEnemy(participant: CombatParticipant, encounter: CombatEncounter, dm: { id: string; name: string; color: string }, skipTurnAdjustment = false) {
   if (!isEnemy(participant)) return { ok: false as const };
 
   const isNpc = !!(participant as any).npc_template_id;
 
   // Archive to bestiary BEFORE deleting so the enemy can be reused later.
-  // Skip archival for NPCs (they live in the NPC compendium) and for participants
-  // already spawned from a template.
   let archived = false;
   try {
     if (!isNpc && !participant.enemy_template_id) {
@@ -919,11 +917,9 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
         }
       }
     }
-  } catch {
-    // Archival is best-effort — never block the removal itself.
-  }
+  } catch { }
 
-  // Remove linked pins first so the turn order doesn't reference a missing participant.
+  // Remove linked pins first.
   let removedPins = 0;
   try {
     const { data: linkedPins } = await (supabase as any)
@@ -934,20 +930,23 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
       removedPins = linkedPins.length;
       await (supabase as any).from("combat_turn_pins").delete().eq("linked_participant_id", participant.id);
     }
-  } catch {
-    // best-effort
-  }
+  } catch { }
 
   const { error } = await (supabase as any).from("combat_participants").delete().eq("id", participant.id);
   if (error) return { ok: false as const, error: error.message };
-  if (encounter.status === "active") {
+
+  if (!skipTurnAdjustment && encounter.status === "active") {
     const removedOrder = participant.order_index;
-    if (removedOrder <= encounter.current_turn_index && encounter.current_turn_index > 0) {
+    // Logic: 
+    // If we remove an entity BEFORE the current one, decrement index to keep pointer on same entity.
+    // If we remove the CURRENT entity, keep index (it now points to the next entity in list).
+    if (removedOrder < encounter.current_turn_index && encounter.current_turn_index > 0) {
       await (supabase as any).from("combat_encounters")
         .update({ current_turn_index: encounter.current_turn_index - 1 })
         .eq("id", encounter.id);
     }
   }
+
   await pushLog(encounter.campaign_id, [
     { t: "char", v: dm.name, color: dm.color, id: dm.id },
     { t: "text", v: archived
@@ -955,6 +954,43 @@ export async function removeEnemy(participant: CombatParticipant, encounter: Com
         : ` retiró del combate a ${participant.display_name}.` },
   ]);
   return { ok: true as const, archived, removedPins };
+}
+
+export async function removeParticipants(participants: CombatParticipant[], encounter: CombatEncounter, dm: { id: string; name: string; color: string }) {
+  if (participants.length === 0) return { ok: true };
+  
+  // Sort by descending order_index to avoid shifting problems during deletion if we were doing it one by one with adjustment.
+  // But we will delete all and then adjust ONCE.
+  let okCount = 0;
+  let archivedCount = 0;
+  let removedPinsTotal = 0;
+
+  // We delete them one by one to trigger the individual logs and bestiary archival logic easily,
+  // but we skip the turn adjustment inside removeEnemy.
+  for (const p of participants) {
+    const r = await removeEnemy(p, encounter, dm, true);
+    if (r.ok) {
+      okCount++;
+      if (r.archived) archivedCount++;
+      removedPinsTotal += r.removedPins || 0;
+    }
+  }
+
+  // Final turn adjustment.
+  if (encounter.status === "active") {
+    // Count how many entities BEFORE the current index were removed.
+    const countBefore = participants.filter(p => p.order_index < encounter.current_turn_index).length;
+    // If the active entity itself was removed, the index will now point to a new entity.
+    // We just need to shift back by the number of entities removed BEFORE the current one.
+    if (countBefore > 0) {
+      const newIndex = Math.max(0, encounter.current_turn_index - countBefore);
+      await (supabase as any).from("combat_encounters")
+        .update({ current_turn_index: newIndex })
+        .eq("id", encounter.id);
+    }
+  }
+
+  return { ok: true, okCount, archivedCount, removedPinsTotal };
 }
 
 
@@ -1360,14 +1396,10 @@ export type EnemyAttackOptions = {
   encounterId?: string;
 };
 
+
 /**
  * The DM applies an enemy's attack to one or more player characters.
- * Per-target flow:
- *   1) Compute base hit (from distribution).
- *   2) Subtract that character's total defense (if useDefense).
- *   3) Absorb remainder with temporary shields (oldest first).
- *   4) Reduce current_hp; clamp at 0.
- * Writes one consolidated log entry.
+ * Centralized logic via resolveDamageAgainstEntity.
  */
 export async function applyEnemyAttackToPlayers(
   enemy: CombatParticipant,
@@ -1399,89 +1431,55 @@ export async function applyEnemyAttackToPlayers(
   }
   if (targetIds.length === 0) return { ok: false as const, reason: "no_targets" };
 
-  // Per-target hit pre-defense. Split distributes as evenly as possible
-  // with leftover going to the first targets (e.g. 10/3 → 4,3,3).
-  let perHits: number[];
-  if (opts.distribution === "split") {
-    const base = Math.floor(baseDamage / targetIds.length);
-    const remainder = baseDamage - base * targetIds.length;
-    perHits = targetIds.map((_, i) => Math.max(0, base + (i < remainder ? 1 : 0)));
-  } else {
-    perHits = targetIds.map(() => baseDamage);
-  }
-
-  // Fetch characters, equipped items, and active shields in parallel.
-  const [chRes, itRes, shRes] = await Promise.all([
-    supabase.from("characters").select("*").in("id", targetIds),
-    supabase.from("items").select("*").in("owner_character_id", targetIds).eq("equipped", true),
-    opts.encounterId
-      ? (supabase as any)
-          .from("combat_temporary_effects")
-          .select("id,target_character_id,value,created_at")
-          .eq("encounter_id", opts.encounterId)
-          .eq("effect_type", "shield")
-          .in("target_character_id", targetIds)
-      : Promise.resolve({ data: [] as any[] }),
-  ]);
-  const chars = (chRes.data || []) as Character[];
-  const items = (itRes.data || []) as Item[];
-  const shields = (((shRes as any).data) || []) as Array<{
-    id: string; target_character_id: string; value: number; created_at: string;
-  }>;
-
   const results: {
     name: string; color: string | null; id: string;
     applied: number; def: number; absorbed: number;
     defeated: boolean; viaLink: boolean;
   }[] = [];
 
+  const perHits: number[] = opts.distribution === "split" 
+    ? targetIds.map((_, i) => {
+        const base = Math.floor(baseDamage / targetIds.length);
+        const remainder = baseDamage - base * targetIds.length;
+        return base + (i < remainder ? 1 : 0);
+      })
+    : targetIds.map(() => baseDamage);
+
   for (let i = 0; i < targetIds.length; i++) {
     const cid = targetIds[i];
-    const ch = chars.find(c => c.id === cid);
-    if (!ch) continue;
-    const equipped = items.filter(it => it.owner_character_id === ch.id);
-    const def = totals(ch, equipped).defense;
-    const afterDef = Math.max(0, perHits[i] - (opts.useDefense ? def : 0));
-
-    // Absorb with shields, oldest first.
-    let remaining = afterDef;
-    let absorbed = 0;
-    const charShields = shields
-      .filter(s => s.target_character_id === ch.id && (s.value || 0) > 0)
-      .sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
-    for (const sh of charShields) {
-      if (remaining <= 0) break;
-      const take = Math.min(sh.value, remaining);
-      if (take > 0) {
-        absorbed += take;
-        remaining -= take;
-        sh.value -= take;
-        if (sh.value <= 0) {
-          await (supabase as any).from("combat_temporary_effects").delete().eq("id", sh.id);
-        } else {
-          await (supabase as any).from("combat_temporary_effects").update({ value: sh.value }).eq("id", sh.id);
-        }
-      }
-    }
-
-    const applied = remaining;
-    const newHp = Math.max(0, ch.current_hp - applied);
-    if (applied > 0) {
-      const maxHp = totals(ch, equipped).maxHp;
-      const { applyHpDelta } = await import("@/lib/hp");
-      await applyHpDelta(ch.id, newHp, maxHp);
-    }
-    results.push({
-      name: ch.name,
-      color: ch.color,
-      id: ch.id,
-      applied,
-      def: opts.useDefense ? def : 0,
-      absorbed,
-      defeated: newHp <= 0 && ch.current_hp > 0,
-      viaLink: linkAdded.has(cid),
+    const res = await resolveDamageAgainstEntity({
+      targetId: cid,
+      targetType: "character",
+      encounterId: opts.encounterId || "",
+      campaignId: enemy.campaign_id,
+      amount: perHits[i],
+      mode: opts.useDefense ? "damageWithDefense" : "directDamage",
+      sourceName: enemy.display_name,
+      skillName: opts.sourceLabel,
+      skipLogging: true, // We will write a consolidated log entry below
     });
+
+    if (res) {
+      results.push({
+        name: "", // will fetch below or use character data if needed
+        color: null,
+        id: cid,
+        applied: res.applied,
+        def: res.def,
+        absorbed: res.absorbed,
+        defeated: res.defeated,
+        viaLink: linkAdded.has(cid),
+      });
+    }
   }
+
+  // Fetch names and colors for the log
+  const { data: chars } = await supabase.from("characters").select("id, name, color").in("id", targetIds);
+  results.forEach(r => {
+    const c = (chars || []).find(x => x.id === r.id);
+    r.name = c?.name || "---";
+    r.color = c?.color || null;
+  });
 
   // Log header: include skill name if provided.
   const header = opts.sourceLabel

@@ -21,7 +21,7 @@ export function AddFromBestiaryModal({ template, encounter, dm, onClose }: Props
 
   const submit = async () => {
     setBusy(true);
-    const r = await spawnFromTemplate(template, encounter, { count, initiative, position }, dm);
+    const r = await spawnFromTemplate(template, encounter, { count, initiative, position } as any, dm);
     setBusy(false);
     if (!r.ok) { toast.error(t("bestiary.spawnError")); return; }
     toast.success(t("bestiary.spawned"));

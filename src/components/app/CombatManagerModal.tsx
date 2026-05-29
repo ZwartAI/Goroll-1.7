@@ -7,7 +7,7 @@ import {
   activeBlock,
   buildOrderedTurns,
   isEnemy,
-  removeEnemy,
+  removeParticipants,
   type CombatEncounter,
   type CombatParticipant,
   type CombatTurnGroup,
@@ -82,23 +82,15 @@ export function CombatManagerModal({ encounter, participants, groups, pins, dm, 
   const handleRemove = async () => {
     if (selectedList.length === 0) return;
     setWorking(true);
-    let ok = 0, fail = 0, archivedCount = 0, pinsRemoved = 0;
-    // Sort by descending order_index so current_turn_index adjustments stay consistent.
+    
+    // Sort by descending order_index to keep turn logic consistent during removal
     const ordered = [...selectedList].sort((a, b) => b.order_index - a.order_index);
-    for (const p of ordered) {
-      const r = await removeEnemy(p, encounter, dm);
-      if (r.ok) {
-        ok++;
-        if ((r as any).archived) archivedCount++;
-        pinsRemoved += (r as any).removedPins || 0;
-      } else {
-        fail++;
-      }
-    }
+    const r = await removeParticipants(ordered, encounter, dm);
+    
     setWorking(false);
-    if (ok) toast.success(t("combat.manager.removedToast", { n: ok }));
-    if (fail) toast.error(t("combat.manager.removedError", { n: fail }));
-    void archivedCount; void pinsRemoved;
+    if (r.ok && r.okCount) toast.success(t("combat.manager.removedToast", { n: r.okCount }));
+    if (r.ok === false) toast.error(t("combat.manager.removedError", { n: 1 }));
+    
     onClose();
   };
 
