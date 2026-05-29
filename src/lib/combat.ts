@@ -1396,14 +1396,11 @@ export type EnemyAttackOptions = {
   encounterId?: string;
 };
 
+import { resolveDamageAgainstEntity } from "./combat-logic";
+
 /**
  * The DM applies an enemy's attack to one or more player characters.
- * Per-target flow:
- *   1) Compute base hit (from distribution).
- *   2) Subtract that character's total defense (if useDefense).
- *   3) Absorb remainder with temporary shields (oldest first).
- *   4) Reduce current_hp; clamp at 0.
- * Writes one consolidated log entry.
+ * Centralized logic via resolveDamageAgainstEntity.
  */
 export async function applyEnemyAttackToPlayers(
   enemy: CombatParticipant,
@@ -1435,89 +1432,55 @@ export async function applyEnemyAttackToPlayers(
   }
   if (targetIds.length === 0) return { ok: false as const, reason: "no_targets" };
 
-  // Per-target hit pre-defense. Split distributes as evenly as possible
-  // with leftover going to the first targets (e.g. 10/3 → 4,3,3).
-  let perHits: number[];
-  if (opts.distribution === "split") {
-    const base = Math.floor(baseDamage / targetIds.length);
-    const remainder = baseDamage - base * targetIds.length;
-    perHits = targetIds.map((_, i) => Math.max(0, base + (i < remainder ? 1 : 0)));
-  } else {
-    perHits = targetIds.map(() => baseDamage);
-  }
-
-  // Fetch characters, equipped items, and active shields in parallel.
-  const [chRes, itRes, shRes] = await Promise.all([
-    supabase.from("characters").select("*").in("id", targetIds),
-    supabase.from("items").select("*").in("owner_character_id", targetIds).eq("equipped", true),
-    opts.encounterId
-      ? (supabase as any)
-          .from("combat_temporary_effects")
-          .select("id,target_character_id,value,created_at")
-          .eq("encounter_id", opts.encounterId)
-          .eq("effect_type", "shield")
-          .in("target_character_id", targetIds)
-      : Promise.resolve({ data: [] as any[] }),
-  ]);
-  const chars = (chRes.data || []) as Character[];
-  const items = (itRes.data || []) as Item[];
-  const shields = (((shRes as any).data) || []) as Array<{
-    id: string; target_character_id: string; value: number; created_at: string;
-  }>;
-
   const results: {
     name: string; color: string | null; id: string;
     applied: number; def: number; absorbed: number;
     defeated: boolean; viaLink: boolean;
   }[] = [];
 
+  const perHits: number[] = opts.distribution === "split" 
+    ? targetIds.map((_, i) => {
+        const base = Math.floor(baseDamage / targetIds.length);
+        const remainder = baseDamage - base * targetIds.length;
+        return base + (i < remainder ? 1 : 0);
+      })
+    : targetIds.map(() => baseDamage);
+
   for (let i = 0; i < targetIds.length; i++) {
     const cid = targetIds[i];
-    const ch = chars.find(c => c.id === cid);
-    if (!ch) continue;
-    const equipped = items.filter(it => it.owner_character_id === ch.id);
-    const def = totals(ch, equipped).defense;
-    const afterDef = Math.max(0, perHits[i] - (opts.useDefense ? def : 0));
-
-    // Absorb with shields, oldest first.
-    let remaining = afterDef;
-    let absorbed = 0;
-    const charShields = shields
-      .filter(s => s.target_character_id === ch.id && (s.value || 0) > 0)
-      .sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
-    for (const sh of charShields) {
-      if (remaining <= 0) break;
-      const take = Math.min(sh.value, remaining);
-      if (take > 0) {
-        absorbed += take;
-        remaining -= take;
-        sh.value -= take;
-        if (sh.value <= 0) {
-          await (supabase as any).from("combat_temporary_effects").delete().eq("id", sh.id);
-        } else {
-          await (supabase as any).from("combat_temporary_effects").update({ value: sh.value }).eq("id", sh.id);
-        }
-      }
-    }
-
-    const applied = remaining;
-    const newHp = Math.max(0, ch.current_hp - applied);
-    if (applied > 0) {
-      const maxHp = totals(ch, equipped).maxHp;
-      const { applyHpDelta } = await import("@/lib/hp");
-      await applyHpDelta(ch.id, newHp, maxHp);
-    }
-    results.push({
-      name: ch.name,
-      color: ch.color,
-      id: ch.id,
-      applied,
-      def: opts.useDefense ? def : 0,
-      absorbed,
-      defeated: newHp <= 0 && ch.current_hp > 0,
-      viaLink: linkAdded.has(cid),
+    const res = await resolveDamageAgainstEntity({
+      targetId: cid,
+      targetType: "character",
+      encounterId: opts.encounterId || "",
+      campaignId: enemy.campaign_id,
+      amount: perHits[i],
+      mode: opts.useDefense ? "damageWithDefense" : "directDamage",
+      sourceName: enemy.display_name,
+      skillName: opts.sourceLabel,
+      skipLogging: true, // We will write a consolidated log entry below
     });
+
+    if (res) {
+      results.push({
+        name: "", // will fetch below or use character data if needed
+        color: null,
+        id: cid,
+        applied: res.applied,
+        def: res.def,
+        absorbed: res.absorbed,
+        defeated: res.defeated,
+        viaLink: linkAdded.has(cid),
+      });
+    }
   }
+
+  // Fetch names and colors for the log
+  const { data: chars } = await supabase.from("characters").select("id, name, color").in("id", targetIds);
+  results.forEach(r => {
+    const c = (chars || []).find(x => x.id === r.id);
+    r.name = c?.name || "---";
+    r.color = c?.color || null;
+  });
 
   // Log header: include skill name if provided.
   const header = opts.sourceLabel
