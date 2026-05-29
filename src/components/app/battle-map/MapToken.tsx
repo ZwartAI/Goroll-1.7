@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Group, Circle, Image } from 'react-konva';
+import Konva from 'konva';
 import useImage from 'use-image';
 import type { CombatParticipant } from '@/lib/combat';
 import { getEnemyCustomImage, getEnemyAssetUrl } from '@/components/app/EnemyIconPicker';
@@ -11,11 +12,12 @@ interface Props {
   participant: CombatParticipant;
   x: number;
   y: number;
+  gridSize: number;
   onSelect?: () => void;
   isSelected?: boolean;
 }
 
-export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelected }) => {
+export const MapToken: React.FC<Props> = ({ participant, x, y, gridSize, onSelect, isSelected }) => {
   // Obtener la imagen (custom o asset)
   const customImg = getEnemyCustomImage(participant);
   const assetUrl = getEnemyAssetUrl(participant.enemy_icon);
@@ -24,7 +26,7 @@ export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelec
   const [image] = useImage(imageUrl);
   
   const color = participant.enemy_color || participant.color || "var(--gold)";
-  const radius = 22; // Un poco más pequeño para mobile
+  const radius = gridSize * 0.44; // Proporcional a la grid
   
   // PREPARADO PARA FASE 2: Conectar con combat.turn_id
   const isMyTurn = false; 
@@ -39,10 +41,27 @@ export const MapToken: React.FC<Props> = ({ participant, x, y, onSelect, isSelec
       onTap={onSelect}
       onDragStart={(e) => {
         e.target.moveToTop();
-        e.target.scale({ x: 1.1, y: 1.1 });
+        e.target.to({
+          scaleX: 1.1,
+          scaleY: 1.1,
+          duration: 0.1,
+          easing: Konva.Easings.EaseOut
+        });
       }}
       onDragEnd={(e) => {
-        e.target.scale({ x: 1, y: 1 });
+        // SNAP TO GRID
+        const node = e.target;
+        const newX = Math.round(node.x() / gridSize) * gridSize;
+        const newY = Math.round(node.y() / gridSize) * gridSize;
+        
+        node.to({
+          x: newX,
+          y: newY,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 0.2,
+          easing: Konva.Easings.BackEaseOut
+        });
       }}
     >
       {/* Sombra / Glow de selección */}

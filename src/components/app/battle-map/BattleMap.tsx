@@ -7,6 +7,20 @@ import { BattleMapSidebar } from './BattleMapSidebar';
 import { BattleMapStage } from './BattleMapStage';
 import { BattleMapDiceButton } from './BattleMapDiceButton';
 import { BattleMapLog } from './BattleMapLog';
+import { BattleMapConfigModal } from './BattleMapConfigModal';
+
+// FASE 2: MapConfig interface
+export interface MapConfig {
+  backgroundUrl: string;
+  backgroundType: 'image' | 'video';
+  backgroundScale: number;
+  backgroundOpacity: number;
+  backgroundBrightness: number;
+  gridSize: number;
+  gridColor: string;
+  gridOpacity: number;
+  showGrid: boolean;
+}
 
 // FASE 1: BattleMap Component Base
 // Estructura modular preparada para extensiones futuras.
@@ -24,6 +38,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isLogExpanded, setIsLogExpanded] = useState(false);
+  const [mapConfig, setMapConfig] = useState<MapConfig>({
+    backgroundUrl: '',
+    backgroundType: 'image',
+    backgroundScale: 1,
+    backgroundOpacity: 1,
+    backgroundBrightness: 1,
+    gridSize: 50,
+    gridColor: 'rgba(255,255,255,0.1)',
+    gridOpacity: 0.5,
+    showGrid: true
+  });
 
   // Ajuste reactivo del tamaño del canvas
   useEffect(() => {
@@ -67,7 +92,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       <main className="flex-1 relative overflow-hidden">
         {/* Turn Tracker (Etiquetas laterales) */}
         <div className="absolute left-0 top-1/4 z-40 flex flex-col gap-1 pointer-events-none">
-          {sortedParticipants.slice(0, 6).map((p, idx) => {
+          {sortedParticipants.slice(0, 12).map((p, idx) => {
             const isTurn = p.id === currentTurnId;
             const color = p.enemy_color || p.color || "var(--gold)";
             
@@ -76,22 +101,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 key={p.id}
                 className={`
                   pointer-events-auto group flex items-center transition-all duration-300 transform
-                  ${isTurn ? 'translate-x-0' : '-translate-x-[75%] hover:translate-x-0'}
+                  ${isTurn ? 'translate-x-0' : '-translate-x-[85%] hover:translate-x-0'}
                 `}
               >
                 <div 
                   className={`
-                    px-3 py-1.5 rounded-r-full font-display text-[10px] uppercase tracking-widest shadow-lg flex items-center gap-2
-                    ${isTurn ? 'bg-secondary/90 border-y border-r border-white/20' : 'bg-black/60 border-y border-r border-white/10 opacity-70 hover:opacity-100'}
+                    px-2.5 py-1.5 rounded-r-full font-display text-[9px] uppercase tracking-widest shadow-lg flex items-center gap-2
+                    ${isTurn ? 'bg-secondary/90 border-y border-r border-white/20' : 'bg-black/60 border-y border-r border-white/10 opacity-60 hover:opacity-100'}
                   `}
                   style={{ borderRightColor: color }}
                 >
-                  {isTurn && (
-                    <div className="w-5 h-5 rounded-full bg-[var(--gold)] text-black flex items-center justify-center shadow-glow">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M18 12h.01"/></svg>
-                    </div>
-                  )}
-                  <span style={{ color }}>{p.display_name}</span>
+                  <div className={`w-4 h-4 rounded-full flex items-center justify-center border border-white/20 ${isTurn ? 'bg-[var(--gold)] text-black' : 'bg-black/40 text-muted-foreground'}`}>
+                    {idx + 1}
+                  </div>
+                  <span className="truncate max-w-[60px]" style={{ color }}>{p.display_name}</span>
                 </div>
               </div>
             );
@@ -122,8 +145,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             width={dimensions.width} 
             height={dimensions.height - 56} 
             participants={combat.participants}
+            config={mapConfig}
           />
         </div>
+
+        {/* Panel de Configuración (DM only) */}
+        {useGameData().character?.role === 'dm' && (
+          <BattleMapConfigModal config={mapConfig} onChange={setMapConfig} />
+        )}
 
         {/* Dados Flotantes */}
         <BattleMapDiceButton onClick={handleDiceClick} />

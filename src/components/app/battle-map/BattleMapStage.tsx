@@ -1,25 +1,32 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { Stage, Layer, Rect, Line } from 'react-konva';
+import { Stage, Layer, Rect, Line, Image as KonvaImage } from 'react-konva';
 import Konva from 'konva';
 import { MapToken } from './MapToken';
 import type { CombatParticipant } from '@/lib/combat';
+import type { MapConfig } from './BattleMap';
+import useImage from 'use-image';
 
-// FASE 1: Estructura base de Konva Stage
+// FASE 2: Background + Grid configurable + Snap
 // Optimizado para rendimiento con capas separadas y memoización.
 
 interface Props {
   width: number;
   height: number;
   participants: CombatParticipant[];
+  config: MapConfig;
 }
 
-export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, participants }) => {
+export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, participants, config }) => {
   const stageRef = useRef<Konva.Stage>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [bgImage] = useImage(config.backgroundType === 'image' ? config.backgroundUrl : '');
+  const [_, setVideoTick] = useState(0);
 
-  // PREPARADO PARA FASE 2: Sistema de Grid
-  const gridSize = 50;
+  // Sistema de Grid
+  const gridSize = config.gridSize;
   
   // Handlers para Touch (Pinch-to-zoom y Drag fluido)
   const handleWheel = (e: any) => {
@@ -51,31 +58,63 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
     setPosition(newPos);
   };
 
-  // Renderizado optimizado de la Grid (FASE 1)
+  // Setup Video Background
+  useEffect(() => {
+    if (config.backgroundType === 'video' && config.backgroundUrl) {
+      const video = document.createElement('video');
+      video.src = config.backgroundUrl;
+      video.loop = true;
+      video.muted = true;
+      video.autoplay = true;
+      video.play();
+      
+      video.onplaying = () => {
+        const anim = new Konva.Animation(() => {
+          // Force re-render of the video frame
+          setVideoTick(prev => prev + 1);
+        }, layerRef.current);
+        anim.start();
+        return () => anim.stop();
+      };
+      
+      videoRef.current = video;
+      return () => {
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.src = "";
+          videoRef.current.load();
+        }
+      };
+    }
+  }, [config.backgroundUrl, config.backgroundType]);
+
+  // Renderizado optimizado de la Grid
   const gridLines = useMemo(() => {
+    if (!config.showGrid) return null;
     const lines = [];
-    // Dibujamos un área grande para permitir scroll
     const size = 5000;
     for (let i = 0; i <= size / gridSize; i++) {
       lines.push(
         <Line
           key={`v-${i}`}
           points={[i * gridSize, 0, i * gridSize, size]}
-          stroke="rgba(255, 255, 255, 0.05)"
+          stroke={config.gridColor}
           strokeWidth={1}
+          opacity={config.gridOpacity}
         />
       );
       lines.push(
         <Line
           key={`h-${i}`}
           points={[0, i * gridSize, size, i * gridSize]}
-          stroke="rgba(255, 255, 255, 0.05)"
+          stroke={config.gridColor}
           strokeWidth={1}
+          opacity={config.gridOpacity}
         />
       );
     }
     return lines;
-  }, [gridSize]);
+  }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid]);
 
   return (
     <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden">
@@ -95,8 +134,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
         onDragEnd={(e) => setPosition(e.target.position())}
         className="cursor-grab active:cursor-grabbing"
       >
-        {/* Capa de Fondo y Grid (Estática mayormente) */}
-        <Layer listening={false}>
+        {/* Capa de Fondo (Video o Imagen) */}
+        <Layer ref={layerRef}>
           <Rect
             x={-2500}
             y={-2500}
@@ -104,6 +143,33 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
             height={5000}
             fill="#0f0f12"
           />
+          {config.backgroundUrl && (config.backgroundType === 'video' ? (
+            <KonvaImage
+              image={videoRef.current!}
+              x={0}
+              y={0}
+              width={gridSize * 20 * config.backgroundScale}
+              height={gridSize * 20 * config.backgroundScale}
+              opacity={config.backgroundOpacity}
+              filters={[Konva.Filters.Brighten]}
+              brightness={config.backgroundBrightness - 1}
+            />
+          ) : bgImage && (
+            <KonvaImage
+              image={bgImage}
+              x={0}
+              y={0}
+              width={bgImage.width * config.backgroundScale}
+              height={bgImage.height * config.backgroundScale}
+              opacity={config.backgroundOpacity}
+              filters={[Konva.Filters.Brighten]}
+              brightness={config.backgroundBrightness - 1}
+            />
+          ))}
+        </Layer>
+
+        {/* Capa de Grid */}
+        <Layer listening={false}>
           {gridLines}
         </Layer>
 
@@ -113,8 +179,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
             <MapToken 
               key={p.id} 
               participant={p} 
-              x={width / 2 + (i % 3) * 60 - 60} 
-              y={height / 2 + Math.floor(i / 3) * 60 - 60} 
+              x={width / 2 + (i % 3) * gridSize - gridSize} 
+              y={height / 2 + Math.floor(i / 3) * gridSize - gridSize}
+              gridSize={gridSize}
             />
           ))}
         </Layer>
