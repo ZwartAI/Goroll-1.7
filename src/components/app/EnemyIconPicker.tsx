@@ -90,21 +90,21 @@ export function EnemyIcon({
         <img
           src={customImage.url}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: "center", transform: tx, transformOrigin: "center" }}
         />
       );
     }
     return (
       <span
-        style={{ width: size, height: size, display: "inline-block", borderRadius: "9999px", overflow: "hidden", position: "relative" }}
+        style={{ width: size, height: size, display: "inline-block", borderRadius: "9999px", overflow: "hidden", position: "relative", background: "var(--secondary)" }}
       >
         <img
           src={customImage.url}
           alt=""
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "contain", objectPosition: "center",
+            objectFit: "cover", objectPosition: "center",
             transform: tx, transformOrigin: "center",
           }}
         />
