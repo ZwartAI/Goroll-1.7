@@ -988,6 +988,21 @@ export const en: Dict = {
     },
   },
   combat: {
+    settings: {
+      logDetailTitle: "Entity data in log",
+      logDetail: {
+        minimal: "Minimal",
+        normal: "Normal",
+        detailed: "Detailed",
+        dm_private: "DM Private",
+      },
+      logDetailHint: {
+        minimal: "Show only basic actions.",
+        normal: "Show damage result.",
+        detailed: "Show defense, shields and full detail.",
+        dm_private: "Players see minimal version and DM sees full detail.",
+      },
+    },
     cancelRollHint: "Opened this by mistake? Press Cancel to go back.",
     dmTitle: "Combat",
     requestInitiative: "Request initiative",
@@ -998,6 +1013,7 @@ export const en: Dict = {
     cancel: "Cancel initiative",
     cancelError: "Could not cancel",
     start: "Start combat",
+
     startError: "Could not start combat",
     confirmEnd: "End combat?",
     end: "End combat",
@@ -1626,22 +1642,8 @@ export const en: Dict = {
     title: "Acquire skills",
     subtitle: "Use Skill Points to learn new skills",
   },
-  combat_settings: {
-    logDetailTitle: "Entity data in log",
-    logDetail: {
-      minimal: "Minimal",
-      normal: "Normal",
-      detailed: "Detailed",
-      dm_private: "DM Private",
-    },
-    logDetailHint: {
-      minimal: "Show only basic actions.",
-      normal: "Show damage result.",
-      detailed: "Show defense, shields and full detail.",
-      dm_private: "Players see minimal version and DM sees full detail.",
-    },
-  },
 };
+
 
 
 

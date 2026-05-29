@@ -149,7 +149,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-1">
               <h4 className="font-display text-[10px] uppercase tracking-widest text-[var(--gold)] flex items-center gap-1.5">
-                <Settings2 size={12} /> {t("combat_settings.logDetailTitle")}
+                <Settings2 size={12} /> {t("combat.settings.logDetailTitle")}
               </h4>
             </div>
             <div className="grid grid-cols-4 gap-1">
@@ -173,19 +173,20 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                       ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold)] shadow-[0_0_8px_rgba(212,175,55,0.2)]"
                       : "border-border hover:border-[var(--gold)]/40 text-muted-foreground"
                   }`}
-                  title={t(`combat_settings.logDetail.${mode.id}` as any)}
+                  title={t(`combat.settings.logDetail.${mode.id}` as any)}
                 >
                   <mode.icon size={14} />
                   <span className="text-[8px] uppercase font-display tracking-tighter">
-                    {t(`combat_settings.logDetail.${mode.id}` as any).split(" ")[0]}
+                    {t(`combat.settings.logDetail.${mode.id}` as any).split(" ")[0]}
                   </span>
                 </button>
               ))}
             </div>
             <p className="text-[9px] text-muted-foreground text-center px-2">
-              {t(`combat_settings.logDetailHint.${encounter.combat_log_detail_mode}` as any)}
+              {t(`combat.settings.logDetailHint.${encounter.combat_log_detail_mode}` as any)}
             </p>
           </div>
+
 
 
           <div className="gem-divider opacity-40" />
