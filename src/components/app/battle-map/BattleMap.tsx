@@ -333,14 +333,74 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const handleNoteDelete = useCallback((id: string) => setChalkNotes(prev => prev.filter(n => n.id !== id)), []);
 
+  const displayParticipants = useMemo(() => {
+    // 1. Iniciamos con los participantes reales del combate
+    const list = [...combat.participants];
+    
+    // 2. Agregamos personajes que NO están en combate pero tienen un token invocado en la escena
+    // O que el usuario actual decida invocar ahora
+    const summonedIdsInScene = Object.keys(remoteTokenPositions);
+    
+    characters.forEach(char => {
+      // Si el personaje ya está como participante de combate, lo saltamos
+      if (list.some(p => p.character_id === char.id)) return;
+      
+      // Si el personaje tiene un token en esta escena, lo agregamos como "participante virtual"
+      if (summonedIdsInScene.includes(char.id)) {
+        list.push({
+          id: char.id,
+          encounter_id: combat.encounter?.id || 'none',
+          campaign_id: campaign?.id || '',
+          character_id: char.id,
+          participant_type: 'player',
+          display_name: char.name,
+          image_url: char.image_url,
+          color: char.color,
+          initiative: 0,
+          order_index: 999,
+          // Mapeamos los campos de imagen del personaje para el token
+          image_offset_x: (char as any).image_offset_x,
+          image_offset_y: (char as any).image_offset_y,
+          image_scale: char.image_scale,
+        } as any);
+      }
+    });
+
+    return list;
+  }, [combat.participants, remoteTokenPositions, characters, campaign?.id, combat.encounter?.id]);
+
   const orderedTurns = useMemo(() => {
+    // Solo mostramos el orden de turnos si hay un combate activo
+    if (!combat.encounter || combat.encounter.status !== 'active') return [];
     return buildOrderedTurns(combat.participants, combat.groups, combat.pins);
-  }, [combat.participants, combat.groups, combat.pins]);
+  }, [combat.participants, combat.groups, combat.pins, combat.encounter?.status]);
 
   const activeBlockIndex = useMemo(() => {
     if (!combat.encounter || combat.encounter.status !== 'active' || orderedTurns.length === 0) return -1;
     return ((combat.encounter.current_turn_index % orderedTurns.length) + orderedTurns.length) % orderedTurns.length;
   }, [combat.encounter, orderedTurns]);
+
+  const handleToggleMyToken = useCallback(() => {
+    if (!character?.id) return;
+    const isSummoned = !!remoteTokenPositions[character.id];
+    
+    if (isSummoned) {
+      // Retirar
+      const newState = { ...remoteTokenPositions };
+      delete newState[character.id];
+      setRemoteTokenPositions(newState);
+      handleBroadcastMove(character.id, -9999, -9999); // Usamos una posición especial para "retirar" si es necesario, o simplemente informamos
+      toast.success(t("battleMap.tokenRemoved") || "Token retirado");
+    } else {
+      // Invocar
+      const pos = { x: dimensions.width / 2, y: dimensions.height / 2 };
+      setRemoteTokenPositions(prev => ({ ...prev, [character.id]: pos }));
+      handleBroadcastMove(character.id, pos.x, pos.y);
+      toast.success(t("battleMap.tokenSummoned") || "Token invocado");
+    }
+    handleUpdateCurrentSceneState();
+  }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleUpdateCurrentSceneState, t]);
+
 
 
   return (
