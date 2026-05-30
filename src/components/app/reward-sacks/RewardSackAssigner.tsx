@@ -84,14 +84,18 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
         </header>
 
         <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Seleccionar Aventureros</span>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Seleccionar Aventureros</span>
+            <span className="text-[8px] text-[var(--gold)] opacity-50 uppercase tracking-tighter">Ellos recibirán el botín en tiempo real</span>
+          </div>
           <button 
             onClick={() => setSelectedCharIds(selectedCharIds.length === players.length ? [] : players.map(p => p.id))}
-            className="text-[10px] uppercase tracking-widest text-[var(--gold)] hover:underline"
+            className="text-[10px] uppercase tracking-widest text-[var(--gold)] hover:underline bg-white/5 px-3 py-1 rounded-full border border-white/10"
           >
             {selectedCharIds.length === players.length ? "Ninguno" : "Todos"}
           </button>
         </div>
+
 
         <div className="flex-1 overflow-y-auto p-2 grid grid-cols-2 gap-2">
           {players.map(p => {
