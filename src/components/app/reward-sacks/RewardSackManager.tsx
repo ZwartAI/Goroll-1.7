@@ -172,8 +172,9 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
                       title="Editar configuración"
                     >
-                      <Plus size={14} className="opacity-70" />
+                      <Plus size={14} className="scale-75" />
                     </button>
+
 
 
 
