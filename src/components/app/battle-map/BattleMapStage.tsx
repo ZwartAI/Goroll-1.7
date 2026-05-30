@@ -320,6 +320,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     const offset = -5000;
     
     // Evitar bucles infinitos
+    const gSize = Math.max(10, gridSize);
     const s = scale || 1;
     const lineThickness = 1.5 / s; // Aumentar grosor mínimo para visibilidad
     const gridLinesOpacity = config.gridOpacity || 0.6; // Un poco más opaco por defecto
