@@ -353,16 +353,16 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             <KonvaImage 
               image={videoRef.current!} 
               x={0} y={0} 
-              width={videoRef.current ? videoRef.current.videoWidth * config.backgroundScale : gridSize * 20} 
-              height={videoRef.current ? videoRef.current.videoHeight * config.backgroundScale : gridSize * 20} 
+              width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 20} 
+              height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 20} 
               opacity={config.backgroundOpacity} 
             />
           ) : bgImage && (
             <KonvaImage 
               image={bgImage} 
               x={0} y={0} 
-              width={bgImage.width * config.backgroundScale} 
-              height={bgImage.height * config.backgroundScale} 
+              width={bgImage.width * (config.backgroundScale || 1)} 
+              height={bgImage.height * (config.backgroundScale || 1)} 
               opacity={config.backgroundOpacity} 
             />
           ))}
