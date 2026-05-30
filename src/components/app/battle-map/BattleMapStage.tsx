@@ -307,15 +307,15 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     // Líneas verticales
     for (let i = 0; i <= size / gridSize; i++) {
       const x = offset + i * gridSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor} strokeWidth={1} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
     }
     // Líneas horizontales
     for (let i = 0; i <= size / gridSize; i++) {
       const y = offset + i * gridSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor} strokeWidth={1} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
     }
     return lines;
-  }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid]);
+  }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
 
 
   return (
