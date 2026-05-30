@@ -83,12 +83,30 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
 
   return (
     <div className="space-y-6">
-      {/* FASE 7: ACTIVE ENTITY SECTION */}
-      {activeParticipant && (
-        <div className="space-y-2">
-          <p className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">
-            {t("combat.manager.activeSection")}
-          </p>
+      {/* Top action buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
+          style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
+          onClick={() => { /* needs setAddingEnemy - might need to lift state */ }}
+        >
+          <Plus size={14} className="inline mr-1" /> {t("combat.addEnemy")}
+        </button>
+        <button
+          className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
+          style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
+          onClick={() => { /* needs setPickingTemplate - might need to lift state */ }}
+        >
+          <BookOpen size={14} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
+        </button>
+      </div>
+
+      {/* Active Entity Section */}
+      <div className="space-y-3">
+        <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-[var(--gold)]">
+          {activeParticipant ? t("combat.manager.activeSection") : t("combat.manager.noActive")}
+        </h3>
+        {activeParticipant && (
           <ActiveEnemyCombatCard
             p={activeParticipant}
             shield={shieldByEnemy[activeParticipant.id] || 0}
@@ -109,16 +127,17 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
               else toast.success(t("combat.pinAdded"));
             }}
           />
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* FASE 7: WAITING ENTITIES SECTION */}
+      {/* Waiting Entities Section */}
       {waitingEnemies.length > 0 && (
         <div className="space-y-3">
-          <p className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">
+          <div className="h-px bg-white/10 w-full" />
+          <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
             {t("combat.manager.waitingSection")}
-          </p>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          </h3>
+          <div className="grid gap-3 grid-cols-3">
             {waitingEnemies.map(p => {
               const myPins = pinsByEnemy.get(p.id) || [];
               return (
@@ -148,6 +167,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
           </div>
         </div>
       )}
+
 
       {editing && (
         <EnemyEditorModal encounter={encounter} dm={dm} editing={editing} onClose={() => setEditing(null)} />
