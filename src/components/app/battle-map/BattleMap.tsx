@@ -287,7 +287,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       if (customConfig.backgroundBrightness !== undefined) updates.background_brightness = customConfig.backgroundBrightness;
       if (customConfig.gridSize !== undefined) updates.grid_size = customConfig.gridSize;
       if (customConfig.gridColor !== undefined) updates.grid_color = customConfig.gridColor;
-      if (customConfig.grid_opacity !== undefined) updates.grid_opacity = customConfig.grid_opacity;
+      if (customConfig.gridOpacity !== undefined) updates.grid_opacity = customConfig.gridOpacity;
       if (customConfig.showGrid !== undefined) updates.show_grid = customConfig.showGrid;
     }
 
