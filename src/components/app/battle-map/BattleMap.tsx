@@ -160,7 +160,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             setScenes(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
             if (payload.new.is_active) {
               setActiveSceneId(payload.new.id);
-              applyScene(payload.new as BattleMapScene);
+              applyScene(payload.new as unknown as BattleMapScene);
             }
           } else if (payload.eventType === 'DELETE') {
             setScenes(prev => prev.filter(s => s.id !== payload.old.id));
