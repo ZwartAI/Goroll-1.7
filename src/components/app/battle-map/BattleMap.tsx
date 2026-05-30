@@ -44,8 +44,18 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const { combat, campaign } = useGameData();
   const { t } = useT();
   const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
+  const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isLogExpanded, setIsLogExpanded] = useState(false);
+  
+  // FASE 5: Scenes state
+  const [scenes, setScenes] = useState<BattleMapScene[]>([]);
+  const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
+  
+  // FASE 5: Realtime state for remote users
+  const [remoteTokenPositions, setRemoteTokenPositions] = useState<Record<string, { x: number, y: number }>>({});
+  const [remoteProjections, setRemoteProjections] = useState<Record<string, ProjectionState>>({});
+
   const [mapConfig, setMapConfig] = useState<MapConfig>({
     backgroundUrl: '',
     backgroundType: 'image',
