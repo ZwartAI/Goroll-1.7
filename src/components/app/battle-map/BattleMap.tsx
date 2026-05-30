@@ -289,9 +289,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     await supabase
       .from('battle_map_scenes')
       .update({
-        tokens_state: remoteTokenPositions,
-        chalk_lines: chalkLines,
-        chalk_notes: chalkNotes
+        tokens_state: remoteTokenPositions as any,
+        chalk_lines: chalkLines as any,
+        chalk_notes: chalkNotes as any
       })
       .eq('id', activeSceneId);
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes]);
