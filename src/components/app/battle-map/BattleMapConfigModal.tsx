@@ -58,6 +58,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
 
       const type = file.type.startsWith('video/') ? 'video' : 'image';
       
+      console.log('Background uploaded successfully:', publicUrl, 'Type:', type);
       handleBatchChange({
         backgroundUrl: publicUrl,
         backgroundType: type

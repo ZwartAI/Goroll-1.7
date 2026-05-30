@@ -109,10 +109,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const stageHeight = stage.height();
         
         // Centrar imagen
-        const mapWidth = bgImage.width * config.backgroundScale;
-        const mapHeight = bgImage.height * config.backgroundScale;
+        const mapWidth = (bgImage.width || 100) * (config.backgroundScale || 1);
+        const mapHeight = (bgImage.height || 100) * (config.backgroundScale || 1);
         
-        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.8;
+        const newScale = Math.min(Math.max(0.1, stageWidth / mapWidth), Math.max(0.1, stageHeight / mapHeight)) * 0.8;
         const newX = (stageWidth - mapWidth * newScale) / 2;
         const newY = (stageHeight - mapHeight * newScale) / 2;
         
@@ -340,7 +340,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
 
 
   return (
-    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden">
+    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5">
       <Stage
         width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
