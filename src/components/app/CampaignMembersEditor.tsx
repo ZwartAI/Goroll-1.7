@@ -30,7 +30,7 @@ export function CampaignMembersEditor({ campaign, onBack, onDeleted }: { campaig
     ((campaign as any).player_join_mode as "request" | "closed") || "request",
   );
   const [busy, setBusy] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
   const me = getStoredUser();
 
   const reload = useCallback(async () => {
