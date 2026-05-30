@@ -218,6 +218,14 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
             onClose={() => setSimulatingSack(null)} 
           />
         )}
+
+        {assigningSack && (
+          <RewardSackAssigner 
+            sack={assigningSack} 
+            onClose={() => setAssigningSack(null)} 
+          />
+        )}
+
       </div>
     </div>
   );
