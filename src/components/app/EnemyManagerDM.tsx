@@ -252,14 +252,14 @@ function ActiveEnemyCombatCard({
   const lp = useLongPress(onSheet, 450);
   const customImg = getEnemyCustomImage(p);
   const isTierAsset = !!customImg || !!getEnemyAssetUrl(p.enemy_icon);
-  const isNpc = !!(p as any).npc_template_id;
-  const disp = (p as any).npc_disposition as ("ally" | "neutral" | "hostile" | null | undefined);
+  const isNpc = !!p.npc_template_id;
+  const disp = p.npc_disposition;
 
   // FASE 7: Enhanced glow for active card
   const glowStyle: React.CSSProperties = {
-    borderColor: accent,
-    background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 18%, var(--card)), var(--card))`,
-    boxShadow: `0 0 0 2px ${accent}, 0 0 20px color-mix(in oklab, ${accent} 55%, transparent), inset 0 0 24px color-mix(in oklab, ${accent} 14%, transparent)`,
+    borderColor: accent.color,
+    background: `linear-gradient(180deg, color-mix(in oklab, ${accent.color} 18%, var(--card)), var(--card))`,
+    boxShadow: `0 0 0 ${accent.intense ? '3px' : '2px'} ${accent.color}, 0 0 ${accent.intense ? '40px' : '20px'} color-mix(in oklab, ${accent.color} 55%, transparent), inset 0 0 24px color-mix(in oklab, ${accent.color} 14%, transparent)`,
     opacity: p.is_defeated ? 0.55 : 1,
   };
 
@@ -292,13 +292,13 @@ function ActiveEnemyCombatCard({
           <div className="flex items-center gap-2 flex-wrap mb-2">
             <span className="text-[10px] font-display uppercase tracking-widest px-2 py-0.5 rounded"
               style={isNpc
-                ? { background: `color-mix(in oklab, ${accent} 22%, transparent)`, color: accent, border: `1px solid ${accent}` }
+                ? { background: `color-mix(in oklab, ${accent.color} 22%, transparent)`, color: accent.color, border: `1px solid ${accent.color}` }
                 : { background: "color-mix(in oklab, var(--loss) 22%, transparent)", color: "var(--loss)" }}>
               {isNpc ? t("combat.npcLabel") : t("combat.enemyLabel")}
             </span>
             {isNpc && disp && (
               <span className="text-[10px] font-display uppercase tracking-widest px-2 py-0.5 rounded"
-                style={{ background: `color-mix(in oklab, ${accent} 14%, transparent)`, color: accent, border: `1px solid ${accent}` }}>
+                style={{ background: `color-mix(in oklab, ${accent.color} 14%, transparent)`, color: accent.color, border: `1px solid ${accent.color}` }}>
                 {t(`npcs.disp_${disp}`)}
               </span>
             )}
@@ -330,7 +330,7 @@ function ActiveEnemyCombatCard({
               <span key={pin.id}
                 className="inline-flex items-center gap-2 text-xs font-display px-2 py-1 rounded-full border"
                 style={pinActive
-                  ? { background: `color-mix(in oklab, ${accent} 30%, transparent)`, color: "white", borderColor: accent }
+                  ? { background: `color-mix(in oklab, ${accent.color} 30%, transparent)`, color: "white", borderColor: accent.color }
                   : { background: "var(--card)", color: baseColor, borderColor: `color-mix(in oklab, ${baseColor} 55%, transparent)` }}>
                 <Pin size={12} />
                 {pin.initiative}
@@ -352,7 +352,7 @@ function ActiveEnemyCombatCard({
         </button>
         <button
           className="btn-fantasy py-2 flex items-center justify-center gap-2 font-display text-sm border-dashed"
-          style={{ background: "transparent", borderColor: accent, color: accent }}
+          style={{ background: "transparent", borderColor: accent.color, color: accent.color }}
           onClick={onAddPin}>
           <Pin size={16} /> {t("combat.addTurnPin")}
         </button>
@@ -397,7 +397,7 @@ function CompactEnemyCombatCard({
   if (isExpanded) {
     return (
       <div className="ornate-card !p-3 transition flex flex-col gap-2"
-        style={{ borderColor: accent, opacity: p.is_defeated ? 0.6 : 1 }}>
+        style={{ borderColor: accent.color, opacity: p.is_defeated ? 0.6 : 1 }}>
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-full border overflow-hidden flex items-center justify-center shrink-0"
             style={{ borderColor: baseColor }}>
@@ -462,7 +462,7 @@ function CompactEnemyCombatCard({
 
       <div className="flex items-center gap-1 flex-wrap mt-0.5 min-h-[16px]">
         <span className="text-[8px] font-display uppercase px-1 rounded border"
-          style={{ background: `color-mix(in oklab, ${accent} 20%, transparent)`, color: accent, borderColor: accent }}>
+          style={{ background: `color-mix(in oklab, ${accent.color} 20%, transparent)`, color: accent.color, borderColor: accent.color }}>
           {isNpc ? t("combat.npcLabel") : t("combat.enemyLabel")}
         </span>
         <span className="text-[8px] font-display px-1 rounded border border-[var(--gold)]/40 text-[var(--gold)]">
