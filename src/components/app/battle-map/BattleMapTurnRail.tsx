@@ -131,6 +131,6 @@ const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean; onClick: () 
               <ChevronRight className="w-3 h-3 text-white/20" />
           </div>
       )}
-    </div>
+    </button>
   );
 };
