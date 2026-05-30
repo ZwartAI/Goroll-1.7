@@ -407,6 +407,22 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     handleUpdateCurrentSceneState();
   }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleUpdateCurrentSceneState, t]);
 
+  const handleTurnRailClick = useCallback((block: TurnBlock) => {
+    if (block.kind === 'solo') {
+      const p = block.participant;
+      if (p.participant_type === 'player' && p.character_id) {
+        onOpenChar(p.character_id);
+      } else {
+        setSelectedEntityForSheet(p);
+      }
+    } else if (block.kind === 'pin') {
+      setSelectedEntityForSheet(block.linked);
+    } else if (block.kind === 'group') {
+      setSelectedGroupSummary(block.group);
+    }
+  }, [onOpenChar]);
+
+
   const handleOpenNavSection = (section: string) => {
     toast.info(`Abriendo sección: ${section}`);
   };
