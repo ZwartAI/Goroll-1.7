@@ -41,6 +41,7 @@ function DM() {
 
   const nav = useNavigate();
   const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "skills" | "escenario">("log");
+  const [rewardSacksOpen, setRewardSacksOpen] = useState(false);
   const [selItem, setSelItem] = useState<Item | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [openChar, setOpenChar] = useState<string | null>(null);
@@ -60,6 +61,7 @@ function DM() {
 
   useEffect(() => {
     if (!campaign) return;
+
     const reload = async () => {
       const [{ data: bs }, { data: assigns }] = await Promise.all([
         (supabase as any).from("boosters")
