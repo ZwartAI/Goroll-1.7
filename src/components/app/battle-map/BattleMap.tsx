@@ -267,7 +267,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       setNewSceneName('');
       if (isFirstScene && data) {
         setActiveSceneId(data.id);
-        applyScene(data as BattleMapScene);
+        applyScene(data as unknown as BattleMapScene);
       }
     }
   }, [campaign?.id, mapConfig, remoteTokenPositions, chalkLines, chalkNotes, scenes.length]);
