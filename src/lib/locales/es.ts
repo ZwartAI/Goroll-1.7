@@ -261,8 +261,12 @@ export const es = {
     tokenRemoved: "Token retirado",
     noMapLoaded: "No hay mapa cargado.",
     waitingForDM: "Esperando a que el DM configure el mapa.",
-
+    openSummary: "Abrir resumen de {name}",
+    openSheet: "Abrir ficha de {name}",
+    openLinkedEntity: "Abrir entidad vinculada a {name}",
+    linkGroup: "Grupo de enlace: {name}",
   },
+
   profile: {
     loading: "Cargando...",
     logoutAria: "Salir",
