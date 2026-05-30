@@ -45,7 +45,7 @@ export const BattleMapChalkLayer: React.FC<Props> = ({
           globalCompositeOperation="source-over"
           shadowBlur={line.size * 0.8}
           shadowColor={line.color}
-          opacity={0.8}
+          opacity={0.6} // Más translúcido (pedido por el usuario)
         />
       ))}
 
