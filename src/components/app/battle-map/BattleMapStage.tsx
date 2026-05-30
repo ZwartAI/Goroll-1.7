@@ -191,7 +191,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   }, [remoteProjections, renderProjection]);
 
   const handleStageMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (!isChalkMode) return;
     const stage = e.target.getStage();
     if (!stage) return;
     const pointer = stage.getPointerPosition();
@@ -200,13 +199,22 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     if (!layer) return;
     const transform = layer.getAbsoluteTransform().copy().invert();
     const pos = transform.point(pointer);
+
+    if (isRulerActive) {
+      setProjection({ type: 'distance', origin: pos, current: pos });
+      onProjectionUpdate?.({ type: 'distance', origin: pos, current: pos });
+      return;
+    }
+
+    if (!isChalkMode) return;
     if (chalkTool === 'pencil') {
       setIsDrawing(true);
       setCurrentLinePoints([pos.x, pos.y]);
     } else if (chalkTool === 'note') {
       onAddNote?.(pos.x, pos.y);
     }
-  }, [isChalkMode, chalkTool, onAddNote]);
+  }, [isChalkMode, isRulerActive, chalkTool, onAddNote, onProjectionUpdate]);
+
 
   const handleStageMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
