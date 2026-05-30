@@ -169,11 +169,12 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                     </button>
                     <button 
                       onClick={() => setEditingSack(sack)}
-                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
                       title="Editar configuración"
                     >
-                      <Copy size={14} className="scale-90 opacity-70" />
+                      <Plus size={14} className="scale-90 opacity-70" />
                     </button>
+
 
                     <button 
                       onClick={() => setSimulatingSack(sack)}
