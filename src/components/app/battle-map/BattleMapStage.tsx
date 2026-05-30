@@ -277,6 +277,55 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     }
   }, [projection, gridSize]);
 
+  // FASE 5: Helper to render any projection state
+  const renderProjection = useCallback((proj: ProjectionState, colorScale: string = 'var(--gold)') => {
+    const { type, origin, current } = proj;
+    const dx = current.x - origin.x;
+    const dy = current.y - origin.y;
+    const distPx = Math.sqrt(dx * dx + dy * dy);
+    const distFeet = Math.floor(distPx / gridSize) * 5;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    const commonProps = {
+      stroke: colorScale.includes('var') ? 'rgba(234, 179, 8, 0.6)' : colorScale,
+      strokeWidth: 2,
+      fill: colorScale.includes('var') ? 'rgba(234, 179, 8, 0.1)' : colorScale + '22',
+      shadowBlur: 10,
+      shadowColor: colorScale.includes('var') ? 'rgba(234, 179, 8, 0.5)' : colorScale,
+    };
+
+    const label = (
+      <Group x={(origin.x + current.x) / 2} y={(origin.y + current.y) / 2 - 20}>
+        <Rect width={60} height={20} fill="rgba(0,0,0,0.8)" cornerRadius={4} offsetX={30} offsetY={10} />
+        <Text text={`${distFeet} ft`} fill="var(--gold)" fontSize={10} fontFamily="monospace" width={60} align="center" offsetX={30} offsetY={5} />
+      </Group>
+    );
+
+    switch (type) {
+      case 'distance':
+        return (
+          <Group key={JSON.stringify(origin)}>
+            <Line points={[origin.x, origin.y, current.x, current.y]} {...commonProps} dash={[10, 5]} />
+            <KonvaCircle x={current.x} y={current.y} radius={5} fill="var(--gold)" />
+            {label}
+          </Group>
+        );
+      case 'area':
+        return <KonvaCircle key={JSON.stringify(origin)} x={origin.x} y={origin.y} radius={distPx} {...commonProps} />;
+      case 'line':
+        return (
+          <Group key={JSON.stringify(origin)}>
+            <Line points={[origin.x, origin.y, current.x, current.y]} {...commonProps} strokeWidth={gridSize} lineCap="round" opacity={0.3} />
+            <Line points={[origin.x, origin.y, current.x, current.y]} {...commonProps} />
+            {label}
+          </Group>
+        );
+      case 'cone':
+        return <Wedge key={JSON.stringify(origin)} x={origin.x} y={origin.y} radius={distPx} angle={60} rotation={angle - 30} {...commonProps} />;
+      default: return null;
+    }
+  }, [gridSize]);
+
   // Handlers para Touch (Pinch-to-zoom y Drag fluido)
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
