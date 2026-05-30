@@ -236,6 +236,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const handleActivateScene = useCallback(async (sceneId: string) => {
     if (!campaign?.id) return;
+    playMapSound('click');
     await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
     const { error } = await supabase.from('battle_map_scenes').update({ is_active: true }).eq('id', sceneId);
     if (error) toast.error("Error al activar la escena");
