@@ -279,6 +279,28 @@ export function CampaignMembersEditor({ campaign, onBack, onDeleted }: { campaig
           <p className="text-[9px] text-muted-foreground">{t("campaign.singleDmActive")}</p>
         )}
       </div>
+
+      {me?.id === owner && (
+        <div className="pt-4 border-t border-white/5 space-y-3">
+          <div className="p-3 rounded-xl border border-[var(--loss)]/30 bg-[var(--loss)]/5 space-y-2">
+            <h4 className="font-display text-[10px] uppercase tracking-[0.2em] text-[var(--loss)] flex items-center gap-2">
+              ⚠️ {lang === "en" ? "Danger Zone" : "Zona de Peligro"}
+            </h4>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              {lang === "en" 
+                ? "Deleting this campaign is permanent. All characters, history, and scenes will be lost forever." 
+                : "Eliminar esta campaña es permanente. Todos los personajes, historial y escenas se perderán para siempre."}
+            </p>
+            <DeleteCampaignButton 
+              campaignId={campaign.id} 
+              campaignName={campaign.name} 
+              isOwner={true} 
+              onDeleted={onDeleted} 
+            />
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
