@@ -7,6 +7,7 @@ interface Props {
   title: string;
   onBack: () => void;
   onMenuToggle: () => void;
+  onlineCount?: number;
 }
 
 
