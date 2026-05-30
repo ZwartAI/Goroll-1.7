@@ -37,8 +37,15 @@ export const MapToken: React.FC<Props> = ({
   const color = participant.enemy_color || participant.color || "var(--gold)";
   const radius = gridSize * 0.44; // Proporcional a la grid
   
-  // PREPARADO PARA FASE 2: Conectar con combat.turn_id
+  // FASE 7: Role-based glow color
+  const roleGlowColor = useMemo(() => {
+    if (participant.role === 'dm') return '#eab308'; // Gold for DM
+    if (participant.role === 'enemy') return '#ef4444'; // Red for Enemy
+    return '#3b82f6'; // Blue for Players
+  }, [participant.role]);
+
   const isMyTurn = false; 
+
 
   return (
 
