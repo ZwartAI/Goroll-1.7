@@ -88,6 +88,124 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // FASE 5: Cargar Escenas y Suscribirse a cambios
+  useEffect(() => {
+    if (!campaign?.id) return;
+
+    const fetchScenes = async () => {
+      const { data, error } = await supabase
+        .from('battle_map_scenes')
+        .select('*')
+        .eq('campaign_id', campaign.id)
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching scenes:", error);
+        return;
+      }
+      
+      const typedScenes = (data as any[]).map(s => ({
+        ...s,
+        tokens_state: s.tokens_state || {},
+        chalk_lines: s.chalk_lines || [],
+        chalk_notes: s.chalk_notes || []
+      })) as BattleMapScene[];
+
+      setScenes(typedScenes);
+      
+      const active = typedScenes.find(s => s.is_active);
+      if (active) {
+        setActiveSceneId(active.id);
+        applyScene(active);
+      }
+    };
+
+    fetchScenes();
+
+    // Suscribirse a cambios en la tabla de escenas
+    const channel = supabase
+      .channel('battle-map-scenes-' + campaign.id)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'battle_map_scenes', filter: `campaign_id=eq.${campaign.id}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setScenes(prev => [...prev, payload.new as BattleMapScene]);
+          } else if (payload.eventType === 'UPDATE') {
+            setScenes(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+            if (payload.new.is_active) {
+              setActiveSceneId(payload.new.id);
+              applyScene(payload.new as BattleMapScene);
+            }
+          } else if (payload.eventType === 'DELETE') {
+            setScenes(prev => prev.filter(s => s.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [campaign?.id]);
+
+  // FASE 5: Sync en Tiempo Real (Movimiento y Proyecciones)
+  useEffect(() => {
+    if (!campaign?.id) return;
+
+    const channel = supabase.channel('battle-map-realtime:' + campaign.id)
+      .on('broadcast', { event: 'token-move' }, (payload) => {
+        setRemoteTokenPositions(prev => ({
+          ...prev,
+          [payload.payload.tokenId]: { x: payload.payload.x, y: payload.payload.y }
+        }));
+      })
+      .on('broadcast', { event: 'projection-update' }, (payload) => {
+        setRemoteProjections(prev => ({
+          ...prev,
+          [payload.payload.userId]: payload.payload.projection
+        }));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [campaign?.id]);
+
+  const applyScene = (scene: BattleMapScene) => {
+    setMapConfig({
+      backgroundUrl: scene.background_url,
+      backgroundType: scene.background_type,
+      backgroundScale: scene.background_scale,
+      backgroundOpacity: scene.background_opacity,
+      backgroundBrightness: scene.background_brightness,
+      gridSize: scene.grid_size,
+      gridColor: scene.grid_color,
+      gridOpacity: scene.grid_opacity,
+      showGrid: scene.show_grid
+    });
+    setChalkLines(scene.chalk_lines || []);
+    setChalkNotes(scene.chalk_notes || []);
+    setRemoteTokenPositions(scene.tokens_state || {});
+  };
+
+  const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number) => {
+    supabase.channel('battle-map-realtime:' + campaign?.id).send({
+      type: 'broadcast',
+      event: 'token-move',
+      payload: { tokenId, x, y }
+    });
+  }, [campaign?.id]);
+
+  const handleBroadcastProjection = useCallback((projection: ProjectionState | null) => {
+    supabase.channel('battle-map-realtime:' + campaign?.id).send({
+      type: 'broadcast',
+      event: 'projection-update',
+      payload: { userId: useGameData().user?.id, projection }
+    });
+  }, [campaign?.id]);
+
   // Título dinámico para el header
   const headerTitle = useMemo(() => {
     return `${campaign?.name || 'Campaña'}`;
