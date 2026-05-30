@@ -68,18 +68,25 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
 
   return (
     <>
-      <div className="ornate-card p-3 mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="w-8" /> {/* Spacer */}
-          <h2 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">{t("escenario.title")}</h2>
-          <button
-            onClick={() => setShowBattleMap(true)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded border border-[var(--gold)]/30 text-[var(--gold)] text-[9px] font-display uppercase tracking-widest hover:bg-[var(--gold)]/10 transition-colors"
-          >
-            <MapIcon size={12} />
+      <div className="flex flex-col items-center gap-4 mb-6 mt-2">
+        <button
+          onClick={() => setShowBattleMap(true)}
+          className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
+          <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
             {t("battleMap.openMap")}
-          </button>
+          </span>
+          <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
+        </button>
+      </div>
+
+      <div className="ornate-card p-3 mb-4">
+        <div className="flex items-center justify-center mb-2">
+          <h2 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">{t("escenario.title")}</h2>
         </div>
+
         <div className="flex items-center gap-1.5 mb-2 text-[10px] uppercase text-[var(--gain)]">
           <span className="w-2 h-2 rounded-full bg-[var(--gain)] inline-block" /> {t("escenario.online")}
         </div>
