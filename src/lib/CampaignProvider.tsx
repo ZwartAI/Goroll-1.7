@@ -352,7 +352,9 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
           />
         </>
       )}
+      {character && character.role === "player" && <PlayerRewardModal />}
       {children}
+
 
 
     </Ctx.Provider>
