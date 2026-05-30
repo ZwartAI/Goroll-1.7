@@ -25,11 +25,13 @@ import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
+import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManager";
 import { useVoice } from "@/lib/useVoice";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 export const Route = createFileRoute("/campaign/dm")({ component: DM });
 
