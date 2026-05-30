@@ -314,28 +314,28 @@ function ActiveEnemyCombatCard({
         <span className="font-display text-[var(--gold)] text-lg">{p.initiative}</span>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
         <button
           type="button"
-          className="relative w-24 h-24 rounded-full border-4 overflow-hidden flex items-center justify-center bg-black shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+          className="relative w-20 h-20 rounded-full border-4 overflow-hidden flex items-center justify-center bg-black shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
           style={{ borderColor: baseColor }}
           onClick={onSheet}
         >
-          <EnemyIcon name={p.enemy_icon} size={56} fill={isTierAsset} customImage={customImg} />
+          <EnemyIcon name={p.enemy_icon} size={44} fill={isTierAsset} customImage={customImg} />
         </button>
         <div className="flex-1 min-w-0 pr-10">
-          <h3 className="font-display text-2xl leading-none truncate mb-1" style={{ color: "white" }}>
+          <h3 className="font-display text-xl leading-none truncate mb-1" style={{ color: "white" }}>
             {p.display_name}
           </h3>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-display uppercase tracking-[0.2em] px-2 py-0.5 rounded bg-red-950/40 text-red-500 border border-red-500/30">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[9px] font-display uppercase tracking-[0.2em] px-1.5 py-0.5 rounded bg-red-950/40 text-red-500 border border-red-500/30">
               {isNpc ? t("combat.npcLabel") : t("combat.enemyLabel")}
             </span>
-            <span className="text-[10px] font-display uppercase tracking-[0.2em] px-2 py-0.5 rounded bg-[var(--gold)] text-black font-bold">
+            <span className="text-[9px] font-display uppercase tracking-[0.2em] px-1.5 py-0.5 rounded bg-[var(--gold)] text-black font-bold">
               {t("combat.manager.activeBadge")}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground font-display uppercase tracking-widest opacity-70">
+          <p className="text-[10px] text-muted-foreground font-display uppercase tracking-widest opacity-70">
             DEF {p.enemy_defense || 0} · SPD {p.enemy_speed || "—"}
           </p>
         </div>
