@@ -108,7 +108,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
       {/* Active Entity Section */}
       <div className="space-y-3">
         <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-[var(--gold)]">
-          {activeParticipant ? t("combat.manager.activeSection") : t("combat.manager.noActive")}
+          {activeParticipant ? "ENEMIGOS EN TURNO" : "SIN ENTIDAD EN TURNO"}
         </h3>
         {activeParticipant && (
           <ActiveEnemyCombatCard
@@ -139,7 +139,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
         <div className="space-y-3">
           <div className="h-px bg-white/10 w-full" />
           <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-            {t("combat.manager.waitingSection")}
+            ESPERANDO TURNO
           </h3>
           <div className="grid gap-3 grid-cols-3">
             {waitingEnemies.map(p => {
