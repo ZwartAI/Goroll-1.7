@@ -21,6 +21,7 @@ import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPane
 import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
 import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
 import { BattleMapToolbar } from './BattleMapToolbar';
+import { BattleMapBottomBar } from './BattleMapBottomBar';
 import { playMapSound } from './BattleMapSounds';
 import type { CombatParticipant } from '@/lib/combat';
 
@@ -54,7 +55,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-  const [isLogExpanded, setIsLogExpanded] = useState(false);
   const [isRulerActive, setIsRulerActive] = useState(false);
 
 
@@ -292,15 +292,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           sides,
           result: res,
           // Random scatter positions
-          x: (Math.random() - 0.5) * (dimensions.width * 0.6),
-          y: (Math.random() - 0.5) * (dimensions.height * 0.6)
+          x: (Math.random() - 0.5) * (dimensions.width * 0.4),
+          y: (Math.random() - 0.5) * (dimensions.height * 0.4)
         });
       }
     });
 
     setActiveDiceRolls(newRolls);
-
-    // TODO: Phase 6 Integration with actual combat log
     console.log(`Tirada: ${individualResults.join(', ')} | Total: ${total}`);
   }, [dimensions]);
 
@@ -334,18 +332,11 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleNoteDelete = useCallback((id: string) => setChalkNotes(prev => prev.filter(n => n.id !== id)), []);
 
   const displayParticipants = useMemo(() => {
-    // 1. Iniciamos con los participantes reales del combate
     const list = [...combat.participants];
-    
-    // 2. Agregamos personajes que NO están en combate pero tienen un token invocado en la escena
-    // O que el usuario actual decida invocar ahora
     const summonedIdsInScene = Object.keys(remoteTokenPositions);
     
     characters.forEach(char => {
-      // Si el personaje ya está como participante de combate, lo saltamos
       if (list.some(p => p.character_id === char.id)) return;
-      
-      // Si el personaje tiene un token en esta escena, lo agregamos como "participante virtual"
       if (summonedIdsInScene.includes(char.id)) {
         list.push({
           id: char.id,
@@ -358,7 +349,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           color: char.color,
           initiative: 0,
           order_index: 999,
-          // Mapeamos los campos de imagen del personaje para el token
           image_offset_x: (char as any).image_offset_x,
           image_offset_y: (char as any).image_offset_y,
           image_scale: char.image_scale,
@@ -370,7 +360,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, [combat.participants, remoteTokenPositions, characters, campaign?.id, combat.encounter?.id]);
 
   const orderedTurns = useMemo(() => {
-    // Solo mostramos el orden de turnos si hay un combate activo
     if (!combat.encounter || combat.encounter.status !== 'active') return [];
     return buildOrderedTurns(combat.participants, combat.groups, combat.pins);
   }, [combat.participants, combat.groups, combat.pins, combat.encounter?.status]);
@@ -380,19 +369,27 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     return ((combat.encounter.current_turn_index % orderedTurns.length) + orderedTurns.length) % orderedTurns.length;
   }, [combat.encounter, orderedTurns]);
 
+  const activeParticipantId = useMemo(() => {
+    if (activeBlockIndex === -1 || !orderedTurns[activeBlockIndex]) return undefined;
+    const block = orderedTurns[activeBlockIndex];
+    if (block.kind === 'solo') return block.participant.id;
+    if (block.kind === 'group') return block.members[0]?.id;
+    if (block.kind === 'pin') return block.linked.id;
+    return undefined;
+  }, [activeBlockIndex, orderedTurns]);
+
+
   const handleToggleMyToken = useCallback(() => {
     if (!character?.id) return;
     const isSummoned = !!remoteTokenPositions[character.id];
     
     if (isSummoned) {
-      // Retirar
       const newState = { ...remoteTokenPositions };
       delete newState[character.id];
       setRemoteTokenPositions(newState);
-      handleBroadcastMove(character.id, -9999, -9999); // Usamos una posición especial para "retirar" si es necesario, o simplemente informamos
+      handleBroadcastMove(character.id, -9999, -9999);
       toast.success(t("battleMap.tokenRemoved") || "Token retirado");
     } else {
-      // Invocar
       const pos = { x: dimensions.width / 2, y: dimensions.height / 2 };
       setRemoteTokenPositions(prev => ({ ...prev, [character.id]: pos }));
       handleBroadcastMove(character.id, pos.x, pos.y);
@@ -401,7 +398,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     handleUpdateCurrentSceneState();
   }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleUpdateCurrentSceneState, t]);
 
-
+  const handleOpenNavSection = (section: string) => {
+    toast.info(`Abriendo sección: ${section}`);
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#0a0a0c] flex flex-col overflow-hidden text-foreground animate-in fade-in duration-300">
@@ -412,7 +411,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           onBack();
         }} 
         onMenuToggle={toggleParticipants} 
+        onScenesToggle={isDM ? () => setIsScenesPanelOpen(true) : undefined}
         onlineCount={onlineIds.size}
+        isDM={isDM}
       />
 
       <main className="flex-1 relative overflow-hidden bg-[#050507]">
@@ -420,7 +421,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         <div className="absolute inset-0 z-0">
           <BattleMapStage 
             width={dimensions.width} 
-            height={dimensions.height - 56} 
+            height={dimensions.height - 112} // Adjusted for Header + BottomBar
             participants={displayParticipants}
             config={mapConfig}
             onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
@@ -446,26 +447,25 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             currentUserId={character?.id}
             isRulerActive={isRulerActive}
           />
-
         </div>
 
-        {/* FASE 7: Empty State Feedback */}
+        {/* FASE 8: Improved Empty State */}
         {!mapConfig.backgroundUrl && isDM && !isScenesPanelOpen && !isDicePanelOpen && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="bg-black/60 backdrop-blur-md border border-white/10 p-8 rounded-[2rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--gold)]/20">
-                <Layers className="w-8 h-8 text-[var(--gold)]" />
+            <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-500 shadow-2xl">
+              <div className="w-20 h-20 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--gold)]/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
+                <Layers className="w-10 h-10 text-[var(--gold)]" />
               </div>
-              <h3 className="text-[var(--gold)] font-display text-sm uppercase tracking-[0.2em] mb-2">Escenario Vacío</h3>
-              <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-6 leading-relaxed">
-                Sube una imagen o video para comenzar tu batalla táctica.
+              <h3 className="text-[var(--gold)] font-display text-base uppercase tracking-[0.3em] mb-3">Tu Escenario Espera</h3>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-widest mb-8 leading-relaxed opacity-60">
+                Define el entorno táctico para tus jugadores.
               </p>
               <button 
                  onClick={() => setIsScenesPanelOpen(true)}
-                 className="btn-fantasy text-[9px] px-6 py-2"
+                 className="btn-fantasy text-[10px] px-8 py-3 w-full"
                  style={{ background: 'var(--gradient-gold)', color: 'black' }}
               >
-                Gestionar Escenas
+                GESTIONAR ESCENAS
               </button>
             </div>
           </div>
@@ -481,7 +481,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
         {/* Sidebar / Tools */}
-        <div className="absolute top-20 right-4 z-40 flex flex-col gap-3 items-end">
+        <div className="absolute top-10 right-4 z-40 flex flex-col gap-3 items-end">
             <BattleMapToolbar 
               isDM={isDM}
               isChalkMode={isChalkMode}
@@ -501,7 +501,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 <>
                     <button
                       onClick={() => setIsScenesPanelOpen(true)}
-                      className={`w-12 h-12 rounded-2xl shadow-2xl transition-all group flex items-center justify-center border ${isScenesPanelOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/60 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
+                      className={`w-11 h-11 rounded-full shadow-2xl transition-all group flex items-center justify-center border ${isScenesPanelOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/80 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
                       title="Escenas"
                     >
                       <Layers className="w-5 h-5" />
@@ -509,7 +509,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     
                     <button
                       onClick={() => setIsConfigModalOpen(true)}
-                      className={`w-12 h-12 rounded-2xl shadow-2xl transition-all group flex items-center justify-center border ${isConfigModalOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/60 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
+                      className={`w-11 h-11 rounded-full shadow-2xl transition-all group flex items-center justify-center border ${isConfigModalOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/80 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
                       title="Ajustes"
                     >
                       <Settings className="w-5 h-5" />
@@ -525,9 +525,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             )}
         </div>
 
-        {/* Panels / Overlays */}
+        {/* Overlay para cerrar paneles */}
         {(activePanel !== 'none' || isScenesPanelOpen || isDicePanelOpen) && (
-          <div className="absolute inset-0 bg-black/60 z-30 transition-opacity animate-in fade-in backdrop-blur-sm" onClick={() => { 
+          <div className="absolute inset-0 bg-black/40 z-30 transition-opacity animate-in fade-in backdrop-blur-[2px]" onClick={() => { 
             setActivePanel('none'); 
             setIsScenesPanelOpen(false); 
             setIsDicePanelOpen(false);
@@ -536,14 +536,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
         {/* Dice Panel */}
         {isDicePanelOpen && (
-          <div className="absolute inset-x-0 bottom-0 z-[70] flex items-end justify-center pointer-events-none">
-            <div className="w-full max-w-md pointer-events-auto">
-              <BattleMapDicePanel 
-                onClose={() => setIsDicePanelOpen(false)}
-                onRoll={handleRollDice}
-              />
-            </div>
-          </div>
+          <BattleMapDicePanel 
+            onClose={() => setIsDicePanelOpen(false)}
+            onRoll={handleRollDice}
+          />
         )}
 
         {/* Dice Animation */}
@@ -554,7 +550,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         )}
 
-        {/* Chalk Controls (Floating over stage) */}
+        {/* Chalk Controls */}
         {isChalkMode && isDM && (
           <div className="absolute top-20 right-20 z-50">
              <BattleMapChalkControls
@@ -573,26 +569,32 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
         {/* Scenes Panel */}
         {isScenesPanelOpen && (
-          <div className="absolute left-0 top-0 h-full z-50 animate-in slide-in-from-left duration-300">
-            <BattleMapScenesPanel 
-              scenes={scenes}
-              activeSceneId={activeSceneId || undefined}
-              onSelectScene={(id) => {
-                const s = scenes.find(sc => sc.id === id);
-                if (s) { setActiveSceneId(s.id); applyScene(s); }
-              }}
-              onActivateScene={handleActivateScene}
-              onSaveCurrentAsNew={handleSaveScene}
-              onDeleteScene={handleDeleteScene}
-              onClose={() => setIsScenesPanelOpen(false)}
-            />
-          </div>
+          <BattleMapScenesPanel 
+            scenes={scenes}
+            activeSceneId={activeSceneId || undefined}
+            hasBackground={!!mapConfig.backgroundUrl}
+            onSelectScene={(id) => {
+              const s = scenes.find(sc => sc.id === id);
+              if (s) { setActiveSceneId(s.id); applyScene(s); }
+            }}
+            onActivateScene={handleActivateScene}
+            onSaveCurrentAsNew={handleSaveScene}
+            onDeleteScene={handleDeleteScene}
+            onOpenConfig={() => setIsConfigModalOpen(true)}
+            onClose={() => setIsScenesPanelOpen(false)}
+          />
         )}
 
-        {/* Sidebar Participantes */}
-        <div className={`absolute left-0 top-0 h-full z-50 transition-transform duration-300 transform ${activePanel === 'participants' ? 'translate-x-0' : '-translate-x-full'}`}>
-          <BattleMapSidebar participants={displayParticipants} isOpen={true} onOpenChar={onOpenChar} onClose={() => setActivePanel('none')} />
-        </div>
+        {/* Sidebar Turno de Combate */}
+        <BattleMapSidebar 
+          participants={displayParticipants} 
+          isOpen={activePanel === 'participants'} 
+          onOpenChar={onOpenChar} 
+          onClose={() => setActivePanel('none')}
+          isDM={isDM}
+          onNextTurn={() => toast.info("Pasando turno...")}
+          activeParticipantId={activeParticipantId}
+        />
 
         {/* Projection Menu */}
         {projectionMenu && (
@@ -608,36 +610,22 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         )}
 
-        {/* Colapsable Log */}
-        <div 
-          className={`absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/95 border-t border-white/10 backdrop-blur-md ${isLogExpanded ? 'h-[40vh] sm:h-64' : 'h-12'}`}
-        >
-          <div 
-            className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 bg-white/5 cursor-pointer group"
-            onClick={() => setIsLogExpanded(!isLogExpanded)}
-          >
-            <span className="text-[10px] font-display uppercase tracking-[0.2em] text-muted-foreground group-hover:text-[var(--gold)] transition-colors">{t("battleMap.recentLog")}</span>
-            <div className="p-1 rounded-full bg-white/5 border border-white/10 text-[var(--gold)] group-hover:scale-110 transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isLogExpanded ? 'rotate-180' : ''}`}><polyline points="18 15 12 9 6 15"/></svg>
-            </div>
-          </div>
-          <div className="h-[calc(100%-2rem)] overflow-hidden">
-             <BattleMapLog logs={logs} nameOverrides={nameOverrides} onOpenChar={onOpenChar} isExpanded={isLogExpanded} />
-          </div>
-        </div>
+        {/* Enhanced Log */}
+        <BattleMapLog 
+          logs={logs} 
+          nameOverrides={nameOverrides} 
+          onOpenChar={onOpenChar} 
+        />
 
-        {/* Floating Dice Button - Positioned relative to Log */}
-        <div 
-          className="fixed right-3 z-[45] transition-all duration-300"
-          style={{ 
-            bottom: isLogExpanded 
-              ? (dimensions.width >= 640 ? '268px' : 'calc(40vh + 12px)')
-              : '60px'
-          }}
-        >
+        {/* Floating Dice Button */}
+        <div className="fixed bottom-20 right-4 z-[70] animate-in slide-in-from-right-5 duration-500">
           <BattleMapDiceButton onClick={handleDiceClick} />
         </div>
+
       </main>
+
+      {/* New Fixed Player Bottom Bar */}
+      <BattleMapBottomBar onOpenSection={handleOpenNavSection} />
     </div>
   );
 };
