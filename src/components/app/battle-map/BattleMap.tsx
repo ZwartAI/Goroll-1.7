@@ -62,6 +62,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isRulerActive, setIsRulerActive] = useState(false);
+  const [selectedEntityForSheet, setSelectedEntityForSheet] = useState<CombatParticipant | null>(null);
+  const [selectedGroupSummary, setSelectedGroupSummary] = useState<CombatTurnGroup | null>(null);
+
 
 
   
