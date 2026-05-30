@@ -81,15 +81,23 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
       </div>
 
       {(!encounter || status === "ended") && (
-        <button className="btn-fantasy w-full text-xs py-1.5" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+        <button 
+          className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
+          style={{ WebkitTapHighlightColor: "transparent" }}
           onClick={async () => {
             const r = await requestInitiative(campaignId, dm);
             if (!r.ok) toast.error(t("combat.requestError"));
             else toast.success(t("combat.requested"));
           }}>
-          <Flag size={12} className="inline mr-1" /> {t("combat.requestInitiative")}
+          <img
+            src={assets.initiative}
+            alt={t("combat.requestInitiative")}
+            className="block w-full h-auto pointer-events-none"
+            draggable={false}
+          />
         </button>
       )}
+
 
 
       {encounter && groups.length > 0 && status !== "ended" && (
