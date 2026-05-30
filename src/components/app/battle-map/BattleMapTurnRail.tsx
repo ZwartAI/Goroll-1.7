@@ -56,15 +56,31 @@ const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean; onClick: () 
 
   const { color, name, firstName, icon } = getDetails();
 
+  const ariaLabel = block.kind === 'solo' 
+    ? (block.participant.participant_type === 'player' ? t('battleMap.openSummary', { name }) : t('battleMap.openSheet', { name }))
+    : block.kind === 'group' ? t('battleMap.linkGroup', { name }) : t('battleMap.openLinkedEntity', { name });
+
   return (
-    <div 
-      className="pointer-events-auto flex items-center group relative h-7"
+    <button 
+      type="button"
+      className="pointer-events-auto flex items-center group relative h-7 outline-none select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
       onBlur={() => setIsHovered(false)}
-      tabIndex={0}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={ariaLabel}
     >
+
       {/* The Colored Dot */}
       <div 
         className={`w-4 h-4 rounded-full border border-white/20 transition-all duration-300 relative z-10 flex-shrink-0 ${isActive ? 'scale-125 shadow-[0_0_10px_rgba(255,255,255,0.5)] brightness-125' : 'group-hover:scale-110'}`}
