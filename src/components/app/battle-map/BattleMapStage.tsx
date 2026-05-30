@@ -85,7 +85,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
-  const [isReady, setIsReady] = useState(!config.backgroundUrl);
+  const [isReady, setIsReady] = useState(false); // Siempre esperar a que el stage se posicione
 
   // Centrar el mapa inicialmente o cuando cambian las dimensiones
   useEffect(() => {
@@ -132,6 +132,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       }
     } else if (status === 'failed') {
       console.error("Failed to load background image:", config.backgroundUrl);
+      setIsReady(true);
+    } else if (!config.backgroundUrl) {
       setIsReady(true);
     }
   }, [status, bgImage, config.backgroundScale, config.backgroundUrl]);
@@ -358,15 +360,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          {/* Fondo neutro */}
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" />
+          {/* Capa de fondo base (asegura que nunca esté negro puro si hay algo cargado) */}
+          <Rect x={-10000} y={-10000} width={20000} height={20000} fill="#0a0a0c" listening={false} />
+          
+          {/* Fondo neutro central */}
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" listening={false} />
           
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
               image={videoRef.current!} 
               x={0} y={0} 
-              width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 20} 
-              height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 20} 
+              width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 40} 
+              height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 40} 
               opacity={config.backgroundOpacity} 
               filters={[Konva.Filters.Brighten]}
               brightness={config.backgroundBrightness - 1}
@@ -384,8 +389,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
 
-          {/* Grid sobre la imagen para asegurar visibilidad */}
-          <Group id="grid-group" listening={false}>
+          {/* Grid sobre la imagen para asegurar visibilidad máxima */}
+          <Group id="grid-group" listening={false} name="grid-layer">
             {gridLines}
           </Group>
           
