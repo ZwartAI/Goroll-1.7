@@ -54,7 +54,7 @@ export function CampaignActionsModal({ campaign, currentUserId, role: _role, onP
         )}
 
         {view === "edit" && (
-          <CampaignMembersEditor campaign={campaign} onBack={() => setView("menu")} />
+          <CampaignMembersEditor campaign={campaign} onBack={() => setView("menu")} onDeleted={onDeleted} />
         )}
       </div>
     </div>
