@@ -98,22 +98,82 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
               <ImageIcon size={12} /> {t('battleMap.background')}
             </h3>
             
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="ornate-card !p-3 flex flex-col items-center gap-2 hover:bg-secondary/30 transition-colors"
+            <div className="space-y-3">
+              <div 
+                className={`relative aspect-video w-full rounded-xl border border-white/10 bg-black/40 overflow-hidden flex items-center justify-center transition-all ${!config.backgroundUrl ? 'border-dashed border-white/20' : ''}`}
               >
-                <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center">
-                  <ImageIcon size={16} className="text-[var(--gold)]" />
-                </div>
-                <span className="text-[9px] uppercase tracking-widest">Subir Imagen/Video</span>
-              </button>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,video/mp4" className="hidden" />
-              
-              <div className="space-y-3">
+                {config.backgroundUrl ? (
+                  <>
+                    {config.backgroundType === 'video' ? (
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <Video size={32} className="opacity-20" />
+                        <span className="text-[10px] uppercase tracking-widest">Video configurado</span>
+                      </div>
+                    ) : (
+                      <img 
+                        src={config.backgroundUrl} 
+                        className="w-full h-full object-cover opacity-60" 
+                        alt="Preview" 
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2 rounded-full bg-white/10 hover:bg-[var(--gold)] hover:text-black transition-all"
+                        title="Cambiar imagen/video"
+                      >
+                        <Upload size={16} />
+                      </button>
+                      <button 
+                        onClick={handleRemoveBackground}
+                        className="p-2 rounded-full bg-white/10 hover:bg-red-500 transition-all"
+                        title="Eliminar fondo"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-secondary/30 flex items-center justify-center text-muted-foreground">
+                      <ImageIcon size={24} className="opacity-20" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Sin fondo seleccionado</p>
+                  </div>
+                )}
+
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-3 z-10">
+                    <Loader2 className="w-8 h-8 text-[var(--gold)] animate-spin" />
+                    <span className="text-[10px] text-[var(--gold)] uppercase tracking-[0.2em] animate-pulse">Subiendo Archivo...</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="ornate-card !p-3 flex items-center justify-center gap-3 hover:bg-secondary/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Upload size={14} className="text-[var(--gold)]" />
+                  <span className="text-[9px] uppercase tracking-widest font-bold">
+                    {config.backgroundUrl ? 'Cambiar Imagen/Video' : 'Subir Imagen/Video'}
+                  </span>
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*,video/mp4,video/webm" 
+                  className="hidden" 
+                />
+              </div>
+
+              <div className="space-y-3 pt-2">
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <label className="text-[9px] uppercase text-muted-foreground">Escala</label>
+                    <label className="text-[9px] uppercase text-muted-foreground tracking-widest">Escala del Mapa</label>
                     <span className="text-[9px] font-display text-[var(--gold)]">{config.backgroundScale.toFixed(1)}x</span>
                   </div>
                   <input 
