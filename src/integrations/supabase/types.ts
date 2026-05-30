@@ -1632,6 +1632,70 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_assignments: {
+        Row: {
+          booster_ids: string[] | null
+          campaign_id: string
+          character_id: string
+          coins: number
+          created_at: string
+          id: string
+          item_ids: string[] | null
+          sack_id: string | null
+          skill_ids: string[] | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booster_ids?: string[] | null
+          campaign_id: string
+          character_id: string
+          coins?: number
+          created_at?: string
+          id?: string
+          item_ids?: string[] | null
+          sack_id?: string | null
+          skill_ids?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booster_ids?: string[] | null
+          campaign_id?: string
+          character_id?: string
+          coins?: number
+          created_at?: string
+          id?: string
+          item_ids?: string[] | null
+          sack_id?: string | null
+          skill_ids?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_assignments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_assignments_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_assignments_sack_id_fkey"
+            columns: ["sack_id"]
+            isOneToOne: false
+            referencedRelation: "reward_sacks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reward_sacks: {
         Row: {
           campaign_id: string
