@@ -191,20 +191,110 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   };
 
   const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number) => {
-    supabase.channel('battle-map-realtime:' + campaign?.id).send({
+    if (!campaign?.id) return;
+    supabase.channel('battle-map-realtime:' + campaign.id).send({
       type: 'broadcast',
       event: 'token-move',
       payload: { tokenId, x, y }
     });
   }, [campaign?.id]);
 
-  const handleBroadcastProjection = useCallback((projection: ProjectionState | null) => {
-    supabase.channel('battle-map-realtime:' + campaign?.id).send({
+  const handleBroadcastProjection = useCallback(async (projection: ProjectionState | null) => {
+    if (!campaign?.id) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    supabase.channel('battle-map-realtime:' + campaign.id).send({
       type: 'broadcast',
       event: 'projection-update',
-      payload: { userId: useGameData().user?.id, projection }
+      payload: { userId: user.id, projection }
     });
   }, [campaign?.id]);
+
+  // FASE 5: Scene Management Handlers
+  const handleSaveScene = useCallback(async (name: string) => {
+    if (!campaign?.id) return;
+    
+    // Guardar el estado actual como una nueva escena
+    const newScene: Partial<BattleMapScene> = {
+      campaign_id: campaign.id,
+      name,
+      background_url: mapConfig.backgroundUrl,
+      background_type: mapConfig.backgroundType,
+      background_scale: mapConfig.backgroundScale,
+      background_opacity: mapConfig.backgroundOpacity,
+      background_brightness: mapConfig.backgroundBrightness,
+      grid_size: mapConfig.gridSize,
+      grid_color: mapConfig.gridColor,
+      grid_opacity: mapConfig.gridOpacity,
+      show_grid: mapConfig.showGrid,
+      tokens_state: remoteTokenPositions, // Usamos las posiciones actuales registradas
+      chalk_lines: chalkLines,
+      chalk_notes: chalkNotes,
+      is_active: false
+    };
+
+    const { data, error } = await supabase
+      .from('battle_map_scenes')
+      .insert(newScene)
+      .select()
+      .single();
+
+    if (error) {
+      toast.error("Error al guardar la escena");
+    } else {
+      toast.success("Escena guardada: " + name);
+    }
+  }, [campaign?.id, mapConfig, remoteTokenPositions, chalkLines, chalkNotes]);
+
+  const handleActivateScene = useCallback(async (sceneId: string) => {
+    if (!campaign?.id) return;
+
+    // Primero ponemos todas las escenas de esta campaña a false
+    await supabase
+      .from('battle_map_scenes')
+      .update({ is_active: false })
+      .eq('campaign_id', campaign.id);
+
+    // Luego activamos la seleccionada
+    const { error } = await supabase
+      .from('battle_map_scenes')
+      .update({ is_active: true })
+      .eq('id', sceneId);
+
+    if (error) {
+      toast.error("Error al activar la escena");
+    } else {
+      toast.success("Escena activada en tiempo real");
+    }
+  }, [campaign?.id]);
+
+  const handleDeleteScene = useCallback(async (sceneId: string) => {
+    if (confirm("¿Seguro que quieres eliminar esta escena?")) {
+      const { error } = await supabase
+        .from('battle_map_scenes')
+        .delete()
+        .eq('id', sceneId);
+
+      if (error) {
+        toast.error("Error al eliminar la escena");
+      }
+    }
+  }, []);
+
+  const handleUpdateCurrentSceneState = useCallback(async () => {
+    if (!activeSceneId || !campaign?.id) return;
+
+    // Persistir estado actual (tokens, dibujos) en la escena activa
+    await supabase
+      .from('battle_map_scenes')
+      .update({
+        tokens_state: remoteTokenPositions,
+        chalk_lines: chalkLines,
+        chalk_notes: chalkNotes
+      })
+      .eq('id', activeSceneId);
+  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes]);
 
   // Título dinámico para el header
   const headerTitle = useMemo(() => {
