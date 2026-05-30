@@ -511,7 +511,7 @@ function IconBtn({
   return (
     <button
       type="button"
-      className="btn-fantasy aspect-square w-full !p-0 flex items-center justify-center min-h-[34px]"
+      className="btn-fantasy aspect-square w-full !p-0 flex items-center justify-center min-h-[30px]"
       style={{ background: bg, color: color || "white" }}
       onClick={onClick}
       title={label}
