@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Pencil, Layers, LogOut } from 'lucide-react';
+import { Pencil, Layers, LogOut, Settings } from 'lucide-react';
 import { useGameData } from '@/lib/useGame';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -436,9 +436,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     <button
                       onClick={() => setIsConfigModalOpen(true)}
                       className={`w-12 h-12 rounded-2xl shadow-2xl transition-all group flex items-center justify-center border ${isConfigModalOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/60 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
-                      title="Configurar Mapa"
+                      title="Ajustes"
                     >
-                      <Layers className="w-5 h-5" />
+                      <Settings className="w-5 h-5" />
                     </button>
 
                     <BattleMapConfigModal 
