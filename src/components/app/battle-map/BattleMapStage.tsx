@@ -76,25 +76,64 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     setProjection({ type, origin, current: origin });
   }, []);
 
-  const handleStageMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (!projection) return;
+  const handleStageMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    if (!isChalkMode) return;
+    
     const stage = e.target.getStage();
     if (!stage) return;
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    // Transform stage pointer to layer coordinates
+    // Transform pointer to layer coordinates
     const layer = layerRef.current;
     if (!layer) return;
     const transform = layer.getAbsoluteTransform().copy().invert();
-    const current = transform.point(pointer);
+    const pos = transform.point(pointer);
 
-    setProjection(prev => prev ? { ...prev, current } : null);
-  }, [projection]);
+    if (chalkTool === 'pencil') {
+      setIsDrawing(true);
+      setCurrentLinePoints([pos.x, pos.y]);
+    } else if (chalkTool === 'note') {
+      onAddNote?.(pos.x, pos.y);
+    }
+  }, [isChalkMode, chalkTool, onAddNote]);
+
+  const handleStageMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    // Transform pointer to layer coordinates
+    const layer = layerRef.current;
+    if (!layer) return;
+    const transform = layer.getAbsoluteTransform().copy().invert();
+    const pos = transform.point(pointer);
+
+    if (projection) {
+      setProjection(prev => prev ? { ...prev, current: pos } : null);
+      return;
+    }
+
+    if (isDrawing && chalkTool === 'pencil') {
+      setCurrentLinePoints(prev => [...prev, pos.x, pos.y]);
+    }
+  }, [projection, isDrawing, chalkTool]);
 
   const handleStageMouseUp = useCallback(() => {
+    if (isDrawing) {
+      setIsDrawing(false);
+      if (currentLinePoints.length > 2) {
+        onAddChalkLine?.({
+          points: currentLinePoints,
+          color: chalkColor,
+          size: chalkSize
+        });
+      }
+      setCurrentLinePoints([]);
+    }
     setProjection(null);
-  }, []);
+  }, [isDrawing, currentLinePoints, onAddChalkLine, chalkColor, chalkSize]);
 
   // Exposed for the parent component to trigger via ref if needed, 
   // or via parent's state management. For Phase 3 we'll use local state if possible.
