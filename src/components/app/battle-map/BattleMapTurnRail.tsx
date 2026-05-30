@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Crown, Pin, Users, ChevronRight } from 'lucide-react';
 import { type TurnBlock, isEnemy } from '@/lib/combat';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   blocks: TurnBlock[];
   activeBlockIndex: number;
+  onItemClick?: (block: TurnBlock) => void;
 }
 
-export const BattleMapTurnRail: React.FC<Props> = ({ blocks, activeBlockIndex }) => {
+export const BattleMapTurnRail: React.FC<Props> = ({ blocks, activeBlockIndex, onItemClick }) => {
   return (
     <div className="absolute left-2 top-24 z-[60] flex flex-col gap-2 pointer-events-none max-h-[60vh] overflow-y-auto pr-8 custom-scrollbar no-scrollbar">
       {blocks.map((block, idx) => {
@@ -17,12 +19,14 @@ export const BattleMapTurnRail: React.FC<Props> = ({ blocks, activeBlockIndex })
             key={block.key} 
             block={block} 
             isActive={isActive} 
+            onClick={() => onItemClick?.(block)}
           />
         );
       })}
     </div>
   );
 };
+
 
 const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean }> = ({ block, isActive }) => {
   const [isHovered, setIsHovered] = useState(false);
