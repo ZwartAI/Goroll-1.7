@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
-  Edit3, Copy, Trash2, FastForward, Sword, Heart, Pin, ChevronDown, X,
+  Edit3, Copy, Trash2, FastForward, Sword, Heart, Pin, ChevronDown, X, Plus, BookOpen,
 } from "lucide-react";
 import {
   activeBlock,
@@ -32,6 +32,7 @@ import { EnemyDamageModal } from "@/components/app/EnemyDamageModal";
 import { EnemyAttackPlayersModal } from "@/components/app/EnemyAttackPlayersModal";
 import { EnemyCombatSheetModal } from "@/components/app/EnemyCombatSheetModal";
 import { EnemyDuplicateModal } from "@/components/app/EnemyDuplicateModal";
+import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { useLongPress } from "@/hooks/useLongPress";
 import { ConfirmDialog } from "@/components/app/ConfirmDialog";
 
@@ -43,15 +44,18 @@ type Props = {
   groups: CombatTurnGroup[];
   pins?: CombatTurnPin[];
   dm: { id: string; name: string; color: string };
+  campaignId?: string; // Added to support Bestiary
 };
 
-export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm }: Props) {
+export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm, campaignId }: Props) {
   const { t } = useT();
   const enemies = participants.filter(isEnemy).sort((a, b) => a.order_index - b.order_index);
   const blocks = buildOrderedTurns(participants, groups, pins);
   const active = activeBlock(encounter, blocks);
   const { byEnemyParticipant: shieldByEnemy } = useEncounterShields(encounter.id);
 
+  const [addingEnemy, setAddingEnemy] = useState(false);
+  const [pickingTemplate, setPickingTemplate] = useState(false);
   const [editing, setEditing] = useState<CombatParticipant | null>(null);
   const [attacking, setAttacking] = useState<CombatParticipant | null>(null);
   const [healing, setHealing] = useState<CombatParticipant | null>(null);
@@ -88,14 +92,14 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
         <button
           className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
           style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
-          onClick={() => { /* needs setAddingEnemy - might need to lift state */ }}
+          onClick={() => setAddingEnemy(true)}
         >
           <Plus size={14} className="inline mr-1" /> {t("combat.addEnemy")}
         </button>
         <button
           className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
           style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
-          onClick={() => { /* needs setPickingTemplate - might need to lift state */ }}
+          onClick={() => setPickingTemplate(true)}
         >
           <BookOpen size={14} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
         </button>
