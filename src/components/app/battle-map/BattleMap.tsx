@@ -683,6 +683,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                           toast.success("Ajustes guardados en la escena");
                         }
                       }}
+                      saveLabel={activeSceneId ? "Guardar en Escena Actual" : "Crear Nueva Escena"}
                     />
                 </>
             )}
