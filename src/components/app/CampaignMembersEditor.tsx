@@ -18,7 +18,7 @@ type Req = {
   created_at: string;
 };
 
-export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign; onBack: () => void }) {
+export function CampaignMembersEditor({ campaign, onBack, onDeleted }: { campaign: Campaign; onBack: () => void; onDeleted?: () => void }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [users, setUsers] = useState<Record<string, AppUser>>({});
   const [requests, setRequests] = useState<Req[]>([]);
