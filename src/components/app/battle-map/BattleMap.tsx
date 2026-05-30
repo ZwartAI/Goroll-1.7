@@ -15,6 +15,8 @@ import { BattleMapProjectionMenu } from './BattleMapProjectionMenu';
 import { BattleMapChalkControls, type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChalkControls';
 import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
+import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
+import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
 
 // FASE 2: MapConfig interface
 export interface MapConfig {
