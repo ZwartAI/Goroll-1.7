@@ -27,8 +27,9 @@ import type { CombatParticipant, TurnBlock, CombatTurnGroup } from '@/lib/combat
 import { EnemyCombatSheetModal } from '@/components/app/EnemyCombatSheetModal';
 import { EntityPortraitModal } from '@/components/app/EntityPortraitModal';
 import { CharacterSheetModal } from '@/components/app/CharacterSheetModal';
-import { X, Crown } from 'lucide-react';
+import { X, Crown, Users } from 'lucide-react';
 import { backdropProps } from '@/lib/modalBackdrop';
+
 
 
 
