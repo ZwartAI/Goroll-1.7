@@ -301,7 +301,7 @@ function ActiveEnemyCombatCard({
   const [showActions, setShowActions] = useState(false);
 
   return (
-    <div className="ornate-card !p-4 transition flex flex-col gap-4 relative overflow-hidden" 
+    <div className="ornate-card !p-3 transition flex flex-col gap-3 relative overflow-hidden" 
       style={{ 
         borderColor: accent.color, 
         background: `linear-gradient(180deg, color-mix(in oklab, ${accent.color} 10%, #0d0d0d), #0d0d0d)`,
