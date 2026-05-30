@@ -319,9 +319,21 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         <Layer ref={layerRef}>
           <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#050507" />
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
-            <KonvaImage image={videoRef.current!} x={0} y={0} width={gridSize * 20 * config.backgroundScale} height={gridSize * 20 * config.backgroundScale} opacity={config.backgroundOpacity} />
+            <KonvaImage 
+              image={videoRef.current!} 
+              x={0} y={0} 
+              width={videoRef.current ? videoRef.current.videoWidth * config.backgroundScale : gridSize * 20} 
+              height={videoRef.current ? videoRef.current.videoHeight * config.backgroundScale : gridSize * 20} 
+              opacity={config.backgroundOpacity} 
+            />
           ) : bgImage && (
-            <KonvaImage image={bgImage} x={0} y={0} width={bgImage.width * config.backgroundScale} height={bgImage.height * config.backgroundScale} opacity={config.backgroundOpacity} />
+            <KonvaImage 
+              image={bgImage} 
+              x={0} y={0} 
+              width={bgImage.width * config.backgroundScale} 
+              height={bgImage.height * config.backgroundScale} 
+              opacity={config.backgroundOpacity} 
+            />
           ))}
           
           {/* FASE 7: Floating magical particles */}
