@@ -31,6 +31,7 @@ interface Props {
   onActivateScene: (sceneId: string) => void;
   onOpenAddScene: () => void;
   onDeleteScene: (sceneId: string) => void;
+  onDuplicateScene: (sceneId: string) => void;
   onOpenConfig: () => void;
   onClose: () => void;
 }
@@ -43,6 +44,7 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
   onActivateScene,
   onOpenAddScene,
   onDeleteScene,
+  onDuplicateScene,
   onOpenConfig,
   onClose
 }) => {
@@ -142,7 +144,10 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
 
                 <div className="flex items-center justify-between gap-2">
                    <div className="flex gap-1">
-                      <Button variant="ghost" className="h-6 px-1.5 text-[8px] text-muted-foreground hover:text-white" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" className="h-6 px-1.5 text-[8px] text-muted-foreground hover:text-white" onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicateScene(scene.id);
+                      }}>
                         <Copy size={10} className="mr-1" /> Duplicar
                       </Button>
                    </div>
