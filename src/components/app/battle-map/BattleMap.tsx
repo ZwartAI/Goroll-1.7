@@ -421,7 +421,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapStage 
             width={dimensions.width} 
             height={dimensions.height - 56} 
-            participants={combat.participants}
+            participants={displayParticipants}
             config={mapConfig}
             onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
             isChalkMode={isChalkMode}
@@ -444,7 +444,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             onProjectionUpdate={handleBroadcastProjection}
             role={character?.role || 'spectator'}
             currentUserId={character?.id}
+            isRulerActive={isRulerActive}
           />
+
         </div>
 
         {/* FASE 7: Empty State Feedback */}
