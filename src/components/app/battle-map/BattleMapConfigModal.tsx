@@ -19,8 +19,7 @@ interface Props {
   onChange: (config: MapConfig) => void;
 }
 
-export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void }> = ({ config, onChange, isOpen, onClose }) => {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,20 +37,11 @@ export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="absolute bottom-6 right-6 w-12 h-12 bg-black/60 backdrop-blur-md rounded-full border border-[var(--gold)]/50 flex items-center justify-center text-[var(--gold)] shadow-lg hover:scale-110 active:scale-95 transition-all z-30 group"
-        title="Configurar Mapa"
-      >
-        <Settings className="w-6 h-6 group-hover:rotate-45 transition-transform" />
-      </button>
-    );
-  }
+  if (!isOpen) return null;
+
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200" onClick={() => setIsOpen(false)}>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200" onClick={onClose}>
       <div 
         className="w-full max-w-md bg-[#0a0a0c] border border-border/50 rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -61,7 +51,7 @@ export const BattleMapConfigModal: React.FC<Props> = ({ config, onChange }) => {
             <Grid className="w-5 h-5" />
             <h2 className="font-display text-sm uppercase tracking-widest">{t('battleMap.configTitle')}</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <X size={20} className="text-muted-foreground" />
           </button>
         </div>
