@@ -38,12 +38,13 @@ export async function fetchRewardSacks(campaignId: string): Promise<RewardSack[]
   return (data || []) as RewardSack[];
 }
 
-export async function saveRewardSack(sack: Partial<RewardSack> & { campaign_id: string }) {
+export async function saveRewardSack(sack: Partial<RewardSack> & { campaign_id: string; name: string }) {
   const { data, error } = await supabase
     .from("reward_sacks")
-    .upsert(sack)
+    .upsert(sack as any)
     .select()
     .single();
+
 
   if (error) throw error;
   return data as RewardSack;
