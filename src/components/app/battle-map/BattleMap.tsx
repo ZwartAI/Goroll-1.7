@@ -296,7 +296,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const toggleParticipants = useCallback(() => setActivePanel(prev => prev === 'participants' ? 'none' : 'participants'), []);
 
   // FASE 4: Chalk Handlers
-  const handleAddChalkLine = useCallback((line: ChalkLine) => setChalkLines(prev => [...prev, line]), []);
+  const handleAddChalkLine = useCallback((line: ChalkLine) => {
+    setChalkLines(prev => [...prev, line]);
+    playMapSound('chalk');
+  }, []);
   const handleUndoChalk = useCallback(() => setChalkLines(prev => prev.slice(0, -1)), []);
   const handleClearChalk = useCallback(() => {
     if (confirm("¿Borrar todos los dibujos y notas?")) {
