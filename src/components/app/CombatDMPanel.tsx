@@ -248,12 +248,19 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               onClick={() => setShowManager(true)}>
               <Users size={14} className="inline mr-1" /> {t("combat.combatManager")}
             </button>
-            <button className="btn-fantasy text-xs disabled:opacity-60"
+            <button 
+              className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
+              style={{ WebkitTapHighlightColor: "transparent" }}
               disabled={endingTurn}
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
               onClick={() => setConfirmingEndTurn(true)}>
-              {endingTurn ? t("combat.endTurn.resolving") : t("combat.nextTurn")} <ChevronRight size={14} className="inline" />
+              <img
+                src={assets.end}
+                alt={t("combat.nextTurn")}
+                className="block w-full h-auto pointer-events-none"
+                draggable={false}
+              />
             </button>
+
             <button className="btn-fantasy text-xs"
               style={{ background: "var(--loss)", color: "white" }}
               onClick={() => setConfirmState({
