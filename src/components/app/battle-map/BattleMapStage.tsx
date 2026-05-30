@@ -81,10 +81,24 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' ? config.backgroundUrl : '');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(!config.backgroundUrl);
+
+  // Centrar el mapa inicialmente o cuando cambian las dimensiones
+  useEffect(() => {
+    if (!config.backgroundUrl) {
+      const stage = stageRef.current;
+      if (stage) {
+        const newX = width / 2;
+        const newY = height / 2;
+        stage.position({ x: newX, y: newY });
+        setPosition({ x: newX, y: newY });
+        setIsReady(true);
+      }
+    }
+  }, [width, height, config.backgroundUrl]);
 
   // FASE 7: Auto-recentrar mapa cuando se carga imagen
   useEffect(() => {
@@ -98,7 +112,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const mapWidth = bgImage.width * config.backgroundScale;
         const mapHeight = bgImage.height * config.backgroundScale;
         
-        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.9;
+        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.8;
         const newX = (stageWidth - mapWidth * newScale) / 2;
         const newY = (stageHeight - mapHeight * newScale) / 2;
         
@@ -108,7 +122,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         setPosition({ x: newX, y: newY });
         setIsReady(true);
       }
-    } else if (status === 'failed' || !config.backgroundUrl) {
+    } else if (status === 'failed') {
+      console.error("Failed to load background image:", config.backgroundUrl);
       setIsReady(true);
     }
   }, [status, bgImage, config.backgroundScale, config.backgroundUrl]);
