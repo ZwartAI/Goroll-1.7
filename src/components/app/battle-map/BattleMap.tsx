@@ -84,8 +84,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     backgroundOpacity: 1,
     backgroundBrightness: 1,
     gridSize: 50,
-    gridColor: 'rgba(255,255,255,0.1)',
-    gridOpacity: 0.5,
+    gridColor: 'rgba(255,255,255,0.4)',
+    gridOpacity: 0.8,
     showGrid: true
   });
   const [projectionMenu, setProjectionMenu] = useState<{ x: number, y: number, tokenId: string } | null>(null);
@@ -270,13 +270,28 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     }
   }, []);
 
-  const handleUpdateCurrentSceneState = useCallback(async () => {
+  const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!activeSceneId || !isDM) return;
-    await supabase.from('battle_map_scenes').update({
+    
+    const updates: any = {
       tokens_state: remoteTokenPositions as any,
       chalk_lines: chalkLines as any,
       chalk_notes: chalkNotes as any
-    }).eq('id', activeSceneId);
+    };
+
+    if (customConfig) {
+      if (customConfig.backgroundUrl !== undefined) updates.background_url = customConfig.backgroundUrl;
+      if (customConfig.backgroundType !== undefined) updates.background_type = customConfig.backgroundType;
+      if (customConfig.backgroundScale !== undefined) updates.background_scale = customConfig.backgroundScale;
+      if (customConfig.backgroundOpacity !== undefined) updates.background_opacity = customConfig.backgroundOpacity;
+      if (customConfig.backgroundBrightness !== undefined) updates.background_brightness = customConfig.backgroundBrightness;
+      if (customConfig.gridSize !== undefined) updates.grid_size = customConfig.gridSize;
+      if (customConfig.gridColor !== undefined) updates.grid_color = customConfig.gridColor;
+      if (customConfig.grid_opacity !== undefined) updates.grid_opacity = customConfig.grid_opacity;
+      if (customConfig.showGrid !== undefined) updates.show_grid = customConfig.showGrid;
+    }
+
+    await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
@@ -475,24 +490,32 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         </div>
 
-        {/* FASE 8: Improved Empty State */}
-        {!mapConfig.backgroundUrl && isDM && !isScenesPanelOpen && !isDicePanelOpen && (
+        {/* FASE 8: Improved Empty State - Only show if absolutely nothing is configured */}
+        {!mapConfig.backgroundUrl && scenes.length === 0 && isDM && !isScenesPanelOpen && !isDicePanelOpen && !isConfigModalOpen && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-500 shadow-2xl">
               <div className="w-20 h-20 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--gold)]/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
                 <Layers className="w-10 h-10 text-[var(--gold)]" />
               </div>
-              <h3 className="text-[var(--gold)] font-display text-base uppercase tracking-[0.3em] mb-3">Tu Escenario Espera</h3>
+              <h3 className="text-[var(--gold)] font-display text-base uppercase tracking-[0.3em] mb-3">Escenario Vacío</h3>
               <p className="text-muted-foreground text-[10px] uppercase tracking-widest mb-8 leading-relaxed opacity-60">
-                Define el entorno táctico para tus jugadores.
+                Define el entorno táctico para tus jugadores desde el panel de ajustes o escenas.
               </p>
-              <button 
-                 onClick={() => setIsScenesPanelOpen(true)}
-                 className="btn-fantasy text-[10px] px-8 py-3 w-full"
-                 style={{ background: 'var(--gradient-gold)', color: 'black' }}
-              >
-                GESTIONAR ESCENAS
-              </button>
+              <div className="flex flex-col gap-3">
+                <button 
+                   onClick={() => setIsConfigModalOpen(true)}
+                   className="btn-fantasy text-[10px] px-8 py-3 w-full"
+                   style={{ background: 'var(--gold)', color: 'black' }}
+                >
+                  CONFIGURAR FONDO
+                </button>
+                <button 
+                   onClick={() => setIsScenesPanelOpen(true)}
+                   className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-white transition-colors"
+                >
+                  O explorar escenas guardadas
+                </button>
+              </div>
             </div>
           </div>
         )}
