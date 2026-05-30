@@ -238,16 +238,11 @@ export function PlayerRewardModal() {
                       className="w-12 h-12 rounded-xl bg-black/60 flex items-center justify-center border border-white/10 shadow-xl shrink-0 overflow-hidden"
                       style={{ boxShadow: `0 0 15px ${RARITY_COLOR[item.rarity as Rarity]}22` }}
                     >
-                      {item.image ? (
-                        <img src={item.image} className="w-full h-full object-cover" alt="" />
-                      ) : (
-                        <>
-                          {item.type === 'item' && <Sword size={24} className="text-blue-400" />}
-                          {item.type === 'booster' && <Sparkles size={24} className="text-purple-400" />}
-                          {item.type === 'skill' && <Wand2 size={24} className="text-[var(--rarity-gold)]" />}
-                        </>
-                      )}
+                      {item.type === 'item' && <Sword size={24} className="text-blue-400" />}
+                      {item.type === 'booster' && <Sparkles size={24} className="text-purple-400" />}
+                      {item.type === 'skill' && <Wand2 size={24} className="text-[var(--rarity-gold)]" />}
                     </div>
+
                     <div className="flex-1 text-left min-w-0">
                       <p className="font-display text-sm truncate" style={{ color: RARITY_COLOR[item.rarity as Rarity] }}>{item.name}</p>
                       <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground opacity-50">{item.type}</p>
