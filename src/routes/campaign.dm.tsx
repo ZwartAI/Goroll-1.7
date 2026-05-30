@@ -189,7 +189,17 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
+          <div className="ornate-card p-4 space-y-2">
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Gift size={16} /> Sacos de Recompensa</h3>
+            <p className="text-xs text-muted-foreground">Gestiona los botines y tesoros para tus jugadores.</p>
+            <button className="btn-fantasy w-full"
+              style={{ background: "var(--gradient-gold)", color: "black" }}
+              onClick={() => setRewardSacksOpen(true)}>
+              <Boxes size={14} className="inline mr-1" /> Gestionar Sacos
+            </button>
+          </div>
           <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+
           <DMConditionsCreator campaignId={campaign.id} players={players} />
           <div className="ornate-card p-4 space-y-2">
             <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("dm.createBoosterTitle")}</h3>
