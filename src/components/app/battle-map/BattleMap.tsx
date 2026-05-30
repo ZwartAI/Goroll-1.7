@@ -43,6 +43,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const { t } = useT();
   const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
   const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
+  const [isDicePanelOpen, setIsDicePanelOpen] = useState(false);
+  const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isLogExpanded, setIsLogExpanded] = useState(false);
   
