@@ -320,10 +320,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     const offset = -5000;
     
     // Evitar bucles infinitos
-    const gSize = Math.max(20, gridSize);
+    const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = 1 / s;
-    const gridLinesOpacity = config.gridOpacity || 0.6;
+    const lineThickness = 1.2 / s;
+    const gridLinesOpacity = config.gridOpacity || 0.5;
     
     // Líneas verticales
     for (let i = 0; i <= size / gSize; i++) {
@@ -350,7 +350,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#0d0d0f" />
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" />
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
               image={videoRef.current!} 
@@ -383,7 +383,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
         </Layer>
-        <Layer listening={false}>
+        <Layer id="grid-layer" listening={false}>
           <Group>{gridLines}</Group>
         </Layer>
         <Layer id="tokens-layer">

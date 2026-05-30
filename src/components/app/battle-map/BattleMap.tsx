@@ -90,8 +90,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     backgroundOpacity: 1,
     backgroundBrightness: 1,
     gridSize: 50,
-    gridColor: 'rgba(255,255,255,0.5)',
-    gridOpacity: 0.8,
+    gridColor: 'rgba(255,255,255,0.7)',
+    gridOpacity: 0.9,
     showGrid: true
   });
   const [projectionMenu, setProjectionMenu] = useState<{ x: number, y: number, tokenId: string } | null>(null);
@@ -484,7 +484,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         <div className="absolute inset-0 z-0">
           <BattleMapStage 
             width={dimensions.width} 
-            height={dimensions.height - 112} // Adjusted for Header + BottomBar
+            height={Math.max(300, dimensions.height - 112)} // Adjusted for Header + BottomBar
             participants={displayParticipants}
             config={mapConfig}
             onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
