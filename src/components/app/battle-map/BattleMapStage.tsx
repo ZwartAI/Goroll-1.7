@@ -280,7 +280,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             const initialX = width / 2 + (i % 3) * gridSize - gridSize;
             const initialY = height / 2 + Math.floor(i / 3) * gridSize - gridSize;
             const isDM = role === 'dm';
-            const isOwner = currentUserId && p.character_id === currentUserId;
+            const isOwner = !!(currentUserId && p.character_id === currentUserId);
 
             return (
               <MapToken 
