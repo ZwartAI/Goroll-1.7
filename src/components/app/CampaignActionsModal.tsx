@@ -42,11 +42,8 @@ export function CampaignActionsModal({ campaign, currentUserId, role: _role, onP
               </button>
             )}
 
-            {isOwner && (
-              <DeleteCampaignButton campaignId={campaign.id} campaignName={campaign.name} isOwner={isOwner} onDeleted={onDeleted} />
-            )}
-
             <button className="text-xs underline text-muted-foreground w-full text-center mt-1" onClick={onClose}>{t("common.cancel")}</button>
+
 
             {!isOwner && (
               <p className="text-[10px] text-muted-foreground text-center mt-2">
