@@ -510,34 +510,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         </div>
 
         {/* FASE 8: Improved Empty State - Only show if absolutely nothing is configured */}
-        {!mapConfig.backgroundUrl && scenes.length === 0 && isDM && !isScenesPanelOpen && !isDicePanelOpen && !isConfigModalOpen && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-500 shadow-2xl">
-              <div className="w-20 h-20 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--gold)]/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                <Layers className="w-10 h-10 text-[var(--gold)]" />
-              </div>
-              <h3 className="text-[var(--gold)] font-display text-base uppercase tracking-[0.3em] mb-3">Escenario Vacío</h3>
-              <p className="text-muted-foreground text-[10px] uppercase tracking-widest mb-8 leading-relaxed opacity-60">
-                Define el entorno táctico para tus jugadores desde el panel de ajustes o escenas.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button 
-                   onClick={() => setIsConfigModalOpen(true)}
-                   className="btn-fantasy text-[10px] px-8 py-3 w-full"
-                   style={{ background: 'var(--gold)', color: 'black' }}
-                >
-                  CONFIGURAR FONDO
-                </button>
-                <button 
-                   onClick={() => setIsScenesPanelOpen(true)}
-                   className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-white transition-colors"
-                >
-                  O explorar escenas guardadas
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* FASE 7: Turn Rail (Left Side) */}
         {orderedTurns.length > 0 && (
