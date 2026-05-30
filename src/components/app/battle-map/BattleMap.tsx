@@ -122,13 +122,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     if (!campaign?.id) return;
 
     const fetchScenes = async () => {
+      console.log("Fetching scenes for campaign:", campaign.id);
       const { data, error } = await supabase
         .from('battle_map_scenes')
         .select('*')
         .eq('campaign_id', campaign.id)
         .order('created_at', { ascending: true });
       
-      if (error) return;
+      if (error) {
+        console.error("Error fetching scenes:", error);
+        return;
+      }
       
       const typedScenes = (data as any[]).map(s => ({
         ...s,
