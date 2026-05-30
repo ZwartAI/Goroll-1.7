@@ -589,7 +589,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               isDM={isDM}
               isChalkMode={isChalkMode}
               chalkTool={chalkTool}
-              onToggleChalk={() => setIsChalkMode(!isChalkMode)}
+              onToggleChalk={() => {
+                const next = !isChalkMode;
+                setIsChalkMode(next);
+                if (next) {
+                  setChalkTool('pencil');
+                  toast.info("Modo Dibujo activo - Usa el lápiz en el lienzo", { duration: 2000 });
+                }
+              }}
               onChalkToolChange={setChalkTool}
               hasToken={!!(character?.id && remoteTokenPositions[character.id])}
               onToggleToken={handleToggleMyToken}

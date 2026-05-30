@@ -322,18 +322,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     // Evitar bucles infinitos
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = 1.2 / s;
-    const gridLinesOpacity = config.gridOpacity || 0.5;
+    const lineThickness = 1.5 / s; // Aumentar grosor mínimo para visibilidad
+    const gridLinesOpacity = config.gridOpacity || 0.6; // Un poco más opaco por defecto
     
     // Líneas verticales
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.8)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     // Líneas horizontales
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.8)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
@@ -350,7 +350,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" />
+          {/* Fondo neutro más claro para contraste si no hay imagen */}
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#1a1a1e" />
+          
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
               image={videoRef.current!} 
@@ -368,7 +370,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
               opacity={config.backgroundOpacity} 
             />
           ))}
+
+          {/* Grid movida a la misma capa base para asegurar visibilidad inmediata y orden */}
+          <Group id="grid-group" listening={false}>
+            {gridLines}
+          </Group>
           
+          {status === 'loading' && (
+            <Group x={width/2 - position.x/scale} y={height/2 - position.y/scale}>
+              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={200 / scale} offsetX={100 / scale} />
+            </Group>
+          )}
+
           {/* FASE 7: Floating magical particles */}
           {particles.map(p => (
             <KonvaCircle
@@ -383,9 +396,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
         </Layer>
-        <Layer id="grid-layer" listening={false}>
-          <Group>{gridLines}</Group>
-        </Layer>
+
         <Layer id="tokens-layer">
           {isReady && participants.map((p, i) => {
             const remotePos = remoteTokenPositions[p.id];
@@ -417,11 +428,23 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         <Layer id="chalk-layer">
           <BattleMapChalkLayer lines={chalkLines} notes={chalkNotes} onNoteDragEnd={onNoteUpdate} onNoteClick={onNoteClick} />
         </Layer>
+        
         {isDrawing && currentLinePoints.length > 2 && (
           <Layer listening={false}>
-            <Line points={currentLinePoints} stroke={chalkColor} strokeWidth={chalkSize} tension={0.5} lineCap="round" lineJoin="round" shadowBlur={chalkSize * 0.8} shadowColor={chalkColor} opacity={0.8} />
+            <Line 
+              points={currentLinePoints} 
+              stroke={chalkColor} 
+              strokeWidth={chalkSize} 
+              tension={0.5} 
+              lineCap="round" 
+              lineJoin="round" 
+              shadowBlur={chalkSize * 0.8} 
+              shadowColor={chalkColor} 
+              opacity={0.6} // Más translúcido
+            />
           </Layer>
         )}
+        
         <Layer id="projections-layer" listening={false}>
           {projectionVisuals}
           {remoteProjectionVisuals}
