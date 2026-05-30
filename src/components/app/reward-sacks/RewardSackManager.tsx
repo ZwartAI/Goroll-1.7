@@ -26,7 +26,9 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [editingSack, setEditingSack] = useState<RewardSack | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [assigningSack, setAssigningSack] = useState<RewardSack | null>(null);
   const [simulatingSack, setSimulatingSack] = useState<RewardSack | null>(null);
+
   const [search, setSearch] = useState("");
 
   const reload = async () => {
