@@ -1632,6 +1632,71 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_sacks: {
+        Row: {
+          campaign_id: string
+          coins_max: number
+          coins_min: number
+          created_at: string
+          has_boosters: boolean
+          has_coins: boolean
+          has_items: boolean
+          has_special_items: boolean
+          id: string
+          manual_booster_ids: string[] | null
+          manual_item_ids: string[] | null
+          manual_skill_ids: string[] | null
+          name: string
+          random_balanced: boolean
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          coins_max?: number
+          coins_min?: number
+          created_at?: string
+          has_boosters?: boolean
+          has_coins?: boolean
+          has_items?: boolean
+          has_special_items?: boolean
+          id?: string
+          manual_booster_ids?: string[] | null
+          manual_item_ids?: string[] | null
+          manual_skill_ids?: string[] | null
+          name: string
+          random_balanced?: boolean
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          coins_max?: number
+          coins_min?: number
+          created_at?: string
+          has_boosters?: boolean
+          has_coins?: boolean
+          has_items?: boolean
+          has_special_items?: boolean
+          id?: string
+          manual_booster_ids?: string[] | null
+          manual_item_ids?: string[] | null
+          manual_skill_ids?: string[] | null
+          name?: string
+          random_balanced?: boolean
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_sacks_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skill_templates: {
         Row: {
           campaign_id: string
