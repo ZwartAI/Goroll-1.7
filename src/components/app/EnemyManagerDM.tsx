@@ -370,7 +370,7 @@ function ActiveEnemyCombatCard({
           <button
             className="btn-fantasy py-3 flex items-center justify-center gap-2 font-display text-sm border-dashed bg-transparent border-red-500/40 text-red-500"
             onClick={onAddPin}>
-            <Pin size={18} /> {t("combat.addTurnPin")}
+            <Pin size={18} /> AÑADIR TURNO EXTRA
           </button>
         </div>
       </div>
