@@ -5,6 +5,8 @@ import { toastSaved } from "@/lib/saved";
 import { getStoredUser, type Campaign } from "@/lib/game";
 import { pushLog } from "@/lib/log";
 import { useT } from "@/lib/i18n";
+import { DeleteCampaignButton } from "./DeleteCampaignButton";
+
 
 type Member = { id: string; user_id: string; role: "player" | "dm"; created_at: string };
 type AppUser = { id: string; username: string };
