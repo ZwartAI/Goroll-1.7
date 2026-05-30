@@ -2,9 +2,28 @@ import React, { useState } from 'react';
 import { Layers, Plus, Play, Trash2, X, Image as ImageIcon, Video, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { BattleMapScene } from './BattleMap';
+import { ChalkLine, ChalkNote } from './BattleMapChalkLayer';
 
-interface Props {
+// FASE 5: Battle Map Scene Management
+export interface BattleMapScene {
+  id: string;
+  campaign_id: string;
+  name: string;
+  background_url: string;
+  background_type: 'image' | 'video';
+  background_scale: number;
+  background_opacity: number;
+  background_brightness: number;
+  grid_size: number;
+  grid_color: string;
+  grid_opacity: number;
+  show_grid: boolean;
+  tokens_state: Record<string, { x: number; y: number }>;
+  chalk_lines: ChalkLine[];
+  chalk_notes: ChalkNote[];
+  is_active: boolean;
+}
+
   scenes: BattleMapScene[];
   activeSceneId?: string;
   hasBackground: boolean;
