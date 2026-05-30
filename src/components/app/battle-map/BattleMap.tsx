@@ -216,7 +216,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     if (!campaign?.id) return;
     
     // Guardar el estado actual como una nueva escena
-    const newScene: Partial<BattleMapScene> = {
+    const newScene: any = {
       campaign_id: campaign.id,
       name,
       background_url: mapConfig.backgroundUrl,
