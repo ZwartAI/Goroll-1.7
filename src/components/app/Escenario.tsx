@@ -201,6 +201,14 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
           />
         </Suspense>
       )}
+
+      {showRewardSacks && campaign && (
+        <RewardSackManager 
+          campaignId={campaign.id} 
+          onClose={() => setShowRewardSacks(false)} 
+        />
+      )}
+
     </>
   );
 }
