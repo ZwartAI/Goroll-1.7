@@ -30,6 +30,10 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
     onChange({ ...config, [key]: value });
   };
 
+  const handleBatchChange = (updates: Partial<MapConfig>) => {
+    onChange({ ...config, ...updates });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -54,8 +58,10 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
 
       const type = file.type.startsWith('video/') ? 'video' : 'image';
       
-      handleChange('backgroundUrl', publicUrl);
-      handleChange('backgroundType', type);
+      handleBatchChange({
+        backgroundUrl: publicUrl,
+        backgroundType: type
+      });
       toast.success(t('common.success') || 'Archivo subido correctamente');
     } catch (error: any) {
       console.error('Error uploading background:', error);
