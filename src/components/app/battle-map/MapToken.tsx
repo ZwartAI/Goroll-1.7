@@ -27,11 +27,24 @@ export const MapToken: React.FC<Props> = ({
 }) => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   
-  const customImg = getEnemyCustomImage(participant);
+  const customImg = useMemo(() => {
+    if (participant.participant_type === 'enemy') {
+      return getEnemyCustomImage(participant);
+    }
+    // Para jugadores, usamos los campos de offset y escala del personaje
+    // Estos campos suelen venir en el objeto participant si es un jugador
+    return {
+      offsetX: (participant as any).image_offset_x ?? 50,
+      offsetY: (participant as any).image_offset_y ?? 50,
+      scale: (participant as any).image_scale ?? 1
+    };
+  }, [participant]);
+
   const assetUrl = getEnemyAssetUrl(participant.enemy_icon);
   const imageUrl = participant.image_url || assetUrl || '';
   
   const [image] = useImage(imageUrl);
+
   
   const color = participant.enemy_color || participant.color || "var(--gold)";
   const radius = gridSize * 0.44;
