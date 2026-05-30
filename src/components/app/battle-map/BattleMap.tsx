@@ -372,8 +372,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const activeParticipantId = useMemo(() => {
     if (activeBlockIndex === -1 || !orderedTurns[activeBlockIndex]) return undefined;
     const block = orderedTurns[activeBlockIndex];
-    return block.type === 'participant' ? block.id : undefined;
+    if (block.kind === 'solo') return block.participant.id;
+    if (block.kind === 'group') return block.members[0]?.id;
+    if (block.kind === 'pin') return block.linked.id;
+    return undefined;
   }, [activeBlockIndex, orderedTurns]);
+
 
   const handleToggleMyToken = useCallback(() => {
     if (!character?.id) return;
