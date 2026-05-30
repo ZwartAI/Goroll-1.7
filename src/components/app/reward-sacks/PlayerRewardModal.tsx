@@ -134,7 +134,7 @@ export function PlayerRewardModal() {
     
     currentReward.item_ids.forEach(id => {
       const it = allItems.find(i => i.id === id);
-      if (it) details.push({ id, name: it.name, rarity: it.rarity, type: 'item', image: it.image_url });
+      if (it) details.push({ id, name: it.name, rarity: it.rarity, type: 'item' });
       else details.push({ id, name: "Objeto Especial", rarity: 'blue', type: 'item' });
     });
 
