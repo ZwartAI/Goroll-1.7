@@ -199,6 +199,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             participants={combat.participants}
             config={mapConfig}
             onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
+            // FASE 4 Props
+            isChalkMode={isChalkMode}
+            chalkTool={chalkTool}
+            chalkColor={chalkColor}
+            chalkSize={chalkSize}
+            chalkLines={chalkLines}
+            chalkNotes={chalkNotes}
+            onAddChalkLine={handleAddChalkLine}
+            onAddNote={handleAddNote}
+            onNoteUpdate={handleNoteUpdate}
+            onNoteClick={handleNoteDelete}
           />
         </div>
 
