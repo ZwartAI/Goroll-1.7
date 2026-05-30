@@ -350,19 +350,24 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, []);
   const handleUndoChalk = useCallback(() => setChalkLines(prev => prev.slice(0, -1)), []);
   const handleClearChalk = useCallback(() => {
-    if (confirm("¿Borrar todos los dibujos y notas?")) {
-      setChalkLines([]);
-      setChalkNotes([]);
-    }
+    setConfirmModal({
+      title: "Borrar Dibujos",
+      message: "¿Seguro que quieres borrar todos los dibujos y notas de esta escena?",
+      onConfirm: () => {
+        setChalkLines([]);
+        setChalkNotes([]);
+        setConfirmModal(null);
+      }
+    });
   }, []);
 
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState<{x: number, y: number} | null>(null);
+  const [newNoteText, setNewNoteText] = useState('');
+
   const handleAddNote = useCallback((x: number, y: number) => {
-    const text = prompt("Texto de la nota:");
-    if (text) {
-      playMapSound('chalk');
-      setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x, y, text }]);
-    }
+    setIsNoteModalOpen({ x, y });
   }, []);
+
 
   const handleNoteUpdate = useCallback((id: string, x: number, y: number) => {
     setChalkNotes(prev => prev.map(n => n.id === id ? { ...n, x, y } : n));
