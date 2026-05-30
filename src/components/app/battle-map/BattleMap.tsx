@@ -642,13 +642,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               const s = scenes.find(sc => sc.id === id);
               if (s) { setActiveSceneId(s.id); applyScene(s); }
             }}
-            onActivateScene={handleActivateScene}
-            onSaveCurrentAsNew={handleSaveScene}
+            onActivateScene={async (id) => {
+              setIsFading(true);
+              setTimeout(async () => {
+                await handleActivateScene(id);
+                setIsFading(false);
+              }, 400);
+            }}
+            onOpenAddScene={() => setIsAddSceneModalOpen(true)}
             onDeleteScene={handleDeleteScene}
             onOpenConfig={() => setIsConfigModalOpen(true)}
             onClose={() => setIsScenesPanelOpen(false)}
           />
         )}
+
 
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
