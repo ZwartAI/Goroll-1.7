@@ -151,7 +151,7 @@ export function PlayerRewardModal() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="relative w-28 h-28 rounded-full border-4 border-[var(--gold)] shadow-[0_0_30px_rgba(234,179,8,0.3)] mb-4 overflow-hidden"
+          className="relative w-28 h-28 rounded-full border-4 border-[var(--gold)] shadow-[0_0_30px_rgba(234,179,8,0.3)] mb-4 overflow-hidden bg-black"
         >
           <CharacterPortrait character={character as any} className="w-full h-full object-cover" />
         </motion.div>
