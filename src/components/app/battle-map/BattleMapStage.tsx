@@ -37,6 +37,7 @@ interface Props {
   onTokenMoveEnd?: () => void;
   onProjectionUpdate?: (projection: ProjectionState | null) => void;
   role: string;
+  currentUserId?: string;
 }
 
 export type ProjectionType = 'distance' | 'area' | 'line' | 'cone';
@@ -68,7 +69,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   onTokenMove,
   onTokenMoveEnd,
   onProjectionUpdate,
-  role
+  role,
+  currentUserId
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -79,13 +81,11 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
 
-  // FASE 4: Local state for drawing
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentLinePoints, setCurrentLinePoints] = useState<number[]>([]);
 
   const gridSize = config.gridSize;
 
-  // FASE 5: Helper to render any projection state (Defined before usage)
   const renderProjection = useCallback((proj: ProjectionState, colorScale: string = 'var(--gold)') => {
     const { type, origin, current } = proj;
     const dx = current.x - origin.x;
@@ -134,7 +134,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     }
   }, [gridSize]);
 
-  // FASE 3 & 5: Projection visuals
   const projectionVisuals = useMemo(() => {
     if (!projection) return null;
     return renderProjection(projection);
@@ -143,7 +142,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const remoteProjectionVisuals = useMemo(() => {
     return Object.entries(remoteProjections).map(([userId, proj]) => {
       if (!proj) return null;
-      return renderProjection(proj, 'rgba(100, 149, 237, 0.5)'); // Different color for others
+      return renderProjection(proj, 'rgba(100, 149, 237, 0.5)');
     });
   }, [remoteProjections, renderProjection]);
 
@@ -157,7 +156,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     if (!layer) return;
     const transform = layer.getAbsoluteTransform().copy().invert();
     const pos = transform.point(pointer);
-
     if (chalkTool === 'pencil') {
       setIsDrawing(true);
       setCurrentLinePoints([pos.x, pos.y]);
@@ -175,7 +173,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     if (!layer) return;
     const transform = layer.getAbsoluteTransform().copy().invert();
     const pos = transform.point(pointer);
-
     if (projection) {
       setProjection(prev => {
         const next = prev ? { ...prev, current: pos } : null;
@@ -184,7 +181,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       });
       return;
     }
-
     if (isDrawing && chalkTool === 'pencil') {
       setCurrentLinePoints(prev => [...prev, pos.x, pos.y]);
     }
@@ -284,7 +280,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             const initialX = width / 2 + (i % 3) * gridSize - gridSize;
             const initialY = height / 2 + Math.floor(i / 3) * gridSize - gridSize;
             const isDM = role === 'dm';
-            const isOwner = p.character_id === role; // Simplified owner check
+            const isOwner = currentUserId && p.character_id === currentUserId;
 
             return (
               <MapToken 
@@ -293,7 +289,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
                 gridSize={gridSize}
                 onLongPress={(px, py) => onLongPressToken?.(p.id, px, py)}
                 draggable={isDM || isOwner}
-                onDragMove={(e) => onTokenMove?.(p.id, e.target.x(), e.target.y())}
+                onDragMove={(e: any) => onTokenMove?.(p.id, e.target.x(), e.target.y())}
                 onDragEnd={onTokenMoveEnd}
               />
             );
