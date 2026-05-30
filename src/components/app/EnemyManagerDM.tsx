@@ -341,11 +341,11 @@ function ActiveEnemyCombatCard({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="h-4 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
+      <div className="space-y-1.5">
+        <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
           <div className="h-full bg-green-500 transition-all shadow-[0_0_10px_rgba(34,197,94,0.3)]" style={{ width: `${(cur/max)*100}%` }} />
         </div>
-        <div className="flex justify-center text-[10px] text-white/60 font-display tracking-widest uppercase">
+        <div className="flex justify-center text-[9px] text-white/60 font-display tracking-widest uppercase">
           {cur} / {max} HP {shield > 0 && <span className="ml-2 text-cyan-400">🛡️ +{shield}</span>}
         </div>
       </div>
