@@ -13,8 +13,9 @@ import { BattleMapLog } from './BattleMapLog';
 import { BattleMapConfigModal } from './BattleMapConfigModal';
 import { BattleMapProjectionMenu } from './BattleMapProjectionMenu';
 import { BattleMapChalkControls, type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChalkControls';
-import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
-import type { ProjectionType } from './BattleMapStage';
+import { BattleMapChalkLayer, type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
+import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
+import type { ProjectionType, ProjectionState } from './BattleMapStage';
 
 // FASE 2: MapConfig interface
 export interface MapConfig {
