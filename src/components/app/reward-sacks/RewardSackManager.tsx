@@ -175,19 +175,13 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                     </button>
 
                     <button 
-                      onClick={() => setAssigningSack(sack)}
-                      className="px-3 py-1.5 rounded bg-[var(--gold)]/20 text-[var(--gold)] hover:bg-[var(--gold)]/30 transition-colors"
-                      title="Entregar a jugadores"
-                    >
-                      <Send size={14} />
-                    </button>
-                    <button 
                       onClick={() => setSimulatingSack(sack)}
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
                       title="Probar simulador"
                     >
                       <Play size={14} />
                     </button>
+
 
                   </div>
                 </div>
