@@ -858,8 +858,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                   onKeyDown={e => {
                     if (e.key === 'Enter' && newSceneName.trim()) {
                       handleSaveScene(newSceneName.trim());
-                      setNewSceneName('');
-                      setIsAddSceneModalOpen(false);
                     }
                   }}
                 />
@@ -872,8 +870,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                   style={{ background: 'var(--gold)', color: 'black' }}
                   onClick={() => {
                     handleSaveScene(newSceneName.trim());
-                    setNewSceneName('');
-                    setIsAddSceneModalOpen(false);
                   }}
                 >
                   Guardar Escena
