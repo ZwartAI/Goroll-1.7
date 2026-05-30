@@ -128,21 +128,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               }} />
           </div>
           <div className="ornate-card !p-2 space-y-2">
-            {canAddEnemy && (
-              <div className="grid grid-cols-2 gap-2">
-                <button className="btn-fantasy text-xs"
-                  style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
-                  onClick={() => setAddingEnemy(true)}>
-                  <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
-                </button>
-                <button className="btn-fantasy text-xs"
-                  style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
-                  onClick={() => setPickingTemplate(true)}>
-                  <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
-                </button>
-              </div>
-            )}
-            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} campaignId={campaignId} />
           </div>
           <div className="gem-divider opacity-40" />
 
@@ -226,21 +212,7 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               }} />
           </div>
           <div className="ornate-card !p-2 space-y-2">
-            {canAddEnemy && (
-              <div className="grid grid-cols-2 gap-2">
-                <button className="btn-fantasy text-xs"
-                  style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
-                  onClick={() => setAddingEnemy(true)}>
-                  <Plus size={12} className="inline mr-1" /> {t("combat.addEnemy")}
-                </button>
-                <button className="btn-fantasy text-xs"
-                  style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
-                  onClick={() => setPickingTemplate(true)}>
-                  <BookOpen size={12} className="inline mr-1" /> {t("bestiary.addFromBestiary")}
-                </button>
-              </div>
-            )}
-            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} />
+            <EnemyManagerDM encounter={encounter} participants={participants} groups={groups} pins={pins} dm={dm} campaignId={campaignId} />
           </div>
           <button className="btn-fantasy w-full text-xs py-1.5"
             style={{ background: "color-mix(in oklab, var(--gold) 30%, var(--card))", color: "var(--gold)" }}
