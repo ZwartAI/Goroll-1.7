@@ -392,7 +392,7 @@ function CompactEnemyCombatCard({
   const lp = useLongPress(onSheet, 450);
   const customImg = getEnemyCustomImage(p);
   const isTierAsset = !!customImg || !!getEnemyAssetUrl(p.enemy_icon);
-  const isNpc = !!(p as any).npc_template_id;
+  const isNpc = !!p.npc_template_id;
 
   if (isExpanded) {
     return (
