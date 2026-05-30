@@ -69,9 +69,11 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
         .map(c => c.name)
         .join(", ");
 
+      const sackRarity = sack.type === 'legendary' ? 'gold' : sack.type === 'special' ? 'blue' : 'white';
+
       await pushLog(campaign.id, [
         { t: 'text', v: 'El DM entregó ' },
-        { t: 'text', v: sack.name, color: SACK_TYPE_COLORS[sack.type] },
+        { t: 'item', v: sack.name, rarity: sackRarity },
         { t: 'text', v: ` a: ${targetNames}` }
       ]);
 
