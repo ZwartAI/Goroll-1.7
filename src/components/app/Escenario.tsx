@@ -9,7 +9,9 @@ import { useGameData } from "@/lib/useGame";
 import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { HpShieldBar } from "@/components/app/HpShieldBar";
 import { backdropProps } from "@/lib/modalBackdrop";
-import { Map as MapIcon } from "lucide-react";
+import { Map as MapIcon, Gift, Boxes } from "lucide-react";
+import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManager";
+
 
 // FASE 1: Lazy loading del BattleMap
 const BattleMap = lazy(() => import("@/components/app/battle-map/BattleMap"));
