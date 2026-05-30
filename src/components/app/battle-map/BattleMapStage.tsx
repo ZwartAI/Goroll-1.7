@@ -78,6 +78,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
 
   const stageRef = useRef<Konva.Stage>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const imageRef = useRef<Konva.Image>(null);
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -121,6 +122,13 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         setScale(newScale);
         setPosition({ x: newX, y: newY });
         setIsReady(true);
+        
+        // Cache image to apply filters
+        setTimeout(() => {
+          if (imageRef.current) {
+            imageRef.current.cache();
+          }
+        }, 100);
       }
     } else if (status === 'failed') {
       console.error("Failed to load background image:", config.backgroundUrl);
@@ -365,6 +373,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ) : bgImage && (
             <KonvaImage 
+              ref={imageRef}
               image={bgImage} 
               x={0} y={0} 
               width={bgImage.width * (config.backgroundScale || 1)} 

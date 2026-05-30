@@ -260,7 +260,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
     console.log("Attempting to insert scene:", newSceneData);
 
-    const { data, error } = await supabase.from('battle_map_scenes').insert(newSceneData).select().single();
+    const { data, error } = await supabase.from('battle_map_scenes').insert(newSceneData as any).select().single();
     
     if (error) {
       console.error("Error creating scene:", error);
