@@ -51,7 +51,14 @@ type Props = {
 };
 
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups, pins = [] }: Props) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const isEn = lang === "en";
+  const assets = {
+    waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
+    end: isEn ? terminarTurnoEn : terminarTurnoEs,
+    initiative: isEn ? iniciativaEn : iniciativaEs,
+  };
+
   const status = encounter?.status ?? null;
   const [addingEnemy, setAddingEnemy] = useState(false);
   const [pickingTemplate, setPickingTemplate] = useState(false);
