@@ -386,10 +386,8 @@ function ActiveEnemyCombatCard({
       )}
     </div>
   );
-}
-}
 
-/** FASE 7: Compact card for the waiting entities */
+/** Compact card for the waiting entities (vertical grid) */
 function CompactEnemyCombatCard({
   p, shield, encounter, pins, isExpanded, onToggleActions,
   onEdit, onDamage, onHeal, onSheet, onDuplicate, onRemove, onAddPin, onDeletePin,
@@ -416,29 +414,24 @@ function CompactEnemyCombatCard({
 
   if (isExpanded) {
     return (
-      <div className="ornate-card !p-3 transition flex flex-col gap-2"
-        style={{ borderColor: accent.color, opacity: p.is_defeated ? 0.6 : 1 }}>
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full border overflow-hidden flex items-center justify-center shrink-0"
-            style={{ borderColor: baseColor }}>
-            <EnemyIcon name={p.enemy_icon} size={24} fill={isTierAsset} customImage={customImg} />
-          </div>
-          <p className="font-display text-sm truncate flex-1" style={{ color: baseColor }}>{p.display_name}</p>
+      <div className="ornate-card !p-2 transition flex flex-col gap-2 bg-[#0d0d0d] shadow-2xl z-10 scale-[1.02]"
+        style={{ borderColor: accent.color }}>
+        <div className="flex items-center gap-2 mb-1">
+          <p className="font-display text-[10px] truncate flex-1 text-white uppercase tracking-wider">{p.display_name}</p>
           <button type="button" onClick={onToggleActions} className="text-muted-foreground hover:text-white">
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
-        <div className="grid grid-cols-5 gap-1.5">
-          <IconBtn label={t("combat.damage")} icon={<Sword className="w-4 h-4" />} bg="color-mix(in oklab, var(--loss) 70%, var(--card))" onClick={onDamage} />
-          <IconBtn label={t("combat.heal")} icon={<Heart className="w-4 h-4" />} bg="color-mix(in oklab, var(--gain) 70%, var(--card))" onClick={onHeal} />
-          <IconBtn label={t("combat.edit")} icon={<Edit3 className="w-4 h-4" />} bg="color-mix(in oklab, oklch(0.55 0.12 240) 55%, var(--card))" onClick={onEdit} />
-          <IconBtn label={t("combat.duplicate.label")} icon={<Copy className="w-4 h-4" />} bg="color-mix(in oklab, oklch(0.45 0.10 240) 60%, var(--card))" onClick={onDuplicate} />
-          <IconBtn label={t("combat.remove")} icon={<Trash2 className="w-4 h-4" />} bg="color-mix(in oklab, var(--loss) 55%, black)" onClick={onRemove} />
+        <div className="grid grid-cols-4 gap-1.5">
+          <IconBtn label={t("combat.damage")} icon={<Sword className="w-3.5 h-3.5" />} bg="color-mix(in oklab, var(--loss) 70%, #0d0d0d)" onClick={onDamage} />
+          <IconBtn label={t("combat.heal")} icon={<Heart className="w-3.5 h-3.5" />} bg="color-mix(in oklab, var(--gain) 70%, #0d0d0d)" onClick={onHeal} />
+          <IconBtn label={t("combat.edit")} icon={<Edit3 className="w-3.5 h-3.5" />} bg="color-mix(in oklab, #3b82f6 55%, #0d0d0d)" onClick={onEdit} />
+          <IconBtn label={t("combat.duplicate.label")} icon={<Copy className="w-3.5 h-3.5" />} bg="color-mix(in oklab, #8b5cf6 60%, #0d0d0d)" onClick={onDuplicate} />
+          <IconBtn label={t("combat.remove")} icon={<Trash2 className="w-3.5 h-3.5" />} bg="#991b1b" onClick={onRemove} />
         </div>
         <button
           type="button"
-          className="btn-fantasy w-full text-[10px] py-1 font-display uppercase tracking-widest border-dashed"
-          style={{ background: "transparent", color: "var(--muted-foreground)" }}
+          className="btn-fantasy w-full text-[9px] py-1 font-display uppercase tracking-widest border-dashed bg-transparent text-muted-foreground mt-1"
           onClick={onToggleActions}
         >
           {t("combat.hideActions")}
@@ -448,62 +441,60 @@ function CompactEnemyCombatCard({
   }
 
   return (
-    <div className="ornate-card !p-2 transition flex flex-col gap-1.5"
-      style={{ borderColor: `color-mix(in oklab, ${baseColor} 30%, transparent)`, opacity: p.is_defeated ? 0.5 : 1 }}>
-      <p className="font-display text-xs truncate" style={{ color: baseColor }}>{p.display_name}</p>
+    <div className="ornate-card !p-2 transition flex flex-col items-center gap-1 bg-[#0d0d0d] border-white/10"
+      style={{ opacity: p.is_defeated ? 0.6 : 1 }}>
+      
+      <p className="font-display text-[9px] uppercase tracking-wider truncate w-full text-center text-white/80">
+        {p.display_name}
+      </p>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="relative w-10 h-10 rounded-full border overflow-hidden flex items-center justify-center bg-card shrink-0"
-          style={{ borderColor: baseColor, color: baseColor }}
-          onMouseDown={lp.onMouseDown}
-          onMouseUp={lp.onMouseUp}
-          onMouseLeave={lp.onMouseLeave}
-          onTouchStart={lp.onTouchStart}
-          onTouchEnd={lp.onTouchEnd}
-          onTouchCancel={lp.onTouchCancel}
-          onClick={() => { if (!lp.didLongPress()) onSheet(); }}
-        >
-          <EnemyIcon name={p.enemy_icon} size={24} fill={isTierAsset} customImage={customImg} />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-[9px] text-muted-foreground font-display uppercase tracking-wider">
-            DEF {p.enemy_defense || 0} · SPD {p.enemy_speed || "—"}
-          </p>
-          <div className="mt-1">
-            <HpShieldBar current={cur} max={max} shield={shield} height={6} hideLabel />
-            <p className="text-[9px] text-muted-foreground font-display text-center mt-0.5">
-              {cur} / {max} HP
-            </p>
-          </div>
-        </div>
+      <button
+        type="button"
+        className="relative w-14 h-14 rounded-full border-2 overflow-hidden flex items-center justify-center bg-black shrink-0 my-1"
+        style={{ borderColor: baseColor }}
+        onClick={onSheet}
+      >
+        <EnemyIcon name={p.enemy_icon} size={32} fill={isTierAsset} customImage={customImg} />
+      </button>
+
+      <div className="w-full text-center mb-1">
+        <p className="text-[8px] text-muted-foreground font-display uppercase tracking-tighter opacity-60">
+          DEF {p.enemy_defense || 0} · SPD {p.enemy_speed || "—"}
+        </p>
       </div>
 
-      <div className="flex items-center gap-1 flex-wrap mt-0.5 min-h-[16px]">
-        <span className="text-[8px] font-display uppercase px-1 rounded border"
-          style={{ background: `color-mix(in oklab, ${accent.color} 20%, transparent)`, color: accent.color, borderColor: accent.color }}>
-          {isNpc ? t("combat.npcLabel") : t("combat.enemyLabel")}
-        </span>
-        <span className="text-[8px] font-display px-1 rounded border border-[var(--gold)]/40 text-[var(--gold)]">
-          {p.initiative}
-        </span>
+      <div className="w-full space-y-1">
+        <div className="h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+          <div className="h-full bg-green-500" style={{ width: `${(cur/max)*100}%` }} />
+        </div>
+        <p className="text-[7px] text-center text-white/50 font-display">
+          {cur}/{max} HP
+        </p>
+      </div>
+
+      <div className="w-full flex items-center justify-between gap-1 mt-1">
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="text-[7px] font-display uppercase tracking-tighter px-1 rounded bg-red-950/30 text-red-500/80 border border-red-500/20 truncate">
+            {isNpc ? t("combat.npcLabel") : t("combat.enemyLabel")}
+          </span>
+          <span className="text-[8px] font-display px-1 rounded bg-black/60 border border-[var(--gold)]/30 text-[var(--gold)]">
+            {p.initiative}
+          </span>
+        </div>
         <EnemyEffectMiniChips participantId={p.id} encounterId={encounter.id} />
       </div>
 
-      <div className="grid grid-cols-5 gap-1 pt-1">
+      <div className="grid grid-cols-4 gap-1 w-full mt-2">
         <button
           type="button"
-          className="col-span-4 btn-fantasy text-[9px] py-0.5 flex items-center justify-center gap-1 font-display uppercase tracking-widest"
-          style={{ background: "linear-gradient(180deg, oklch(0.32 0.10 250), oklch(0.22 0.08 250))", color: "white" }}
+          className="col-span-3 btn-fantasy text-[8px] py-1 flex items-center justify-center gap-1 font-display uppercase tracking-widest bg-blue-950/30 border-blue-500/20 text-blue-400"
           onClick={onToggleActions}
         >
           {t("combat.actions")}
         </button>
         <button
           type="button"
-          className="btn-fantasy !p-0 flex items-center justify-center border-dashed"
-          style={{ background: "transparent", borderColor: `color-mix(in oklab, ${baseColor} 40%, transparent)`, color: baseColor }}
+          className="btn-fantasy !p-0 flex items-center justify-center border-dashed bg-transparent border-red-500/30 text-red-500"
           onClick={onAddPin}
         >
           <Pin size={10} />
