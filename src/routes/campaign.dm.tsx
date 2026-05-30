@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { Plus, Send, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Sparkles, Wand2, Theater, Upload, ChessKnight, Boxes } from "lucide-react";
+import { Plus, Send, Pencil, Undo2, Search, Skull, ScrollText, Hammer, Sparkles, Wand2, Theater, Upload, ChessKnight, Boxes, Gift } from "lucide-react";
 
 import { SLOTS, RARITY_BONUS, RARITY_COLOR, ITEM_CATEGORIES, isWeapon, totals, setSession, type Item, type ItemCategory, type Rarity, type Slot, type Character, type LogRow } from "@/lib/game";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,11 +25,13 @@ import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
+import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManager";
 import { useVoice } from "@/lib/useVoice";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 export const Route = createFileRoute("/campaign/dm")({ component: DM });
 
@@ -39,6 +41,7 @@ function DM() {
 
   const nav = useNavigate();
   const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "skills" | "escenario">("log");
+  const [rewardSacksOpen, setRewardSacksOpen] = useState(false);
   const [selItem, setSelItem] = useState<Item | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [openChar, setOpenChar] = useState<string | null>(null);
@@ -58,6 +61,7 @@ function DM() {
 
   useEffect(() => {
     if (!campaign) return;
+
     const reload = async () => {
       const [{ data: bs }, { data: assigns }] = await Promise.all([
         (supabase as any).from("boosters")
@@ -185,7 +189,17 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
+          <div className="ornate-card p-4 space-y-2">
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Gift size={16} /> Sacos de Recompensa</h3>
+            <p className="text-xs text-muted-foreground">Gestiona los botines y tesoros para tus jugadores.</p>
+            <button className="btn-fantasy w-full"
+              style={{ background: "var(--gradient-gold)", color: "black" }}
+              onClick={() => setRewardSacksOpen(true)}>
+              <Boxes size={14} className="inline mr-1" /> Gestionar Sacos
+            </button>
+          </div>
           <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+
           <DMConditionsCreator campaignId={campaign.id} players={players} />
           <div className="ornate-card p-4 space-y-2">
             <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("dm.createBoosterTitle")}</h3>
@@ -528,6 +542,13 @@ function DM() {
           players={players} dm={dmCtx}
           onClose={() => { setEditBooster(null); setCreatingBooster(false); }} />
       )}
+      {rewardSacksOpen && (
+        <RewardSackManager 
+          campaignId={campaign.id} 
+          onClose={() => setRewardSacksOpen(false)} 
+        />
+      )}
+
     </PageFrame>
   );
 }
