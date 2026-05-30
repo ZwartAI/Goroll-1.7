@@ -112,6 +112,77 @@ export type Database = {
         }
         Relationships: []
       }
+      battle_map_scenes: {
+        Row: {
+          background_brightness: number | null
+          background_opacity: number | null
+          background_scale: number | null
+          background_type: string | null
+          background_url: string | null
+          campaign_id: string
+          chalk_lines: Json | null
+          chalk_notes: Json | null
+          created_at: string
+          grid_color: string | null
+          grid_opacity: number | null
+          grid_size: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          show_grid: boolean | null
+          tokens_state: Json | null
+          updated_at: string
+        }
+        Insert: {
+          background_brightness?: number | null
+          background_opacity?: number | null
+          background_scale?: number | null
+          background_type?: string | null
+          background_url?: string | null
+          campaign_id: string
+          chalk_lines?: Json | null
+          chalk_notes?: Json | null
+          created_at?: string
+          grid_color?: string | null
+          grid_opacity?: number | null
+          grid_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          show_grid?: boolean | null
+          tokens_state?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          background_brightness?: number | null
+          background_opacity?: number | null
+          background_scale?: number | null
+          background_type?: string | null
+          background_url?: string | null
+          campaign_id?: string
+          chalk_lines?: Json | null
+          chalk_notes?: Json | null
+          created_at?: string
+          grid_color?: string | null
+          grid_opacity?: number | null
+          grid_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          show_grid?: boolean | null
+          tokens_state?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_map_scenes_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booster_assignments: {
         Row: {
           booster_id: string
