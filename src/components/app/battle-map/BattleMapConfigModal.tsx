@@ -174,7 +174,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
                     className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-500/20 border border-green-500/30 text-green-400 hover:bg-green-500/30 transition-all text-[9px] uppercase tracking-widest font-bold"
                   >
                     <Save size={12} />
-                    Guardar en Escena Actual
+                    {saveLabel || 'Guardar en Escena Actual'}
                   </button>
                 )}
                 <input 
