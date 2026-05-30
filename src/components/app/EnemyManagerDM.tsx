@@ -377,11 +377,11 @@ function ActiveEnemyCombatCard({
 
       {showActions && (
         <div className="grid grid-cols-5 gap-2 pt-2 border-t border-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
-          <IconBtn label={t("combat.damage")} icon={<Sword className="w-5 h-5" />} bg="color-mix(in oklab, var(--loss) 70%, #0d0d0d)" onClick={onDamage} />
-          <IconBtn label={t("combat.heal")} icon={<Heart className="w-5 h-5" />} bg="color-mix(in oklab, var(--gain) 70%, #0d0d0d)" onClick={onHeal} />
-          <IconBtn label={t("combat.edit")} icon={<Edit3 className="w-5 h-5" />} bg="color-mix(in oklab, #3b82f6 55%, #0d0d0d)" onClick={onEdit} />
-          <IconBtn label={t("combat.duplicate.label")} icon={<Copy className="w-5 h-5" />} bg="color-mix(in oklab, #8b5cf6 60%, #0d0d0d)" onClick={onDuplicate} />
-          <IconBtn label={t("combat.remove")} icon={<Trash2 className="w-5 h-5" />} bg="#991b1b" onClick={onRemove} />
+          <IconBtn label={t("combat.damage")} icon={<Sword className="w-4 h-4" />} bg="color-mix(in oklab, var(--loss) 70%, #0d0d0d)" onClick={onDamage} />
+          <IconBtn label={t("combat.heal")} icon={<Heart className="w-4 h-4" />} bg="color-mix(in oklab, var(--gain) 70%, #0d0d0d)" onClick={onHeal} />
+          <IconBtn label={t("combat.edit")} icon={<Edit3 className="w-4 h-4" />} bg="color-mix(in oklab, #3b82f6 55%, #0d0d0d)" onClick={onEdit} />
+          <IconBtn label={t("combat.duplicate.label")} icon={<Copy className="w-4 h-4" />} bg="color-mix(in oklab, #8b5cf6 60%, #0d0d0d)" onClick={onDuplicate} />
+          <IconBtn label={t("combat.remove")} icon={<Trash2 className="w-4 h-4" />} bg="#991b1b" onClick={onRemove} />
         </div>
       )}
     </div>
