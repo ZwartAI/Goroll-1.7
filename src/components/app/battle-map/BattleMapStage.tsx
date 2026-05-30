@@ -124,7 +124,11 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     const pos = transform.point(pointer);
 
     if (projection) {
-      setProjection(prev => prev ? { ...prev, current: pos } : null);
+      setProjection(prev => {
+        const next = prev ? { ...prev, current: pos } : null;
+        onProjectionUpdate?.(next);
+        return next;
+      });
       return;
     }
 
