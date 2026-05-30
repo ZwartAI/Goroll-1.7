@@ -163,17 +163,17 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                   <div className="flex gap-2 pt-2 border-t border-white/5">
                     <button 
                       onClick={() => setAssigningSack(sack)}
-                      className="px-3 py-1.5 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest hover:scale-105 transition-all shadow-[0_0_10px_rgba(234,179,8,0.2)]"
+                      className="flex-1 py-1.5 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest hover:scale-105 transition-all shadow-[0_0_10px_rgba(234,179,8,0.2)]"
                     >
                       Entregar
                     </button>
                     <button 
                       onClick={() => setEditingSack(sack)}
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      title="Editar configuración"
                     >
-                      Editar
+                      <Play size={14} className="rotate-90 scale-75 opacity-50" />
                     </button>
-
                     <button 
                       onClick={() => setSimulatingSack(sack)}
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
@@ -181,9 +181,8 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                     >
                       <Play size={14} />
                     </button>
-
-
                   </div>
+
                 </div>
               ))}
               {filteredSacks.length === 0 && !loading && (
