@@ -341,9 +341,62 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         onlineCount={onlineIds.size}
       />
 
-      <main className="flex-1 relative overflow-hidden">
-        {/* Turn Tracker */}
-        <div className="absolute left-0 top-1/4 z-40 flex flex-col gap-1 pointer-events-none">
+      <main className="flex-1 relative overflow-hidden bg-[#050507]">
+        {/* FASE 7: Canvas Stage */}
+        <div className="absolute inset-0 z-0">
+          <BattleMapStage 
+            width={dimensions.width} 
+            height={dimensions.height - 56} 
+            participants={combat.participants}
+            config={mapConfig}
+            onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
+            isChalkMode={isChalkMode}
+            chalkTool={chalkTool}
+            chalkColor={chalkColor}
+            chalkSize={chalkSize}
+            chalkLines={chalkLines}
+            chalkNotes={chalkNotes}
+            onAddChalkLine={(line) => { handleAddChalkLine(line); handleUpdateCurrentSceneState(); }}
+            onAddNote={(x, y) => { handleAddNote(x, y); handleUpdateCurrentSceneState(); }}
+            onNoteUpdate={(id, x, y) => { handleNoteUpdate(id, x, y); handleUpdateCurrentSceneState(); }}
+            onNoteClick={handleNoteDelete}
+            remoteTokenPositions={remoteTokenPositions}
+            remoteProjections={remoteProjections}
+            onTokenMove={(id: string, x: number, y: number) => {
+              setRemoteTokenPositions(prev => ({ ...prev, [id]: { x, y } }));
+              handleBroadcastMove(id, x, y);
+            }}
+            onTokenMoveEnd={handleUpdateCurrentSceneState}
+            onProjectionUpdate={handleBroadcastProjection}
+            role={character?.role || 'spectator'}
+            currentUserId={character?.id}
+          />
+        </div>
+
+        {/* FASE 7: Empty State Feedback */}
+        {!mapConfig.backgroundUrl && isDM && !isScenesPanelOpen && !isDicePanelOpen && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="bg-black/60 backdrop-blur-md border border-white/10 p-8 rounded-[2rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--gold)]/20">
+                <Layers className="w-8 h-8 text-[var(--gold)]" />
+              </div>
+              <h3 className="text-[var(--gold)] font-display text-sm uppercase tracking-[0.2em] mb-2">Escenario Vacío</h3>
+              <p className="text-muted-foreground text-[10px] uppercase tracking-wider mb-6 leading-relaxed">
+                Sube una imagen o video para comenzar tu batalla táctica.
+              </p>
+              <button 
+                 onClick={() => setIsScenesPanelOpen(true)}
+                 className="btn-fantasy text-[9px] px-6 py-2"
+                 style={{ background: 'var(--gradient-gold)', color: 'black' }}
+              >
+                Gestionar Escenas
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Turn Tracker Overlay */}
+        <div className="absolute left-0 top-1/4 z-20 flex flex-col gap-1 pointer-events-none">
           {sortedParticipants.slice(0, 12).map((p, idx) => {
             const isTurn = p.id === currentTurnId;
             const color = p.enemy_color || p.color || "var(--gold)";
@@ -358,24 +411,55 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           })}
         </div>
 
-        {/* Overlay */}
+        {/* Unified Tool Group */}
+        <div className="absolute top-4 right-4 z-40 flex flex-col gap-3 items-end">
+            {isDM && (
+                <>
+                    <button
+                      onClick={() => setIsScenesPanelOpen(true)}
+                      className={`w-12 h-12 rounded-2xl shadow-2xl transition-all group flex items-center justify-center border ${isScenesPanelOpen ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/60 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
+                      title="Escenas"
+                    >
+                      <Layers className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={() => setIsChalkMode(!isChalkMode)}
+                      className={`w-12 h-12 rounded-2xl shadow-2xl transition-all group flex items-center justify-center border ${isChalkMode ? 'bg-[var(--gold)] text-black border-[var(--gold)]' : 'bg-black/60 backdrop-blur-md text-[var(--gold)] border-white/10 hover:bg-white/5'}`}
+                      title="Pintar"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    
+                    <BattleMapConfigModal config={mapConfig} onChange={setMapConfig} />
+                </>
+            )}
+
+            <BattleMapDiceButton onClick={handleDiceClick} />
+        </div>
+
+        {/* Panels / Overlays */}
         {(activePanel !== 'none' || isScenesPanelOpen || isDicePanelOpen) && (
-          <div className="absolute inset-0 bg-black/40 z-30 transition-opacity animate-in fade-in" onClick={() => { 
+          <div className="absolute inset-0 bg-black/60 z-30 transition-opacity animate-in fade-in backdrop-blur-sm" onClick={() => { 
             setActivePanel('none'); 
             setIsScenesPanelOpen(false); 
             setIsDicePanelOpen(false);
           }} />
         )}
 
-        {/* Panel Dados (Fase 6) */}
+        {/* Dice Panel */}
         {isDicePanelOpen && (
-          <BattleMapDicePanel 
-            onClose={() => setIsDicePanelOpen(false)}
-            onRoll={handleRollDice}
-          />
+          <div className="absolute inset-x-0 bottom-0 z-[70] flex items-end justify-center pointer-events-none">
+            <div className="w-full max-w-md pointer-events-auto">
+              <BattleMapDicePanel 
+                onClose={() => setIsDicePanelOpen(false)}
+                onRoll={handleRollDice}
+              />
+            </div>
+          </div>
         )}
 
-        {/* Animación de Dados (Fase 6) */}
+        {/* Dice Animation */}
         {activeDiceRolls && (
           <BattleMapDiceAnimation 
             dice={activeDiceRolls} 
@@ -383,9 +467,26 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         )}
 
-        {/* Panel Escenas */}
+        {/* Chalk Controls (Floating over stage) */}
+        {isChalkMode && isDM && (
+          <div className="absolute top-20 right-20 z-50">
+             <BattleMapChalkControls
+                activeTool={chalkTool}
+                onToolChange={setChalkTool}
+                currentColor={chalkColor}
+                onColorChange={setChalkColor}
+                currentSize={chalkSize}
+                onSizeChange={setChalkSize}
+                onUndo={handleUndoChalk}
+                onClear={handleClearChalk}
+                onExit={() => setIsChalkMode(false)}
+              />
+          </div>
+        )}
+
+        {/* Scenes Panel */}
         {isScenesPanelOpen && (
-          <div className="absolute left-0 top-0 h-full z-50">
+          <div className="absolute left-0 top-0 h-full z-50 animate-in slide-in-from-left duration-300">
             <BattleMapScenesPanel 
               scenes={scenes}
               activeSceneId={activeSceneId || undefined}
@@ -406,39 +507,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapSidebar participants={sortedParticipants} isOpen={true} onOpenChar={onOpenChar} onClose={() => setActivePanel('none')} />
         </div>
 
-        {/* Canvas */}
-        <div className="w-full h-full">
-          <BattleMapStage 
-            width={dimensions.width} 
-            height={dimensions.height - 56} 
-            participants={combat.participants}
-            config={mapConfig}
-            onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
-            isChalkMode={isChalkMode}
-            chalkTool={chalkTool}
-            chalkColor={chalkColor}
-            chalkSize={chalkSize}
-            chalkLines={chalkLines}
-            chalkNotes={chalkNotes}
-            onAddChalkLine={(line) => { handleAddChalkLine(line); handleUpdateCurrentSceneState(); }}
-            onAddNote={(x, y) => { handleAddNote(x, y); handleUpdateCurrentSceneState(); }}
-            onNoteUpdate={(id, x, y) => { handleNoteUpdate(id, x, y); handleUpdateCurrentSceneState(); }}
-            onNoteClick={handleNoteDelete}
-            // FASE 5 Props
-            remoteTokenPositions={remoteTokenPositions}
-            remoteProjections={remoteProjections}
-            onTokenMove={(id: string, x: number, y: number) => {
-              setRemoteTokenPositions(prev => ({ ...prev, [id]: { x, y } }));
-              handleBroadcastMove(id, x, y);
-            }}
-            onTokenMoveEnd={handleUpdateCurrentSceneState}
-            onProjectionUpdate={handleBroadcastProjection}
-            role={character?.role || 'spectator'}
-            currentUserId={character?.id}
-          />
-        </div>
-
-        {/* Menú Proyecciones */}
+        {/* Projection Menu */}
         {projectionMenu && (
           <BattleMapProjectionMenu 
             x={projectionMenu.x} 
@@ -452,54 +521,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         )}
 
-        {/* DM Controls */}
-        {isDM && (
-          <div className="absolute bottom-20 right-4 flex flex-col gap-2 z-40">
-            <BattleMapConfigModal config={mapConfig} onChange={setMapConfig} />
-            
-            <button
-              onClick={() => setIsScenesPanelOpen(true)}
-              className="bg-[#1a1a1e]/90 hover:bg-[var(--gold)] hover:text-black border border-white/10 p-4 rounded-full shadow-2xl transition-all group"
-            >
-              <Layers className="w-6 h-6 text-[var(--gold)] group-hover:text-black" />
-            </button>
-
-            {!isChalkMode ? (
-              <button
-                onClick={() => setIsChalkMode(true)}
-                className="bg-[#1a1a1e]/90 hover:bg-[var(--gold)] hover:text-black border border-white/10 p-4 rounded-full shadow-2xl transition-all group"
-              >
-                <Pencil className="w-6 h-6 text-[var(--gold)] group-hover:text-black" />
-              </button>
-            ) : (
-              <BattleMapChalkControls
-                activeTool={chalkTool}
-                onToolChange={setChalkTool}
-                currentColor={chalkColor}
-                onColorChange={setChalkColor}
-                currentSize={chalkSize}
-                onSizeChange={setChalkSize}
-                onUndo={handleUndoChalk}
-                onClear={handleClearChalk}
-                onExit={() => setIsChalkMode(false)}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Dice & Log */}
-        <BattleMapDiceButton onClick={handleDiceClick} />
-        
+        {/* Colapsable Log */}
         <div 
-          className={`absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/90 border-t border-white/10 backdrop-blur-md cursor-pointer ${isLogExpanded ? 'h-64' : 'h-14'}`}
-          onClick={() => setIsLogExpanded(!isLogExpanded)}
+          className={`absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/90 border-t border-white/10 backdrop-blur-md ${isLogExpanded ? 'h-64' : 'h-14'}`}
         >
-          <div className="absolute top-0 right-4 -translate-y-1/2">
-            <div className="p-1.5 rounded-full bg-black/60 border border-white/10 text-[var(--gold)]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isLogExpanded ? 'rotate-180' : ''}`}><polyline points="18 15 12 9 6 15"/></svg>
+          <div 
+            className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 bg-white/5 cursor-pointer group"
+            onClick={() => setIsLogExpanded(!isLogExpanded)}
+          >
+            <span className="text-[10px] font-display uppercase tracking-[0.2em] text-muted-foreground group-hover:text-[var(--gold)] transition-colors">{t("battleMap.recentLog")}</span>
+            <div className="p-1 rounded-full bg-white/5 border border-white/10 text-[var(--gold)] group-hover:scale-110 transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isLogExpanded ? 'rotate-180' : ''}`}><polyline points="18 15 12 9 6 15"/></svg>
             </div>
           </div>
-          <div className="h-full overflow-hidden">
+          <div className="h-[calc(100%-2rem)] overflow-hidden">
              <BattleMapLog logs={logs} nameOverrides={nameOverrides} onOpenChar={onOpenChar} isExpanded={isLogExpanded} />
           </div>
         </div>
