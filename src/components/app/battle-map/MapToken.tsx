@@ -4,10 +4,9 @@ import Konva from 'konva';
 import useImage from 'use-image';
 import type { CombatParticipant } from '@/lib/combat';
 import { getEnemyCustomImage, getEnemyAssetUrl } from '@/components/app/EnemyIconPicker';
+import { playMapSound } from './BattleMapSounds';
 
-// FASE 1: Preparación de Tokens (Mejorado con Framing)
-// Sistema de tokens circulares con imagen y animaciones básicas.
-
+// FASE 7: Enhanced Map Tokens with better animations and role-based visuals
 interface Props {
   participant: CombatParticipant;
   x: number;
@@ -27,7 +26,7 @@ export const MapToken: React.FC<Props> = ({
   draggable, onDragMove, onDragEnd
 }) => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-  // Obtener la imagen (custom o asset)
+  
   const customImg = getEnemyCustomImage(participant);
   const assetUrl = getEnemyAssetUrl(participant.enemy_icon);
   const imageUrl = participant.image_url || assetUrl || '';
@@ -35,13 +34,17 @@ export const MapToken: React.FC<Props> = ({
   const [image] = useImage(imageUrl);
   
   const color = participant.enemy_color || participant.color || "var(--gold)";
-  const radius = gridSize * 0.44; // Proporcional a la grid
+  const radius = gridSize * 0.44;
+
+  // FASE 7: Role-based glow color
+  const roleGlowColor = useMemo(() => {
+    if (participant.participant_type === 'enemy') return '#ef4444'; // Red for Enemy
+    return '#3b82f6'; // Blue for Players
+  }, [participant.participant_type]);
   
-  // PREPARADO PARA FASE 2: Conectar con combat.turn_id
   const isMyTurn = false; 
 
   return (
-
     <Group 
       x={x} 
       y={y} 
@@ -52,7 +55,6 @@ export const MapToken: React.FC<Props> = ({
       onClick={onSelect}
       onTap={onSelect}
       onMouseDown={(e) => {
-        // Long press detection
         longPressTimer.current = setTimeout(() => {
           const stage = e.target.getStage();
           if (stage) {
@@ -79,15 +81,20 @@ export const MapToken: React.FC<Props> = ({
       onDragStart={(e) => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
         e.target.moveToTop();
+        playMapSound('move');
+        
+        // FASE 7: Enhanced lift animation
         e.target.to({
-          scaleX: 1.1,
-          scaleY: 1.1,
-          duration: 0.1,
+          scaleX: 1.15,
+          scaleY: 1.15,
+          shadowBlur: 20,
+          shadowOpacity: 0.5,
+          shadowOffset: { x: 5, y: 15 },
+          duration: 0.15,
           easing: Konva.Easings.EaseOut
         });
       }}
       onDragEnd={(e) => {
-        // SNAP TO GRID
         const node = e.target;
         const newX = Math.round(node.x() / gridSize) * gridSize;
         const newY = Math.round(node.y() / gridSize) * gridSize;
@@ -97,7 +104,9 @@ export const MapToken: React.FC<Props> = ({
           y: newY,
           scaleX: 1,
           scaleY: 1,
-          duration: 0.2,
+          shadowBlur: 0,
+          shadowOffset: { x: 0, y: 0 },
+          duration: 0.3,
           easing: Konva.Easings.BackEaseOut,
           onFinish: () => {
             onDragEnd?.(e);
@@ -105,16 +114,27 @@ export const MapToken: React.FC<Props> = ({
         });
       }}
     >
+      {/* Role-based glow (Fase 7) */}
+      <Circle
+        radius={radius + 3}
+        fill="transparent"
+        stroke={roleGlowColor}
+        strokeWidth={1.5}
+        shadowBlur={10}
+        shadowColor={roleGlowColor}
+        opacity={0.4}
+      />
+
       {/* Sombra / Glow de selección */}
       {isSelected && (
         <Circle
-          radius={radius + 4}
+          radius={radius + 6}
           fill="transparent"
           stroke={color}
-          strokeWidth={2}
-          shadowBlur={15}
+          strokeWidth={2.5}
+          shadowBlur={20}
           shadowColor={color}
-          opacity={0.6}
+          opacity={0.7}
         />
       )}
 
@@ -123,10 +143,10 @@ export const MapToken: React.FC<Props> = ({
         radius={radius}
         fill="#1a1a1a"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={2.5}
       />
 
-      {/* Clip de imagen circular con encuadre (Framing) */}
+      {/* Clip de imagen circular */}
       {image ? (
         <Group clipFunc={(ctx) => ctx.arc(0, 0, radius - 1, 0, Math.PI * 2)}>
           <KonvaFramedImage 
@@ -141,11 +161,10 @@ export const MapToken: React.FC<Props> = ({
         <Circle radius={radius - 2} fill={color} opacity={0.3} />
       )}
 
-      {/* Indicador de Turno (Game Controller icon) */}
+      {/* Indicador de Turno */}
       {isMyTurn && (
         <Group x={radius - 6} y={-radius + 6}>
-           <Circle radius={7} fill="var(--gold)" shadowBlur={5} shadowColor="black" />
-           {/* Simple icon representation */}
+           <Circle radius={8} fill="var(--gold)" shadowBlur={8} shadowColor="black" />
            <Circle radius={2} fill="black" x={-2} y={0} />
            <Circle radius={2} fill="black" x={2} y={0} />
         </Group>
@@ -154,10 +173,6 @@ export const MapToken: React.FC<Props> = ({
   );
 };
 
-/**
- * Componente interno para manejar el escalado y desplazamiento (Framing) en Konva.
- * Simula el comportamiento de object-cover + transform: translate/scale.
- */
 const KonvaFramedImage: React.FC<{
   image: HTMLImageElement;
   radius: number;
@@ -166,8 +181,6 @@ const KonvaFramedImage: React.FC<{
   scale: number;
 }> = ({ image, radius, offsetX, offsetY, scale }) => {
   const size = radius * 2;
-  
-  // Calcular dimensiones para simular "object-cover"
   const imgAspect = image.width / image.height;
   let drawW = size;
   let drawH = size;
@@ -178,12 +191,8 @@ const KonvaFramedImage: React.FC<{
     drawH = size / imgAspect;
   }
 
-  // Aplicar el encuadre (offset y scale adicional)
   const finalW = drawW * scale;
   const finalH = drawH * scale;
-  
-  // El offset 50,50 es el centro del recorte.
-  // Calculamos la posición relativa al centro del token (0,0)
   const x = -finalW / 2 + (offsetX - 50) * (finalW / 100);
   const y = -finalH / 2 + (offsetY - 50) * (finalH / 100);
 
@@ -198,4 +207,3 @@ const KonvaFramedImage: React.FC<{
     />
   );
 };
-

@@ -17,6 +17,7 @@ import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
 import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
 import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
+import { playMapSound } from './BattleMapSounds';
 
 // FASE 2: MapConfig interface
 export interface MapConfig {
@@ -39,7 +40,7 @@ interface Props {
 }
 
 const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar }) => {
-  const { combat, campaign, character } = useGameData();
+  const { combat, campaign, character, onlineIds } = useGameData();
   const { t } = useT();
   const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
   const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
@@ -208,6 +209,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   // FASE 5: Scene Management Handlers
   const handleSaveScene = useCallback(async (name: string) => {
     if (!campaign?.id) return;
+    playMapSound('click');
     
     const newScene: any = {
       campaign_id: campaign.id,
@@ -234,6 +236,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const handleActivateScene = useCallback(async (sceneId: string) => {
     if (!campaign?.id) return;
+    playMapSound('click');
     await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
     const { error } = await supabase.from('battle_map_scenes').update({ is_active: true }).eq('id', sceneId);
     if (error) toast.error("Error al activar la escena");
@@ -262,6 +265,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const handleRollDice = useCallback((selections: DieSelection[]) => {
     setIsDicePanelOpen(false);
+    playMapSound('dice');
     const newRolls: any[] = [];
     let total = 0;
     const individualResults: string[] = [];
@@ -293,7 +297,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const toggleParticipants = useCallback(() => setActivePanel(prev => prev === 'participants' ? 'none' : 'participants'), []);
 
   // FASE 4: Chalk Handlers
-  const handleAddChalkLine = useCallback((line: ChalkLine) => setChalkLines(prev => [...prev, line]), []);
+  const handleAddChalkLine = useCallback((line: ChalkLine) => {
+    setChalkLines(prev => [...prev, line]);
+    playMapSound('chalk');
+  }, []);
   const handleUndoChalk = useCallback(() => setChalkLines(prev => prev.slice(0, -1)), []);
   const handleClearChalk = useCallback(() => {
     if (confirm("¿Borrar todos los dibujos y notas?")) {
@@ -305,6 +312,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleAddNote = useCallback((x: number, y: number) => {
     const text = prompt("Texto de la nota:");
     if (text) {
+      playMapSound('chalk');
       setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x, y, text }]);
     }
   }, []);
@@ -323,7 +331,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#0a0a0c] flex flex-col overflow-hidden text-foreground animate-in fade-in duration-300">
-      <BattleMapHeader title={headerTitle} onBack={onBack} onMenuToggle={toggleParticipants} />
+      <BattleMapHeader 
+        title={headerTitle} 
+        onBack={async () => {
+          if (isDM) await handleUpdateCurrentSceneState();
+          onBack();
+        }} 
+        onMenuToggle={toggleParticipants} 
+        onlineCount={onlineIds.size}
+      />
 
       <main className="flex-1 relative overflow-hidden">
         {/* Turn Tracker */}

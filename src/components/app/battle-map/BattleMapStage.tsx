@@ -81,6 +81,19 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
 
+  // FASE 7: Subtle particles
+  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, size: number}>>([]);
+  
+  useEffect(() => {
+    const initialParticles = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 5000 - 2500,
+      y: Math.random() * 5000 - 2500,
+      size: Math.random() * 2 + 1
+    }));
+    setParticles(initialParticles);
+  }, []);
+
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentLinePoints, setCurrentLinePoints] = useState<number[]>([]);
 
@@ -272,6 +285,20 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
           ) : bgImage && (
             <KonvaImage image={bgImage} x={0} y={0} width={bgImage.width * config.backgroundScale} height={bgImage.height * config.backgroundScale} opacity={config.backgroundOpacity} />
           ))}
+          
+          {/* FASE 7: Floating magical particles */}
+          {particles.map(p => (
+            <KonvaCircle
+              key={p.id}
+              x={p.x}
+              y={p.y}
+              radius={p.size}
+              fill="rgba(234, 179, 8, 0.2)"
+              shadowBlur={5}
+              shadowColor="var(--gold)"
+              listening={false}
+            />
+          ))}
         </Layer>
         <Layer listening={false}>{gridLines}</Layer>
         <Layer id="tokens-layer">
@@ -280,6 +307,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             const initialX = width / 2 + (i % 3) * gridSize - gridSize;
             const initialY = height / 2 + Math.floor(i / 3) * gridSize - gridSize;
             const isDM = role === 'dm';
+            // FASE 7: More robust owner check (using character_id)
             const isOwner = !!(currentUserId && p.character_id === currentUserId);
 
             return (
