@@ -200,9 +200,17 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "logs", filter: `campaign_id=eq.${campaignId}` }, (payload: any) => {
         const ev = payload?.eventType;
+        // Skip dm_only entries for non-DM viewers (spoiler protection).
+        const sess = getSession();
+        const viewerIsDm = sess?.role === "dm" || sess?.isMaster === true;
         if (ev === "INSERT" && payload.new) {
+          if (!viewerIsDm && payload.new.dm_only) return;
           setLogs(prev => prev.some(l => l.id === payload.new.id) ? prev : [payload.new as LogRow, ...prev].slice(0, Math.max(logsLimitRef.current, 100)));
         } else if (ev === "UPDATE" && payload.new) {
+          if (!viewerIsDm && payload.new.dm_only) {
+            setLogs(prev => prev.filter(l => l.id !== payload.new.id));
+            return;
+          }
           setLogs(prev => prev.map(l => l.id === payload.new.id ? { ...l, ...payload.new } : l));
         } else if (ev === "DELETE" && payload.old?.id) {
           setLogs(prev => prev.filter(l => l.id !== payload.old.id));
