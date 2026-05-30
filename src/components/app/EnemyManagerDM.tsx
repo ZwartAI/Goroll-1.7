@@ -352,25 +352,25 @@ function ActiveEnemyCombatCard({
 
       <EnemyEffectsStrip participantId={p.id} encounterId={encounter.id} />
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <button
-          className="btn-fantasy w-full py-3.5 flex items-center justify-center gap-3 font-display text-base font-bold shadow-xl transition-all hover:brightness-110 active:scale-[0.98]"
+          className="btn-fantasy w-full py-2 flex items-center justify-center gap-2 font-display text-xs font-bold shadow-xl transition-all hover:brightness-110 active:scale-[0.98]"
           style={{ background: "linear-gradient(180deg, #eab308, #ca8a04)", color: "black" }}
           onClick={() => dmEndEnemyTurn(encounter, blocks)}>
-          <FastForward size={20} /> PASAR TURNO DEL ENEMIGO
+          <FastForward size={14} /> PASAR TURNO DEL ENEMIGO
         </button>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <button
-            className="btn-fantasy py-3 flex items-center justify-center gap-2 font-display text-sm bg-blue-950/40 border-blue-500/30 text-blue-400"
+            className="btn-fantasy py-2 flex items-center justify-center gap-2 font-display text-xs bg-blue-950/40 border-blue-500/30 text-blue-400"
             onClick={() => setShowActions(!showActions)}>
-            <ChevronDown size={18} className={showActions ? "rotate-180 transition-transform" : "transition-transform"} /> 
+            <ChevronDown size={14} className={showActions ? "rotate-180 transition-transform" : "transition-transform"} /> 
             ACCIONES
           </button>
           <button
-            className="btn-fantasy py-3 flex items-center justify-center gap-2 font-display text-sm border-dashed bg-transparent border-red-500/40 text-red-500"
+            className="btn-fantasy py-2 flex items-center justify-center gap-2 font-display text-xs border-dashed bg-transparent border-red-500/40 text-red-500"
             onClick={onAddPin}>
-            <Pin size={18} /> AÑADIR TURNO EXTRA
+            <Pin size={14} /> AÑADIR TURNO EXTRA
           </button>
         </div>
       </div>
