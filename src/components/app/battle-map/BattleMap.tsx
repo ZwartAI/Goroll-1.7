@@ -256,9 +256,45 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     };
 
     const { error } = await supabase.from('battle_map_scenes').insert(newScene);
-    if (error) toast.error("Error al guardar la escena");
-    else toast.success("Escena guardada: " + name);
+    if (error) {
+      console.error("Error creating scene:", error);
+      toast.error("Error al crear la escena: " + error.message);
+    } else {
+      toast.success("Escena creada: " + name);
+      setIsAddSceneModalOpen(false);
+    }
   }, [campaign?.id, mapConfig, remoteTokenPositions, chalkLines, chalkNotes]);
+
+  const handleDuplicateScene = useCallback(async (scene: BattleMapScene) => {
+    if (!campaign?.id) return;
+    playMapSound('click');
+
+    const duplicatedScene: any = {
+      campaign_id: campaign.id,
+      name: `${scene.name} (Copia)`,
+      background_url: scene.background_url,
+      background_type: scene.background_type,
+      background_scale: scene.background_scale,
+      background_opacity: scene.background_opacity,
+      background_brightness: scene.background_brightness,
+      grid_size: scene.grid_size,
+      grid_color: scene.grid_color,
+      grid_opacity: scene.grid_opacity,
+      show_grid: scene.show_grid,
+      tokens_state: scene.tokens_state,
+      chalk_lines: scene.chalk_lines,
+      chalk_notes: scene.chalk_notes,
+      is_active: false
+    };
+
+    const { error } = await supabase.from('battle_map_scenes').insert(duplicatedScene);
+    if (error) {
+      console.error("Error duplicating scene:", error);
+      toast.error("Error al duplicar la escena");
+    } else {
+      toast.success("Escena duplicada");
+    }
+  }, [campaign?.id]);
 
   const handleActivateScene = useCallback(async (sceneId: string) => {
     if (!campaign?.id) return;
@@ -308,7 +344,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     };
 
     const { error } = await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
-    if (error) console.error("Error updating scene state:", error);
+    if (error) {
+      console.error("Error updating scene state:", error);
+      toast.error("Error al actualizar la escena: " + error.message);
+    }
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
@@ -651,8 +690,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 setIsFading(false);
               }, 400);
             }}
-            onOpenAddScene={() => setIsAddSceneModalOpen(true)}
+            onOpenAddScene={() => {
+              setNewSceneName('');
+              setIsAddSceneModalOpen(true);
+            }}
             onDeleteScene={handleDeleteScene}
+            onDuplicateScene={(id) => {
+              const scene = scenes.find(s => s.id === id);
+              if (scene) handleDuplicateScene(scene);
+            }}
             onOpenConfig={() => setIsConfigModalOpen(true)}
             onClose={() => setIsScenesPanelOpen(false)}
           />

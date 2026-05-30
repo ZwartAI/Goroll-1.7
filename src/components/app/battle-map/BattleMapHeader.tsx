@@ -36,15 +36,13 @@ export const BattleMapHeader: React.FC<Props> = ({
           <span className="text-[7px] uppercase tracking-[0.3em] text-muted-foreground font-display leading-none mb-0.5">
             {isDM ? 'Dungeon Master' : 'Explorador'}
           </span>
-          <button 
-            onClick={onScenesToggle}
+          <div 
             className="flex items-center gap-1.5 group outline-none"
           >
-            <h1 className="font-display text-[11px] uppercase tracking-[0.1em] text-[var(--gold)] truncate max-w-[120px] sm:max-w-none leading-none group-hover:text-white transition-colors">
+            <h1 className="font-display text-[11px] uppercase tracking-[0.1em] text-[var(--gold)] truncate max-w-[120px] sm:max-w-none leading-none">
               {title}
             </h1>
-            {isDM && <ChevronDown size={12} className="text-[var(--gold)] opacity-50 group-hover:opacity-100" />}
-          </button>
+          </div>
         </div>
       </div>
 
