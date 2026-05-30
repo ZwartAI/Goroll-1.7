@@ -21,7 +21,7 @@ interface Props {
   onChange: (config: MapConfig) => void;
 }
 
-export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void, onSaveToScene?: () => void }> = ({ config, onChange, isOpen, onClose, onSaveToScene }) => {
+export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void, onSaveToScene?: () => void, saveLabel?: string }> = ({ config, onChange, isOpen, onClose, onSaveToScene, saveLabel }) => {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
