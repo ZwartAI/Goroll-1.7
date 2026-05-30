@@ -638,6 +638,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 setIsRulerActive(!isRulerActive);
                 if (isChalkMode) setIsChalkMode(false);
               }}
+              onScenesToggle={() => setIsScenesPanelOpen(!isScenesPanelOpen)}
             />
 
             {isDM && (
