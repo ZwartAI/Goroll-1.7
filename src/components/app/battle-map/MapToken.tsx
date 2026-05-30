@@ -23,7 +23,8 @@ interface Props {
 }
 
 export const MapToken: React.FC<Props> = ({ 
-  participant, x, y, gridSize, onSelect, isSelected, onLongPress, onProjectionStart 
+  participant, x, y, gridSize, onSelect, isSelected, onLongPress, onProjectionStart,
+  draggable, onDragMove, onDragEnd
 }) => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   // Obtener la imagen (custom o asset)
