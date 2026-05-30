@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ruler, Pencil, UserPlus, UserMinus, MousePointer2 } from 'lucide-react';
+import { Ruler, Pencil, UserPlus, UserMinus, MousePointer2, Layers } from 'lucide-react';
 
 interface Props {
   isDM: boolean;
@@ -11,6 +11,7 @@ interface Props {
   onToggleToken: () => void;
   isRulerActive: boolean;
   onToggleRuler: () => void;
+  onScenesToggle: () => void;
 }
 
 export const BattleMapToolbar: React.FC<Props> = ({
@@ -22,10 +23,11 @@ export const BattleMapToolbar: React.FC<Props> = ({
   hasToken,
   onToggleToken,
   isRulerActive,
-  onToggleRuler
+  onToggleRuler,
+  onScenesToggle
 }) => {
   return (
-    <div className="flex flex-col gap-2 bg-black/60 backdrop-blur-md border border-white/10 p-2 rounded-2xl shadow-2xl">
+    <div className="flex flex-col gap-2 bg-black/80 backdrop-blur-xl border border-white/10 p-2.5 rounded-[2rem] shadow-2xl">
       <ToolbarButton 
         active={!isChalkMode && !isRulerActive} 
         onClick={() => {
@@ -56,6 +58,13 @@ export const BattleMapToolbar: React.FC<Props> = ({
           title="Lápiz (Dibujo)"
         />
       )}
+
+      <ToolbarButton 
+        active={false} 
+        onClick={onScenesToggle}
+        icon={<Layers className="w-5 h-5" />}
+        title="Escenas/Mapas"
+      />
 
       <div className="h-px bg-white/10 mx-1 my-1" />
 
