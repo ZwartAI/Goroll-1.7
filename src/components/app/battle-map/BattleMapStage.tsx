@@ -28,6 +28,13 @@ interface Props {
   onAddNote?: (x: number, y: number) => void;
   onNoteUpdate?: (id: string, x: number, y: number) => void;
   onNoteClick?: (id: string) => void;
+  // FASE 5 Props
+  remoteTokenPositions?: Record<string, { x: number; y: number }>;
+  remoteProjections?: Record<string, ProjectionState | null>;
+  onTokenMove?: (id: string, x: number, y: number) => void;
+  onTokenMoveEnd?: () => void;
+  onProjectionUpdate?: (projection: ProjectionState | null) => void;
+  role: string;
 }
 
 export type ProjectionType = 'distance' | 'area' | 'line' | 'cone';
