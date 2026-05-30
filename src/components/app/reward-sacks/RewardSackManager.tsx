@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
-import { Plus, Boxes, Copy, Trash2, Play, Search, Gift } from "lucide-react";
+import { Plus, Boxes, Copy, Trash2, Play, Search, Gift, X } from "lucide-react";
 import { 
   type RewardSack, 
   fetchRewardSacks, 
