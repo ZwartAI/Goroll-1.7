@@ -287,26 +287,29 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!activeSceneId || !isDM) return;
     
+    // Si se pasa customConfig, usamos eso. Si no, usamos el mapConfig actual.
+    // Esto asegura que al guardar la escena se guarden los ajustes visuales actuales.
+    const currentConfig = customConfig || mapConfig;
+    
     const updates: any = {
       tokens_state: remoteTokenPositions as any,
       chalk_lines: chalkLines as any,
-      chalk_notes: chalkNotes as any
+      chalk_notes: chalkNotes as any,
+      background_url: currentConfig.backgroundUrl,
+      background_type: currentConfig.backgroundType,
+      background_scale: currentConfig.backgroundScale,
+      background_opacity: currentConfig.backgroundOpacity,
+      background_brightness: currentConfig.backgroundBrightness,
+      grid_size: currentConfig.gridSize,
+      grid_color: currentConfig.gridColor,
+      grid_opacity: currentConfig.gridOpacity,
+      show_grid: currentConfig.showGrid,
+      updated_at: new Date().toISOString()
     };
 
-    if (customConfig) {
-      if (customConfig.backgroundUrl !== undefined) updates.background_url = customConfig.backgroundUrl;
-      if (customConfig.backgroundType !== undefined) updates.background_type = customConfig.backgroundType;
-      if (customConfig.backgroundScale !== undefined) updates.background_scale = customConfig.backgroundScale;
-      if (customConfig.backgroundOpacity !== undefined) updates.background_opacity = customConfig.backgroundOpacity;
-      if (customConfig.backgroundBrightness !== undefined) updates.background_brightness = customConfig.backgroundBrightness;
-      if (customConfig.gridSize !== undefined) updates.grid_size = customConfig.gridSize;
-      if (customConfig.gridColor !== undefined) updates.grid_color = customConfig.gridColor;
-      if (customConfig.gridOpacity !== undefined) updates.grid_opacity = customConfig.gridOpacity;
-      if (customConfig.showGrid !== undefined) updates.show_grid = customConfig.showGrid;
-    }
-
-    await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
-  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM]);
+    const { error } = await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
+    if (error) console.error("Error updating scene state:", error);
+  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
 
