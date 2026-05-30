@@ -677,9 +677,11 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                       }} 
                       isOpen={isConfigModalOpen} 
                       onClose={() => setIsConfigModalOpen(false)} 
-                      onSaveToScene={() => {
-                        handleUpdateCurrentSceneState(mapConfig);
-                        toast.success("Ajustes guardados en la escena");
+                      onSaveToScene={async () => {
+                        const success = await handleUpdateCurrentSceneState(mapConfig);
+                        if (success) {
+                          toast.success("Ajustes guardados en la escena");
+                        }
                       }}
                     />
                 </>
