@@ -17,6 +17,17 @@ interface Props {
   participants: CombatParticipant[];
   config: MapConfig;
   onLongPressToken?: (id: string, x: number, y: number) => void;
+  // FASE 4 Props
+  isChalkMode?: boolean;
+  chalkTool?: ChalkTool;
+  chalkColor?: ChalkColor;
+  chalkSize?: ChalkSize;
+  chalkLines: ChalkLine[];
+  chalkNotes: ChalkNote[];
+  onAddChalkLine?: (line: ChalkLine) => void;
+  onAddNote?: (x: number, y: number) => void;
+  onNoteUpdate?: (id: string, x: number, y: number) => void;
+  onNoteClick?: (id: string) => void;
 }
 
 export type ProjectionType = 'distance' | 'area' | 'line' | 'cone';
