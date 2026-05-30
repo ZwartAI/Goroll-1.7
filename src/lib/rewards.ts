@@ -21,6 +21,20 @@ export interface RewardSack {
   updated_at: string;
 }
 
+export interface RewardAssignment {
+  id: string;
+  campaign_id: string;
+  character_id: string;
+  sack_id?: string;
+  coins: number;
+  item_ids: string[];
+  skill_ids: string[];
+  booster_ids: string[];
+  status: 'pending' | 'accepted';
+  created_at: string;
+  updated_at: string;
+}
+
 export const SACK_TYPE_COLORS: Record<RewardSackType, string> = {
   normal: "oklch(0.70 0.08 60)", // Brownish/Wood
   special: "oklch(0.70 0.12 220)", // Blueish/Magic
@@ -45,7 +59,6 @@ export async function saveRewardSack(sack: Partial<RewardSack> & { campaign_id: 
     .select()
     .single();
 
-
   if (error) throw error;
   return data as RewardSack;
 }
@@ -65,4 +78,17 @@ export async function duplicateRewardSack(sack: RewardSack) {
     ...rest,
     name: `${rest.name} (Copia)`,
   });
+}
+
+/**
+ * Marks a reward assignment as accepted. 
+ * This logic will be extended in Phase 3 to actually add items to inventory.
+ */
+export async function acceptRewardAssignment(assignmentId: string) {
+  const { error } = await supabase
+    .from("reward_assignments")
+    .update({ status: 'accepted' })
+    .eq("id", assignmentId);
+
+  if (error) throw error;
 }

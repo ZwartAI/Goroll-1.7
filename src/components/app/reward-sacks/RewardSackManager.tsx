@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
-import { Plus, Boxes, Copy, Trash2, Play, Search, Gift, X } from "lucide-react";
+import { Plus, Boxes, Copy, Trash2, Play, Search, Gift, X, Send } from "lucide-react";
 import { 
   type RewardSack, 
   fetchRewardSacks, 
@@ -11,7 +11,9 @@ import {
 import { toast } from "sonner";
 import { RewardSackEditor } from "./RewardSackEditor";
 import { RewardSackSimulator } from "./RewardSackSimulator";
+import { RewardSackAssigner } from "./RewardSackAssigner";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 interface Props {
   campaignId: string;
@@ -24,7 +26,9 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [editingSack, setEditingSack] = useState<RewardSack | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [assigningSack, setAssigningSack] = useState<RewardSack | null>(null);
   const [simulatingSack, setSimulatingSack] = useState<RewardSack | null>(null);
+
   const [search, setSearch] = useState("");
 
   const reload = async () => {
@@ -158,19 +162,32 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
 
                   <div className="flex gap-2 pt-2 border-t border-white/5">
                     <button 
-                      onClick={() => setEditingSack(sack)}
-                      className="flex-1 py-1.5 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      onClick={() => setAssigningSack(sack)}
+                      className="flex-1 py-1.5 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest hover:scale-105 transition-all shadow-[0_0_10px_rgba(234,179,8,0.2)]"
                     >
-                      Editar
+                      Entregar
                     </button>
                     <button 
+                      onClick={() => setEditingSack(sack)}
+                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
+                      title="Editar configuración"
+                    >
+                      <Plus size={14} className="scale-75 rotate-45" />
+                    </button>
+
+
+
+
+
+                    <button 
                       onClick={() => setSimulatingSack(sack)}
-                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-[var(--gold)]/20 text-[var(--gold)] transition-colors"
+                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
                       title="Probar simulador"
                     >
                       <Play size={14} />
                     </button>
                   </div>
+
                 </div>
               ))}
               {filteredSacks.length === 0 && !loading && (
@@ -206,6 +223,14 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
             onClose={() => setSimulatingSack(null)} 
           />
         )}
+
+        {assigningSack && (
+          <RewardSackAssigner 
+            sack={assigningSack} 
+            onClose={() => setAssigningSack(null)} 
+          />
+        )}
+
       </div>
     </div>
   );
