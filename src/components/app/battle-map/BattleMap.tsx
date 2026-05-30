@@ -513,45 +513,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         </div>
 
         {/* FASE 8: Improved Empty State - Only show if absolutely nothing is configured */}
-        {!mapConfig.backgroundUrl && scenes.length === 0 && isDM && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            <div className="max-w-md w-full p-8 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-              <div className="w-20 h-20 mx-auto rounded-full bg-[var(--gold)]/10 flex items-center justify-center border border-[var(--gold)]/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                <Layers className="w-10 h-10 text-[var(--gold)] opacity-40" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-display text-lg uppercase tracking-[0.3em] text-[var(--gold)]">Tu escenario espera</h2>
-                <p className="text-xs text-muted-foreground leading-relaxed uppercase tracking-widest opacity-60">
-                  Define el entorno táctico para tus jugadores.<br/>Sube un mapa o crea tu primera escena.
-                </p>
-              </div>
-              <div className="pt-4 flex flex-col gap-3 items-center pointer-events-auto">
-                <button 
-                  onClick={() => setIsConfigModalOpen(true)}
-                  className="ornate-card !px-8 !py-3 flex items-center gap-3 hover:bg-[var(--gold)] hover:text-black transition-all group"
-                >
-                  <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Configurar Fondo</span>
-                </button>
-                <button 
-                  onClick={() => setIsScenesPanelOpen(true)}
-                  className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground hover:text-[var(--gold)] transition-colors"
-                >
-                  O gestionar escenas →
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!mapConfig.backgroundUrl && !isDM && (
+        {!mapConfig.backgroundUrl && scenes.length === 0 && (
           <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
             <div className="text-center space-y-3 animate-in fade-in duration-700">
                <div className="w-16 h-16 mx-auto rounded-full border border-white/5 bg-white/5 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse" />
                </div>
                <p className="font-display text-[10px] uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
-                  Esperando al Dungeon Master...
+                  {isDM ? 'Configure un mapa en Ajustes para comenzar' : 'Esperando al Dungeon Master...'}
                </p>
             </div>
           </div>
