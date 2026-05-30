@@ -47,16 +47,8 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
   onOpenConfig,
   onClose
 }) => {
-  const [isCreating, setIsCreating] = useState(false);
-  const [newSceneName, setNewSceneName] = useState('');
+  // Removed isCreating state for modal-based flow
 
-  const handleCreate = () => {
-    if (newSceneName.trim()) {
-      onSaveCurrentAsNew(newSceneName.trim());
-      setNewSceneName('');
-      setIsCreating(false);
-    }
-  };
 
   return (
     <aside className="fixed inset-y-0 left-0 w-full sm:w-80 bg-[#0a0a0c]/98 border-r border-white/10 flex flex-col z-[110] backdrop-blur-xl shadow-2xl transition-all animate-in slide-in-from-left duration-300">
