@@ -90,8 +90,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     backgroundOpacity: 1,
     backgroundBrightness: 1,
     gridSize: 50,
-    gridColor: 'rgba(255,255,255,0.5)',
-    gridOpacity: 0.8,
+    gridColor: 'rgba(255,255,255,0.7)',
+    gridOpacity: 0.9,
     showGrid: true
   });
   const [projectionMenu, setProjectionMenu] = useState<{ x: number, y: number, tokenId: string } | null>(null);
@@ -484,7 +484,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         <div className="absolute inset-0 z-0">
           <BattleMapStage 
             width={dimensions.width} 
-            height={dimensions.height - 112} // Adjusted for Header + BottomBar
+            height={Math.max(300, dimensions.height - 112)} // Adjusted for Header + BottomBar
             participants={displayParticipants}
             config={mapConfig}
             onLongPressToken={(tokenId, x, y) => setProjectionMenu({ tokenId, x, y })}
@@ -513,6 +513,18 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         </div>
 
         {/* FASE 8: Improved Empty State - Only show if absolutely nothing is configured */}
+        {!mapConfig.backgroundUrl && scenes.length === 0 && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="text-center space-y-3 animate-in fade-in duration-700">
+               <div className="w-16 h-16 mx-auto rounded-full border border-white/5 bg-white/5 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse" />
+               </div>
+               <p className="font-display text-[10px] uppercase tracking-[0.3em] text-muted-foreground animate-pulse">
+                  {isDM ? 'Configure un mapa en Ajustes para comenzar' : 'Esperando al Dungeon Master...'}
+               </p>
+            </div>
+          </div>
+        )}
 
         {/* FASE 7: Turn Rail (Left Side) */}
         {orderedTurns.length > 0 && (

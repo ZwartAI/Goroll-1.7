@@ -81,7 +81,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(!config.backgroundUrl);
@@ -109,10 +109,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const stageHeight = stage.height();
         
         // Centrar imagen
-        const mapWidth = bgImage.width * config.backgroundScale;
-        const mapHeight = bgImage.height * config.backgroundScale;
+        const mapWidth = (bgImage.width || 100) * (config.backgroundScale || 1);
+        const mapHeight = (bgImage.height || 100) * (config.backgroundScale || 1);
         
-        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.8;
+        const newScale = Math.min(Math.max(0.1, stageWidth / mapWidth), Math.max(0.1, stageHeight / mapHeight)) * 0.8;
         const newX = (stageWidth - mapWidth * newScale) / 2;
         const newY = (stageHeight - mapHeight * newScale) / 2;
         
@@ -320,25 +320,27 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     const offset = -5000;
     
     // Evitar bucles infinitos
-    const gSize = Math.max(20, gridSize);
-    const s = Math.max(0.1, scale);
+    const gSize = Math.max(10, gridSize);
+    const s = scale || 1;
+    const lineThickness = 1.2 / s;
+    const gridLinesOpacity = config.gridOpacity || 0.5;
     
     // Líneas verticales
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.8)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     // Líneas horizontales
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.8)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
 
 
   return (
-    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden">
+    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5">
       <Stage
         width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
@@ -348,7 +350,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#050507" />
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" />
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
               image={videoRef.current!} 
@@ -381,7 +383,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
         </Layer>
-        <Layer listening={false}>
+        <Layer id="grid-layer" listening={false}>
           <Group>{gridLines}</Group>
         </Layer>
         <Layer id="tokens-layer">
