@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type RewardSack, SACK_TYPE_COLORS } from "@/lib/rewards";
 import { X, Gift, Users, Send } from "lucide-react";
+import { pushLog } from "@/lib/log";
 import { CharacterPortrait } from "@/components/app/CharacterPortrait";
 import { useGameData } from "@/lib/useGame";
 import { backdropProps } from "@/lib/modalBackdrop";
@@ -61,6 +62,20 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
         .insert(assignments);
 
       if (error) throw error;
+
+      // 2. Create Log entry
+      const targetNames = characters
+        .filter(c => selectedCharIds.includes(c.id))
+        .map(c => c.name)
+        .join(", ");
+
+      const sackRarity = sack.type === 'legendary' ? 'gold' : sack.type === 'special' ? 'blue' : 'white';
+
+      await pushLog(campaign.id, [
+        { t: 'text', v: 'El DM entregó ' },
+        { t: 'item', v: sack.name, rarity: sackRarity },
+        { t: 'text', v: ` a: ${targetNames}` }
+      ]);
 
       toast.success(`Recompensas entregadas a ${selectedCharIds.length} aventurero(s)`);
       onClose();

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { type RewardAssignment, acceptRewardAssignment } from "@/lib/rewards";
 import { CharacterPortrait } from "@/components/app/CharacterPortrait";
 import { Coins, Sparkles, Sword, Wand2, Check } from "lucide-react";
+import { pushLog } from "@/lib/log";
 import { type Rarity, RARITY_COLOR, type Item } from "@/lib/game";
 
 export function PlayerRewardModal() {
@@ -117,6 +118,21 @@ export function PlayerRewardModal() {
     if (!currentReward) return;
     try {
       await acceptRewardAssignment(currentReward.id);
+      
+      if (campaign?.id && character) {
+        const segments: any[] = [
+          { t: 'char', v: character.name, color: character.color || 'var(--gold)', id: character.id },
+          { t: 'text', v: ' reclamó su botín' }
+        ];
+
+        if (currentReward.coins > 0) {
+          segments.push({ t: 'text', v: ' (' });
+          segments.push({ t: 'coins', v: `${currentReward.coins} oro` });
+          segments.push({ t: 'text', v: ')' });
+        }
+
+        await pushLog(campaign.id, segments);
+      }
       // The state will be updated by the realtime listener or manually here to be faster
       setPendingRewards(prev => prev.slice(1));
       setCoins(0);
