@@ -386,11 +386,15 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         height={height}
         ref={stageRef}
         onWheel={handleWheel}
-        draggable
+        draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
+        onMouseDown={handleStageMouseDown}
+        onTouchStart={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onTouchMove={handleStageMouseMove}
-        className="cursor-grab active:cursor-grabbing"
+        onMouseUp={handleStageMouseUp}
+        onTouchEnd={handleStageMouseUp}
+        className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         {/* Capa de Fondo (Video o Imagen) */}
         <Layer ref={layerRef}>
