@@ -131,12 +131,16 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadLogs = useCallback(async (campaignId: string, limit = LOGS_INITIAL_LIMIT) => {
-    const { data } = await supabase
-      .from("logs").select("*").eq("campaign_id", campaignId)
-      .order("created_at", { ascending: false }).limit(limit);
+    // Filter dm_only at the query level for non-DM viewers to avoid leaking spoiler content.
+    const s = getSession();
+    const isDm = s?.role === "dm" || s?.isMaster === true;
+    let q = supabase.from("logs").select("*").eq("campaign_id", campaignId);
+    if (!isDm) q = q.eq("dm_only", false);
+    const { data } = await q.order("created_at", { ascending: false }).limit(limit);
     logsLimitRef.current = limit;
     setLogs((data || []) as LogRow[]);
   }, []);
+
 
   const loadMoreLogs = useCallback(async (extra = 50) => {
     const s = getSession(); if (!s) return;
