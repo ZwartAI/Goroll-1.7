@@ -432,9 +432,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             {gridLines}
           </Group>
           
-          {status === 'loading' && (
-            <Group x={width/2 - position.x/scale} y={height/2 - position.y/scale}>
-              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={200 / scale} offsetX={100 / scale} />
+          {(status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={400 / scale} offsetX={200 / scale} />
             </Group>
           )}
 
