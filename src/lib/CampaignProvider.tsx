@@ -7,6 +7,8 @@ import { CombatEndModal } from "@/components/app/CombatEndModal";
 import { LevelUpModal } from "@/components/app/LevelUpModal";
 import { CampaignLoadingOverlay } from "@/components/app/CampaignLoadingOverlay";
 import { PlayerNotifier } from "@/components/app/PlayerNotifier";
+import { PlayerRewardModal } from "@/components/app/reward-sacks/PlayerRewardModal";
+
 
 
 
