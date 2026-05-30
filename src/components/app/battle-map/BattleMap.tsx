@@ -54,6 +54,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     showGrid: true
   });
   const [projectionMenu, setProjectionMenu] = useState<{ x: number, y: number, tokenId: string } | null>(null);
+  
+  // FASE 4: Chalk state
+  const [isChalkMode, setIsChalkMode] = useState(false);
+  const [chalkTool, setChalkTool] = useState<ChalkTool>('pencil');
+  const [chalkColor, setChalkColor] = useState<ChalkColor>('#ffffff');
+  const [chalkSize, setChalkSize] = useState<ChalkSize>(5);
+  const [chalkLines, setChalkLines] = useState<ChalkLine[]>([]);
+  const [chalkNotes, setChalkNotes] = useState<ChalkNote[]>([]);
+
   const stageRef = useRef<any>(null); // For future direct interaction if needed
 
   // Ajuste reactivo del tamaño del canvas
