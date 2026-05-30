@@ -31,6 +31,14 @@ import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { CombatSummaryModal } from "@/components/app/CombatSummaryModal";
 
+const esperandoTurnoEs = "/uploads/esperando-turno.png";
+const terminarTurnoEs = "/uploads/terminar-turno.png";
+const iniciativaEs = "/uploads/iniciativa.png";
+const esperandoTurnoEn = "/uploads/esperando-turno-eng.png";
+const terminarTurnoEn = "/uploads/terminar-turno-eng.png";
+const iniciativaEn = "/uploads/iniciativa-eng.png";
+
+
 
 
 type Props = {
