@@ -361,10 +361,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
-    if (!activeSceneId || !isDM) return;
+    if (!isDM) return false;
     
-    // Si se pasa customConfig, usamos eso. Si no, usamos el mapConfig actual.
-    // Esto asegura que al guardar la escena se guarden los ajustes visuales actuales.
+    if (!activeSceneId) {
+      // Si no hay escena activa, sugerimos crear una
+      toast.info("No hay una escena activa seleccionada. Crea una nueva escena primero.");
+      setIsAddSceneModalOpen(true);
+      return false;
+    }
+    
     const currentConfig = customConfig || mapConfig;
     
     const updates: any = {
@@ -387,7 +392,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     if (error) {
       console.error("Error updating scene state:", error);
       toast.error("Error al actualizar la escena: " + error.message);
+      return false;
     }
+    return true;
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
