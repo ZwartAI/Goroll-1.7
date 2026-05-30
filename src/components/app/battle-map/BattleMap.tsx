@@ -455,10 +455,11 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           className="fixed right-3 z-[45] transition-all duration-300"
           style={{ 
             bottom: isLogExpanded 
-              ? 'calc(max(40vh, 256px) + 12px)' // 40vh or 256px (sm:h-64)
-              : '60px' // 48px log height + 12px margin
+              ? (dimensions.width >= 640 ? '268px' : 'calc(40vh + 12px)')
+              : '60px'
           }}
         >
+
           <BattleMapDiceButton onClick={handleDiceClick} />
         </div>
 
