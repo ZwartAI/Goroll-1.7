@@ -259,8 +259,12 @@ export const en: Dict = {
     tokenRemoved: "Token removed",
     noMapLoaded: "No map loaded.",
     waitingForDM: "Waiting for DM to set up map.",
-
+    openSummary: "Open summary for {name}",
+    openSheet: "Open sheet for {name}",
+    openLinkedEntity: "Open linked entity for {name}",
+    linkGroup: "Link group: {name}",
   },
+
   profile: {
     loading: "Loading...",
     logoutAria: "Log out",

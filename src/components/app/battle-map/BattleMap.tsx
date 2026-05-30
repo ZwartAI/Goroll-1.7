@@ -23,7 +23,14 @@ import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
 import { BattleMapToolbar } from './BattleMapToolbar';
 import { BattleMapBottomBar } from './BattleMapBottomBar';
 import { playMapSound } from './BattleMapSounds';
-import type { CombatParticipant } from '@/lib/combat';
+import type { CombatParticipant, TurnBlock, CombatTurnGroup } from '@/lib/combat';
+import { EnemyCombatSheetModal } from '@/components/app/EnemyCombatSheetModal';
+import { EntityPortraitModal } from '@/components/app/EntityPortraitModal';
+import { CharacterSheetModal } from '@/components/app/CharacterSheetModal';
+import { X, Crown, Users } from 'lucide-react';
+import { backdropProps } from '@/lib/modalBackdrop';
+
+
 
 
 // FASE 2: MapConfig interface
@@ -56,6 +63,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isRulerActive, setIsRulerActive] = useState(false);
+  const [selectedEntityForSheet, setSelectedEntityForSheet] = useState<CombatParticipant | null>(null);
+  const [selectedGroupSummary, setSelectedGroupSummary] = useState<CombatTurnGroup | null>(null);
+
 
 
   
@@ -398,6 +408,22 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     handleUpdateCurrentSceneState();
   }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleUpdateCurrentSceneState, t]);
 
+  const handleTurnRailClick = useCallback((block: TurnBlock) => {
+    if (block.kind === 'solo') {
+      const p = block.participant;
+      if (p.participant_type === 'player' && p.character_id) {
+        onOpenChar(p.character_id);
+      } else {
+        setSelectedEntityForSheet(p);
+      }
+    } else if (block.kind === 'pin') {
+      setSelectedEntityForSheet(block.linked);
+    } else if (block.kind === 'group') {
+      setSelectedGroupSummary(block.group);
+    }
+  }, [onOpenChar]);
+
+
   const handleOpenNavSection = (section: string) => {
     toast.info(`Abriendo sección: ${section}`);
   };
@@ -476,7 +502,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapTurnRail 
             blocks={orderedTurns} 
             activeBlockIndex={activeBlockIndex} 
+            onItemClick={handleTurnRailClick}
           />
+
         )}
 
 
@@ -621,6 +649,96 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         <div className="fixed bottom-20 right-4 z-[70] animate-in slide-in-from-right-5 duration-500">
           <BattleMapDiceButton onClick={handleDiceClick} />
         </div>
+
+        {/* Selected Entity Sheet (Enemy/NPC) */}
+        {selectedEntityForSheet && (
+          isDM ? (
+            <EnemyCombatSheetModal 
+              participant={selectedEntityForSheet}
+              encounter={combat.encounter!}
+              participants={combat.participants}
+              groups={combat.groups}
+              pins={combat.pins}
+              onClose={() => setSelectedEntityForSheet(null)}
+            />
+          ) : (
+            <EntityPortraitModal 
+              participant={selectedEntityForSheet} 
+              onClose={() => setSelectedEntityForSheet(null)} 
+            />
+          )
+        )}
+
+        {/* Group Summary Modal */}
+        {selectedGroupSummary && (
+          <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setSelectedGroupSummary(null))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-5 space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="text-[var(--gold)] w-5 h-5" />
+                  <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">
+                    {selectedGroupSummary.name || t('combat.linkBadge')}
+                  </h3>
+                </div>
+                <button onClick={() => setSelectedGroupSummary(null)} className="text-muted-foreground hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="gem-divider opacity-30" />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <span>{t('combat.initiative')}</span>
+                  <span className="text-[var(--gold)] font-bold">{selectedGroupSummary.group_initiative}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('battleMap.participants')}</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {combat.participants.filter(p => p.turn_group_id === selectedGroupSummary.id).map(member => (
+                      <button 
+                        key={member.id}
+                        onClick={() => {
+                          if (member.participant_type === 'player' && member.character_id) {
+                            onOpenChar(member.character_id);
+                          } else {
+                            setSelectedEntityForSheet(member);
+                          }
+                          setSelectedGroupSummary(null);
+                        }}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all text-left"
+                      >
+                        <div className="w-8 h-8 rounded-full border-2 overflow-hidden flex-shrink-0" style={{ borderColor: member.color || 'var(--gold)' }}>
+                           {member.image_url ? (
+                             <img src={member.image_url} alt={member.display_name} className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full bg-secondary flex items-center justify-center text-xs">🧙</div>
+                           )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-display text-xs truncate" style={{ color: member.color || undefined }}>
+                            {member.display_name}
+                          </p>
+                          {member.is_leader && (
+                            <div className="flex items-center gap-1 text-[8px] uppercase tracking-tighter text-[var(--gold)]">
+                              <Crown size={8} /> Líder
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button className="btn-fantasy w-full py-2 mt-2" onClick={() => setSelectedGroupSummary(null)}>
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        )}
+
 
       </main>
 
