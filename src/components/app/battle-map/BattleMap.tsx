@@ -23,7 +23,13 @@ import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
 import { BattleMapToolbar } from './BattleMapToolbar';
 import { BattleMapBottomBar } from './BattleMapBottomBar';
 import { playMapSound } from './BattleMapSounds';
-import type { CombatParticipant } from '@/lib/combat';
+import type { CombatParticipant, TurnBlock, CombatTurnGroup } from '@/lib/combat';
+import { EnemyCombatSheetModal } from '@/components/app/EnemyCombatSheetModal';
+import { EntityPortraitModal } from '@/components/app/EntityPortraitModal';
+import { CharacterSheetModal } from '@/components/app/CharacterSheetModal';
+import { X, Crown } from 'lucide-react';
+import { backdropProps } from '@/lib/modalBackdrop';
+
 
 
 // FASE 2: MapConfig interface
