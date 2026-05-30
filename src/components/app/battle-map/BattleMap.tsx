@@ -237,9 +237,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     if (!campaign?.id) return;
     playMapSound('click');
     
+    // Si no hay escenas, la primera será activa
     const isFirstScene = scenes.length === 0;
     
-    const newScene: any = {
+    const newSceneData = {
       campaign_id: campaign.id,
       name,
       background_url: mapConfig.backgroundUrl,
@@ -257,7 +258,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       is_active: isFirstScene
     };
 
-    const { data, error } = await supabase.from('battle_map_scenes').insert(newScene).select().single();
+    console.log("Attempting to insert scene:", newSceneData);
+
+    const { data, error } = await supabase.from('battle_map_scenes').insert(newSceneData as any).select().single();
+    
     if (error) {
       console.error("Error creating scene:", error);
       toast.error("Error al crear la escena: " + error.message);
