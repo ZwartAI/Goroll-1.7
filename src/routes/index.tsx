@@ -691,8 +691,12 @@ function Home() {
             placeholder={t("home.searchPlaceholder")} value={search} onChange={e => setSearch(e.target.value)} />
           <div className="max-h-56 overflow-y-auto space-y-2">
             {campaigns.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
-              <button key={c.id} onClick={() => setActionCampaign(c)}
+              <button key={c.id} onClick={() => {
+                if (role === "player") pickCampaign(c);
+                else setActionCampaign(c);
+              }}
                 className="no-hover-grow w-full rounded-lg border border-border bg-card px-3 py-3 text-left hover:border-[var(--gold)]/60 transition">
+
 
                 <span className="font-display text-base">{c.name}</span>
               </button>
