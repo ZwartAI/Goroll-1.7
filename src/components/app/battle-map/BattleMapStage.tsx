@@ -38,7 +38,23 @@ export interface ProjectionState {
   current: { x: number; y: number };
 }
 
-export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, participants, config, onLongPressToken }) => {
+export const BattleMapStage: React.FC<Props> = React.memo(({ 
+  width, 
+  height, 
+  participants, 
+  config, 
+  onLongPressToken,
+  isChalkMode = false,
+  chalkTool = 'pencil',
+  chalkColor = '#ffffff',
+  chalkSize = 5,
+  chalkLines,
+  chalkNotes,
+  onAddChalkLine,
+  onAddNote,
+  onNoteUpdate,
+  onNoteClick
+}) => {
   const stageRef = useRef<Konva.Stage>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const layerRef = useRef<Konva.Layer>(null);
@@ -47,6 +63,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({ width, height, part
   const [bgImage] = useImage(config.backgroundType === 'image' ? config.backgroundUrl : '');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
+
+  // FASE 4: Local state for drawing
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [currentLinePoints, setCurrentLinePoints] = useState<number[]>([]);
 
   // Sistema de Grid
   const gridSize = config.gridSize;
