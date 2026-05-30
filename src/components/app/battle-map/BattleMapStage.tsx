@@ -72,8 +72,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   onTokenMoveEnd,
   onProjectionUpdate,
   role,
-  currentUserId
+  currentUserId,
+  isRulerActive = false
 }) => {
+
   const stageRef = useRef<Konva.Stage>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const layerRef = useRef<Konva.Layer>(null);
