@@ -319,18 +319,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     const size = 10000; 
     const offset = -5000;
     
-    // Evitar bucles infinitos
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = 1.5 / s; // Aumentar grosor mínimo para visibilidad
-    const gridLinesOpacity = config.gridOpacity || 0.6; // Un poco más opaco por defecto
+    const lineThickness = 1 / s;
+    const gridLinesOpacity = config.gridOpacity || 0.4;
     
-    // Líneas verticales
+    // Optimización: dibujar menos líneas si el tamaño de grid es muy pequeño
+    // pero aquí el rango es 20-200 así que está bien.
+    
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
       lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
-    // Líneas horizontales
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
       lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
@@ -350,8 +350,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          {/* Fondo neutro más claro para contraste si no hay imagen */}
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#1a1a1e" />
+          {/* Fondo neutro */}
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" />
           
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
@@ -360,6 +360,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
               width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 20} 
               height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 20} 
               opacity={config.backgroundOpacity} 
+              filters={[Konva.Filters.Brighten]}
+              brightness={config.backgroundBrightness - 1}
             />
           ) : bgImage && (
             <KonvaImage 
@@ -368,10 +370,12 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
               width={bgImage.width * (config.backgroundScale || 1)} 
               height={bgImage.height * (config.backgroundScale || 1)} 
               opacity={config.backgroundOpacity} 
+              filters={[Konva.Filters.Brighten]}
+              brightness={config.backgroundBrightness - 1}
             />
           ))}
 
-          {/* Grid movida a la misma capa base para asegurar visibilidad inmediata y orden */}
+          {/* Grid sobre la imagen para asegurar visibilidad */}
           <Group id="grid-group" listening={false}>
             {gridLines}
           </Group>
@@ -430,7 +434,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         </Layer>
         
         {isDrawing && currentLinePoints.length > 2 && (
-          <Layer listening={false}>
+          <Layer listening={false} opacity={0.7}>
             <Line 
               points={currentLinePoints} 
               stroke={chalkColor} 
@@ -440,7 +444,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
               lineJoin="round" 
               shadowBlur={chalkSize * 0.8} 
               shadowColor={chalkColor} 
-              opacity={0.6} // Más translúcido
             />
           </Layer>
         )}
