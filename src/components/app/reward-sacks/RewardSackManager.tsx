@@ -11,7 +11,9 @@ import {
 import { toast } from "sonner";
 import { RewardSackEditor } from "./RewardSackEditor";
 import { RewardSackSimulator } from "./RewardSackSimulator";
+import { RewardSackAssigner } from "./RewardSackAssigner";
 import { backdropProps } from "@/lib/modalBackdrop";
+
 
 interface Props {
   campaignId: string;
