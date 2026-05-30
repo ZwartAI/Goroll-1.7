@@ -143,10 +143,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
       setScenes(typedScenes);
       
+      // Intentar encontrar escena activa. Si no hay ninguna activa en la DB, marcar la primera como activa localmente si existen escenas.
       const active = typedScenes.find(s => s.is_active);
       if (active) {
         setActiveSceneId(active.id);
         applyScene(active);
+      } else if (typedScenes.length > 0) {
+        setActiveSceneId(typedScenes[0].id);
+        applyScene(typedScenes[0]);
       }
     };
 
@@ -159,7 +163,21 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         { event: '*', schema: 'public', table: 'battle_map_scenes', filter: `campaign_id=eq.${campaign.id}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setScenes(prev => [...prev, payload.new as BattleMapScene]);
+            const newScene = {
+              ...payload.new,
+              tokens_state: (payload.new as any).tokens_state || {},
+              chalk_lines: (payload.new as any).chalk_lines || [],
+              chalk_notes: (payload.new as any).chalk_notes || []
+            } as BattleMapScene;
+            setScenes(prev => [...prev, newScene]);
+            // Si es la única escena, activarla
+            setScenes(currentScenes => {
+              if (currentScenes.length === 1) {
+                setActiveSceneId(newScene.id);
+                applyScene(newScene);
+              }
+              return currentScenes;
+            });
           } else if (payload.eventType === 'UPDATE') {
             setScenes(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
             if (payload.new.is_active) {
@@ -167,7 +185,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               applyScene(payload.new as unknown as BattleMapScene);
             }
           } else if (payload.eventType === 'DELETE') {
-            setScenes(prev => prev.filter(s => s.id !== payload.old.id));
+            setScenes(prev => {
+              const filtered = prev.filter(s => s.id !== payload.old.id);
+              if (activeSceneId === payload.old.id && filtered.length > 0) {
+                setActiveSceneId(filtered[0].id);
+                applyScene(filtered[0]);
+              }
+              return filtered;
+            });
           }
         }
       )
@@ -613,6 +638,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 setIsRulerActive(!isRulerActive);
                 if (isChalkMode) setIsChalkMode(false);
               }}
+              onScenesToggle={() => setIsScenesPanelOpen(!isScenesPanelOpen)}
             />
 
             {isDM && (
