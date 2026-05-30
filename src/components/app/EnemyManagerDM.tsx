@@ -217,15 +217,16 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm 
 }
 
 /** Maps an enemy participant to its glow accent color (npc disposition aware). */
-function accentColorFor(p: CombatParticipant): string {
-  const npcId = (p as any).npc_template_id as string | null | undefined;
-  const disp = (p as any).npc_disposition as ("ally" | "neutral" | "hostile" | null | undefined);
-  if (npcId) {
-    if (disp === "hostile") return "var(--loss)";
-    if (disp === "ally") return "var(--gain)";
-    return "var(--gold)";
+function accentColorFor(p: CombatParticipant): { color: string; intense: boolean } {
+  const isBoss = p.tier?.toLowerCase() === "boss" || p.tier?.toLowerCase() === "god";
+  
+  if (p.npc_template_id) {
+    if (p.npc_disposition === "hostile") return { color: "var(--loss)", intense: isBoss };
+    if (p.npc_disposition === "ally") return { color: "var(--gain)", intense: isBoss };
+    return { color: "var(--gold)", intense: isBoss };
   }
-  return p.enemy_color || "var(--loss)";
+  
+  return { color: p.enemy_color || "var(--loss)", intense: isBoss };
 }
 
 /** FASE 7: Large card for the active entity */
