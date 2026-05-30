@@ -263,6 +263,11 @@ export const en: Dict = {
     openSheet: "Open sheet for {name}",
     openLinkedEntity: "Open linked entity for {name}",
     linkGroup: "Link group: {name}",
+    configTitle: "Map Configuration",
+    background: "Map Background",
+    grid: "Grid",
+    exit: "Exit",
+    saveToScene: "Save to Scene",
   },
 
   profile: {

@@ -81,10 +81,24 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' ? config.backgroundUrl : '');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(!config.backgroundUrl);
+
+  // Centrar el mapa inicialmente o cuando cambian las dimensiones
+  useEffect(() => {
+    if (!config.backgroundUrl) {
+      const stage = stageRef.current;
+      if (stage) {
+        const newX = width / 2;
+        const newY = height / 2;
+        stage.position({ x: newX, y: newY });
+        setPosition({ x: newX, y: newY });
+        setIsReady(true);
+      }
+    }
+  }, [width, height, config.backgroundUrl]);
 
   // FASE 7: Auto-recentrar mapa cuando se carga imagen
   useEffect(() => {
@@ -98,7 +112,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const mapWidth = bgImage.width * config.backgroundScale;
         const mapHeight = bgImage.height * config.backgroundScale;
         
-        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.9;
+        const newScale = Math.min(stageWidth / mapWidth, stageHeight / mapHeight) * 0.8;
         const newX = (stageWidth - mapWidth * newScale) / 2;
         const newY = (stageHeight - mapHeight * newScale) / 2;
         
@@ -108,7 +122,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         setPosition({ x: newX, y: newY });
         setIsReady(true);
       }
-    } else if (status === 'failed' || !config.backgroundUrl) {
+    } else if (status === 'failed') {
+      console.error("Failed to load background image:", config.backgroundUrl);
       setIsReady(true);
     }
   }, [status, bgImage, config.backgroundScale, config.backgroundUrl]);
@@ -301,18 +316,22 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 10000; // Aumentar tamaño para evitar cortes al navegar
-    const offset = -5000; // Centrar el grid relativo al origen 0,0
+    const size = 10000; 
+    const offset = -5000;
+    
+    // Evitar bucles infinitos
+    const gSize = Math.max(20, gridSize);
+    const s = Math.max(0.1, scale);
     
     // Líneas verticales
-    for (let i = 0; i <= size / gridSize; i++) {
-      const x = offset + i * gridSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
+    for (let i = 0; i <= size / gSize; i++) {
+      const x = offset + i * gSize;
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
     }
     // Líneas horizontales
-    for (let i = 0; i <= size / gridSize; i++) {
-      const y = offset + i * gridSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
+    for (let i = 0; i <= size / gSize; i++) {
+      const y = offset + i * gSize;
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
@@ -334,16 +353,16 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             <KonvaImage 
               image={videoRef.current!} 
               x={0} y={0} 
-              width={videoRef.current ? videoRef.current.videoWidth * config.backgroundScale : gridSize * 20} 
-              height={videoRef.current ? videoRef.current.videoHeight * config.backgroundScale : gridSize * 20} 
+              width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 20} 
+              height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 20} 
               opacity={config.backgroundOpacity} 
             />
           ) : bgImage && (
             <KonvaImage 
               image={bgImage} 
               x={0} y={0} 
-              width={bgImage.width * config.backgroundScale} 
-              height={bgImage.height * config.backgroundScale} 
+              width={bgImage.width * (config.backgroundScale || 1)} 
+              height={bgImage.height * (config.backgroundScale || 1)} 
               opacity={config.backgroundOpacity} 
             />
           ))}
@@ -362,7 +381,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
         </Layer>
-        <Layer listening={false}>{gridLines}</Layer>
+        <Layer listening={false}>
+          <Group>{gridLines}</Group>
+        </Layer>
         <Layer id="tokens-layer">
           {isReady && participants.map((p, i) => {
             const remotePos = remoteTokenPositions[p.id];
