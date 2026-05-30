@@ -47,7 +47,8 @@ export const MapToken: React.FC<Props> = ({
       y={y} 
       name="token-group"
       participantId={participant.id}
-      draggable 
+      draggable={draggable} 
+      onDragMove={onDragMove}
       onClick={onSelect}
       onTap={onSelect}
       onMouseDown={(e) => {
