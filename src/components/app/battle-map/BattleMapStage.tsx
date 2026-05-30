@@ -83,9 +83,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
-  const [isReady, setIsReady] = useState(false); // Siempre esperar a que el stage se posicione
+  const [isReady, setIsReady] = useState(false); 
 
   // Centrar el mapa inicialmente o cuando cambian las dimensiones
   useEffect(() => {
@@ -101,29 +102,44 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     }
   }, [width, height, config.backgroundUrl]);
 
-  // FASE 7: Auto-recentrar mapa cuando se carga imagen
+  // FASE 7: Auto-recentrar mapa cuando se carga imagen o video
   useEffect(() => {
-    if (status === 'loaded' && bgImage) {
-      const stage = stageRef.current;
-      if (stage) {
-        const stageWidth = stage.width();
-        const stageHeight = stage.height();
-        
-        // Centrar imagen
-        const mapWidth = (bgImage.width || 100) * (config.backgroundScale || 1);
-        const mapHeight = (bgImage.height || 100) * (config.backgroundScale || 1);
-        
-        const newScale = Math.min(Math.max(0.1, stageWidth / mapWidth), Math.max(0.1, stageHeight / mapHeight)) * 0.8;
-        const newX = (stageWidth - mapWidth * newScale) / 2;
-        const newY = (stageHeight - mapHeight * newScale) / 2;
-        
-        stage.scale({ x: newScale, y: newScale });
-        stage.position({ x: newX, y: newY });
-        setScale(newScale);
-        setPosition({ x: newX, y: newY });
-        setIsReady(true);
-        
-        // Cache image to apply filters
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let mapW = 100;
+    let mapH = 100;
+    let loaded = false;
+
+    if (config.backgroundType === 'image' && status === 'loaded' && bgImage) {
+      mapW = bgImage.width;
+      mapH = bgImage.height;
+      loaded = true;
+    } else if (config.backgroundType === 'video' && isVideoReady && videoRef.current) {
+      mapW = videoRef.current.videoWidth;
+      mapH = videoRef.current.videoHeight;
+      loaded = true;
+    }
+
+    if (loaded) {
+      const stageWidth = stage.width();
+      const stageHeight = stage.height();
+      
+      const mapWidth = mapW * (config.backgroundScale || 1);
+      const mapHeight = mapH * (config.backgroundScale || 1);
+      
+      const newScale = Math.min(Math.max(0.1, stageWidth / mapWidth), Math.max(0.1, stageHeight / mapHeight)) * 0.8;
+      const newX = (stageWidth - mapWidth * newScale) / 2;
+      const newY = (stageHeight - mapHeight * newScale) / 2;
+      
+      stage.scale({ x: newScale, y: newScale });
+      stage.position({ x: newX, y: newY });
+      setScale(newScale);
+      setPosition({ x: newX, y: newY });
+      setIsReady(true);
+      
+      // Cache image to apply filters
+      if (config.backgroundType === 'image') {
         setTimeout(() => {
           if (imageRef.current) {
             imageRef.current.cache();
@@ -136,7 +152,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     } else if (!config.backgroundUrl) {
       setIsReady(true);
     }
-  }, [status, bgImage, config.backgroundScale, config.backgroundUrl]);
+  }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
 
 
   // FASE 7: Subtle particles
@@ -296,16 +312,38 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
 
   useEffect(() => {
     if (config.backgroundType === 'video' && config.backgroundUrl) {
+      setIsVideoReady(false);
       const video = document.createElement('video');
       video.src = config.backgroundUrl;
-      video.loop = true; video.muted = true; video.autoplay = true;
-      video.play();
+      video.loop = true; 
+      video.muted = true; 
+      video.autoplay = true;
+      video.playsInline = true;
+      video.crossOrigin = "anonymous";
+      
+      video.oncanplay = () => {
+        setIsVideoReady(true);
+      };
+
+      video.play().catch(e => console.error("Error playing video:", e));
+      
       video.onplaying = () => {
         const anim = new Konva.Animation(() => setVideoTick(prev => prev + 1), layerRef.current);
-        anim.start(); return () => anim.stop();
+        anim.start(); 
+        return () => anim.stop();
       };
+      
       videoRef.current = video;
-      return () => { if (videoRef.current) { videoRef.current.pause(); videoRef.current.src = ""; videoRef.current.load(); } };
+      return () => { 
+        if (videoRef.current) { 
+          videoRef.current.pause(); 
+          videoRef.current.src = ""; 
+          videoRef.current.load(); 
+        } 
+      };
+    } else {
+      setIsVideoReady(false);
+      videoRef.current = null;
     }
   }, [config.backgroundUrl, config.backgroundType]);
 
@@ -394,9 +432,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             {gridLines}
           </Group>
           
-          {status === 'loading' && (
-            <Group x={width/2 - position.x/scale} y={height/2 - position.y/scale}>
-              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={200 / scale} offsetX={100 / scale} />
+          {(status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={400 / scale} offsetX={200 / scale} />
             </Group>
           )}
 
