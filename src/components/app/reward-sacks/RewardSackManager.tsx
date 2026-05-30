@@ -162,11 +162,18 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
 
                   <div className="flex gap-2 pt-2 border-t border-white/5">
                     <button 
+                      onClick={() => setAssigningSack(sack)}
+                      className="px-3 py-1.5 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest hover:scale-105 transition-all shadow-[0_0_10px_rgba(234,179,8,0.2)]"
+                    >
+                      Entregar
+                    </button>
+                    <button 
                       onClick={() => setEditingSack(sack)}
-                      className="flex-1 py-1.5 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
                     >
                       Editar
                     </button>
+
                     <button 
                       onClick={() => setAssigningSack(sack)}
                       className="px-3 py-1.5 rounded bg-[var(--gold)]/20 text-[var(--gold)] hover:bg-[var(--gold)]/30 transition-colors"
