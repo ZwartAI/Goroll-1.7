@@ -386,6 +386,7 @@ function ActiveEnemyCombatCard({
       )}
     </div>
   );
+}
 
 /** Compact card for the waiting entities (vertical grid) */
 function CompactEnemyCombatCard({
