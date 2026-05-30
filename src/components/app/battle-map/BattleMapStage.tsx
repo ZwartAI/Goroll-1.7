@@ -316,18 +316,22 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 10000; // Aumentar tamaño para evitar cortes al navegar
-    const offset = -5000; // Centrar el grid relativo al origen 0,0
+    const size = 10000; 
+    const offset = -5000;
+    
+    // Evitar bucles infinitos
+    const gSize = Math.max(20, gridSize);
+    const s = Math.max(0.1, scale);
     
     // Líneas verticales
-    for (let i = 0; i <= size / gridSize; i++) {
-      const x = offset + i * gridSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
+    for (let i = 0; i <= size / gSize; i++) {
+      const x = offset + i * gSize;
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
     }
     // Líneas horizontales
-    for (let i = 0; i <= size / gridSize; i++) {
-      const y = offset + i * gridSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor} strokeWidth={1.5 / scale} opacity={config.gridOpacity} listening={false} />);
+    for (let i = 0; i <= size / gSize; i++) {
+      const y = offset + i * gSize;
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
