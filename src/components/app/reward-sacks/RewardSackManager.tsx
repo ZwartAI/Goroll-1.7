@@ -81,8 +81,9 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
             </h2>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors">
-            <XIcon size={24} />
+            <X size={24} />
           </button>
+
         </header>
 
         {/* Content */}
@@ -210,8 +211,3 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   );
 }
 
-function XIcon({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-  );
-}
