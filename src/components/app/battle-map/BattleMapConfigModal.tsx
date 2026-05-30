@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Settings, Image as ImageIcon, Video, Grid, Palette, Sliders, X } from 'lucide-react';
+import { Settings, Image as ImageIcon, Video, Grid, Palette, Sliders, X, Upload, Loader2, Trash2 } from 'lucide-react';
 import { useT } from '@/lib/i18n';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface MapConfig {
   backgroundUrl: string;
@@ -22,19 +24,52 @@ interface Props {
 export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void }> = ({ config, onChange, isOpen, onClose }) => {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (key: keyof MapConfig, value: any) => {
     onChange({ ...config, [key]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `backgrounds/${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('backgrounds')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('backgrounds')
+        .getPublicUrl(filePath);
+
       const type = file.type.startsWith('video/') ? 'video' : 'image';
-      handleChange('backgroundUrl', url);
+      
+      handleChange('backgroundUrl', publicUrl);
       handleChange('backgroundType', type);
+      toast.success(t('common.success') || 'Archivo subido correctamente');
+    } catch (error: any) {
+      console.error('Error uploading background:', error);
+      toast.error(error.message || 'Error al subir el archivo');
+    } finally {
+      setIsUploading(false);
+      // Limpiar el input para permitir subir el mismo archivo si se desea
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleRemoveBackground = () => {
+    handleChange('backgroundUrl', '');
+    toast.success('Fondo eliminado');
   };
 
   if (!isOpen) return null;
