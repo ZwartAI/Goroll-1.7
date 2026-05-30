@@ -173,6 +173,17 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
       )}
 
 
+      {addingEnemy && (
+        <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
+      )}
+      {pickingTemplate && campaignId && (
+        <BestiaryPickerModal
+          campaignId={campaignId}
+          encounter={encounter}
+          dm={dm}
+          onClose={() => setPickingTemplate(false)}
+        />
+      )}
       {editing && (
         <EnemyEditorModal encounter={encounter} dm={dm} editing={editing} onClose={() => setEditing(null)} />
       )}
