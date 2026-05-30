@@ -539,7 +539,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
         {/* Colapsable Log */}
         <div 
-          className={`absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/90 border-t border-white/10 backdrop-blur-md ${isLogExpanded ? 'h-64' : 'h-14'}`}
+          className={`absolute bottom-0 left-0 right-0 z-40 transition-all duration-300 bg-[#0a0a0c]/95 border-t border-white/10 backdrop-blur-md ${isLogExpanded ? 'h-[40vh] sm:h-64' : 'h-12'}`}
         >
           <div 
             className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 bg-white/5 cursor-pointer group"
