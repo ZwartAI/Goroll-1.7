@@ -81,7 +81,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(!config.backgroundUrl);
@@ -321,17 +321,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     
     // Evitar bucles infinitos
     const gSize = Math.max(20, gridSize);
-    const s = Math.max(0.1, scale);
+    const s = scale || 1;
+    const lineThickness = 2 / s;
     
     // Líneas verticales
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.6)'} strokeWidth={lineThickness} opacity={config.gridOpacity} listening={false} />);
     }
     // Líneas horizontales
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.4)'} strokeWidth={1.5 / s} opacity={config.gridOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.6)'} strokeWidth={lineThickness} opacity={config.gridOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
@@ -348,7 +349,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#050507" />
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#0d0d0f" />
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 
               image={videoRef.current!} 
