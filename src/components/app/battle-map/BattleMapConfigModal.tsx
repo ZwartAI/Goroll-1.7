@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Settings, Image as ImageIcon, Video, Grid, Palette, Sliders, X, Upload, Loader2, Trash2 } from 'lucide-react';
+import { Settings, Image as ImageIcon, Video, Grid, Palette, Sliders, X, Upload, Loader2, Trash2, Save } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
