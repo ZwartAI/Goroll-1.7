@@ -381,7 +381,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             />
           ))}
         </Layer>
-        <Layer listening={false}>{gridLines}</Layer>
+        <Layer listening={false}>
+          <Group>{gridLines}</Group>
+        </Layer>
         <Layer id="tokens-layer">
           {isReady && participants.map((p, i) => {
             const remotePos = remoteTokenPositions[p.id];
