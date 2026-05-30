@@ -542,6 +542,13 @@ function DM() {
           players={players} dm={dmCtx}
           onClose={() => { setEditBooster(null); setCreatingBooster(false); }} />
       )}
+      {rewardSacksOpen && (
+        <RewardSackManager 
+          campaignId={campaign.id} 
+          onClose={() => setRewardSacksOpen(false)} 
+        />
+      )}
+
     </PageFrame>
   );
 }
