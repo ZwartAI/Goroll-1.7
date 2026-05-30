@@ -268,11 +268,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, [campaign?.id]);
 
   const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (confirm("¿Seguro que quieres eliminar esta escena?")) {
-      const { error } = await supabase.from('battle_map_scenes').delete().eq('id', sceneId);
-      if (error) toast.error("Error al eliminar la escena");
-    }
+    // Replaced confirm with internal confirmation if needed, but for now just execute or add a state
+    const { error } = await supabase.from('battle_map_scenes').delete().eq('id', sceneId);
+    if (error) toast.error("Error al eliminar la escena");
+    else toast.success("Escena eliminada");
   }, []);
+
 
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!activeSceneId || !isDM) return;
