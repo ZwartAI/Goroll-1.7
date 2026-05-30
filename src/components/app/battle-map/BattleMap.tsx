@@ -237,6 +237,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     if (!campaign?.id) return;
     playMapSound('click');
     
+    const isFirstScene = scenes.length === 0;
+    
     const newScene: any = {
       campaign_id: campaign.id,
       name,
@@ -252,18 +254,23 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       tokens_state: remoteTokenPositions,
       chalk_lines: chalkLines,
       chalk_notes: chalkNotes,
-      is_active: false
+      is_active: isFirstScene
     };
 
-    const { error } = await supabase.from('battle_map_scenes').insert(newScene);
+    const { data, error } = await supabase.from('battle_map_scenes').insert(newScene).select().single();
     if (error) {
       console.error("Error creating scene:", error);
       toast.error("Error al crear la escena: " + error.message);
     } else {
       toast.success("Escena creada: " + name);
       setIsAddSceneModalOpen(false);
+      setNewSceneName('');
+      if (isFirstScene && data) {
+        setActiveSceneId(data.id);
+        applyScene(data as BattleMapScene);
+      }
     }
-  }, [campaign?.id, mapConfig, remoteTokenPositions, chalkLines, chalkNotes]);
+  }, [campaign?.id, mapConfig, remoteTokenPositions, chalkLines, chalkNotes, scenes.length]);
 
   const handleDuplicateScene = useCallback(async (scene: BattleMapScene) => {
     if (!campaign?.id) return;
