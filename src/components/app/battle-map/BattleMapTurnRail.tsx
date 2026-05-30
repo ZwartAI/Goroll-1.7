@@ -28,8 +28,10 @@ export const BattleMapTurnRail: React.FC<Props> = ({ blocks, activeBlockIndex, o
 };
 
 
-const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean }> = ({ block, isActive }) => {
+const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean; onClick: () => void }> = ({ block, isActive, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { t } = useT();
+
 
   const getDetails = () => {
     if (block.kind === 'solo') {
