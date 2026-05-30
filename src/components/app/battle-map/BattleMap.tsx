@@ -784,7 +784,58 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         )}
 
 
+        {/* Scene Transition Fade Overlay */}
+        {isFading && (
+          <div className="fixed inset-0 z-[200] bg-black animate-in fade-in fade-out duration-400" />
+        )}
+
+        {/* Add Scene Modal */}
+        {isAddSceneModalOpen && (
+          <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsAddSceneModalOpen(false))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">Nueva Escena</h3>
+                <button onClick={() => setIsAddSceneModalOpen(false)} className="text-muted-foreground hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Nombre de la Escena</label>
+                <input 
+                  autoFocus
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--gold)]/50"
+                  placeholder="Ej: Bosque Prohibido"
+                  value={newSceneName}
+                  onChange={e => setNewSceneName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newSceneName.trim()) {
+                      handleSaveScene(newSceneName.trim());
+                      setNewSceneName('');
+                      setIsAddSceneModalOpen(false);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => setIsAddSceneModalOpen(false)}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  disabled={!newSceneName.trim()}
+                  style={{ background: 'var(--gold)', color: 'black' }}
+                  onClick={() => {
+                    handleSaveScene(newSceneName.trim());
+                    setNewSceneName('');
+                    setIsAddSceneModalOpen(false);
+                  }}
+                >
+                  Guardar Escena
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
 
       {/* New Fixed Player Bottom Bar */}
       <BattleMapBottomBar onOpenSection={handleOpenNavSection} />
