@@ -312,16 +312,38 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
 
   useEffect(() => {
     if (config.backgroundType === 'video' && config.backgroundUrl) {
+      setIsVideoReady(false);
       const video = document.createElement('video');
       video.src = config.backgroundUrl;
-      video.loop = true; video.muted = true; video.autoplay = true;
-      video.play();
+      video.loop = true; 
+      video.muted = true; 
+      video.autoplay = true;
+      video.playsInline = true;
+      video.crossOrigin = "anonymous";
+      
+      video.oncanplay = () => {
+        setIsVideoReady(true);
+      };
+
+      video.play().catch(e => console.error("Error playing video:", e));
+      
       video.onplaying = () => {
         const anim = new Konva.Animation(() => setVideoTick(prev => prev + 1), layerRef.current);
-        anim.start(); return () => anim.stop();
+        anim.start(); 
+        return () => anim.stop();
       };
+      
       videoRef.current = video;
-      return () => { if (videoRef.current) { videoRef.current.pause(); videoRef.current.src = ""; videoRef.current.load(); } };
+      return () => { 
+        if (videoRef.current) { 
+          videoRef.current.pause(); 
+          videoRef.current.src = ""; 
+          videoRef.current.load(); 
+        } 
+      };
+    } else {
+      setIsVideoReady(false);
+      videoRef.current = null;
     }
   }, [config.backgroundUrl, config.backgroundType]);
 
