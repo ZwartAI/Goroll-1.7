@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, ArrowLeft, Users, HelpCircle, ChevronDown } from 'lucide-react';
+import { Menu, ArrowLeft, Users, HelpCircle, ChevronDown, Layers } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
