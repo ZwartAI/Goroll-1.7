@@ -21,7 +21,7 @@ interface Props {
   onChange: (config: MapConfig) => void;
 }
 
-export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void }> = ({ config, onChange, isOpen, onClose }) => {
+export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void, onSaveToScene?: () => void }> = ({ config, onChange, isOpen, onClose, onSaveToScene }) => {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -167,6 +167,15 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
                     {config.backgroundUrl ? 'Cambiar Imagen/Video' : 'Subir Imagen/Video'}
                   </span>
                 </button>
+                {onSaveToScene && config.backgroundUrl && (
+                  <button 
+                    onClick={onSaveToScene}
+                    className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-green-500/20 border border-green-500/30 text-green-400 hover:bg-green-500/30 transition-all text-[9px] uppercase tracking-widest font-bold"
+                  >
+                    <Save size={12} />
+                    Guardar en Escena Actual
+                  </button>
+                )}
                 <input 
                   type="file" 
                   ref={fileInputRef} 
