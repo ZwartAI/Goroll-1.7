@@ -501,7 +501,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapTurnRail 
             blocks={orderedTurns} 
             activeBlockIndex={activeBlockIndex} 
+            onItemClick={handleTurnRailClick}
           />
+
         )}
 
 
