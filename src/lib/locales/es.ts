@@ -265,6 +265,11 @@ export const es = {
     openSheet: "Abrir ficha de {name}",
     openLinkedEntity: "Abrir entidad vinculada a {name}",
     linkGroup: "Grupo de enlace: {name}",
+    configTitle: "Ajustes del Mapa",
+    background: "Fondo del Mapa",
+    grid: "Cuadrícula (Grid)",
+    exit: "Salir",
+    saveToScene: "Guardar en Escena",
   },
 
   profile: {
