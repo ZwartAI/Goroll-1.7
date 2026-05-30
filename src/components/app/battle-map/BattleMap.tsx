@@ -849,7 +849,61 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             </div>
           </div>
         )}
+
+        {/* Generic Confirm Modal */}
+        {confirmModal && (
+          <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setConfirmModal(null))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">{confirmModal.title}</h3>
+              <p className="text-sm text-muted-foreground">{confirmModal.message}</p>
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => setConfirmModal(null)}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  style={{ background: 'var(--loss)', color: 'white' }}
+                  onClick={confirmModal.onConfirm}
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Note Modal */}
+        {isNoteModalOpen && (
+          <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsNoteModalOpen(null))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">Nueva Nota</h3>
+              <textarea 
+                autoFocus
+                className="w-full h-24 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--gold)]/50 resize-none"
+                placeholder="Escribe aquí tu nota..."
+                value={newNoteText}
+                onChange={e => setNewNoteText(e.target.value)}
+              />
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => { setIsNoteModalOpen(null); setNewNoteText(''); }}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  disabled={!newNoteText.trim()}
+                  style={{ background: 'var(--gold)', color: 'black' }}
+                  onClick={() => {
+                    playMapSound('chalk');
+                    setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x: isNoteModalOpen.x, y: isNoteModalOpen.y, text: newNoteText.trim() }]);
+                    setNewNoteText('');
+                    setIsNoteModalOpen(null);
+                    handleUpdateCurrentSceneState();
+                  }}
+                >
+                  Añadir Nota
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
 
 
       {/* New Fixed Player Bottom Bar */}
