@@ -82,7 +82,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
 
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200" onClick={onClose}>
+    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4 bg-black/60 animate-in fade-in duration-200" onClick={onClose}>
       <div 
         className="w-full max-w-md bg-[#0a0a0c] border border-border/50 rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300"
         onClick={(e) => e.stopPropagation()}
