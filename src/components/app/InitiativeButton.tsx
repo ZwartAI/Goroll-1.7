@@ -129,19 +129,6 @@ export function InitiativeButton({ character, encounter, participants, groups, p
           style={{ marginTop: "-2%", marginBottom: "-2%" }}
         />
 
-        <div
-          className="absolute pointer-events-none flex items-center justify-center w-full"
-          style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)", lineHeight: 1 }}
-        >
-          <span
-            className="font-display font-bold leading-none text-white text-base sm:text-lg uppercase tracking-wider"
-            style={{
-              textShadow: "0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5)",
-            }}
-          >
-            {label}
-          </span>
-        </div>
       </button>
 
       {open && encounter && (

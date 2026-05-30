@@ -31,6 +31,14 @@ import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { CombatSummaryModal } from "@/components/app/CombatSummaryModal";
 
+const esperandoTurnoEs = "/uploads/esperando-turno.png";
+const terminarTurnoEs = "/uploads/terminar-turno.png";
+const iniciativaEs = "/uploads/iniciativa.png";
+const esperandoTurnoEn = "/uploads/esperando-turno-eng.png";
+const terminarTurnoEn = "/uploads/terminar-turno-eng.png";
+const iniciativaEn = "/uploads/iniciativa-eng.png";
+
+
 
 
 type Props = {
@@ -43,7 +51,14 @@ type Props = {
 };
 
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups, pins = [] }: Props) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const isEn = lang === "en";
+  const assets = {
+    waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
+    end: isEn ? terminarTurnoEn : terminarTurnoEs,
+    initiative: isEn ? iniciativaEn : iniciativaEs,
+  };
+
   const status = encounter?.status ?? null;
   const [addingEnemy, setAddingEnemy] = useState(false);
   const [pickingTemplate, setPickingTemplate] = useState(false);
@@ -66,15 +81,23 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
       </div>
 
       {(!encounter || status === "ended") && (
-        <button className="btn-fantasy w-full text-xs py-1.5" style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
+        <button 
+          className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
+          style={{ WebkitTapHighlightColor: "transparent" }}
           onClick={async () => {
             const r = await requestInitiative(campaignId, dm);
             if (!r.ok) toast.error(t("combat.requestError"));
             else toast.success(t("combat.requested"));
           }}>
-          <Flag size={12} className="inline mr-1" /> {t("combat.requestInitiative")}
+          <img
+            src={assets.initiative}
+            alt={t("combat.requestInitiative")}
+            className="block w-full h-auto pointer-events-none"
+            draggable={false}
+          />
         </button>
       )}
+
 
 
       {encounter && groups.length > 0 && status !== "ended" && (
@@ -225,12 +248,19 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               onClick={() => setShowManager(true)}>
               <Users size={14} className="inline mr-1" /> {t("combat.combatManager")}
             </button>
-            <button className="btn-fantasy text-xs disabled:opacity-60"
+            <button 
+              className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
+              style={{ WebkitTapHighlightColor: "transparent" }}
               disabled={endingTurn}
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
               onClick={() => setConfirmingEndTurn(true)}>
-              {endingTurn ? t("combat.endTurn.resolving") : t("combat.nextTurn")} <ChevronRight size={14} className="inline" />
+              <img
+                src={assets.end}
+                alt={t("combat.nextTurn")}
+                className="block w-full h-auto pointer-events-none"
+                draggable={false}
+              />
             </button>
+
             <button className="btn-fantasy text-xs"
               style={{ background: "var(--loss)", color: "white" }}
               onClick={() => setConfirmState({

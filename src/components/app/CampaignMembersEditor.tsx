@@ -5,6 +5,8 @@ import { toastSaved } from "@/lib/saved";
 import { getStoredUser, type Campaign } from "@/lib/game";
 import { pushLog } from "@/lib/log";
 import { useT } from "@/lib/i18n";
+import { DeleteCampaignButton } from "./DeleteCampaignButton";
+
 
 type Member = { id: string; user_id: string; role: "player" | "dm"; created_at: string };
 type AppUser = { id: string; username: string };
@@ -18,7 +20,7 @@ type Req = {
   created_at: string;
 };
 
-export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign; onBack: () => void }) {
+export function CampaignMembersEditor({ campaign, onBack, onDeleted }: { campaign: Campaign; onBack: () => void; onDeleted?: () => void }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [users, setUsers] = useState<Record<string, AppUser>>({});
   const [requests, setRequests] = useState<Req[]>([]);
@@ -28,7 +30,7 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
     ((campaign as any).player_join_mode as "request" | "closed") || "request",
   );
   const [busy, setBusy] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
   const me = getStoredUser();
 
   const reload = useCallback(async () => {
@@ -277,6 +279,28 @@ export function CampaignMembersEditor({ campaign, onBack }: { campaign: Campaign
           <p className="text-[9px] text-muted-foreground">{t("campaign.singleDmActive")}</p>
         )}
       </div>
+
+      {me?.id === owner && (
+        <div className="pt-4 border-t border-white/5 space-y-3">
+          <div className="p-3 rounded-xl border border-[var(--loss)]/30 bg-[var(--loss)]/5 space-y-2">
+            <h4 className="font-display text-[10px] uppercase tracking-[0.2em] text-[var(--loss)] flex items-center gap-2">
+              ⚠️ {lang === "en" ? "Danger Zone" : "Zona de Peligro"}
+            </h4>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              {lang === "en" 
+                ? "Deleting this campaign is permanent. All characters, history, and scenes will be lost forever." 
+                : "Eliminar esta campaña es permanente. Todos los personajes, historial y escenas se perderán para siempre."}
+            </p>
+            <DeleteCampaignButton 
+              campaignId={campaign.id} 
+              campaignName={campaign.name} 
+              isOwner={true} 
+              onDeleted={onDeleted} 
+            />
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }

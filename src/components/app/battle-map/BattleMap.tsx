@@ -58,9 +58,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const { t } = useT();
   const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
   const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
+  const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
+  const [newSceneName, setNewSceneName] = useState('');
   const [isDicePanelOpen, setIsDicePanelOpen] = useState(false);
+  const [isFading, setIsFading] = useState(false);
+
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
+
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isRulerActive, setIsRulerActive] = useState(false);
   const [selectedEntityForSheet, setSelectedEntityForSheet] = useState<CombatParticipant | null>(null);
@@ -264,11 +270,19 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, [campaign?.id]);
 
   const handleDeleteScene = useCallback(async (sceneId: string) => {
-    if (confirm("¿Seguro que quieres eliminar esta escena?")) {
-      const { error } = await supabase.from('battle_map_scenes').delete().eq('id', sceneId);
-      if (error) toast.error("Error al eliminar la escena");
-    }
+    setConfirmModal({
+      title: "Eliminar Escena",
+      message: "¿Seguro que quieres eliminar esta escena? Esta acción no se puede deshacer.",
+      onConfirm: async () => {
+        const { error } = await supabase.from('battle_map_scenes').delete().eq('id', sceneId);
+        if (error) toast.error("Error al eliminar la escena");
+        else toast.success("Escena eliminada");
+        setConfirmModal(null);
+      }
+    });
   }, []);
+
+
 
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!activeSceneId || !isDM) return;
@@ -336,19 +350,24 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, []);
   const handleUndoChalk = useCallback(() => setChalkLines(prev => prev.slice(0, -1)), []);
   const handleClearChalk = useCallback(() => {
-    if (confirm("¿Borrar todos los dibujos y notas?")) {
-      setChalkLines([]);
-      setChalkNotes([]);
-    }
+    setConfirmModal({
+      title: "Borrar Dibujos",
+      message: "¿Seguro que quieres borrar todos los dibujos y notas de esta escena?",
+      onConfirm: () => {
+        setChalkLines([]);
+        setChalkNotes([]);
+        setConfirmModal(null);
+      }
+    });
   }, []);
 
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState<{x: number, y: number} | null>(null);
+  const [newNoteText, setNewNoteText] = useState('');
+
   const handleAddNote = useCallback((x: number, y: number) => {
-    const text = prompt("Texto de la nota:");
-    if (text) {
-      playMapSound('chalk');
-      setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x, y, text }]);
-    }
+    setIsNoteModalOpen({ x, y });
   }, []);
+
 
   const handleNoteUpdate = useCallback((id: string, x: number, y: number) => {
     setChalkNotes(prev => prev.map(n => n.id === id ? { ...n, x, y } : n));
@@ -491,34 +510,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         </div>
 
         {/* FASE 8: Improved Empty State - Only show if absolutely nothing is configured */}
-        {!mapConfig.backgroundUrl && scenes.length === 0 && isDM && !isScenesPanelOpen && !isDicePanelOpen && !isConfigModalOpen && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] text-center max-w-sm pointer-events-auto animate-in zoom-in-95 duration-500 shadow-2xl">
-              <div className="w-20 h-20 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--gold)]/20 shadow-[0_0_30px_rgba(234,179,8,0.1)]">
-                <Layers className="w-10 h-10 text-[var(--gold)]" />
-              </div>
-              <h3 className="text-[var(--gold)] font-display text-base uppercase tracking-[0.3em] mb-3">Escenario Vacío</h3>
-              <p className="text-muted-foreground text-[10px] uppercase tracking-widest mb-8 leading-relaxed opacity-60">
-                Define el entorno táctico para tus jugadores desde el panel de ajustes o escenas.
-              </p>
-              <div className="flex flex-col gap-3">
-                <button 
-                   onClick={() => setIsConfigModalOpen(true)}
-                   className="btn-fantasy text-[10px] px-8 py-3 w-full"
-                   style={{ background: 'var(--gold)', color: 'black' }}
-                >
-                  CONFIGURAR FONDO
-                </button>
-                <button 
-                   onClick={() => setIsScenesPanelOpen(true)}
-                   className="text-[9px] uppercase tracking-widest text-muted-foreground hover:text-white transition-colors"
-                >
-                  O explorar escenas guardadas
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* FASE 7: Turn Rail (Left Side) */}
         {orderedTurns.length > 0 && (
@@ -638,13 +629,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               const s = scenes.find(sc => sc.id === id);
               if (s) { setActiveSceneId(s.id); applyScene(s); }
             }}
-            onActivateScene={handleActivateScene}
-            onSaveCurrentAsNew={handleSaveScene}
+            onActivateScene={async (id) => {
+              setIsFading(true);
+              setTimeout(async () => {
+                await handleActivateScene(id);
+                setIsFading(false);
+              }, 400);
+            }}
+            onOpenAddScene={() => setIsAddSceneModalOpen(true)}
             onDeleteScene={handleDeleteScene}
             onOpenConfig={() => setIsConfigModalOpen(true)}
             onClose={() => setIsScenesPanelOpen(false)}
           />
         )}
+
 
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
@@ -773,7 +771,112 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         )}
 
 
+        {/* Scene Transition Fade Overlay */}
+        {isFading && (
+          <div className="fixed inset-0 z-[200] bg-black animate-in fade-in fade-out duration-400" />
+        )}
+
+        {/* Add Scene Modal */}
+        {isAddSceneModalOpen && (
+          <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsAddSceneModalOpen(false))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">Nueva Escena</h3>
+                <button onClick={() => setIsAddSceneModalOpen(false)} className="text-muted-foreground hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Nombre de la Escena</label>
+                <input 
+                  autoFocus
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--gold)]/50"
+                  placeholder="Ej: Bosque Prohibido"
+                  value={newSceneName}
+                  onChange={e => setNewSceneName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newSceneName.trim()) {
+                      handleSaveScene(newSceneName.trim());
+                      setNewSceneName('');
+                      setIsAddSceneModalOpen(false);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => setIsAddSceneModalOpen(false)}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  disabled={!newSceneName.trim()}
+                  style={{ background: 'var(--gold)', color: 'black' }}
+                  onClick={() => {
+                    handleSaveScene(newSceneName.trim());
+                    setNewSceneName('');
+                    setIsAddSceneModalOpen(false);
+                  }}
+                >
+                  Guardar Escena
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Generic Confirm Modal */}
+        {confirmModal && (
+          <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setConfirmModal(null))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">{confirmModal.title}</h3>
+              <p className="text-sm text-muted-foreground">{confirmModal.message}</p>
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => setConfirmModal(null)}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  style={{ background: 'var(--loss)', color: 'white' }}
+                  onClick={confirmModal.onConfirm}
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Note Modal */}
+        {isNoteModalOpen && (
+          <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsNoteModalOpen(null))}>
+            <div className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-display text-lg uppercase tracking-widest text-[var(--gold)]">Nueva Nota</h3>
+              <textarea 
+                autoFocus
+                className="w-full h-24 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--gold)]/50 resize-none"
+                placeholder="Escribe aquí tu nota..."
+                value={newNoteText}
+                onChange={e => setNewNoteText(e.target.value)}
+              />
+              <div className="flex gap-2 pt-2">
+                <button className="btn-fantasy flex-1 py-2 text-[10px]" onClick={() => { setIsNoteModalOpen(null); setNewNoteText(''); }}>Cancelar</button>
+                <button 
+                  className="btn-fantasy flex-1 py-2 text-[10px]" 
+                  disabled={!newNoteText.trim()}
+                  style={{ background: 'var(--gold)', color: 'black' }}
+                  onClick={() => {
+                    playMapSound('chalk');
+                    setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x: isNoteModalOpen.x, y: isNoteModalOpen.y, text: newNoteText.trim() }]);
+                    setNewNoteText('');
+                    setIsNoteModalOpen(null);
+                    handleUpdateCurrentSceneState();
+                  }}
+                >
+                  Añadir Nota
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+
+
 
       {/* New Fixed Player Bottom Bar */}
       <BattleMapBottomBar onOpenSection={handleOpenNavSection} />

@@ -58,17 +58,12 @@ export function DeleteCampaignButton({ campaignId, campaignName, isOwner, onDele
 
   return (
     <>
-      <div className="ornate-card p-3 mt-4 border-destructive/40">
-        <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{t("campaign.dangerZone")}</p>
-        <button
-          className="btn-fantasy w-full text-xs"
-          style={{ background: "var(--loss)", color: "white" }}
-          onClick={() => { setText(""); setOpen(true); }}
-        >{t("campaign.delete")}</button>
-        <p className="text-[10px] text-muted-foreground mt-2">
-          {t("campaign.dangerHint")}
-        </p>
-      </div>
+      <button
+        className="btn-fantasy w-full text-xs"
+        style={{ background: "var(--loss)", color: "white" }}
+        onClick={() => { setText(""); setOpen(true); }}
+      >{t("campaign.delete")}</button>
+
 
       {open && (
         <div className="fixed inset-0 z-[120] bg-black/85 flex items-center justify-center p-4" {...backdropProps(() => !busy && setOpen(false))}>
