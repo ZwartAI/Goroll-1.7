@@ -199,14 +199,19 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
             </p>
           </div>
         }>
-          <BattleMap 
-            onBack={() => setShowBattleMap(false)} 
-            logs={logs}
-            nameOverrides={nameOverrides}
-            onOpenChar={onOpenChar}
-          />
+          {ENABLE_BATTLE_MAP ? (
+            <BattleMap 
+              onBack={() => setShowBattleMap(false)} 
+              logs={logs}
+              nameOverrides={nameOverrides}
+              onOpenChar={onOpenChar}
+            />
+          ) : (
+            <BattleMapDisabledPlaceholder onBack={() => setShowBattleMap(false)} />
+          )}
         </Suspense>
       )}
+
 
       {showRewardSacks && campaign && (
         <RewardSackManager 
