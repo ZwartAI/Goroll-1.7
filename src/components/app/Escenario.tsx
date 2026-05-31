@@ -15,7 +15,7 @@ import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManag
 
 
 // FASE 1: Lazy loading del BattleMap
-const BattleMap = lazy(() => import("@/components/app/battle-map/BattleMap"));
+const BattleMap = lazy(() => import("@/components/app/battle-map-v2/BattleMapMain"));
 const BattleMapDisabledPlaceholder = lazy(() => import("@/components/app/battle-map/BattleMapDisabledPlaceholder").then(m => ({ default: m.BattleMapDisabledPlaceholder })));
 
 
