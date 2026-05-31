@@ -15,14 +15,8 @@ import {
 } from "@/lib/combat";
 import { InitiativeRollModal } from "@/components/app/InitiativeRollModal";
 import { playSfx } from "@/lib/sound";
-import sfxBtn from "@/assets/sounds/Monedero.mp3"; // Reusing button sound
-
-const esperandoTurnoEs = "/uploads/esperando-turno.png";
-const terminarTurnoEs = "/uploads/terminar-turno.png";
-const iniciativaEs = "/uploads/iniciativa.png";
-const esperandoTurnoEn = "/uploads/esperando-turno-eng.png";
-const terminarTurnoEn = "/uploads/terminar-turno-eng.png";
-const iniciativaEn = "/uploads/iniciativa-eng.png";
+import sfxBtn from "@/assets/sounds/Monedero.mp3";
+import { TurnAssetButton, type TurnButtonState } from "./TurnAssetButton";
 
 type Props = {
   character: Character;
@@ -35,7 +29,7 @@ type Props = {
 };
 
 export function InitiativeButton({ character, encounter, participants, groups, pins, online }: Props) {
-  const { t, lang } = useT();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const status = encounter?.status ?? null;
   const myPart = participantForCharacter(participants, character.id);
@@ -43,58 +37,39 @@ export function InitiativeButton({ character, encounter, participants, groups, p
   const active = activeBlock(encounter, blocks);
   const myTurn = active ? blockContainsCharacter(active, character.id) : false;
 
-  const isEn = lang === "en";
-
-  const assets = {
-    waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
-    end: isEn ? terminarTurnoEn : terminarTurnoEs,
-    initiative: isEn ? iniciativaEn : iniciativaEs,
-  };
-
   const inLink = !!myPart?.turn_group_id;
 
-  let label = t("combat.playerSkill.initiative");
+  let btnState: TurnButtonState = "initiative";
   let onClick: (() => void) | null = null;
-  let asset = assets.initiative;
   let disabled = true;
-  let ariaLabel = t("combat.playerSkill.initiative");
+  let ariaLabel: string | undefined = undefined;
 
   if (status === "collecting") {
     if (myPart) {
-      label = inLink ? t("combat.btnInLink") : t("combat.btnWaitingDm");
-      asset = assets.waiting;
+      btnState = inLink ? "inLink" : "waitingDm";
       disabled = true;
-      ariaLabel = label;
     } else {
-      label = t("combat.playerSkill.initiative");
+      btnState = "initiative";
       onClick = () => setOpen(true);
       disabled = false;
-      asset = assets.initiative;
-      ariaLabel = label;
     }
   } else if (status === "active") {
     if (myTurn) {
-      label = t("combat.playerSkill.endTurn");
+      btnState = "endTurn";
       disabled = false;
-      asset = assets.end;
-      ariaLabel = label;
       onClick = async () => {
         playSfx(sfxBtn);
         const r = await passTurn(encounter!, blocks, character);
         if (!r.ok) toast.error(t("combat.passError"));
       };
     } else if (myPart) {
-      label = t("combat.playerSkill.waitingTurn");
+      btnState = "waitingTurn";
       disabled = true;
-      asset = assets.waiting;
-      ariaLabel = label;
     } else {
       // Combat is active but this character is not registered — allow late join.
-      label = t("combat.btnJoinLate");
+      btnState = "joinLate";
       onClick = () => setOpen(true);
       disabled = false;
-      asset = assets.initiative;
-      ariaLabel = label;
     }
   }
 
@@ -108,28 +83,12 @@ export function InitiativeButton({ character, encounter, participants, groups, p
 
   return (
     <>
-      <button
-        type="button"
+      <TurnAssetButton
+        state={btnState}
         disabled={disabled}
-        onClick={() => {
-          if (!disabled) {
-            if (onClick) onClick();
-            else playSfx(sfxBtn);
-          }
-        }}
-        aria-label={ariaLabel}
-        className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
-        style={{ WebkitTapHighlightColor: "transparent" }}
-      >
-        <img
-          src={asset}
-          alt=""
-          className="block w-full h-auto pointer-events-none"
-          draggable={false}
-          style={{ marginTop: "-2%", marginBottom: "-2%" }}
-        />
-
-      </button>
+        onClick={onClick || undefined}
+        ariaLabel={ariaLabel}
+      />
 
       {open && encounter && (
         <InitiativeRollModal
@@ -142,3 +101,4 @@ export function InitiativeButton({ character, encounter, participants, groups, p
     </>
   );
 }
+
