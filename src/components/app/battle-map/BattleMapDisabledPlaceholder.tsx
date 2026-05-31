@@ -7,9 +7,10 @@ interface Props {
 }
 
 export const BattleMapDisabledPlaceholder: React.FC<Props> = ({ onBack }) => {
-  const { t, locale } = useT();
+  const { t, lang } = useT();
   
-  const isEn = locale === 'en';
+  const isEn = lang === 'en';
+
   
   return (
     <div className="fixed inset-0 z-[110] bg-black/95 flex flex-col items-center justify-center p-6 text-center">
