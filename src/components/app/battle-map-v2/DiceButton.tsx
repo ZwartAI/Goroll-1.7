@@ -5,7 +5,7 @@ interface Props {
   onClick: () => void;
 }
 
-export const BattleMapDiceButton: React.FC<Props> = ({ onClick }) => {
+export const DiceButton: React.FC<Props> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
