@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Swords, Flag, Play, ChevronRight, X, Plus, BookOpen, Sparkles, Users, Settings2, Shield, EyeOff, List, Info } from "lucide-react";
+import { Swords, X, Play, Sparkles, Users, Settings2, Shield, EyeOff, List, Info } from "lucide-react";
 
 import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { DMApplyEffectModal } from "@/components/app/DMApplyEffectModal";
@@ -10,13 +10,11 @@ import { CombatManagerModal } from "@/components/app/CombatManagerModal";
 import { EndTurnConfirmModal } from "@/components/app/EndTurnConfirmModal";
 import {
   buildOrderedTurns,
-
   cancelInitiative,
   dissolveLink,
   endActiveTurn,
   endCombat,
   requestInitiative,
-
   reorderBlockWithAutoInitiative,
   startCombat,
   type CombatEncounter,
@@ -30,16 +28,7 @@ import { EnemyEditorModal } from "@/components/app/EnemyEditorModal";
 import { EnemyManagerDM } from "@/components/app/EnemyManagerDM";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { CombatSummaryModal } from "@/components/app/CombatSummaryModal";
-
-const esperandoTurnoEs = "/uploads/esperando-turno.png";
-const terminarTurnoEs = "/uploads/terminar-turno.png";
-const iniciativaEs = "/uploads/iniciativa.png";
-const esperandoTurnoEn = "/uploads/esperando-turno-eng.png";
-const terminarTurnoEn = "/uploads/terminar-turno-eng.png";
-const iniciativaEn = "/uploads/iniciativa-eng.png";
-
-
-
+import { TurnAssetButton } from "./TurnAssetButton";
 
 type Props = {
   campaignId: string;
@@ -51,14 +40,7 @@ type Props = {
 };
 
 export function CombatDMPanel({ campaignId, dm, encounter, participants, groups, pins = [] }: Props) {
-  const { t, lang } = useT();
-  const isEn = lang === "en";
-  const assets = {
-    waiting: isEn ? esperandoTurnoEn : esperandoTurnoEs,
-    end: isEn ? terminarTurnoEn : terminarTurnoEs,
-    initiative: isEn ? iniciativaEn : iniciativaEs,
-  };
-
+  const { t } = useT();
   const status = encounter?.status ?? null;
   const [addingEnemy, setAddingEnemy] = useState(false);
   const [pickingTemplate, setPickingTemplate] = useState(false);
@@ -69,10 +51,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
   const [endingTurn, setEndingTurn] = useState(false);
   const [endSummary, setEndSummary] = useState<any[] | null>(null);
 
-
-
-  const canAddEnemy = encounter && status !== "ended";
-
   return (
     <div className="ornate-card p-2 space-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -81,24 +59,15 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
       </div>
 
       {(!encounter || status === "ended") && (
-        <button 
-          className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
-          style={{ WebkitTapHighlightColor: "transparent" }}
+        <TurnAssetButton
+          state="requestInitiative"
           onClick={async () => {
             const r = await requestInitiative(campaignId, dm);
             if (!r.ok) toast.error(t("combat.requestError"));
             else toast.success(t("combat.requested"));
-          }}>
-          <img
-            src={assets.initiative}
-            alt={t("combat.requestInitiative")}
-            className="block w-full h-auto pointer-events-none"
-            draggable={false}
-          />
-        </button>
+          }}
+        />
       )}
-
-
 
       {encounter && groups.length > 0 && status !== "ended" && (
         <div className="space-y-1.5">
@@ -137,7 +106,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           })}
         </div>
       )}
-
 
       {status === "collecting" && encounter && (
         <>
@@ -196,8 +164,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
             </p>
           </div>
 
-
-
           <div className="gem-divider opacity-40" />
 
           <div className="grid grid-cols-2 gap-2 pt-1">
@@ -207,7 +173,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                 onConfirm: async () => {
                   const r = await cancelInitiative(encounter, dm);
                   if (!r.ok) toast.error(t("combat.cancelError"));
-
                 },
               })}>
               <X size={14} className="inline mr-1" /> {t("combat.cancel")}
@@ -248,18 +213,11 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
               onClick={() => setShowManager(true)}>
               <Users size={14} className="inline mr-1" /> {t("combat.combatManager")}
             </button>
-            <button 
-              className="relative w-full block p-0 bg-transparent border-0 select-none transition-all active:scale-[0.96] disabled:opacity-70 disabled:grayscale-[0.3]"
-              style={{ WebkitTapHighlightColor: "transparent" }}
+            <TurnAssetButton
+              state="endTurn"
               disabled={endingTurn}
-              onClick={() => setConfirmingEndTurn(true)}>
-              <img
-                src={assets.end}
-                alt={t("combat.nextTurn")}
-                className="block w-full h-auto pointer-events-none"
-                draggable={false}
-              />
-            </button>
+              onClick={() => setConfirmingEndTurn(true)}
+            />
 
             <button className="btn-fantasy text-xs"
               style={{ background: "var(--loss)", color: "white" }}
@@ -269,16 +227,13 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
                   const r = await endCombat(encounter, dm);
                   if (!r.ok) toast.error(t("combat.endError"));
                   else if (r.summary) setEndSummary(r.summary);
-
                 },
               })}>
               <X size={14} className="inline mr-1" /> {t("combat.end")}
             </button>
           </div>
-
         </>
       )}
-
 
       {addingEnemy && encounter && (
         <EnemyEditorModal encounter={encounter} dm={dm} onClose={() => setAddingEnemy(false)} />
@@ -360,8 +315,6 @@ export function CombatDMPanel({ campaignId, dm, encounter, participants, groups,
           onClose={() => setEndSummary(null)} 
         />
       )}
-
-
     </div>
   );
 }
