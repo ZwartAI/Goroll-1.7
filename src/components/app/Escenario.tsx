@@ -3,7 +3,8 @@ import { LogList } from "@/components/app/LogList";
 import { LogSegments } from "@/components/app/LogSegments";
 import { CombatList } from "@/components/app/CombatList";
 import type { Character, Item, LogRow } from "@/lib/game";
-import { totals } from "@/lib/game";
+import { totals, ENABLE_BATTLE_MAP } from "@/lib/game";
+
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { useEncounterShields } from "@/hooks/useEncounterShields";
@@ -15,6 +16,8 @@ import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManag
 
 // FASE 1: Lazy loading del BattleMap
 const BattleMap = lazy(() => import("@/components/app/battle-map/BattleMap"));
+const BattleMapDisabledPlaceholder = lazy(() => import("@/components/app/battle-map/BattleMapDisabledPlaceholder").then(m => ({ default: m.BattleMapDisabledPlaceholder })));
+
 
 type Props = {
   characters: Character[];
@@ -74,17 +77,20 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   return (
     <>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 mt-2">
-        <button
-          onClick={() => setShowBattleMap(true)}
-          className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
-          <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
-            {t("battleMap.openMap")}
-          </span>
-          <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
-        </button>
+        {ENABLE_BATTLE_MAP && (
+          <button
+            onClick={() => setShowBattleMap(true)}
+            className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
+            <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
+              {t("battleMap.openMap")}
+            </span>
+            <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
+          </button>
+        )}
+
 
         {isDM && (
           <button
@@ -193,14 +199,19 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
             </p>
           </div>
         }>
-          <BattleMap 
-            onBack={() => setShowBattleMap(false)} 
-            logs={logs}
-            nameOverrides={nameOverrides}
-            onOpenChar={onOpenChar}
-          />
+          {ENABLE_BATTLE_MAP ? (
+            <BattleMap 
+              onBack={() => setShowBattleMap(false)} 
+              logs={logs}
+              nameOverrides={nameOverrides}
+              onOpenChar={onOpenChar}
+            />
+          ) : (
+            <BattleMapDisabledPlaceholder onBack={() => setShowBattleMap(false)} />
+          )}
         </Suspense>
       )}
+
 
       {showRewardSacks && campaign && (
         <RewardSackManager 

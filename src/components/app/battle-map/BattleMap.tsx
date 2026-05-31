@@ -4,8 +4,9 @@ import { useGameData } from '@/lib/useGame';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
-import type { LogRow } from '@/lib/game';
+import { type LogRow, ENABLE_BATTLE_MAP } from '@/lib/game';
 import { buildOrderedTurns } from '@/lib/combat';
+
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
 import { BattleMapTurnRail } from './BattleMapTurnRail';
@@ -1112,7 +1113,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
       {/* Debug Panel para DM */}
-      {isDM && import.meta.env.DEV && (
+      {isDM && ENABLE_BATTLE_MAP && import.meta.env.DEV && (
         <div className="fixed bottom-20 left-4 z-[100] bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-2 text-[8px] font-mono text-muted-foreground pointer-events-none select-none">
           <div className="flex flex-col gap-0.5">
             <span className="text-[var(--gold)]">DEBUG DM</span>
