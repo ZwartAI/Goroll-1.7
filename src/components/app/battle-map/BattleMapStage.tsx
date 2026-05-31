@@ -428,9 +428,55 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             {gridLines}
           </Group>
           
+          {/* BLOQUE 7: Fallback/Debug visible if image fails */}
           {(status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
-              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={400 / scale} offsetX={200 / scale} />
+              <Text 
+                text="Cargando mapa..." 
+                fill="var(--gold)" 
+                fontSize={24 / scale} 
+                fontStyle="bold"
+                align="center" 
+                width={400 / scale} 
+                offsetX={200 / scale} 
+              />
+            </Group>
+          )}
+
+          {status === 'failed' && config.backgroundUrl && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text 
+                text="⚠️ Error al cargar la imagen del mapa" 
+                fill="#ef4444" 
+                fontSize={24 / scale} 
+                fontStyle="bold"
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+              />
+              <Text 
+                text={config.backgroundUrl.substring(0, 50) + "..."} 
+                fill="#ef4444" 
+                fontSize={12 / scale} 
+                y={30 / scale}
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+                opacity={0.7}
+              />
+            </Group>
+          )}
+
+          {!config.backgroundUrl && isReady && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text 
+                text="Lienzo Vacío - Configura un fondo en Ajustes" 
+                fill="rgba(255,255,255,0.2)" 
+                fontSize={20 / scale} 
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+              />
             </Group>
           )}
 
