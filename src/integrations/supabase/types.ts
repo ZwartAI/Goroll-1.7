@@ -112,6 +112,47 @@ export type Database = {
         }
         Relationships: []
       }
+      battle_map_drawings_simple: {
+        Row: {
+          author_character_id: string | null
+          campaign_id: string
+          color: string | null
+          created_at: string | null
+          id: string
+          points: Json
+          scene_id: string | null
+          stroke_width: number | null
+        }
+        Insert: {
+          author_character_id?: string | null
+          campaign_id: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          points: Json
+          scene_id?: string | null
+          stroke_width?: number | null
+        }
+        Update: {
+          author_character_id?: string | null
+          campaign_id?: string
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          points?: Json
+          scene_id?: string | null
+          stroke_width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_map_drawings_simple_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "battle_map_scenes_simple"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       battle_map_scenes: {
         Row: {
           background_brightness: number | null
@@ -179,6 +220,125 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battle_map_scenes_simple: {
+        Row: {
+          background_opacity: number | null
+          background_scale: number | null
+          background_url: string | null
+          background_x: number | null
+          background_y: number | null
+          campaign_id: string
+          created_at: string | null
+          grid_color: string | null
+          grid_enabled: boolean | null
+          grid_offset_x: number | null
+          grid_offset_y: number | null
+          grid_opacity: number | null
+          grid_size: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          snap_to_grid: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          background_opacity?: number | null
+          background_scale?: number | null
+          background_url?: string | null
+          background_x?: number | null
+          background_y?: number | null
+          campaign_id: string
+          created_at?: string | null
+          grid_color?: string | null
+          grid_enabled?: boolean | null
+          grid_offset_x?: number | null
+          grid_offset_y?: number | null
+          grid_opacity?: number | null
+          grid_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          snap_to_grid?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          background_opacity?: number | null
+          background_scale?: number | null
+          background_url?: string | null
+          background_x?: number | null
+          background_y?: number | null
+          campaign_id?: string
+          created_at?: string | null
+          grid_color?: string | null
+          grid_enabled?: boolean | null
+          grid_offset_x?: number | null
+          grid_offset_y?: number | null
+          grid_opacity?: number | null
+          grid_size?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          snap_to_grid?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      battle_map_tokens_simple: {
+        Row: {
+          campaign_id: string
+          character_id: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_visible: boolean | null
+          name: string | null
+          scene_id: string | null
+          size: number | null
+          token_type: string | null
+          updated_at: string | null
+          x: number
+          y: number
+        }
+        Insert: {
+          campaign_id: string
+          character_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean | null
+          name?: string | null
+          scene_id?: string | null
+          size?: number | null
+          token_type?: string | null
+          updated_at?: string | null
+          x?: number
+          y?: number
+        }
+        Update: {
+          campaign_id?: string
+          character_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean | null
+          name?: string | null
+          scene_id?: string | null
+          size?: number | null
+          token_type?: string | null
+          updated_at?: string | null
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_map_tokens_simple_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "battle_map_scenes_simple"
             referencedColumns: ["id"]
           },
         ]
