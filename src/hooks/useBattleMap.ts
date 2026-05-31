@@ -51,7 +51,6 @@ export const useBattleMap = (campaignId: string) => {
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchActiveScene = useCallback(async () => {
     const { data, error } = await supabase
@@ -67,9 +66,8 @@ export const useBattleMap = (campaignId: string) => {
     }
 
     if (data) {
-      setActiveScene(data as SceneConfig);
+      setActiveScene(data as unknown as SceneConfig);
     } else {
-      // If no active scene, try to create one if it's DM (but here we just check if it exists)
       setActiveScene(null);
     }
   }, [campaignId]);
@@ -86,7 +84,7 @@ export const useBattleMap = (campaignId: string) => {
       return;
     }
 
-    setScenes(data as SceneConfig[]);
+    setScenes(data as unknown as SceneConfig[]);
   }, [campaignId]);
 
   const fetchTokens = useCallback(async (sceneId: string) => {
@@ -100,7 +98,7 @@ export const useBattleMap = (campaignId: string) => {
       return;
     }
 
-    setTokens(data as MapToken[]);
+    setTokens(data as unknown as MapToken[]);
   }, []);
 
   const fetchDrawings = useCallback(async (sceneId: string) => {
@@ -114,7 +112,13 @@ export const useBattleMap = (campaignId: string) => {
       return;
     }
 
-    setDrawings(data as Drawing[]);
+    // Transform points from Json to number[]
+    const transformedDrawings = (data || []).map(d => ({
+      ...d,
+      points: d.points as number[]
+    }));
+
+    setDrawings(transformedDrawings as unknown as Drawing[]);
   }, []);
 
   useEffect(() => {
@@ -129,7 +133,6 @@ export const useBattleMap = (campaignId: string) => {
 
     loadData();
 
-    // Subscribe to scene changes
     const sceneSubscription = supabase
       .channel('battle_map_scenes')
       .on(
@@ -141,8 +144,8 @@ export const useBattleMap = (campaignId: string) => {
           filter: `campaign_id=eq.${campaignId}`,
         },
         (payload) => {
-          if (payload.eventType === 'UPDATE' && (payload.new as SceneConfig).is_active) {
-            setActiveScene(payload.new as SceneConfig);
+          if (payload.eventType === 'UPDATE' && (payload.new as any).is_active) {
+            setActiveScene(payload.new as unknown as SceneConfig);
           }
           fetchScenes();
         }
@@ -210,11 +213,7 @@ export const useBattleMap = (campaignId: string) => {
       .eq('id', activeScene.id);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar la escena',
-        variant: 'destructive',
-      });
+      toast.error('No se pudo actualizar la escena');
     }
   };
 
@@ -225,26 +224,21 @@ export const useBattleMap = (campaignId: string) => {
         {
           campaign_id: campaignId,
           name,
-          is_active: scenes.length === 0, // Make it active if it's the first one
+          is_active: scenes.length === 0,
         },
       ])
       .select()
       .single();
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo crear la escena',
-        variant: 'destructive',
-      });
+      toast.error('No se pudo crear la escena');
     } else if (data.is_active) {
-      setActiveScene(data as SceneConfig);
+      setActiveScene(data as unknown as SceneConfig);
     }
     fetchScenes();
   };
 
   const activateScene = async (sceneId: string) => {
-    // Set all other scenes to inactive
     await supabase
       .from('battle_map_scenes_simple')
       .update({ is_active: false })
@@ -258,13 +252,9 @@ export const useBattleMap = (campaignId: string) => {
       .single();
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo activar la escena',
-        variant: 'destructive',
-      });
+      toast.error('No se pudo activar la escena');
     } else {
-      setActiveScene(data as SceneConfig);
+      setActiveScene(data as unknown as SceneConfig);
     }
   };
 
@@ -286,11 +276,7 @@ export const useBattleMap = (campaignId: string) => {
       .insert([{ ...token, campaign_id: campaignId, scene_id: activeScene.id }]);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo añadir el token',
-        variant: 'destructive',
-      });
+      toast.error('No se pudo añadir el token');
     }
   };
 
@@ -301,19 +287,20 @@ export const useBattleMap = (campaignId: string) => {
       .eq('id', tokenId);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo retirar el token',
-        variant: 'destructive',
-      });
+      toast.error('No se pudo retirar el token');
     }
   };
 
-  const addDrawing = async (drawing: Partial<Drawing>) => {
+  const addDrawing = async (drawing: Omit<Drawing, 'id' | 'campaign_id' | 'scene_id'>) => {
     if (!activeScene) return;
     const { error } = await supabase
       .from('battle_map_drawings_simple')
-      .insert([{ ...drawing, campaign_id: campaignId, scene_id: activeScene.id }]);
+      .insert([{ 
+        ...drawing, 
+        campaign_id: campaignId, 
+        scene_id: activeScene.id,
+        points: drawing.points as any // points is JSONB in DB
+      }]);
 
     if (error) {
       console.error('Error adding drawing:', error);
@@ -328,11 +315,7 @@ export const useBattleMap = (campaignId: string) => {
       .eq('scene_id', activeScene.id);
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudieron borrar los dibujos',
-        variant: 'destructive',
-      });
+      toast.error('No se pudieron borrar los dibujos');
     }
   };
 
