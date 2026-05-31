@@ -52,11 +52,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
 
     if (campaignId && character) {
       pushLog(campaignId, [
-        { type: 'text', text: character.name, color: character.color || 'var(--gold)', bold: true },
-        { type: 'text', text: ' ha lanzado los dados: ' },
-        { type: 'text', text: individualResults.join(', '), color: 'var(--gold)' },
-        { type: 'text', text: ' | Total: ' },
-        { type: 'text', text: total.toString(), color: 'var(--gold)', bold: true }
+        { t: 'char', v: character.name, color: character.color || 'var(--gold)', id: character.id },
+        { t: 'text', v: ' ha lanzado los dados: ' },
+        { t: 'text', v: individualResults.join(', ') },
+        { t: 'text', v: ' | Total: ' },
+        { t: 'text', v: total.toString() }
       ]);
       toast.success(`Tirada: ${total}`);
     }
