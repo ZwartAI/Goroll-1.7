@@ -35,6 +35,12 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
 
+  useEffect(() => {
+    if (isDM && !battleMap.isLoading && battleMap.scenes.length === 0) {
+      battleMap.createScene('Mapa Principal');
+    }
+  }, [isDM, battleMap.isLoading, battleMap.scenes.length]);
+
   const handleRollDice = useCallback((selections: DieSelection[]) => {
     setShowDicePanel(false);
     
