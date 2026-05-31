@@ -361,24 +361,22 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 10000; 
-    const offset = -5000;
+    const size = 20000; 
+    const offset = -10000;
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = 1 / s;
+    const lineThickness = Math.max(0.8, 1 / s); // Grosor mínimo para asegurar visibilidad
     const gridLinesOpacity = config.gridOpacity || 0.4;
-    
-    // Optimización: dibujar menos líneas si el tamaño de grid es muy pequeño
-    // pero aquí el rango es 20-200 así que está bien.
+    const gridColor = config.gridColor || 'rgba(255,255,255,0.7)';
     
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={gridColor} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={gridColor} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
