@@ -224,16 +224,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, [campaign?.id]);
 
   const applyScene = (scene: BattleMapScene) => {
+    console.log("Applying scene:", scene.name, scene.id);
     setMapConfig({
-      backgroundUrl: scene.background_url,
-      backgroundType: scene.background_type,
-      backgroundScale: scene.background_scale,
-      backgroundOpacity: scene.background_opacity,
-      backgroundBrightness: scene.background_brightness,
-      gridSize: scene.grid_size,
-      gridColor: scene.grid_color,
-      gridOpacity: scene.grid_opacity,
-      showGrid: scene.show_grid
+      backgroundUrl: scene.background_url || '',
+      backgroundType: scene.background_type || 'image',
+      backgroundScale: scene.background_scale ?? 1,
+      backgroundOpacity: scene.background_opacity ?? 1,
+      backgroundBrightness: scene.background_brightness ?? 1,
+      gridSize: scene.grid_size ?? 50,
+      gridColor: scene.grid_color || 'rgba(255,255,255,0.7)',
+      gridOpacity: scene.grid_opacity ?? 0.9,
+      showGrid: scene.show_grid ?? true
     });
     setChalkLines(scene.chalk_lines || []);
     setChalkNotes(scene.chalk_notes || []);
