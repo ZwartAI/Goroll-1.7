@@ -366,9 +366,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = Math.max(0.8, 1 / s); // Grosor mínimo para asegurar visibilidad
-    const gridLinesOpacity = config.gridOpacity || 0.4;
-    const gridColor = config.gridColor || 'rgba(255,255,255,0.7)';
+    // BLOQUE 8: Asegurar que la grid sea visible incluso con escala baja
+    const lineThickness = Math.max(1, 1 / s); 
+    const gridLinesOpacity = Math.max(0.2, config.gridOpacity || 0.4);
+    const gridColor = config.gridColor || 'rgba(255,255,255,0.25)';
     
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
