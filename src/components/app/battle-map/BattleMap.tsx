@@ -722,13 +722,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     <BattleMapConfigModal 
                       config={mapConfig} 
                       onChange={(newConfig) => {
-                        console.log("Config changed:", newConfig.backgroundUrl);
+                        console.log("Config changed locally:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
-                        // If we have an active scene, update it automatically for sync
-                        if (activeSceneId) {
-                          handleUpdateCurrentSceneState(newConfig);
-                        }
                       }} 
+
                       isOpen={isConfigModalOpen} 
                       onClose={() => setIsConfigModalOpen(false)} 
                       onSaveToScene={async () => {
