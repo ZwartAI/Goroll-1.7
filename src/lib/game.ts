@@ -1,6 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 
-export const ENABLE_BATTLE_MAP = false;
+export const ENABLE_BATTLE_MAP = true;
 
 
 export type Rarity = "white" | "blue" | "purple" | "gold";
