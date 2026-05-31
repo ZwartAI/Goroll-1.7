@@ -51,16 +51,13 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
     });
 
     if (campaignId && character) {
-      pushLog(campaignId, {
-        character_id: character.id,
-        type: 'dice_roll',
-        segments: [
-          { type: 'text', text: 'ha lanzado los dados: ' },
-          { type: 'text', text: individualResults.join(', '), color: 'var(--gold)' },
-          { type: 'text', text: ' | Total: ' },
-          { type: 'text', text: total.toString(), color: 'var(--gold)', bold: true }
-        ]
-      });
+      pushLog(campaignId, [
+        { type: 'text', text: character.name, color: character.color || 'var(--gold)', bold: true },
+        { type: 'text', text: ' ha lanzado los dados: ' },
+        { type: 'text', text: individualResults.join(', '), color: 'var(--gold)' },
+        { type: 'text', text: ' | Total: ' },
+        { type: 'text', text: total.toString(), color: 'var(--gold)', bold: true }
+      ]);
       toast.success(`Tirada: ${total}`);
     }
   }, [campaignId, character]);
