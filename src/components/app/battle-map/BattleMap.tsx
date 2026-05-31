@@ -131,19 +131,60 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       
       if (error) {
         console.error("Error fetching scenes:", error);
+        toast.error("No se pudieron cargar las escenas del Battle Map.");
         return;
       }
       
-      const typedScenes = (data as any[]).map(s => ({
+      let typedScenes = (data as any[]).map(s => ({
         ...s,
         tokens_state: s.tokens_state || {},
         chalk_lines: s.chalk_lines || [],
         chalk_notes: s.chalk_notes || []
       })) as BattleMapScene[];
 
+      // BLOQUE 4: Crear escena activa por defecto si no hay ninguna
+      if (typedScenes.length === 0 && isDM) {
+        console.log("No scenes found, creating initial scene...");
+        const initialSceneData = {
+          campaign_id: campaign.id,
+          name: "Escena Inicial",
+          background_url: '',
+          background_type: 'image',
+          background_scale: 1,
+          background_opacity: 1,
+          background_brightness: 1,
+          grid_size: 50,
+          grid_color: 'rgba(255,255,255,0.25)',
+          grid_opacity: 0.5,
+          show_grid: true,
+          tokens_state: {},
+          chalk_lines: [],
+          chalk_notes: [],
+          is_active: true
+        };
+
+        const { data: newData, error: newError } = await supabase
+          .from('battle_map_scenes')
+          .insert(initialSceneData)
+          .select()
+          .single();
+
+        if (newError) {
+          console.error("Error creating initial scene:", newError);
+        } else if (newData) {
+          const createdScene = {
+            ...newData,
+            tokens_state: (newData as any).tokens_state || {},
+            chalk_lines: (newData as any).chalk_lines || [],
+            chalk_notes: (newData as any).chalk_notes || []
+          } as BattleMapScene;
+          typedScenes = [createdScene];
+          toast.success("Escena inicial creada");
+        }
+      }
+
       setScenes(typedScenes);
       
-      // Intentar encontrar escena activa. Si no hay ninguna activa en la DB, marcar la primera como activa localmente si existen escenas.
       const active = typedScenes.find(s => s.is_active);
       if (active) {
         setActiveSceneId(active.id);
