@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useBattleMap } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
