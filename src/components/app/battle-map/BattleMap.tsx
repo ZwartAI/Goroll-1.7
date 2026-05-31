@@ -405,10 +405,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!isDM) return false;
     
+    // BLOQUE 5: Si no hay activeSceneId, intentamos crear una escena inicial
     if (!activeSceneId) {
-      // Si no hay escena activa, sugerimos crear una
-      toast.info("No hay una escena activa seleccionada. Crea una nueva escena primero.");
-      setIsAddSceneModalOpen(true);
+      if (scenes.length === 0) {
+        toast.info("Creando escena para guardar configuración...");
+        await handleSaveScene("Nueva Escena");
+        return true;
+      }
+      toast.info("No hay una escena activa seleccionada. Selecciona una escena primero.");
+      setIsScenesPanelOpen(true);
       return false;
     }
     
@@ -430,14 +435,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       updated_at: new Date().toISOString()
     };
 
+    console.log("Saving scene config:", updates);
+
     const { error } = await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
     if (error) {
       console.error("Error updating scene state:", error);
       toast.error("Error al actualizar la escena: " + error.message);
       return false;
     }
+
+    // Actualizar estado local inmediatamente
+    setScenes(prev => prev.map(s => s.id === activeSceneId ? { ...s, ...updates } : s));
+    
     return true;
-  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig]);
+  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig, scenes.length, handleSaveScene]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
 
