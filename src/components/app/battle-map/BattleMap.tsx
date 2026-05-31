@@ -381,10 +381,44 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleActivateScene = useCallback(async (sceneId: string) => {
     if (!campaign?.id) return;
     playMapSound('click');
-    await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
-    const { error } = await supabase.from('battle_map_scenes').update({ is_active: true }).eq('id', sceneId);
-    if (error) toast.error("Error al activar la escena");
-    else toast.success("Escena activada en tiempo real");
+    
+    try {
+      // 1. Desactivar todas las escenas de la campaña
+      await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
+      
+      // 2. Activar la seleccionada y obtener los datos frescos
+      const { data, error } = await supabase
+        .from('battle_map_scenes')
+        .update({ is_active: true })
+        .eq('id', sceneId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      if (data) {
+        const typedScene = {
+          ...data,
+          tokens_state: (data as any).tokens_state || {},
+          chalk_lines: (data as any).chalk_lines || [],
+          chalk_notes: (data as any).chalk_notes || []
+        } as BattleMapScene;
+        
+        setActiveSceneId(typedScene.id);
+        applyScene(typedScene);
+        
+        // Actualizar lista local de escenas
+        setScenes(prev => prev.map(s => ({
+          ...s,
+          is_active: s.id === typedScene.id
+        })));
+        
+        toast.success("Escena activada: " + typedScene.name);
+      }
+    } catch (err: any) {
+      console.error("Error activating scene:", err);
+      toast.error("Error al activar la escena: " + err.message);
+    }
   }, [campaign?.id]);
 
   const handleDeleteScene = useCallback(async (sceneId: string) => {
@@ -830,6 +864,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               setTimeout(async () => {
                 await handleActivateScene(id);
                 setIsFading(false);
+                setIsScenesPanelOpen(false); // Cerrar panel al activar
               }, 400);
             }}
             onOpenAddScene={() => {
