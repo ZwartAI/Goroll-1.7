@@ -77,17 +77,20 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   return (
     <>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 mt-2">
-        <button
-          onClick={() => setShowBattleMap(true)}
-          className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
-          <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
-            {t("battleMap.openMap")}
-          </span>
-          <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
-        </button>
+        {ENABLE_BATTLE_MAP && (
+          <button
+            onClick={() => setShowBattleMap(true)}
+            className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
+            <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
+              {t("battleMap.openMap")}
+            </span>
+            <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
+          </button>
+        )}
+
 
         {isDM && (
           <button
