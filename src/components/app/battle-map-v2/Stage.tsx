@@ -116,7 +116,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
             canMove={isDM || token.character_id === characterId}
             gridSize={activeScene.grid_size}
             snapToGrid={activeScene.snap_to_grid}
-            onMove={(x, y) => updateTokenPosition(token.id, x, y)}
+            onMove={(x: number, y: number) => updateTokenPosition(token.id, x, y)}
             onRemove={() => battleMap.removeToken(token.id)}
           />
         ))}
