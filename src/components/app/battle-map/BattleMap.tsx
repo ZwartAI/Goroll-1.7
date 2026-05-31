@@ -1113,7 +1113,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
       {/* Debug Panel para DM */}
-      {isDM && import.meta.env.DEV && (
+      {isDM && ENABLE_BATTLE_MAP && import.meta.env.DEV && (
         <div className="fixed bottom-20 left-4 z-[100] bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-2 text-[8px] font-mono text-muted-foreground pointer-events-none select-none">
           <div className="flex flex-col gap-0.5">
             <span className="text-[var(--gold)]">DEBUG DM</span>
