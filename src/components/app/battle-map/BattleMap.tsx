@@ -670,8 +670,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     <BattleMapConfigModal 
                       config={mapConfig} 
                       onChange={(newConfig) => {
+                        console.log("Config changed:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
-                        // If we have an active scene, we should probably update it too to ensure it's not lost
+                        // If we have an active scene, update it automatically for sync
                         if (activeSceneId) {
                           handleUpdateCurrentSceneState(newConfig);
                         }
@@ -681,7 +682,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                       onSaveToScene={async () => {
                         const success = await handleUpdateCurrentSceneState(mapConfig);
                         if (success) {
-                          toast.success("Ajustes guardados en la escena");
+                          toast.success(activeSceneId ? "Ajustes guardados en la escena" : "Nueva escena creada con éxito");
                         }
                       }}
                       saveLabel={activeSceneId ? "Guardar en Escena Actual" : "Crear Nueva Escena"}
