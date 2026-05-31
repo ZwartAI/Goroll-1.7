@@ -131,19 +131,60 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       
       if (error) {
         console.error("Error fetching scenes:", error);
+        toast.error("No se pudieron cargar las escenas del Battle Map.");
         return;
       }
       
-      const typedScenes = (data as any[]).map(s => ({
+      let typedScenes = (data as any[]).map(s => ({
         ...s,
         tokens_state: s.tokens_state || {},
         chalk_lines: s.chalk_lines || [],
         chalk_notes: s.chalk_notes || []
       })) as BattleMapScene[];
 
+      // BLOQUE 4: Crear escena activa por defecto si no hay ninguna
+      if (typedScenes.length === 0 && isDM) {
+        console.log("No scenes found, creating initial scene...");
+        const initialSceneData = {
+          campaign_id: campaign.id,
+          name: "Escena Inicial",
+          background_url: '',
+          background_type: 'image',
+          background_scale: 1,
+          background_opacity: 1,
+          background_brightness: 1,
+          grid_size: 50,
+          grid_color: 'rgba(255,255,255,0.25)',
+          grid_opacity: 0.5,
+          show_grid: true,
+          tokens_state: {},
+          chalk_lines: [],
+          chalk_notes: [],
+          is_active: true
+        };
+
+        const { data: newData, error: newError } = await supabase
+          .from('battle_map_scenes')
+          .insert(initialSceneData)
+          .select()
+          .single();
+
+        if (newError) {
+          console.error("Error creating initial scene:", newError);
+        } else if (newData) {
+          const createdScene = {
+            ...newData,
+            tokens_state: (newData as any).tokens_state || {},
+            chalk_lines: (newData as any).chalk_lines || [],
+            chalk_notes: (newData as any).chalk_notes || []
+          } as BattleMapScene;
+          typedScenes = [createdScene];
+          toast.success("Escena inicial creada");
+        }
+      }
+
       setScenes(typedScenes);
       
-      // Intentar encontrar escena activa. Si no hay ninguna activa en la DB, marcar la primera como activa localmente si existen escenas.
       const active = typedScenes.find(s => s.is_active);
       if (active) {
         setActiveSceneId(active.id);
@@ -364,10 +405,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!isDM) return false;
     
+    // BLOQUE 5: Si no hay activeSceneId, intentamos crear una escena inicial
     if (!activeSceneId) {
-      // Si no hay escena activa, sugerimos crear una
-      toast.info("No hay una escena activa seleccionada. Crea una nueva escena primero.");
-      setIsAddSceneModalOpen(true);
+      if (scenes.length === 0) {
+        toast.info("Creando escena para guardar configuración...");
+        await handleSaveScene("Nueva Escena");
+        return true;
+      }
+      toast.info("No hay una escena activa seleccionada. Selecciona una escena primero.");
+      setIsScenesPanelOpen(true);
       return false;
     }
     
@@ -389,14 +435,20 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       updated_at: new Date().toISOString()
     };
 
+    console.log("Saving scene config:", updates);
+
     const { error } = await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
     if (error) {
       console.error("Error updating scene state:", error);
       toast.error("Error al actualizar la escena: " + error.message);
       return false;
     }
+
+    // Actualizar estado local inmediatamente
+    setScenes(prev => prev.map(s => s.id === activeSceneId ? { ...s, ...updates } : s));
+    
     return true;
-  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig]);
+  }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig, scenes.length, handleSaveScene]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
 
@@ -670,13 +722,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     <BattleMapConfigModal 
                       config={mapConfig} 
                       onChange={(newConfig) => {
-                        console.log("Config changed:", newConfig.backgroundUrl);
+                        console.log("Config changed locally:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
-                        // If we have an active scene, update it automatically for sync
-                        if (activeSceneId) {
-                          handleUpdateCurrentSceneState(newConfig);
-                        }
                       }} 
+
                       isOpen={isConfigModalOpen} 
                       onClose={() => setIsConfigModalOpen(false)} 
                       onSaveToScene={async () => {
@@ -994,6 +1043,18 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       </main>
 
 
+      {/* Debug Panel para DM */}
+      {isDM && (
+        <div className="fixed bottom-20 left-4 z-[100] bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-2 text-[8px] font-mono text-muted-foreground pointer-events-none select-none">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[var(--gold)]">DEBUG DM</span>
+            <span>SCENE: {activeSceneId || 'NONE'}</span>
+            <span>BG: {mapConfig.backgroundUrl ? 'YES' : 'NO'}</span>
+            <span>GRID: {mapConfig.showGrid ? 'ON' : 'OFF'} ({mapConfig.gridSize}px)</span>
+            <span>SCENES: {scenes.length}</span>
+          </div>
+        </div>
+      )}
 
       {/* New Fixed Player Bottom Bar */}
       <BattleMapBottomBar onOpenSection={handleOpenNavSection} />

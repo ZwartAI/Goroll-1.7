@@ -147,6 +147,17 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         }, 100);
       }
     } else if (status === 'failed' || (!config.backgroundUrl)) {
+      // BLOQUE 9: Resetear transform si no hay imagen para asegurar que la grid sea visible
+      const stageWidth = width;
+      const stageHeight = height;
+      const newScale = 1;
+      const newX = stageWidth / 2;
+      const newY = stageHeight / 2;
+      
+      stage.scale({ x: newScale, y: newScale });
+      stage.position({ x: newX, y: newY });
+      setScale(newScale);
+      setPosition({ x: newX, y: newY });
       setIsReady(true);
     }
   }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
@@ -366,9 +377,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = Math.max(0.8, 1 / s); // Grosor mínimo para asegurar visibilidad
-    const gridLinesOpacity = config.gridOpacity || 0.4;
-    const gridColor = config.gridColor || 'rgba(255,255,255,0.7)';
+    // BLOQUE 8: Asegurar que la grid sea visible incluso con escala baja
+    const lineThickness = Math.max(1, 1 / s); 
+    const gridLinesOpacity = Math.max(0.2, config.gridOpacity || 0.4);
+    const gridColor = config.gridColor || 'rgba(255,255,255,0.25)';
     
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
@@ -427,9 +439,55 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
             {gridLines}
           </Group>
           
+          {/* BLOQUE 7: Fallback/Debug visible if image fails */}
           {(status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
-              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={20 / scale} align="center" width={400 / scale} offsetX={200 / scale} />
+              <Text 
+                text="Cargando mapa..." 
+                fill="var(--gold)" 
+                fontSize={24 / scale} 
+                fontStyle="bold"
+                align="center" 
+                width={400 / scale} 
+                offsetX={200 / scale} 
+              />
+            </Group>
+          )}
+
+          {status === 'failed' && config.backgroundUrl && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text 
+                text="⚠️ Error al cargar la imagen del mapa" 
+                fill="#ef4444" 
+                fontSize={24 / scale} 
+                fontStyle="bold"
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+              />
+              <Text 
+                text={config.backgroundUrl.substring(0, 50) + "..."} 
+                fill="#ef4444" 
+                fontSize={12 / scale} 
+                y={30 / scale}
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+                opacity={0.7}
+              />
+            </Group>
+          )}
+
+          {!config.backgroundUrl && isReady && (
+            <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
+              <Text 
+                text="Lienzo Vacío - Configura un fondo en Ajustes" 
+                fill="rgba(255,255,255,0.2)" 
+                fontSize={20 / scale} 
+                align="center" 
+                width={600 / scale} 
+                offsetX={300 / scale} 
+              />
             </Group>
           )}
 
