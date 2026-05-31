@@ -88,27 +88,28 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(false); 
 
-  // Centrar el mapa inicialmente o cuando cambian las dimensiones
+  // Centrar el mapa inicialmente
   useEffect(() => {
-    if (!config.backgroundUrl) {
-      const stage = stageRef.current;
-      if (stage) {
-        const newX = width / 2;
-        const newY = height / 2;
-        stage.position({ x: newX, y: newY });
-        setPosition({ x: newX, y: newY });
+    const stage = stageRef.current;
+    if (stage) {
+      const newX = width / 2;
+      const newY = height / 2;
+      stage.position({ x: newX, y: newY });
+      setPosition({ x: newX, y: newY });
+      // If there is no background, we are ready immediately
+      if (!config.backgroundUrl) {
         setIsReady(true);
       }
     }
-  }, [width, height, config.backgroundUrl]);
+  }, [width, height]);
 
-  // FASE 7: Auto-recentrar mapa cuando se carga imagen o video
+  // Re-centrar y ajustar escala cuando se carga imagen o video
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
-    let mapW = 100;
-    let mapH = 100;
+    let mapW = 0;
+    let mapH = 0;
     let loaded = false;
 
     if (config.backgroundType === 'image' && status === 'loaded' && bgImage) {
@@ -121,9 +122,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       loaded = true;
     }
 
-    if (loaded) {
-      const stageWidth = stage.width();
-      const stageHeight = stage.height();
+    if (loaded && mapW > 0 && mapH > 0) {
+      const stageWidth = width;
+      const stageHeight = height;
       
       const mapWidth = mapW * (config.backgroundScale || 1);
       const mapHeight = mapH * (config.backgroundScale || 1);
@@ -138,7 +139,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       setPosition({ x: newX, y: newY });
       setIsReady(true);
       
-      // Cache image to apply filters
       if (config.backgroundType === 'image') {
         setTimeout(() => {
           if (imageRef.current) {
@@ -146,10 +146,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
           }
         }, 100);
       }
-    } else if (status === 'failed') {
-      console.error("Failed to load background image:", config.backgroundUrl);
-      setIsReady(true);
-    } else if (!config.backgroundUrl) {
+    } else if (status === 'failed' || (!config.backgroundUrl)) {
       setIsReady(true);
     }
   }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
