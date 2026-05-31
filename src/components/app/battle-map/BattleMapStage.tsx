@@ -147,6 +147,17 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         }, 100);
       }
     } else if (status === 'failed' || (!config.backgroundUrl)) {
+      // BLOQUE 9: Resetear transform si no hay imagen para asegurar que la grid sea visible
+      const stageWidth = width;
+      const stageHeight = height;
+      const newScale = 1;
+      const newX = stageWidth / 2;
+      const newY = stageHeight / 2;
+      
+      stage.scale({ x: newScale, y: newScale });
+      stage.position({ x: newX, y: newY });
+      setScale(newScale);
+      setPosition({ x: newX, y: newY });
       setIsReady(true);
     }
   }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
