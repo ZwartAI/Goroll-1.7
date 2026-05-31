@@ -3,7 +3,6 @@ import { Minus, Plus, X, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 
-// FASE 8: Compact Dice Selection Interface
 export type DieType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
 
 export interface DieSelection {
@@ -28,7 +27,7 @@ const INITIAL_DICE: DieSelection[] = [
   { type: 'd100', count: 1, enabled: false, label: 'd100' },
 ];
 
-export const BattleMapDicePanel: React.FC<Props> = ({ onClose, onRoll }) => {
+export const DicePanel: React.FC<Props> = ({ onClose, onRoll }) => {
   const [dice, setDice] = useState<DieSelection[]>(INITIAL_DICE);
 
   const updateDice = (type: DieType, updates: Partial<DieSelection>) => {
@@ -43,7 +42,7 @@ export const BattleMapDicePanel: React.FC<Props> = ({ onClose, onRoll }) => {
   };
 
   return (
-    <div className="absolute inset-x-0 bottom-16 z-[80] animate-in slide-in-from-bottom-5 duration-300 pointer-events-none">
+    <div className="absolute inset-x-0 bottom-24 z-[80] animate-in slide-in-from-bottom-5 duration-300 pointer-events-none">
       <div className="mx-auto max-w-sm w-[95%] bg-[#0a0a0c]/95 border border-white/10 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-xl pointer-events-auto overflow-hidden">
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="font-display text-[10px] uppercase tracking-widest text-[var(--gold)]">
@@ -67,7 +66,12 @@ export const BattleMapDicePanel: React.FC<Props> = ({ onClose, onRoll }) => {
                   onCheckedChange={(checked) => updateDice(die.type, { enabled: !!checked })}
                   className="w-4 h-4 border-white/30 data-[state=checked]:bg-[var(--gold)] data-[state=checked]:text-black"
                 />
-                <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground">{die.label}</span>
+                <label 
+                  htmlFor={`check-${die.type}`}
+                  className="font-display text-[10px] uppercase tracking-wider text-muted-foreground cursor-pointer"
+                >
+                  {die.label}
+                </label>
               </div>
 
               <div className="flex items-center gap-1.5 bg-black/40 rounded-lg p-0.5 border border-white/5">
