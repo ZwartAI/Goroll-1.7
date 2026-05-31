@@ -451,9 +451,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     return true;
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig, scenes.length, handleSaveScene]);
 
-  // Mantener handleUpdateCurrentSceneState como alias para compatibilidad interna o simplificarlo
-  const handleUpdateCurrentSceneState = useCallback(async () => {
-    return handleSaveCurrentSceneConfig();
+  // Mantener handleUpdateCurrentSceneState para compatibilidad
+  const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
+    return handleSaveCurrentSceneConfig(customConfig);
   }, [handleSaveCurrentSceneConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
@@ -761,16 +761,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                         console.log("Config changed locally:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
                       }} 
-
                       isOpen={isConfigModalOpen} 
                       onClose={() => setIsConfigModalOpen(false)} 
                       onSaveToScene={async () => {
-                        const success = await handleUpdateCurrentSceneState(mapConfig);
-                        if (success) {
-                          toast.success(activeSceneId ? "Ajustes guardados en la escena" : "Nueva escena creada con éxito");
-                        }
+                        await handleSaveCurrentSceneConfig(mapConfig);
                       }}
                       saveLabel={activeSceneId ? "Guardar en Escena Actual" : "Crear Nueva Escena"}
+                      campaignId={campaign?.id}
                     />
                 </>
             )}
