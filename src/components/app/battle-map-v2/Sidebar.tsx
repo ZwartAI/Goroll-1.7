@@ -12,21 +12,29 @@ export function Sidebar({ onOpenChar }: Props) {
   
   // Use combat participants if active, otherwise just online characters
   const participants = combat.encounter?.status === 'active' 
-    ? combat.participants.map(p => ({
-        id: p.id,
-        name: p.name,
-        color: p.color,
-        image_url: p.image_url,
-        is_turn: combat.encounter?.current_turn_id === p.id,
-        hp_percent: (p.current_hp / (p.max_hp || 1)) * 100
-      }))
+    ? combat.participants.map((p, idx) => {
+        const char = characters.find(c => c.id === p.character_id);
+        const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
+        const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.max_hp ?? char?.base_hp ?? 1);
+        
+        return {
+          id: p.id,
+          characterId: p.character_id,
+          name: p.display_name,
+          color: p.color,
+          image_url: p.image_url,
+          is_turn: combat.encounter?.current_turn_index === idx,
+          hp_percent: (currentHp / maxHp) * 100
+        };
+      })
     : characters.filter(c => c.role !== 'dm').map(c => ({
         id: c.id,
+        characterId: c.id,
         name: c.name,
         color: c.color,
         image_url: c.image_url,
         is_turn: false,
-        hp_percent: (c.current_hp / (c.max_hp || 1)) * 100
+        hp_percent: (c.current_hp / (c.max_hp || c.base_hp || 1)) * 100
       }));
 
   return (
@@ -43,7 +51,7 @@ export function Sidebar({ onOpenChar }: Props) {
               ? "bg-[var(--gold)]/20 border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
               : "bg-black/40 border-white/10 hover:border-white/30"
           )}
-          onClick={() => onOpenChar(p.id)}
+          onClick={() => p.characterId && onOpenChar(p.characterId)}
         >
           <div className="relative w-8 h-8 rounded-full border border-white/20 overflow-hidden shrink-0">
             {p.image_url ? (
