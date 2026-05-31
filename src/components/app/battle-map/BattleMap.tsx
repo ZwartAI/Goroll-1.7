@@ -381,10 +381,44 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleActivateScene = useCallback(async (sceneId: string) => {
     if (!campaign?.id) return;
     playMapSound('click');
-    await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
-    const { error } = await supabase.from('battle_map_scenes').update({ is_active: true }).eq('id', sceneId);
-    if (error) toast.error("Error al activar la escena");
-    else toast.success("Escena activada en tiempo real");
+    
+    try {
+      // 1. Desactivar todas las escenas de la campaña
+      await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
+      
+      // 2. Activar la seleccionada y obtener los datos frescos
+      const { data, error } = await supabase
+        .from('battle_map_scenes')
+        .update({ is_active: true })
+        .eq('id', sceneId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      if (data) {
+        const typedScene = {
+          ...data,
+          tokens_state: (data as any).tokens_state || {},
+          chalk_lines: (data as any).chalk_lines || [],
+          chalk_notes: (data as any).chalk_notes || []
+        } as BattleMapScene;
+        
+        setActiveSceneId(typedScene.id);
+        applyScene(typedScene);
+        
+        // Actualizar lista local de escenas
+        setScenes(prev => prev.map(s => ({
+          ...s,
+          is_active: s.id === typedScene.id
+        })));
+        
+        toast.success("Escena activada: " + typedScene.name);
+      }
+    } catch (err: any) {
+      console.error("Error activating scene:", err);
+      toast.error("Error al activar la escena: " + err.message);
+    }
   }, [campaign?.id]);
 
   const handleDeleteScene = useCallback(async (sceneId: string) => {
@@ -402,10 +436,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
 
-  const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
+  const handleSaveCurrentSceneConfig = useCallback(async (customConfig?: Partial<MapConfig>) => {
     if (!isDM) return false;
     
-    // BLOQUE 5: Si no hay activeSceneId, intentamos crear una escena inicial
+    // Si no hay activeSceneId, intentamos crear una escena inicial
     if (!activeSceneId) {
       if (scenes.length === 0) {
         toast.info("Creando escena para guardar configuración...");
@@ -435,7 +469,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       updated_at: new Date().toISOString()
     };
 
-    console.log("Saving scene config:", updates);
+    console.log("Saving scene config to ID:", activeSceneId, updates);
 
     const { error } = await supabase.from('battle_map_scenes').update(updates).eq('id', activeSceneId);
     if (error) {
@@ -446,9 +480,15 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
     // Actualizar estado local inmediatamente
     setScenes(prev => prev.map(s => s.id === activeSceneId ? { ...s, ...updates } : s));
+    toast.success("Configuración de escena guardada");
     
     return true;
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig, scenes.length, handleSaveScene]);
+
+  // Mantener handleUpdateCurrentSceneState para compatibilidad
+  const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
+    return handleSaveCurrentSceneConfig(customConfig);
+  }, [handleSaveCurrentSceneConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
 
@@ -619,6 +659,36 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       />
 
       <main className="flex-1 relative overflow-hidden bg-[#050507]">
+        {/* HTML/CSS Fallback for Background and Grid */}
+        <div className="absolute inset-0 z-[-1] pointer-events-none overflow-hidden">
+          {mapConfig.backgroundUrl && (
+            <div 
+              className="absolute inset-0 transition-opacity duration-500"
+              style={{
+                backgroundImage: `url(${mapConfig.backgroundUrl})`,
+                backgroundSize: mapConfig.backgroundScale > 1 ? 'cover' : 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                opacity: mapConfig.backgroundOpacity * 0.5, // Slightly dimmer for fallback
+                filter: `brightness(${mapConfig.backgroundBrightness})`,
+              }}
+            />
+          )}
+          {mapConfig.showGrid && (
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to right, ${mapConfig.gridColor} 1px, transparent 1px),
+                  linear-gradient(to bottom, ${mapConfig.gridColor} 1px, transparent 1px)
+                `,
+                backgroundSize: `${mapConfig.gridSize}px ${mapConfig.gridSize}px`,
+                opacity: mapConfig.gridOpacity * 0.3, // Subtle fallback
+              }}
+            />
+          )}
+        </div>
+
         {/* FASE 7: Canvas Stage */}
         <div className="absolute inset-0 z-0">
           <BattleMapStage 
@@ -725,16 +795,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                         console.log("Config changed locally:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
                       }} 
-
                       isOpen={isConfigModalOpen} 
                       onClose={() => setIsConfigModalOpen(false)} 
                       onSaveToScene={async () => {
-                        const success = await handleUpdateCurrentSceneState(mapConfig);
-                        if (success) {
-                          toast.success(activeSceneId ? "Ajustes guardados en la escena" : "Nueva escena creada con éxito");
-                        }
+                        await handleSaveCurrentSceneConfig(mapConfig);
                       }}
                       saveLabel={activeSceneId ? "Guardar en Escena Actual" : "Crear Nueva Escena"}
+                      campaignId={campaign?.id}
                     />
                 </>
             )}
@@ -797,6 +864,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               setTimeout(async () => {
                 await handleActivateScene(id);
                 setIsFading(false);
+                setIsScenesPanelOpen(false); // Cerrar panel al activar
               }, 400);
             }}
             onOpenAddScene={() => {
@@ -1044,7 +1112,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
       {/* Debug Panel para DM */}
-      {isDM && (
+      {isDM && import.meta.env.DEV && (
         <div className="fixed bottom-20 left-4 z-[100] bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-2 text-[8px] font-mono text-muted-foreground pointer-events-none select-none">
           <div className="flex flex-col gap-0.5">
             <span className="text-[var(--gold)]">DEBUG DM</span>
