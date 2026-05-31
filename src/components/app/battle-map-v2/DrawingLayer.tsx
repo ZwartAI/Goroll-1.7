@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Drawing } from '@/hooks/useBattleMap';
+import { cn } from '@/lib/utils';
 
 interface Props {
   drawings: Drawing[];
@@ -83,9 +84,4 @@ export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, charact
       )}
     </svg>
   );
-}
-
-// Utility to handle className
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ');
 }
