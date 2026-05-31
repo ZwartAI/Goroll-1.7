@@ -224,16 +224,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   }, [campaign?.id]);
 
   const applyScene = (scene: BattleMapScene) => {
+    console.log("Applying scene:", scene.name, scene.id);
     setMapConfig({
-      backgroundUrl: scene.background_url,
-      backgroundType: scene.background_type,
-      backgroundScale: scene.background_scale,
-      backgroundOpacity: scene.background_opacity,
-      backgroundBrightness: scene.background_brightness,
-      gridSize: scene.grid_size,
-      gridColor: scene.grid_color,
-      gridOpacity: scene.grid_opacity,
-      showGrid: scene.show_grid
+      backgroundUrl: scene.background_url || '',
+      backgroundType: scene.background_type || 'image',
+      backgroundScale: scene.background_scale ?? 1,
+      backgroundOpacity: scene.background_opacity ?? 1,
+      backgroundBrightness: scene.background_brightness ?? 1,
+      gridSize: scene.grid_size ?? 50,
+      gridColor: scene.grid_color || 'rgba(255,255,255,0.7)',
+      gridOpacity: scene.grid_opacity ?? 0.9,
+      showGrid: scene.show_grid ?? true
     });
     setChalkLines(scene.chalk_lines || []);
     setChalkNotes(scene.chalk_notes || []);
@@ -669,8 +670,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                     <BattleMapConfigModal 
                       config={mapConfig} 
                       onChange={(newConfig) => {
+                        console.log("Config changed:", newConfig.backgroundUrl);
                         setMapConfig(newConfig);
-                        // If we have an active scene, we should probably update it too to ensure it's not lost
+                        // If we have an active scene, update it automatically for sync
                         if (activeSceneId) {
                           handleUpdateCurrentSceneState(newConfig);
                         }
@@ -680,7 +682,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                       onSaveToScene={async () => {
                         const success = await handleUpdateCurrentSceneState(mapConfig);
                         if (success) {
-                          toast.success("Ajustes guardados en la escena");
+                          toast.success(activeSceneId ? "Ajustes guardados en la escena" : "Nueva escena creada con éxito");
                         }
                       }}
                       saveLabel={activeSceneId ? "Guardar en Escena Actual" : "Crear Nueva Escena"}

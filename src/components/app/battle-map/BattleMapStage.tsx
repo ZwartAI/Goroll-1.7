@@ -88,27 +88,28 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(false); 
 
-  // Centrar el mapa inicialmente o cuando cambian las dimensiones
+  // Centrar el mapa inicialmente
   useEffect(() => {
-    if (!config.backgroundUrl) {
-      const stage = stageRef.current;
-      if (stage) {
-        const newX = width / 2;
-        const newY = height / 2;
-        stage.position({ x: newX, y: newY });
-        setPosition({ x: newX, y: newY });
+    const stage = stageRef.current;
+    if (stage) {
+      const newX = width / 2;
+      const newY = height / 2;
+      stage.position({ x: newX, y: newY });
+      setPosition({ x: newX, y: newY });
+      // If there is no background, we are ready immediately
+      if (!config.backgroundUrl) {
         setIsReady(true);
       }
     }
-  }, [width, height, config.backgroundUrl]);
+  }, [width, height]);
 
-  // FASE 7: Auto-recentrar mapa cuando se carga imagen o video
+  // Re-centrar y ajustar escala cuando se carga imagen o video
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
-    let mapW = 100;
-    let mapH = 100;
+    let mapW = 0;
+    let mapH = 0;
     let loaded = false;
 
     if (config.backgroundType === 'image' && status === 'loaded' && bgImage) {
@@ -121,9 +122,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       loaded = true;
     }
 
-    if (loaded) {
-      const stageWidth = stage.width();
-      const stageHeight = stage.height();
+    if (loaded && mapW > 0 && mapH > 0) {
+      const stageWidth = width;
+      const stageHeight = height;
       
       const mapWidth = mapW * (config.backgroundScale || 1);
       const mapHeight = mapH * (config.backgroundScale || 1);
@@ -138,7 +139,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       setPosition({ x: newX, y: newY });
       setIsReady(true);
       
-      // Cache image to apply filters
       if (config.backgroundType === 'image') {
         setTimeout(() => {
           if (imageRef.current) {
@@ -146,10 +146,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
           }
         }, 100);
       }
-    } else if (status === 'failed') {
-      console.error("Failed to load background image:", config.backgroundUrl);
-      setIsReady(true);
-    } else if (!config.backgroundUrl) {
+    } else if (status === 'failed' || (!config.backgroundUrl)) {
       setIsReady(true);
     }
   }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
@@ -364,24 +361,22 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 10000; 
-    const offset = -5000;
+    const size = 20000; 
+    const offset = -10000;
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    const lineThickness = 1 / s;
+    const lineThickness = Math.max(0.8, 1 / s); // Grosor mínimo para asegurar visibilidad
     const gridLinesOpacity = config.gridOpacity || 0.4;
-    
-    // Optimización: dibujar menos líneas si el tamaño de grid es muy pequeño
-    // pero aquí el rango es 20-200 así que está bien.
+    const gridColor = config.gridColor || 'rgba(255,255,255,0.7)';
     
     for (let i = 0; i <= size / gSize; i++) {
       const x = offset + i * gSize;
-      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`v-${i}`} points={[x, offset, x, offset + size]} stroke={gridColor} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     for (let i = 0; i <= size / gSize; i++) {
       const y = offset + i * gSize;
-      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={config.gridColor || 'rgba(255,255,255,0.7)'} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
+      lines.push(<Line key={`h-${i}`} points={[offset, y, offset + size, y]} stroke={gridColor} strokeWidth={lineThickness} opacity={gridLinesOpacity} listening={false} />);
     }
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
