@@ -4,8 +4,9 @@ import { useGameData } from '@/lib/useGame';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
-import type { LogRow } from '@/lib/game';
+import { type LogRow, ENABLE_BATTLE_MAP } from '@/lib/game';
 import { buildOrderedTurns } from '@/lib/combat';
+
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
 import { BattleMapTurnRail } from './BattleMapTurnRail';
