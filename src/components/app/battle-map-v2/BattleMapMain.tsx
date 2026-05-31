@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useBattleMap } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
@@ -8,8 +8,12 @@ import { Sidebar } from './Sidebar';
 import { Log } from './Log';
 import { SceneManager } from './SceneManager';
 import { MapSettings } from './MapSettings';
+import { DiceButton } from './DiceButton';
+import { DicePanel, DieSelection } from './DicePanel';
 import { useT } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
+import { pushLog } from '@/lib/log';
+import { toast } from 'sonner';
 
 interface Props {
   onBack: () => void;
@@ -29,8 +33,38 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [showSettings, setShowSettings] = useState(false);
   const [activeTool, setActiveTool] = useState<'move' | 'measure' | 'pencil'>('move');
   const [logExpanded, setLogExpanded] = useState(false);
+  const [showDicePanel, setShowDicePanel] = useState(false);
 
-  // If loading, show a nice loading state
+  const handleRollDice = useCallback((selections: DieSelection[]) => {
+    setShowDicePanel(false);
+    
+    let total = 0;
+    const individualResults: string[] = [];
+
+    selections.forEach(sel => {
+      const sides = parseInt(sel.type.substring(1));
+      for (let i = 0; i < sel.count; i++) {
+        const res = Math.floor(Math.random() * sides) + 1;
+        total += res;
+        individualResults.push(`${sel.type}: ${res}`);
+      }
+    });
+
+    if (campaignId && character) {
+      pushLog(campaignId, {
+        character_id: character.id,
+        type: 'dice_roll',
+        segments: [
+          { type: 'text', text: 'ha lanzado los dados: ' },
+          { type: 'text', text: individualResults.join(', '), color: 'var(--gold)' },
+          { type: 'text', text: ' | Total: ' },
+          { type: 'text', text: total.toString(), color: 'var(--gold)', bold: true }
+        ]
+      });
+      toast.success(`Tirada: ${total}`);
+    }
+  }, [campaignId, character]);
+
   if (battleMap.isLoading) {
     return (
       <div className="fixed inset-0 z-[110] bg-black/95 flex flex-col items-center justify-center">
@@ -74,9 +108,9 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onOpenSettings={() => setShowSettings(true)}
           onInvokeToken={() => {
             if (character) {
-              const hasToken = battleMap.tokens.some(t => t.character_id === character.id);
+              const hasToken = battleMap.tokens.some((t: any) => t.character_id === character.id);
               if (hasToken) {
-                const token = battleMap.tokens.find(t => t.character_id === character.id);
+                const token = battleMap.tokens.find((t: any) => t.character_id === character.id);
                 if (token) battleMap.removeToken(token.id);
               } else {
                 battleMap.addToken({
@@ -90,8 +124,25 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
               }
             }
           }}
-          hasMyToken={character ? battleMap.tokens.some(t => t.character_id === character.id) : false}
+          hasMyToken={character ? battleMap.tokens.some((t: any) => t.character_id === character.id) : false}
         />
+
+        {/* Floating Dice Button */}
+        <div 
+          className="absolute right-6 transition-all duration-300 z-50"
+          style={{ bottom: logExpanded ? '320px' : '100px' }}
+        >
+          <DiceButton onClick={() => setShowDicePanel(!showDicePanel)} />
+        </div>
+
+        <AnimatePresence>
+          {showDicePanel && (
+            <DicePanel 
+              onClose={() => setShowDicePanel(false)} 
+              onRoll={handleRollDice} 
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Log (Bottom) */}
