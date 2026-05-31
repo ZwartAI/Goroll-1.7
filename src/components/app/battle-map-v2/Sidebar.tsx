@@ -15,7 +15,7 @@ export function Sidebar({ onOpenChar }: Props) {
     ? combat.participants.map((p, idx) => {
         const char = characters.find(c => c.id === p.character_id);
         const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
-        const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.max_hp ?? char?.base_hp ?? 1);
+        const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.base_hp ?? 1);
         
         return {
           id: p.id,
