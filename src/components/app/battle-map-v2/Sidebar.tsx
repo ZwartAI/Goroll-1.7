@@ -34,7 +34,7 @@ export function Sidebar({ onOpenChar }: Props) {
         color: c.color,
         image_url: c.image_url,
         is_turn: false,
-        hp_percent: (c.current_hp / (c.max_hp || c.base_hp || 1)) * 100
+        hp_percent: (c.current_hp / (c.base_hp || 1)) * 100
       }));
 
   return (
