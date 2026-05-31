@@ -19,9 +19,10 @@ interface MapConfig {
 interface Props {
   config: MapConfig;
   onChange: (config: MapConfig) => void;
+  campaignId?: string;
 }
 
-export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void, onSaveToScene?: () => void, saveLabel?: string }> = ({ config, onChange, isOpen, onClose, onSaveToScene, saveLabel }) => {
+export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: () => void, onSaveToScene?: () => void, saveLabel?: string }> = ({ config, onChange, isOpen, onClose, onSaveToScene, saveLabel, campaignId }) => {
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,19 +42,27 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
     try {
       setIsUploading(true);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `backgrounds/${fileName}`;
+      const cleanFileName = file.name.replace(/[^\x00-\x7F]/g, "").replace(/\s+/g, '-').toLowerCase();
+      const fileName = `${Date.now()}-${cleanFileName}`;
+      const bucketName = 'battle-maps';
+      const folderPath = campaignId ? `${campaignId}/` : '';
+      const filePath = `${folderPath}${fileName}`;
 
-      const { error: uploadError, data } = await supabase.storage
-        .from('backgrounds')
-        .upload(filePath, file);
+      console.log('Uploading to:', bucketName, filePath);
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         throw uploadError;
       }
 
       const { data: { publicUrl } } = supabase.storage
-        .from('backgrounds')
+        .from(bucketName)
         .getPublicUrl(filePath);
 
       const type = file.type.startsWith('video/') ? 'video' : 'image';
