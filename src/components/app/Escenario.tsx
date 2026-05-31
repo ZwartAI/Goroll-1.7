@@ -3,7 +3,8 @@ import { LogList } from "@/components/app/LogList";
 import { LogSegments } from "@/components/app/LogSegments";
 import { CombatList } from "@/components/app/CombatList";
 import type { Character, Item, LogRow } from "@/lib/game";
-import { totals } from "@/lib/game";
+import { totals, ENABLE_BATTLE_MAP } from "@/lib/game";
+
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { useEncounterShields } from "@/hooks/useEncounterShields";
