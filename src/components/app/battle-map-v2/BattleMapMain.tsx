@@ -122,6 +122,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           isDM={isDM}
           onOpenScenes={() => setShowScenes(true)}
           onOpenSettings={() => setShowSettings(true)}
+          onResetView={handleResetView}
+          onClearDrawings={handleClearDrawings}
           onInvokeToken={() => {
             if (character) {
               const hasToken = battleMap.tokens.some((t: any) => t.character_id === character.id);
