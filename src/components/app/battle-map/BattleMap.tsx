@@ -1253,5 +1253,3 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 };
 
 export default BattleMap;
-
-export default BattleMap;
