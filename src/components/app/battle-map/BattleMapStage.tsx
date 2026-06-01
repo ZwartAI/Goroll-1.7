@@ -143,8 +143,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         setTimeout(() => {
           if (imageRef.current) {
             imageRef.current.cache();
+            imageRef.current.getLayer()?.batchDraw();
           }
-        }, 100);
+        }, 300);
       }
     } else if (status === 'failed' || (!config.backgroundUrl)) {
       // BLOQUE 9: Resetear transform si no hay imagen para asegurar que la grid sea visible
@@ -305,17 +306,103 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
+
     const oldScale = stage.scaleX();
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-    const mousePointTo = { x: (pointer.x - stage.x()) / oldScale, y: (pointer.y - stage.y()) / oldScale };
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
     const speed = 1.1;
-    const newScale = e.evt.deltaY < 0 ? oldScale * speed : oldScale / speed;
+    let newScale = e.evt.deltaY < 0 ? oldScale * speed : oldScale / speed;
+    
+    // Limitar escala
+    newScale = Math.max(0.05, Math.min(newScale, 10));
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
     stage.scale({ x: newScale, y: newScale });
-    const newPos = { x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale };
     stage.position(newPos);
+    
     setScale(newScale);
     setPosition(newPos);
+    
+    // Forzar redibujado de la caché si es necesario
+    if (imageRef.current) {
+      imageRef.current.batchDraw();
+    }
+  };
+
+  // FASE 9: Pinch-to-zoom para móviles
+  const lastCenter = useRef<any>(null);
+  const lastDist = useRef<number>(0);
+
+  const getDistance = (p1: any, p2: any) => {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+  };
+
+  const getCenter = (p1: any, p2: any) => {
+    return {
+      x: (p1.x + p2.x) / 2,
+      y: (p1.y + p2.y) / 2,
+    };
+  };
+
+  const handleTouchMove = (e: any) => {
+    const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    const stage = stageRef.current;
+
+    if (touch1 && touch2 && stage) {
+      e.evt.preventDefault();
+      
+      const p1 = { x: touch1.clientX, y: touch1.clientY };
+      const p2 = { x: touch2.clientX, y: touch2.clientY };
+
+      if (!lastCenter.current) {
+        lastCenter.current = getCenter(p1, p2);
+        lastDist.current = getDistance(p1, p2);
+        return;
+      }
+
+      const newDist = getDistance(p1, p2);
+      const newCenter = getCenter(p1, p2);
+
+      const oldScale = stage.scaleX();
+      const pointer = stage.getPointerPosition() || newCenter;
+
+      const mousePointTo = {
+        x: (newCenter.x - stage.x()) / oldScale,
+        y: (newCenter.y - stage.y()) / oldScale,
+      };
+
+      const newScale = oldScale * (newDist / lastDist.current);
+      stage.scale({ x: newScale, y: newScale });
+
+      const newPos = {
+        x: newCenter.x - mousePointTo.x * newScale,
+        y: newCenter.y - mousePointTo.y * newScale,
+      };
+
+      stage.position(newPos);
+      
+      lastDist.current = newDist;
+      lastCenter.current = newCenter;
+      
+      setScale(newScale);
+      setPosition(newPos);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    lastDist.current = 0;
+    lastCenter.current = null;
   };
 
   useEffect(() => {
@@ -393,20 +480,44 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const centerX = (mapW * bgScale) / 2;
         const centerY = (mapH * bgScale) / 2;
         
-        const currentScale = stage.scaleX();
+        // Calculamos una escala que haga que la imagen sea visible cómodamente
+        const targetScale = Math.min(
+          (width * 0.9) / (mapW * bgScale),
+          (height * 0.9) / (mapH * bgScale)
+        );
+        
+        const finalScale = Math.max(0.1, Math.min(targetScale, 1.5));
         
         // Objetivo: el centro de la imagen (centerX, centerY) debe quedar en (width/2, height/2) del viewport
-        const targetX = width / 2 - centerX * currentScale;
-        const targetY = height / 2 - centerY * currentScale;
+        const targetX = width / 2 - centerX * finalScale;
+        const targetY = height / 2 - centerY * finalScale;
 
         // Animación suave
         stage.to({
           x: targetX,
           y: targetY,
-          duration: 0.5,
+          scaleX: finalScale,
+          scaleY: finalScale,
+          duration: 0.8,
           easing: Konva.Easings.EaseInOut,
           onFinish: () => {
             setPosition({ x: targetX, y: targetY });
+            setScale(finalScale);
+          }
+        });
+      } else {
+        // Si no hay imagen, centrar en el origen del mundo
+        const targetX = width / 2;
+        const targetY = height / 2;
+        stage.to({
+          x: targetX,
+          y: targetY,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 0.5,
+          onFinish: () => {
+            setPosition({ x: targetX, y: targetY });
+            setScale(1);
           }
         });
       }
@@ -477,8 +588,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
         onMouseDown={handleStageMouseDown} onTouchStart={handleStageMouseDown}
-        onMouseMove={handleStageMouseMove} onTouchMove={handleStageMouseMove}
-        onMouseUp={handleStageMouseUp} onTouchEnd={handleStageMouseUp}
+        onMouseMove={handleStageMouseMove} onTouchMove={handleTouchMove}
+        onMouseUp={handleStageMouseUp} onTouchEnd={handleTouchEnd}
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
@@ -508,6 +619,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
                 opacity={config.backgroundOpacity} 
                 filters={[Konva.Filters.Brighten]}
                 brightness={config.backgroundBrightness - 1}
+                listening={false}
               />
             ) : null
           )}

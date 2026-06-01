@@ -668,7 +668,18 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       handleBroadcastMove(character.id, -9999, -9999);
       toast.success(t("battleMap.tokenRemoved") || "Token retirado");
     } else {
-      const pos = { x: dimensions.width / 2, y: dimensions.height / 2 };
+      // Calcular el centro del viewport en coordenadas del mundo
+      const stage = stageRef.current;
+      let pos = { x: dimensions.width / 2, y: dimensions.height / 2 };
+      
+      if (stage) {
+        const currentScale = stage.scaleX();
+        pos = {
+          x: (dimensions.width / 2 - stage.x()) / currentScale,
+          y: (dimensions.height / 2 - stage.y()) / currentScale
+        };
+      }
+
       setRemoteTokenPositions(prev => ({ ...prev, [character.id]: pos }));
       handleBroadcastMove(character.id, pos.x, pos.y);
       toast.success(t("battleMap.tokenSummoned") || "Token invocado");
