@@ -164,6 +164,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 min={0} max={1} step={0.05}
                 onChange={(v) => updateScene({ grid_opacity: v })} 
               />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <RangeInput 
                 label="Desplazar Grid X" 
