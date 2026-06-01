@@ -14,6 +14,7 @@ interface Props {
   scale?: number;
   gridOffsetX?: number;
   gridOffsetY?: number;
+  isDragging?: boolean;
   onMove: (x: number, y: number) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
@@ -21,16 +22,19 @@ interface Props {
 
 export function Token({ 
   token, isDM, canMove, gridSize, snapToGrid, 
-  scale, gridOffsetX, gridOffsetY,
+  scale = 1, gridOffsetX = 0, gridOffsetY = 0,
+  isDragging = false,
   onMove, onRemove, onUpdateSize 
 }: Props) {
   return (
     <div
       data-token-id={token.id}
       data-token="true"
+      onDragStart={(e) => e.preventDefault()}
       className={cn(
-        "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto",
-        !token.is_visible && "opacity-50 grayscale"
+        "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto select-none",
+        !token.is_visible && "opacity-50 grayscale",
+        isDragging && "cursor-grabbing z-50"
       )}
       style={{ 
         width: token.size,
@@ -38,7 +42,10 @@ export function Token({
         left: 0,
         top: 0,
         transform: `translate3d(${token.x}px, ${token.y}px, 0)`,
-        transition: 'transform 0.1s linear'
+        transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'none'
       }}
     >
       <div className="relative w-full h-full rounded-full border-2 border-[var(--gold)] bg-black/60 overflow-hidden shadow-xl group-hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all">
