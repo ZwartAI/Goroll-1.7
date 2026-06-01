@@ -373,5 +373,6 @@ export const useBattleMap = (campaignId: string) => {
     removeToken,
     addDrawing,
     clearDrawings,
+    removeDrawing,
   };
 };
