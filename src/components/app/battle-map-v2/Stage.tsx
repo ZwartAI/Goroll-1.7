@@ -445,6 +445,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 scale={scale}
                 gridOffsetX={activeScene.grid_offset_x}
                 gridOffsetY={activeScene.grid_offset_y}
+                isDragging={draggingToken?.id === token.id}
                 onMove={(x: number, y: number) => updateTokenPosition(token.id, x, y)}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}

@@ -14,6 +14,7 @@ interface Props {
   scale?: number;
   gridOffsetX?: number;
   gridOffsetY?: number;
+  isDragging?: boolean;
   onMove: (x: number, y: number) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
@@ -22,11 +23,9 @@ interface Props {
 export function Token({ 
   token, isDM, canMove, gridSize, snapToGrid, 
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
+  isDragging = false,
   onMove, onRemove, onUpdateSize 
 }: Props) {
-  // Use a ref to track if we are dragging to disable transitions
-  const isDragging = useRef(false);
-
   return (
     <div
       data-token-id={token.id}
@@ -34,7 +33,8 @@ export function Token({
       onDragStart={(e) => e.preventDefault()}
       className={cn(
         "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto select-none",
-        !token.is_visible && "opacity-50 grayscale"
+        !token.is_visible && "opacity-50 grayscale",
+        isDragging && "cursor-grabbing z-50"
       )}
       style={{ 
         width: token.size,
@@ -42,7 +42,7 @@ export function Token({
         left: 0,
         top: 0,
         transform: `translate3d(${token.x}px, ${token.y}px, 0)`,
-        transition: 'transform 0.05s linear',
+        transition: isDragging ? 'none' : 'transform 0.15s ease-out',
         userSelect: 'none',
         WebkitUserSelect: 'none',
         touchAction: 'none'
