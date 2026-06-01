@@ -182,6 +182,7 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
           </div>
         </div>
       </div>
-    </aside>
+      </div>
+    </div>
   );
 };
