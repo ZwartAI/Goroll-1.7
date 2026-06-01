@@ -46,7 +46,23 @@ export function Toolbar({
           icon={<Pencil className="w-5 h-5" />}
           label="Dibujo"
         />
+        <ToolButton 
+          active={false} 
+          onClick={onResetView}
+          icon={<MousePointer2 className="w-5 h-5" />}
+          label="Centrar"
+          className="border-white/20"
+        />
       </div>
+
+      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
+        <ToolButton 
+          active={false} 
+          onClick={onClearDrawings}
+          icon={<Trash2 className="w-5 h-5 text-red-400" />}
+          label="Limpiar Dibujos"
+          className="border-red-500/30"
+        />
 
       <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
         <ToolButton 
