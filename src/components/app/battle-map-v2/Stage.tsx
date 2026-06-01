@@ -164,7 +164,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 transformOrigin: 'top left',
                 transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)`,
                 width: '100%',
-                height: '100%'
+                height: '100%',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start'
               }}
             >
               {isVideo(activeScene.background_url) ? (
@@ -173,6 +176,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
+                  onError={() => toast.error('Error al cargar video')}
                 />
               ) : (
                 <img 
@@ -180,6 +184,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                   alt="" 
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
+                  onError={() => toast.error('Error al cargar imagen')}
                 />
               )}
             </div>
