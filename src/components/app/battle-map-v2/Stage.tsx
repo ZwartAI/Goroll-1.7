@@ -86,7 +86,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     const rect = stageRef.current.getBoundingClientRect();
     
     // Find my token
-    const myToken = tokens.find(t => t.character_id === characterId);
+    const myToken = tokens.find((t: MapToken) => t.character_id === characterId);
     
     let targetX = 4000;
     let targetY = 4000;
