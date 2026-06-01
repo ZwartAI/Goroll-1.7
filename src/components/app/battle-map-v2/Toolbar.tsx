@@ -9,6 +9,8 @@ interface Props {
   onOpenScenes: () => void;
   onOpenSettings: () => void;
   onInvokeToken: () => void;
+  onResetView: () => void;
+  onClearDrawings: () => void;
   hasMyToken: boolean;
 }
 
@@ -19,6 +21,8 @@ export function Toolbar({
   onOpenScenes, 
   onOpenSettings, 
   onInvokeToken,
+  onResetView,
+  onClearDrawings,
   hasMyToken
 }: Props) {
   return (
