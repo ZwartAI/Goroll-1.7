@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Upload, Grid, MousePointer, Image as ImageIcon, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Upload, Grid as GridIcon, MousePointer, Image as ImageIcon, Trash2, Sliders } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
