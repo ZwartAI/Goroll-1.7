@@ -131,29 +131,12 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       return;
     }
 
-    // Check if we're clicking a token
+    // Check if we're clicking a token - handled by Token component now
     const tokenElement = target.closest('[data-token-id]');
     if (tokenElement) {
-      const tokenId = tokenElement.getAttribute('data-token-id')!;
-      const token = tokens.find((t: MapToken) => t.id === tokenId);
-      const canMoveToken = isDM || token?.character_id === characterId;
-
-      if (token && canMoveToken) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        setDraggingToken({
-          id: token.id,
-          grabOffsetX: coords.x - token.x,
-          grabOffsetY: coords.y - token.y,
-          currentX: token.x,
-          currentY: token.y
-        });
-        
-        target.setPointerCapture(e.pointerId);
-        return;
-      }
+      return;
     }
+
 
     // Multi-touch / Pinch zoom
     if (activePointers.current.size >= 2) {
@@ -199,16 +182,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     }
 
     if (draggingToken) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const newX = coords.x - draggingToken.grabOffsetX;
-      const newY = coords.y - draggingToken.grabOffsetY;
-      
-      setDraggingToken(prev => prev ? { ...prev, currentX: newX, currentY: newY } : null);
-      updateTokenPosition(draggingToken.id, newX, newY, false);
+      // Logic moved to Token.tsx
       return;
     }
+
 
     if (activeTool === 'measure' && rulerStart) {
       setRulerEnd(coords);
@@ -227,40 +204,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     }
 
     if (draggingToken) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      let finalX = draggingToken.currentX;
-      let finalY = draggingToken.currentY;
-
-      if (activeScene.snap_to_grid) {
-        const gx = activeScene.grid_offset_x || 0;
-        const gy = activeScene.grid_offset_y || 0;
-        const gridSize = activeScene.grid_size;
-        
-        const token = tokens.find((t: MapToken) => t.id === draggingToken.id);
-        const size = token?.size || gridSize;
-
-        // Correct centering calculation:
-        // 1. Calculate the center of the token
-        const centerX = finalX + size / 2;
-        const centerY = finalY + size / 2;
-
-        // 2. Find the center of the closest grid cell
-        const cellX = Math.round((centerX - gx - gridSize / 2) / gridSize);
-        const cellY = Math.round((centerY - gy - gridSize / 2) / gridSize);
-        
-        const snappedCenterX = cellX * gridSize + gx + gridSize / 2;
-        const snappedCenterY = cellY * gridSize + gy + gridSize / 2;
-
-        // 3. Offset back to top-left
-        finalX = snappedCenterX - size / 2;
-        finalY = snappedCenterY - size / 2;
-      }
-
-      updateTokenPosition(draggingToken.id, finalX, finalY, true);
+      // Logic moved to Token.tsx
       setDraggingToken(null);
     }
+
 
     if (activeTool === 'measure') {
       setTimeout(() => {
@@ -446,10 +393,12 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 gridOffsetX={activeScene.grid_offset_x}
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingToken?.id === token.id}
-                onMove={(x: number, y: number) => updateTokenPosition(token.id, x, y)}
+                onMove={(x: number, y: number, isFinal: boolean = true) => updateTokenPosition(token.id, x, y, isFinal)}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
+                screenToWorld={screenToWorld}
               />
+
             </div>
           ))}
         </div>
