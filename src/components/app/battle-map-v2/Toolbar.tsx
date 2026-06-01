@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,9 @@ interface Props {
   onInvokeToken: () => void;
   onResetView: () => void;
   onClearDrawings: () => void;
+  onOpenDice: () => void;
   hasMyToken: boolean;
+  hasBackground: boolean;
 }
 
 export function Toolbar({ 
@@ -26,7 +28,9 @@ export function Toolbar({
   onInvokeToken,
   onResetView,
   onClearDrawings,
-  hasMyToken
+  onOpenDice,
+  hasMyToken,
+  hasBackground
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
 
@@ -107,10 +111,22 @@ export function Toolbar({
 
         <ToolButton 
           active={false} 
-          onClick={onResetView}
-          icon={<Crosshair className="w-5 h-5" />}
+          onClick={() => {
+            if (hasBackground) {
+              onResetView();
+            }
+          }}
+          icon={<Crosshair className={cn("w-5 h-5", !hasBackground && "opacity-20")} />}
           label="Centrar"
-          className="border-white/10"
+          className={cn("border-white/10", !hasBackground && "cursor-not-allowed opacity-50")}
+        />
+
+        <ToolButton 
+          active={false} 
+          onClick={onOpenDice}
+          icon={<Box className="w-5 h-5" />}
+          label="Dados"
+          className="border-[var(--gold)]/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
         />
       </div>
 

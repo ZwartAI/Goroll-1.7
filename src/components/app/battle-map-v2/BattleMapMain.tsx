@@ -124,6 +124,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onOpenSettings={() => setShowSettings(true)}
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
+          onOpenDice={() => setShowDicePanel(!showDicePanel)}
           onInvokeToken={() => {
             if (character) {
               const hasToken = battleMap.tokens.some((t: any) => t.character_id === character.id);
@@ -143,15 +144,9 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
             }
           }}
           hasMyToken={character ? battleMap.tokens.some((t: any) => t.character_id === character.id) : false}
+          hasBackground={!!battleMap.activeScene?.background_url}
         />
 
-        {/* Floating Dice Button */}
-        <div 
-          className="absolute right-6 transition-all duration-300 z-50"
-          style={{ bottom: logExpanded ? '320px' : '100px' }}
-        >
-          <DiceButton onClick={() => setShowDicePanel(!showDicePanel)} />
-        </div>
 
         <AnimatePresence>
           {showDicePanel && (
