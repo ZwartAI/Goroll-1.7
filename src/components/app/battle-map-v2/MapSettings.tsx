@@ -137,7 +137,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
           <section className="space-y-3 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[var(--gold)]">
-                <Grid className="w-4 h-4" />
+                <GridIcon className="w-4 h-4" />
                 <h3 className="font-display text-[10px] uppercase tracking-widest">Cuadrícula</h3>
               </div>
               <button 
