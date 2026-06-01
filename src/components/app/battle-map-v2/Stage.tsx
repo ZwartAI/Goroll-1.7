@@ -174,7 +174,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       return;
     }
 
-    if (draggingToken) {
+    if (draggingTokenId) {
       // Logic moved to Token.tsx
       return;
     }
