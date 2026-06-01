@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { MapToken } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
-import { Trash2, Maximize2, Minimize2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { debounce } from 'lodash';
 
 interface Props {
   token: MapToken;
@@ -29,14 +30,31 @@ export function Token({
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const startTime = useRef<number>(0);
 
+  // Debounced update for real-time movement sync
+  const debouncedMove = useRef(
+    debounce((x: number, y: number) => {
+      onMove(x, y);
+    }, 50)
+  ).current;
+
   const handleDragStart = () => {
     setIsDragging(true);
     startTime.current = Date.now();
     
-    // Timer for slow move / long press detection
+    // Timer for slow move / long press detection (to bypass snap if needed)
     pressTimer.current = setTimeout(() => {
       setIsSlowMove(true);
     }, 500);
+  };
+
+  const handleDrag = (_: any, info: any) => {
+    const safeScale = scale || 1;
+    const newX = token.x + info.offset.x / safeScale;
+    const newY = token.y + info.offset.y / safeScale;
+    
+    // For real-time sync during drag, we update the DB (debounced)
+    // Note: This might cause some jitter if the network is slow, but it's what was requested
+    debouncedMove(newX, newY);
   };
 
   const handleDragEnd = (_: any, info: any) => {
@@ -49,24 +67,25 @@ export function Token({
     let newX = token.x + info.offset.x / safeScale;
     let newY = token.y + info.offset.y / safeScale;
 
-    // If it was a quick drag or snap is enabled (and not slow move)
+    // Snapping logic: Center the token on the grid cell center
     const shouldSnap = snapToGrid && (!isSlowMove || dragDuration < 1000);
 
     if (shouldSnap) {
       const gx = gridOffsetX || 0;
       const gy = gridOffsetY || 0;
       
-      // Calculate token center
-      const tokenCenterX = newX + token.size / 2;
-      const tokenCenterY = newY + token.size / 2;
+      // Calculate where the center of the token is currently
+      const currentCenterX = newX + (token.size / 2);
+      const currentCenterY = newY + (token.size / 2);
 
-      // Snap the center to the grid center
-      const snappedCenterX = Math.round((tokenCenterX - gx) / gridSize) * gridSize + gx;
-      const snappedCenterY = Math.round((tokenCenterY - gy) / gridSize) * gridSize + gy;
+      // Find the nearest grid cell center
+      // Grid cells are at: gx + i*gridSize + gridSize/2
+      const snappedCenterX = Math.round((currentCenterX - gx - gridSize/2) / gridSize) * gridSize + gx + gridSize/2;
+      const snappedCenterY = Math.round((currentCenterY - gy - gridSize/2) / gridSize) * gridSize + gy + gridSize/2;
 
-      // Back-calculate top-left position
-      newX = snappedCenterX - token.size / 2;
-      newY = snappedCenterY - token.size / 2;
+      // New top-left position is snapped center minus half token size
+      newX = snappedCenterX - (token.size / 2);
+      newY = snappedCenterY - (token.size / 2);
     }
 
     setIsSlowMove(false);
@@ -75,26 +94,19 @@ export function Token({
     controls.start({
       x: newX,
       y: newY,
-      transition: { type: 'spring', stiffness: 300, damping: 30 }
+      transition: { type: 'spring', stiffness: 400, damping: 35 }
     });
 
     onMove(newX, newY);
   };
 
-  const handleResize = (increment: boolean) => {
-    if (!onUpdateSize) return;
-    const currentCells = Math.round(token.size / gridSize);
-    const newCells = increment ? Math.min(currentCells + 1, 10) : Math.max(currentCells - 1, 1);
-    onUpdateSize(newCells * gridSize);
-  };
-
-  // Sync animation with token position from props (real-time updates)
+  // Sync animation with token position from props (real-time updates from other users)
   useEffect(() => {
     if (!isDragging) {
       controls.start({
         x: token.x,
         y: token.y,
-        transition: { type: 'spring', stiffness: 300, damping: 30 }
+        transition: { type: 'spring', stiffness: 400, damping: 35 }
       });
     }
   }, [token.x, token.y, isDragging, controls]);
@@ -103,7 +115,9 @@ export function Token({
     <motion.div
       drag={canMove}
       dragMomentum={false}
+      dragElastic={0}
       onDragStart={handleDragStart}
+      onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
@@ -113,14 +127,16 @@ export function Token({
       className={cn(
         "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto",
         !token.is_visible && "opacity-50 grayscale",
-        isDragging && "z-50 shadow-2xl scale-105"
+        isDragging && "z-50 shadow-2xl scale-110"
       )}
       style={{ 
         width: token.size,
-        height: token.size
+        height: token.size,
+        left: 0,
+        top: 0
       }}
     >
-      <div className="relative w-full h-full rounded-full border-2 border-[var(--gold)] bg-black/40 overflow-hidden shadow-xl group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] transition-all">
+      <div className="relative w-full h-full rounded-full border-2 border-[var(--gold)] bg-black/60 overflow-hidden shadow-xl group-hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all">
         {token.image_url ? (
           <img 
             src={token.image_url} 
@@ -135,7 +151,7 @@ export function Token({
 
         {/* Name Label */}
         {token.name && (
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-black/60 text-[8px] uppercase tracking-tighter text-white whitespace-nowrap rounded pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-[9px] font-bold uppercase tracking-tighter text-white whitespace-nowrap rounded-t border-t border-x border-[var(--gold)]/30 pointer-events-none">
             {token.name}
           </div>
         )}
@@ -146,26 +162,15 @@ export function Token({
         )}
       </div>
 
-      {/* Resize & Remove Controls */}
-      {isDM && (
-        <div className="absolute -top-2 -right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Control Buttons (Only trash as requested) */}
+      {(isDM || canMove) && (
+        <div className="absolute -top-3 -right-3 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-[60]">
           <button
             onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-colors"
+            className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-colors hover:scale-110 active:scale-95"
+            title="Eliminar token"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleResize(true); }}
-            className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-colors"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleResize(false); }}
-            className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-colors"
-          >
-            <Minimize2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       )}
