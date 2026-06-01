@@ -30,8 +30,8 @@ const ASSET_MAP: Record<TurnButtonState, { es: string; en: string; fallbackEs: s
     fallbackEn: "Initiative",
   },
   waitingTurn: {
-    es: "Esperando_turno_ENG.png", // Corrected
-    en: "Esperando_turno_ENG.png",
+    es: "esperando-turno.png",
+    en: "esperando-turno.png", // Use Spanish version as only one was provided
     fallbackEs: "Esperando turno",
     fallbackEn: "Waiting turn",
   },
@@ -48,14 +48,14 @@ const ASSET_MAP: Record<TurnButtonState, { es: string; en: string; fallbackEs: s
     fallbackEn: "Join late",
   },
   inLink: {
-    es: "Esperando_turno_ENG.png", // Corrected
-    en: "Esperando_turno_ENG.png",
+    es: "esperando-turno.png",
+    en: "esperando-turno.png",
     fallbackEs: "En Enlace",
     fallbackEn: "In Link",
   },
   waitingDm: {
-    es: "Esperando_turno_ENG.png", // Corrected
-    en: "Esperando_turno_ENG.png",
+    es: "esperando-turno.png",
+    en: "esperando-turno.png",
     fallbackEs: "Esperando DM",
     fallbackEn: "Waiting for DM",
   },
