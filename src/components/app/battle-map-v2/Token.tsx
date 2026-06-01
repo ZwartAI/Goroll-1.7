@@ -10,12 +10,19 @@ interface Props {
   canMove: boolean;
   gridSize: number;
   snapToGrid: boolean;
+  scale?: number;
+  gridOffsetX?: number;
+  gridOffsetY?: number;
   onMove: (x: number, y: number) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
 }
 
-export function Token({ token, isDM, canMove, gridSize, snapToGrid, onMove, onRemove, onUpdateSize }: Props) {
+export function Token({ 
+  token, isDM, canMove, gridSize, snapToGrid, 
+  scale, gridOffsetX, gridOffsetY,
+  onMove, onRemove, onUpdateSize 
+}: Props) {
   const controls = useAnimation();
   const [isDragging, setIsDragging] = useState(false);
   const [isSlowMove, setIsSlowMove] = useState(false);
@@ -38,15 +45,28 @@ export function Token({ token, isDM, canMove, gridSize, snapToGrid, onMove, onRe
     
     const dragDuration = Date.now() - startTime.current;
     
-    let newX = token.x + info.offset.x;
-    let newY = token.y + info.offset.y;
+    const safeScale = scale || 1;
+    let newX = token.x + info.offset.x / safeScale;
+    let newY = token.y + info.offset.y / safeScale;
 
     // If it was a quick drag or snap is enabled (and not slow move)
     const shouldSnap = snapToGrid && (!isSlowMove || dragDuration < 1000);
 
     if (shouldSnap) {
-      newX = Math.round(newX / gridSize) * gridSize;
-      newY = Math.round(newY / gridSize) * gridSize;
+      const gx = gridOffsetX || 0;
+      const gy = gridOffsetY || 0;
+      
+      // Calculate token center
+      const tokenCenterX = newX + token.size / 2;
+      const tokenCenterY = newY + token.size / 2;
+
+      // Snap the center to the grid center
+      const snappedCenterX = Math.round((tokenCenterX - gx) / gridSize) * gridSize + gx;
+      const snappedCenterY = Math.round((tokenCenterY - gy) / gridSize) * gridSize + gy;
+
+      // Back-calculate top-left position
+      newX = snappedCenterX - token.size / 2;
+      newY = snappedCenterY - token.size / 2;
     }
 
     setIsSlowMove(false);
@@ -85,10 +105,13 @@ export function Token({ token, isDM, canMove, gridSize, snapToGrid, onMove, onRe
       dragMomentum={false}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       animate={controls}
       initial={{ x: token.x, y: token.y }}
       className={cn(
-        "absolute z-10 cursor-grab active:cursor-grabbing group",
+        "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto",
         !token.is_visible && "opacity-50 grayscale",
         isDragging && "z-50 shadow-2xl scale-105"
       )}
