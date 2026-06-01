@@ -269,11 +269,27 @@ export const useBattleMap = (campaignId: string) => {
     }
   };
 
+  const updateTokenSize = async (tokenId: string, size: number) => {
+    const { error } = await supabase
+      .from('battle_map_tokens_simple')
+      .update({ size })
+      .eq('id', tokenId);
+
+    if (error) {
+      console.error('Error updating token size:', error);
+    }
+  };
+
   const addToken = async (token: Partial<MapToken>) => {
     if (!activeScene) return;
     const { error } = await supabase
       .from('battle_map_tokens_simple')
-      .insert([{ ...token, campaign_id: campaignId, scene_id: activeScene.id }]);
+      .insert([{ 
+        ...token, 
+        campaign_id: campaignId, 
+        scene_id: activeScene.id,
+        size: token.size || activeScene.grid_size // Default size
+      }]);
 
     if (error) {
       toast.error('No se pudo añadir el token');
