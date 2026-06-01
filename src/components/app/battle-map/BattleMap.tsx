@@ -276,7 +276,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [campaign?.id]);
+  }, [campaign?.id, isDM]);
 
   const applyScene = (scene: BattleMapScene) => {
     console.log("Applying scene:", scene.name, scene.id);
