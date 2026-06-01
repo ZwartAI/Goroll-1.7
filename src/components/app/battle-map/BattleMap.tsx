@@ -820,6 +820,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 }
                 window.dispatchEvent(new CustomEvent('battle-map:center-background'));
               }}
+              onFocusAll={handleFocusAll}
             />
 
             {isDM && (
