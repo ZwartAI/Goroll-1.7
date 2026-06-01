@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ruler, Pencil, UserPlus, UserMinus, MousePointer2, Layers, Focus } from 'lucide-react';
+import { Ruler, Pencil, UserPlus, UserMinus, MousePointer2, Layers, Focus, Radio } from 'lucide-react';
 
 interface Props {
   isDM: boolean;
@@ -13,6 +13,7 @@ interface Props {
   onToggleRuler: () => void;
   onScenesToggle: () => void;
   onCenterBackground: () => void;
+  onFocusAll?: () => void;
 }
 
 export const BattleMapToolbar: React.FC<Props> = ({
@@ -26,7 +27,8 @@ export const BattleMapToolbar: React.FC<Props> = ({
   isRulerActive,
   onToggleRuler,
   onScenesToggle,
-  onCenterBackground
+  onCenterBackground,
+  onFocusAll
 }) => {
   return (
     <div className="flex flex-col gap-2 bg-black/80 backdrop-blur-xl border border-white/10 p-2.5 rounded-[2rem] shadow-2xl">
@@ -67,6 +69,15 @@ export const BattleMapToolbar: React.FC<Props> = ({
         icon={<Focus className="w-5 h-5" />}
         title="Centrar en fondo del mapa"
       />
+
+      {isDM && (
+        <ToolbarButton 
+          active={false} 
+          onClick={onFocusAll || (() => {})}
+          icon={<Radio className="w-5 h-5 text-[var(--gold)]" />}
+          title="Centrar a todos en mi vista"
+        />
+      )}
 
       <ToolbarButton 
         active={false} 

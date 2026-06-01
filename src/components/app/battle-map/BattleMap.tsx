@@ -260,10 +260,23 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           [payload.payload.userId]: payload.payload.projection
         }));
       })
+      .on('broadcast', { event: 'dm-camera-focus' }, (payload) => {
+        if (!isDM) {
+          console.log("DM forced focus:", payload.payload);
+          const event = new CustomEvent('battle-map:focus-point', { 
+            detail: { 
+              x: payload.payload.x, 
+              y: payload.payload.y,
+              scale: payload.payload.scale
+            } 
+          });
+          window.dispatchEvent(event);
+        }
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [campaign?.id]);
+  }, [campaign?.id, isDM]);
 
   const applyScene = (scene: BattleMapScene) => {
     console.log("Applying scene:", scene.name, scene.id);
@@ -303,6 +316,36 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       payload: { userId: user.id, projection }
     });
   }, [campaign?.id]);
+
+  const handleFocusAll = useCallback(() => {
+    if (!campaign?.id || !isDM) return;
+    
+    // Get current stage info
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const currentScale = stage.scaleX();
+    const stageWidth = stage.width();
+    const stageHeight = stage.height();
+    
+    // Find world coordinates of the viewport center
+    const worldCenterX = (stageWidth / 2 - stage.x()) / currentScale;
+    const worldCenterY = (stageHeight / 2 - stage.y()) / currentScale;
+    
+    supabase.channel('battle-map-realtime:' + campaign.id).send({
+      type: 'broadcast',
+      event: 'dm-camera-focus',
+      payload: { 
+        x: worldCenterX, 
+        y: worldCenterY, 
+        scale: currentScale,
+        sentAt: Date.now() 
+      }
+    });
+    
+    toast.success("Vista enviada a todos los jugadores");
+    playMapSound('click');
+  }, [campaign?.id, isDM]);
 
   // FASE 5: Scene Management Handlers
   const handleSaveScene = useCallback(async (name: string) => {
@@ -777,6 +820,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 }
                 window.dispatchEvent(new CustomEvent('battle-map:center-background'));
               }}
+              onFocusAll={handleFocusAll}
             />
 
             {isDM && (

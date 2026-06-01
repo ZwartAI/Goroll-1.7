@@ -416,6 +416,36 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     return () => window.removeEventListener('battle-map:center-background', handleCenterBackground);
   }, [bgImage, config.backgroundScale, config.backgroundType, width, height]);
 
+  useEffect(() => {
+    const handleFocusPoint = (e: any) => {
+      const { x, y, scale: targetScale } = e.detail;
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      // Calculate target X, Y to center the world point (x, y) in the viewport center (width/2, height/2)
+      const currentScale = targetScale || stage.scaleX();
+      const targetX = width / 2 - x * currentScale;
+      const targetY = height / 2 - y * currentScale;
+
+      // Smooth animation
+      stage.to({
+        x: targetX,
+        y: targetY,
+        scaleX: currentScale,
+        scaleY: currentScale,
+        duration: 1,
+        easing: Konva.Easings.EaseInOut,
+        onFinish: () => {
+          setPosition({ x: targetX, y: targetY });
+          setScale(currentScale);
+        }
+      });
+    };
+
+    window.addEventListener('battle-map:focus-point', handleFocusPoint);
+    return () => window.removeEventListener('battle-map:focus-point', handleFocusPoint);
+  }, [width, height]);
+
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
