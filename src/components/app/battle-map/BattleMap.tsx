@@ -919,9 +919,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 setIsScenesPanelOpen(false); // Cerrar panel al activar
               }, 400);
             }}
-            onOpenAddScene={() => {
-              setNewSceneName('');
-              setIsAddSceneModalOpen(true);
+            onOpenAddScene={(name) => {
+              if (typeof name === 'string' && name.trim()) {
+                handleSaveScene(name.trim());
+              } else {
+                setNewSceneName('');
+                setIsAddSceneModalOpen(true);
+              }
             }}
             onDeleteScene={handleDeleteScene}
             onDuplicateScene={(id) => {
