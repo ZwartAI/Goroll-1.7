@@ -20,15 +20,27 @@ export function MapSettings({ battleMap, onClose }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Preview local inmediata
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      // Podríamos usar esto para una preview local si quisiéramos
+    };
+    reader.readAsDataURL(file);
+
     try {
       setIsUploading(true);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
+      console.log('Uploading file:', fileName);
+
       const { data, error } = await supabase.storage
         .from('battle-maps')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) throw error;
 
@@ -36,13 +48,18 @@ export function MapSettings({ battleMap, onClose }: Props) {
         .from('battle-maps')
         .getPublicUrl(filePath);
 
+      console.log('File uploaded, public URL:', publicUrl);
+
+      // Actualizar la escena con la nueva URL
       await updateScene({ background_url: publicUrl });
-      toast.success('Imagen de mapa cargada correctamente');
+      toast.success('Fondo actualizado correctamente');
     } catch (error: any) {
       console.error('Error uploading:', error);
-      toast.error('Error al subir la imagen');
+      toast.error('Error al subir el archivo: ' + (error.message || 'Error desconocido'));
     } finally {
       setIsUploading(false);
+      // Limpiar input
+      e.target.value = '';
     }
   };
 
