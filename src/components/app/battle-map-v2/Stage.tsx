@@ -153,7 +153,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         {/* Map Background Layer */}
         {activeScene.background_url && (
           <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 pointer-events-none"
             style={{ 
               opacity: activeScene.background_opacity,
               zIndex: 0
@@ -161,12 +161,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
           >
             <div 
               style={{ 
+                transformOrigin: 'top left',
                 transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)`,
                 width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                height: '100%'
               }}
             >
               {isVideo(activeScene.background_url) ? (
