@@ -120,17 +120,30 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.min(Math.max(scale * delta, 0.1), 5);
-      setScale(newScale);
-    } else {
-      // Regular scroll pannes
-      setOffset(prev => ({
-        x: prev.x - e.deltaX / scale,
-        y: prev.y - e.deltaY / scale
-      }));
-    }
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!stageRef.current) return;
+
+    const rect = stageRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const oldScale = scale;
+    // zoomFactor logic
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.min(Math.max(oldScale * zoomFactor, 0.25), 5);
+
+    // Calculate world coordinates of the mouse before zoom
+    const worldX = mouseX / oldScale - offset.x;
+    const worldY = mouseY / oldScale - offset.y;
+
+    // Calculate new offset to keep world coordinates under mouse
+    const newOffsetX = mouseX / newScale - worldX;
+    const newOffsetY = mouseY / newScale - worldY;
+
+    setScale(newScale);
+    setOffset({ x: newOffsetX, y: newOffsetY });
   };
 
   if (!activeScene) {
@@ -166,9 +179,13 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   return (
     <div 
       className={cn(
-        "flex-1 relative overflow-hidden bg-[#050505] touch-none",
+        "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
         activeTool === 'move' ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
       )}
+      style={{ 
+        touchAction: "none",
+        overscrollBehavior: "none"
+      }}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -275,17 +292,21 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         {/* Tokens Layer */}
         <div style={{ zIndex: 10, position: 'absolute', inset: 0 }} className="pointer-events-none">
           {tokens.map((token: MapToken) => (
-            <Token 
-              key={token.id} 
-              token={token} 
-              isDM={isDM} 
-              canMove={isDM || token.character_id === characterId}
-              gridSize={activeScene.grid_size}
-              snapToGrid={activeScene.snap_to_grid}
-              onMove={(x: number, y: number) => updateTokenPosition(token.id, x, y)}
-              onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
-              onRemove={() => battleMap.removeToken(token.id)}
-            />
+            <div key={token.id} className="pointer-events-auto">
+              <Token 
+                token={token} 
+                isDM={isDM} 
+                canMove={isDM || token.character_id === characterId}
+                gridSize={activeScene.grid_size}
+                snapToGrid={activeScene.snap_to_grid}
+                scale={scale}
+                gridOffsetX={activeScene.grid_offset_x}
+                gridOffsetY={activeScene.grid_offset_y}
+                onMove={(x: number, y: number) => updateTokenPosition(token.id, x, y)}
+                onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
+                onRemove={() => battleMap.removeToken(token.id)}
+              />
+            </div>
           ))}
         </div>
 
