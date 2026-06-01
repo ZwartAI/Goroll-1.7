@@ -151,7 +151,19 @@ export const useBattleMap = (campaignId: string) => {
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const newScene = payload.new as any;
             if (newScene.is_active && newScene.campaign_id === campaignId) {
-              setActiveScene(newScene as unknown as SceneConfig);
+              // If grid_size changed, locally scale tokens for smooth transition
+              setActiveScene(prev => {
+                if (prev && newScene.grid_size !== prev.grid_size) {
+                  const ratio = newScene.grid_size / prev.grid_size;
+                  setTokens(currentTokens => currentTokens.map(t => ({
+                    ...t,
+                    x: t.x * ratio,
+                    y: t.y * ratio,
+                    size: newScene.grid_size
+                  })));
+                }
+                return newScene as unknown as SceneConfig;
+              });
             }
           }
           fetchScenes();
