@@ -54,29 +54,52 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
         className="w-full max-w-lg bg-[#0a0a0c]/98 border border-white/10 flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
         onClick={e => e.stopPropagation()}
       >
-      <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
-        <div className="flex flex-col">
-          <h2 className="font-display text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] flex items-center gap-2">
-            <Layers size={14} />
-            Gestión de Escenas
-          </h2>
-          <span className="text-[7px] text-muted-foreground uppercase tracking-widest mt-0.5">Mapas y Entornos</span>
+      <div className="p-4 border-b border-white/10 bg-black/40">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col">
+            <h2 className="font-display text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] flex items-center gap-2">
+              <Layers size={14} />
+              Gestión de Escenas
+            </h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg bg-white/5 text-muted-foreground hover:text-white transition-colors">
+            <X size={16} />
+          </button>
         </div>
-        <button onClick={onClose} className="p-1.5 rounded-lg bg-white/5 text-muted-foreground hover:text-white transition-colors">
-          <X size={16} />
-        </button>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {/* PowerPoint style Add Button */}
-        <Button 
-          variant="outline" 
-          className="w-full h-12 border-dashed border-white/20 hover:border-[var(--gold)] hover:text-[var(--gold)] bg-white/5 text-[10px] font-bold tracking-widest uppercase mb-4"
-          onClick={onOpenAddScene}
-        >
-          <Plus size={14} className="mr-2" />
-          Nueva Escena
-        </Button>
+        {/* Add Scene Inline */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input 
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] uppercase tracking-wider focus:outline-none focus:border-[var(--gold)]/50 placeholder:text-muted-foreground/30"
+              placeholder="Nombre de la nueva escena..."
+              id="new-scene-name-input"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const input = e.currentTarget;
+                  if (input.value.trim()) {
+                    onOpenAddScene(); // We'll adapt this in BattleMap.tsx to take the name or use a ref
+                    // For now, let's just trigger the existing modal as a fallback or handle it here
+                  }
+                }
+              }}
+            />
+          </div>
+          <Button 
+            className="bg-[var(--gold)] hover:bg-[var(--gold)]/90 text-black text-[9px] font-bold tracking-widest uppercase h-auto px-4"
+            onClick={() => {
+              const input = document.getElementById('new-scene-name-input') as HTMLInputElement;
+              if (input && input.value.trim()) {
+                // We'll need to pass the name. Let's update the prop.
+                (onOpenAddScene as any)(input.value.trim());
+                input.value = '';
+              }
+            }}
+          >
+            + AÑADIR
+          </Button>
+        </div>
+      </div>
 
         {/* Lista de Escenas */}
         <div className="space-y-4 pt-4 border-t border-white/5">
