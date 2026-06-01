@@ -410,7 +410,10 @@ export const useBattleMap = (campaignId: string) => {
       ...token, 
       campaign_id: campaignId, 
       scene_id: activeScene.id,
-      size: token.size || activeScene.grid_size // Default size
+      size: activeScene.grid_size, // Force size to match grid
+      image_scale: token.image_scale || 1,
+      image_offset_x: token.image_offset_x ?? 50,
+      image_offset_y: token.image_offset_y ?? 50
     };
 
     const { data, error } = await supabase
