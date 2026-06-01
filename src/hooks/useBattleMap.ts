@@ -181,8 +181,25 @@ export const useBattleMap = (campaignId: string) => {
           table: 'battle_map_tokens_simple',
           filter: `scene_id=eq.${activeScene.id}`,
         },
-        () => {
-          fetchTokens(activeScene.id);
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newToken = payload.new as MapToken;
+            setTokens(prev => {
+              const exists = prev.some(t => t.id === newToken.id);
+              if (exists) return prev;
+              // Also avoid character duplication in same scene
+              const withoutSameChar = prev.filter(t => 
+                !(t.character_id && t.character_id === newToken.character_id && t.scene_id === newToken.scene_id)
+              );
+              return [...withoutSameChar, newToken];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedToken = payload.new as MapToken;
+            setTokens(prev => prev.map(t => t.id === updatedToken.id ? updatedToken : t));
+          } else if (payload.eventType === 'DELETE') {
+            const oldToken = payload.old as { id: string };
+            setTokens(prev => prev.filter(t => t.id !== oldToken.id));
+          }
         }
       )
       .subscribe();
@@ -289,6 +306,9 @@ export const useBattleMap = (campaignId: string) => {
   };
 
   const updateTokenPosition = async (tokenId: string, x: number, y: number) => {
+    // Optimistic local update
+    setTokens(prev => prev.map(t => t.id === tokenId ? { ...t, x, y } : t));
+
     const { error } = await supabase
       .from('battle_map_tokens_simple')
       .update({ x, y })
@@ -296,6 +316,9 @@ export const useBattleMap = (campaignId: string) => {
 
     if (error) {
       console.error('Error updating token position:', error);
+      toast.error('Error al sincronizar posición');
+      // Refetch to sync correctly
+      if (activeScene) fetchTokens(activeScene.id);
     }
   };
 
@@ -312,21 +335,38 @@ export const useBattleMap = (campaignId: string) => {
 
   const addToken = async (token: Partial<MapToken>) => {
     if (!activeScene) return;
-    const { error } = await supabase
+    
+    const newTokenData = { 
+      ...token, 
+      campaign_id: campaignId, 
+      scene_id: activeScene.id,
+      size: token.size || activeScene.grid_size // Default size
+    };
+
+    const { data, error } = await supabase
       .from('battle_map_tokens_simple')
-      .insert([{ 
-        ...token, 
-        campaign_id: campaignId, 
-        scene_id: activeScene.id,
-        size: token.size || activeScene.grid_size // Default size
-      }]);
+      .insert([newTokenData])
+      .select()
+      .single();
 
     if (error) {
       toast.error('No se pudo añadir el token');
+    } else if (data) {
+      const insertedToken = data as unknown as MapToken;
+      setTokens(prev => {
+        const withoutSame = prev.filter(t => 
+          t.id !== insertedToken.id && 
+          !(t.character_id && t.character_id === insertedToken.character_id && t.scene_id === insertedToken.scene_id)
+        );
+        return [...withoutSame, insertedToken];
+      });
     }
   };
 
   const removeToken = async (tokenId: string) => {
+    // Optimistic local update
+    setTokens(prev => prev.filter(t => t.id !== tokenId));
+
     const { error } = await supabase
       .from('battle_map_tokens_simple')
       .delete()
@@ -334,6 +374,8 @@ export const useBattleMap = (campaignId: string) => {
 
     if (error) {
       toast.error('No se pudo retirar el token');
+      // Refetch to sync correctly
+      if (activeScene) fetchTokens(activeScene.id);
     }
   };
 
