@@ -127,7 +127,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onOpenDice={() => setShowDicePanel(!showDicePanel)}
           onInvokeToken={() => {
             if (character && battleMap.activeScene) {
-              const myToken = battleMap.tokens.find((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene.id);
+              const currentSceneId = battleMap.activeScene.id;
+              const myToken = battleMap.tokens.find((t: any) => t.character_id === character.id && t.scene_id === currentSceneId);
               if (myToken) {
                 battleMap.removeToken(myToken.id);
               } else {
@@ -142,7 +143,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
               }
             }
           }}
-          hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene.id) : false}
+          hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
         />
 
