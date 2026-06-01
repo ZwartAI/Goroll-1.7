@@ -818,7 +818,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             chalkNotes={chalkNotes}
             onAddChalkLine={handleAddChalkLine}
             onAddNote={handleAddNote}
-            onNoteUpdate={(id, x, y) => { handleNoteUpdate(id, x, y); handleUpdateCurrentSceneState(); }}
+            onNoteUpdate={handleNoteUpdate}
             onNoteClick={handleNoteDelete}
             remoteTokenPositions={remoteTokenPositions}
             remoteProjections={remoteProjections}
