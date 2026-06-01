@@ -105,7 +105,7 @@ export function TurnAssetButton({ state, onClick, disabled, className, ariaLabel
             className="block w-full h-auto pointer-events-none object-contain"
             draggable={false}
             onError={() => setAssetError(true)}
-            style={{ marginTop: "-8%", marginBottom: "-8%" }}
+            style={{ marginTop: "-6%", marginBottom: "-6%" }}
           />
         ) : (
           /* FALLBACK BUTTON - RPG STYLE */
