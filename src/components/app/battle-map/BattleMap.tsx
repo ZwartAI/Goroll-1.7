@@ -317,6 +317,36 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     });
   }, [campaign?.id]);
 
+  const handleFocusAll = useCallback(() => {
+    if (!campaign?.id || !isDM) return;
+    
+    // Get current stage info
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const currentScale = stage.scaleX();
+    const stageWidth = stage.width();
+    const stageHeight = stage.height();
+    
+    // Find world coordinates of the viewport center
+    const worldCenterX = (stageWidth / 2 - stage.x()) / currentScale;
+    const worldCenterY = (stageHeight / 2 - stage.y()) / currentScale;
+    
+    supabase.channel('battle-map-realtime:' + campaign.id).send({
+      type: 'broadcast',
+      event: 'dm-camera-focus',
+      payload: { 
+        x: worldCenterX, 
+        y: worldCenterY, 
+        scale: currentScale,
+        sentAt: Date.now() 
+      }
+    });
+    
+    toast.success("Vista enviada a todos los jugadores");
+    playMapSound('click');
+  }, [campaign?.id, isDM]);
+
   // FASE 5: Scene Management Handlers
   const handleSaveScene = useCallback(async (name: string) => {
     if (!campaign?.id) return;
