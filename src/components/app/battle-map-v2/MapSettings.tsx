@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Upload, Grid, MousePointer, Image as ImageIcon, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Upload, Grid as GridIcon, MousePointer, Image as ImageIcon, Trash2, Sliders } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -20,15 +20,27 @@ export function MapSettings({ battleMap, onClose }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Preview local inmediata
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      // Podríamos usar esto para una preview local si quisiéramos
+    };
+    reader.readAsDataURL(file);
+
     try {
       setIsUploading(true);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
+      console.log('Uploading file:', fileName);
+
       const { data, error } = await supabase.storage
         .from('battle-maps')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) throw error;
 
@@ -36,13 +48,18 @@ export function MapSettings({ battleMap, onClose }: Props) {
         .from('battle-maps')
         .getPublicUrl(filePath);
 
+      console.log('File uploaded, public URL:', publicUrl);
+
+      // Actualizar la escena con la nueva URL
       await updateScene({ background_url: publicUrl });
-      toast.success('Imagen de mapa cargada correctamente');
+      toast.success('Fondo actualizado correctamente');
     } catch (error: any) {
       console.error('Error uploading:', error);
-      toast.error('Error al subir la imagen');
+      toast.error('Error al subir el archivo: ' + (error.message || 'Error desconocido'));
     } finally {
       setIsUploading(false);
+      // Limpiar input
+      e.target.value = '';
     }
   };
 
@@ -137,7 +154,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
           <section className="space-y-3 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[var(--gold)]">
-                <Grid className="w-4 h-4" />
+                <GridIcon className="w-4 h-4" />
                 <h3 className="font-display text-[10px] uppercase tracking-widest">Cuadrícula</h3>
               </div>
               <button 
@@ -221,18 +238,30 @@ export function MapSettings({ battleMap, onClose }: Props) {
 }
 
 function RangeInput({ label, value, min, max, step, onChange }: { label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void }) {
+  // Local state for smooth sliding
+  const [localValue, setLocalValue] = useState(value);
+
+  // Sync with prop when it changes from outside
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   return (
-    <div>
+    <div className="group">
       <div className="flex items-center justify-between mb-1">
-        <label className="text-[9px] uppercase tracking-widest text-white/40">{label}</label>
-        <span className="text-[10px] text-[var(--gold)] font-mono">{value}</span>
+        <label className="text-[9px] uppercase tracking-[0.15em] text-white/40 group-hover:text-white/60 transition-colors">{label}</label>
+        <span className="text-[10px] text-[var(--gold)] font-mono font-bold">{localValue}</span>
       </div>
       <input 
         type="range" 
         min={min} max={max} step={step} 
-        value={value} 
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--gold)]"
+        value={localValue} 
+        onChange={(e) => {
+          const val = parseFloat(e.target.value);
+          setLocalValue(val);
+          onChange(val);
+        }}
+        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--gold)] hover:bg-white/15 transition-all outline-none focus:ring-1 focus:ring-[var(--gold)]/30"
       />
     </div>
   );

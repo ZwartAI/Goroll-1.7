@@ -164,13 +164,13 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
           >
             <div 
               style={{ 
-                transformOrigin: 'top left',
-                transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)`,
+                transformOrigin: 'center center',
+                transform: `translate(${activeScene.background_x}%, ${activeScene.background_y}%) scale(${activeScene.background_scale})`,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'flex-start'
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               {isVideo(activeScene.background_url) ? (

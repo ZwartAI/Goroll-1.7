@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { debounce } from 'lodash';
 
 export interface SceneConfig {
   id: string;
@@ -208,16 +209,33 @@ export const useBattleMap = (campaignId: string) => {
     };
   }, [activeScene?.id, fetchTokens, fetchDrawings]);
 
+  // Debounced DB update
+  const debouncedUpdate = useRef(
+    debounce(async (sceneId: string, updates: Partial<SceneConfig>) => {
+      const { error } = await supabase
+        .from('battle_map_scenes_simple')
+        .update(updates)
+        .eq('id', sceneId);
+
+      if (error) {
+        console.error('Error updating scene:', error);
+        toast.error('No se pudo sincronizar el cambio con el servidor');
+      }
+    }, 500)
+  ).current;
+
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
-    const { error } = await supabase
-      .from('battle_map_scenes_simple')
-      .update(updates)
-      .eq('id', activeScene.id);
+    
+    // Optimistic local update
+    const updatedScene = { ...activeScene, ...updates };
+    setActiveScene(updatedScene);
+    
+    // Update in scenes list
+    setScenes(prev => prev.map(s => s.id === activeScene.id ? updatedScene : s));
 
-    if (error) {
-      toast.error('No se pudo actualizar la escena');
-    }
+    // Call debounced DB update
+    debouncedUpdate(activeScene.id, updates);
   };
 
   const createScene = async (name: string) => {
