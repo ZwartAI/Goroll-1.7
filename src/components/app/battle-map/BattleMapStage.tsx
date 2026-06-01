@@ -369,6 +369,53 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     return () => window.removeEventListener('start-projection', handleStartProjection);
   }, [width, height]);
 
+  useEffect(() => {
+    const handleCenterBackground = () => {
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      let mapW = 0;
+      let mapH = 0;
+      let loaded = false;
+
+      if (config.backgroundType === 'image' && bgImage) {
+        mapW = bgImage.width;
+        mapH = bgImage.height;
+        loaded = true;
+      } else if (config.backgroundType === 'video' && videoRef.current) {
+        mapW = videoRef.current.videoWidth;
+        mapH = videoRef.current.videoHeight;
+        loaded = true;
+      }
+
+      if (loaded && mapW > 0 && mapH > 0) {
+        const bgScale = config.backgroundScale || 1;
+        const centerX = (mapW * bgScale) / 2;
+        const centerY = (mapH * bgScale) / 2;
+        
+        const currentScale = stage.scaleX();
+        
+        // Objetivo: el centro de la imagen (centerX, centerY) debe quedar en (width/2, height/2) del viewport
+        const targetX = width / 2 - centerX * currentScale;
+        const targetY = height / 2 - centerY * currentScale;
+
+        // Animación suave
+        stage.to({
+          x: targetX,
+          y: targetY,
+          duration: 0.5,
+          easing: Konva.Easings.EaseInOut,
+          onFinish: () => {
+            setPosition({ x: targetX, y: targetY });
+          }
+        });
+      }
+    };
+
+    window.addEventListener('battle-map:center-background', handleCenterBackground);
+    return () => window.removeEventListener('battle-map:center-background', handleCenterBackground);
+  }, [bgImage, config.backgroundScale, config.backgroundType, width, height]);
+
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
