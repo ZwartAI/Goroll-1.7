@@ -7,6 +7,8 @@ import type { MapConfig } from './BattleMap';
 import { BattleMapChalkLayer, type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChalkControls';
 import useImage from 'use-image';
+import { toast } from 'sonner';
+
 
 interface Props {
   width: number;
@@ -296,6 +298,8 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
+    e.evt.stopPropagation();
+    
     const stage = stageRef.current;
     if (!stage) return;
 
@@ -310,6 +314,8 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
 
     const speed = 1.1;
     let newScale = e.evt.deltaY < 0 ? oldScale * speed : oldScale / speed;
+    
+    // Limits: 0.05 to 10
     newScale = Math.max(0.05, Math.min(newScale, 10));
 
     const newPos = {
@@ -327,6 +333,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
       imageRef.current.getLayer()?.batchDraw();
     }
   };
+
 
   const lastCenter = useRef<any>(null);
   const lastDist = useRef<number>(0);
@@ -445,66 +452,69 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   }, [width, height]);
 
   useEffect(() => {
-    const handleCenterBackground = () => {
-      const stage = stageRef.current;
-      if (!stage) return;
+  const handleCenterBackground = () => {
+    const stage = stageRef.current;
+    if (!stage) return;
 
-      let mapW = 0;
-      let mapH = 0;
-      let loaded = false;
+    // Si está cargando, mostrar aviso y no mover
+    if (config.backgroundUrl && (status === 'loading' || (config.backgroundType === 'video' && !isVideoReady))) {
+      toast.info("El fondo del mapa aún se está cargando");
+      return;
+    }
 
-      if (config.backgroundType === 'image' && bgImage) {
-        mapW = bgImage.width;
-        mapH = bgImage.height;
-        loaded = true;
-      } else if (config.backgroundType === 'video' && videoRef.current) {
-        mapW = videoRef.current.videoWidth;
-        mapH = videoRef.current.videoHeight;
-        loaded = true;
-      }
+    let mapW = 0;
+    let mapH = 0;
+    let loaded = false;
 
-      if (loaded && mapW > 0 && mapH > 0) {
-        const bgScale = config.backgroundScale || 1;
-        const centerX = (mapW * bgScale) / 2;
-        const centerY = (mapH * bgScale) / 2;
-        
-        const targetScale = Math.min(
-          (width * 0.9) / (mapW * bgScale),
-          (height * 0.9) / (mapH * bgScale)
-        );
-        
-        const finalScale = Math.max(0.1, Math.min(targetScale, 1.5));
-        const targetX = width / 2 - centerX * finalScale;
-        const targetY = height / 2 - centerY * finalScale;
+    if (config.backgroundType === 'image' && bgImage) {
+      mapW = bgImage.width;
+      mapH = bgImage.height;
+      loaded = true;
+    } else if (config.backgroundType === 'video' && videoRef.current) {
+      mapW = videoRef.current.videoWidth;
+      mapH = videoRef.current.videoHeight;
+      loaded = true;
+    }
 
-        stage.to({
-          x: targetX,
-          y: targetY,
-          scaleX: finalScale,
-          scaleY: finalScale,
-          duration: 0.8,
-          easing: Konva.Easings.EaseInOut,
-          onFinish: () => {
-            setPosition({ x: targetX, y: targetY });
-            setScale(finalScale);
-          }
-        });
-      } else {
-        const targetX = width / 2;
-        const targetY = height / 2;
-        stage.to({
-          x: targetX,
-          y: targetY,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 0.5,
-          onFinish: () => {
-            setPosition({ x: targetX, y: targetY });
-            setScale(1);
-          }
-        });
-      }
-    };
+    if (loaded && mapW > 0 && mapH > 0) {
+      const bgScale = config.backgroundScale || 1;
+      // World center of the image (assuming it starts at 0,0)
+      const worldCenterX = (mapW * bgScale) / 2;
+      const worldCenterY = (mapH * bgScale) / 2;
+      
+      const currentScale = stage.scaleX();
+      
+      // Calculate target position to center the world point in the viewport
+      const targetX = width / 2 - worldCenterX * currentScale;
+      const targetY = height / 2 - worldCenterY * currentScale;
+
+      stage.to({
+        x: targetX,
+        y: targetY,
+        duration: 0.8,
+        easing: Konva.Easings.EaseInOut,
+        onFinish: () => {
+          setPosition({ x: targetX, y: targetY });
+        }
+      });
+    } else if (!config.backgroundUrl) {
+      // Si no hay fondo, centrar en 0,0 con escala 1
+      const targetX = width / 2;
+      const targetY = height / 2;
+      stage.to({
+        x: targetX,
+        y: targetY,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.5,
+        onFinish: () => {
+          setPosition({ x: targetX, y: targetY });
+          setScale(1);
+        }
+      });
+    }
+  };
+
 
     window.addEventListener('battle-map:center-background', handleCenterBackground);
     return () => window.removeEventListener('battle-map:center-background', handleCenterBackground);
@@ -562,7 +572,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
 
   return (
-    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5">
+    <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5 select-none" style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
       <Stage
         width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
@@ -631,8 +641,12 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
         <Layer id="tokens-layer">
           {isReady && participants.map((p, i) => {
             const remotePos = remoteTokenPositions[p.id];
-            const initialX = (width / 2 + (i % 3) * gridSize - gridSize - position.x) / scale;
-            const initialY = (height / 2 + Math.floor(i / 3) * gridSize - gridSize - position.y) / scale;
+            
+            // Calculamos una posición inicial si no hay posición remota
+            // Usamos coordenadas relativas al centro del escenario (0,0 en mundo)
+            const initialX = (i % 3) * gridSize - gridSize;
+            const initialY = Math.floor(i / 3) * gridSize - gridSize;
+            
             const finalX = remotePos?.x ?? initialX;
             const finalY = remotePos?.y ?? initialY;
             const isDM = role === 'dm';
@@ -651,6 +665,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
             );
           })}
         </Layer>
+
 
         <Layer id="chalk-layer">
           <BattleMapChalkLayer lines={chalkLines} notes={chalkNotes} onNoteDragEnd={onNoteUpdate} onNoteClick={onNoteClick} />
