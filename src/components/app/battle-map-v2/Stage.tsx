@@ -4,6 +4,7 @@ import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface Props {
   battleMap: any;
@@ -15,10 +16,23 @@ interface Props {
 export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize scale and offset to center the view
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+
+  // Center the view on initial load or scene change
+  useEffect(() => {
+    if (stageRef.current) {
+      const rect = stageRef.current.getBoundingClientRect();
+      setOffset({ 
+        x: rect.width / 2 / scale, 
+        y: rect.height / 2 / scale 
+      });
+    }
+  }, [activeScene?.id, scale]);
   
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
@@ -133,38 +147,48 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         className="absolute inset-0 origin-top-left stage-bg"
         style={{ 
           transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`,
-          width: '10000px', // Even larger area
-          height: '10000px'
+          width: '8000px',
+          height: '8000px'
         }}
       >
         {/* Map Background Layer */}
         {activeScene.background_url && (
           <div 
-            className="absolute inset-0 bg-no-repeat bg-center pointer-events-none"
+            className="absolute inset-0 pointer-events-none"
             style={{ 
               opacity: activeScene.background_opacity,
               zIndex: 0
             }}
           >
-            {isVideo(activeScene.background_url) ? (
-              <video 
-                src={activeScene.background_url} 
-                autoPlay loop muted playsInline
-                className="w-full h-full object-contain"
-                style={{ 
-                  transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)` 
-                }}
-              />
-            ) : (
-              <img 
-                src={activeScene.background_url} 
-                alt="" 
-                className="w-full h-full object-contain"
-                style={{ 
-                  transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)` 
-                }}
-              />
-            )}
+            <div 
+              style={{ 
+                transformOrigin: 'top left',
+                transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)`,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start'
+              }}
+            >
+              {isVideo(activeScene.background_url) ? (
+                <video 
+                  src={activeScene.background_url} 
+                  autoPlay loop muted playsInline
+                  className="max-w-none max-h-none shadow-2xl"
+                  style={{ width: 'auto', height: 'auto' }}
+                  onError={() => toast.error('Error al cargar video')}
+                />
+              ) : (
+                <img 
+                  src={activeScene.background_url} 
+                  alt="" 
+                  className="max-w-none max-h-none shadow-2xl"
+                  style={{ width: 'auto', height: 'auto' }}
+                  onError={() => toast.error('Error al cargar imagen')}
+                />
+              )}
+            </div>
           </div>
         )}
 

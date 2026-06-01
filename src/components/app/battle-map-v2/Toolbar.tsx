@@ -1,5 +1,5 @@
 import React from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2 } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
   onOpenScenes: () => void;
   onOpenSettings: () => void;
   onInvokeToken: () => void;
+  onResetView: () => void;
+  onClearDrawings: () => void;
   hasMyToken: boolean;
 }
 
@@ -19,6 +21,8 @@ export function Toolbar({
   onOpenScenes, 
   onOpenSettings, 
   onInvokeToken,
+  onResetView,
+  onClearDrawings,
   hasMyToken
 }: Props) {
   return (
@@ -41,6 +45,23 @@ export function Toolbar({
           onClick={() => setActiveTool('pencil')}
           icon={<Pencil className="w-5 h-5" />}
           label="Dibujo"
+        />
+        <ToolButton 
+          active={false} 
+          onClick={onResetView}
+          icon={<Crosshair className="w-5 h-5" />}
+          label="Centrar"
+          className="border-white/10"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
+        <ToolButton 
+          active={false} 
+          onClick={onClearDrawings}
+          icon={<Trash2 className="w-5 h-5 text-red-400" />}
+          label="Limpiar Dibujos"
+          className="border-red-500/30"
         />
       </div>
 

@@ -165,6 +165,21 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 onChange={(v) => updateScene({ grid_opacity: v })} 
               />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <RangeInput 
+                label="Desplazar Grid X" 
+                value={activeScene.grid_offset_x} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ grid_offset_x: v })} 
+              />
+              <RangeInput 
+                label="Desplazar Grid Y" 
+                value={activeScene.grid_offset_y} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ grid_offset_y: v })} 
+              />
+            </div>
+
 
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">

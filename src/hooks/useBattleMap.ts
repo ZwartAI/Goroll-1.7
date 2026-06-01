@@ -144,8 +144,11 @@ export const useBattleMap = (campaignId: string) => {
           filter: `campaign_id=eq.${campaignId}`,
         },
         (payload) => {
-          if (payload.eventType === 'UPDATE' && (payload.new as any).is_active) {
-            setActiveScene(payload.new as unknown as SceneConfig);
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const newScene = payload.new as any;
+            if (newScene.is_active && newScene.campaign_id === campaignId) {
+              setActiveScene(newScene as unknown as SceneConfig);
+            }
           }
           fetchScenes();
         }
@@ -225,6 +228,15 @@ export const useBattleMap = (campaignId: string) => {
           campaign_id: campaignId,
           name,
           is_active: scenes.length === 0,
+          background_scale: 1,
+          background_opacity: 1,
+          background_x: 0,
+          background_y: 0,
+          grid_enabled: true,
+          grid_size: 70,
+          grid_color: 'rgba(255,255,255,0.2)',
+          grid_opacity: 0.5,
+          snap_to_grid: true
         },
       ])
       .select()
