@@ -161,6 +161,12 @@ export const useBattleMap = (campaignId: string) => {
     };
   }, [campaignId, fetchActiveScene, fetchScenes]);
 
+  const activeSceneIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeSceneIdRef.current = activeScene?.id ?? null;
+  }, [activeScene?.id]);
+
   useEffect(() => {
     if (!activeScene?.id) {
       setTokens([]);
@@ -172,7 +178,7 @@ export const useBattleMap = (campaignId: string) => {
     fetchDrawings(activeScene.id);
 
     const tokensSubscription = supabase
-      .channel('battle_map_tokens')
+      .channel(`battle_map_tokens_${activeScene.id}`)
       .on(
         'postgres_changes',
         {
@@ -182,12 +188,20 @@ export const useBattleMap = (campaignId: string) => {
           filter: `scene_id=eq.${activeScene.id}`,
         },
         (payload) => {
+          console.info('BattleMap token realtime event:', {
+            eventType: payload.eventType,
+            sceneId: activeScene.id,
+            activeSceneIdRef: activeSceneIdRef.current
+          });
+
           if (payload.eventType === 'INSERT') {
             const newToken = payload.new as MapToken;
+            if (newToken.scene_id !== activeSceneIdRef.current) return;
+
             setTokens(prev => {
               const exists = prev.some(t => t.id === newToken.id);
               if (exists) return prev;
-              // Also avoid character duplication in same scene
+              
               const withoutSameChar = prev.filter(t => 
                 !(t.character_id && t.character_id === newToken.character_id && t.scene_id === newToken.scene_id)
               );
@@ -195,7 +209,24 @@ export const useBattleMap = (campaignId: string) => {
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedToken = payload.new as MapToken;
-            setTokens(prev => prev.map(t => t.id === updatedToken.id ? updatedToken : t));
+            if (updatedToken.scene_id !== activeSceneIdRef.current) {
+              setTokens(prev => prev.filter(t => t.id !== updatedToken.id));
+              return;
+            }
+
+            // If it's the active scene, check if it's visible
+            // The Token component handles opacity for is_visible=false, 
+            // but if we want to remove it entirely when hidden, we'd filter here.
+            // As per user request: "visualmente no aparece o no desaparece"
+            setTokens(prev => {
+              const exists = prev.some(t => t.id === updatedToken.id);
+              if (exists) {
+                return prev.map(t => t.id === updatedToken.id ? updatedToken : t);
+              } else if (updatedToken.is_visible !== false) {
+                return [...prev, updatedToken];
+              }
+              return prev;
+            });
           } else if (payload.eventType === 'DELETE') {
             const oldToken = payload.old as { id: string };
             setTokens(prev => prev.filter(t => t.id !== oldToken.id));
@@ -205,7 +236,7 @@ export const useBattleMap = (campaignId: string) => {
       .subscribe();
 
     const drawingsSubscription = supabase
-      .channel('battle_map_drawings')
+      .channel(`battle_map_drawings_${activeScene.id}`)
       .on(
         'postgres_changes',
         {
@@ -215,7 +246,9 @@ export const useBattleMap = (campaignId: string) => {
           filter: `scene_id=eq.${activeScene.id}`,
         },
         () => {
-          fetchDrawings(activeScene.id);
+          if (activeSceneIdRef.current) {
+            fetchDrawings(activeSceneIdRef.current);
+          }
         }
       )
       .subscribe();
