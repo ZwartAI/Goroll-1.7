@@ -151,7 +151,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       // BLOQUE 9: Resetear transform si no hay imagen para asegurar que la grid sea visible
       const stageWidth = width;
       const stageHeight = height;
-      const newScale = 1;
+      const newScale = 0.5;
       const newX = stageWidth / 2;
       const newY = stageHeight / 2;
       
@@ -560,8 +560,8 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 20000; 
-    const offset = -10000;
+    const size = 10000; 
+    const offset = -5000;
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
@@ -750,6 +750,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       </Stage>
     </div>
   );
-});
+}));
 
 BattleMapStage.displayName = 'BattleMapStage';
