@@ -30,6 +30,9 @@ export interface MapToken {
   token_type: 'player' | 'enemy' | 'npc';
   name: string | null;
   image_url: string | null;
+  image_scale?: number;
+  image_offset_x?: number;
+  image_offset_y?: number;
   x: number;
   y: number;
   size: number;
@@ -277,6 +280,34 @@ export const useBattleMap = (campaignId: string) => {
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
     
+    // Check if grid_size changed to scale tokens
+    if (updates.grid_size && updates.grid_size !== activeScene.grid_size) {
+      const ratio = updates.grid_size / activeScene.grid_size;
+      const newGridSize = updates.grid_size;
+      
+      // Update all tokens positions and sizes locally
+      const updatedTokens = tokens.map(t => ({
+        ...t,
+        x: t.x * ratio,
+        y: t.y * ratio,
+        size: newGridSize
+      }));
+      setTokens(updatedTokens);
+
+      // Update tokens in DB
+      // We do this individually or with a RPC if available, but for now individual updates
+      // This ensures all players see the change
+      for (const token of updatedTokens) {
+        supabase
+          .from('battle_map_tokens_simple')
+          .update({ x: token.x, y: token.y, size: token.size })
+          .eq('id', token.id)
+          .then(({ error }) => {
+            if (error) console.error('Error updating token after grid resize:', error);
+          });
+      }
+    }
+
     // Optimistic local update
     const updatedScene = { ...activeScene, ...updates };
     setActiveScene(updatedScene);
