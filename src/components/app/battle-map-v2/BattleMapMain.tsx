@@ -103,6 +103,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
       <div className="flex-1 relative overflow-hidden flex">
         {/* Main Stage Area */}
         <Stage 
+          key={resetKey}
           battleMap={battleMap} 
           isDM={isDM} 
           activeTool={activeTool}
