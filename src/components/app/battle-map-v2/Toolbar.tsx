@@ -37,8 +37,8 @@ export function Toolbar({
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
 
   return (
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30">
-      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
+      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
         <ToolButton 
           active={activeTool === 'move'} 
           onClick={() => {
@@ -130,7 +130,7 @@ export function Toolbar({
         />
       </div>
 
-      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
+      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
         <ToolButton 
           active={false}
           onClick={onInvokeToken}
@@ -141,7 +141,7 @@ export function Toolbar({
       </div>
 
       {isDM && (
-        <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl">
+        <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           <ToolButton 
             active={false}
             onClick={onOpenScenes}
