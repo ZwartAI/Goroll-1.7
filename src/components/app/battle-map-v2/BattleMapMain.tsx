@@ -113,6 +113,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         {/* Sidebar (Turns/Participants) */}
         <Sidebar 
           onOpenChar={onOpenChar}
+          battleMap={battleMap}
+          isDM={isDM}
         />
 
         {/* Toolbar (Right) */}
