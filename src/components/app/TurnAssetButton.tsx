@@ -30,8 +30,8 @@ const ASSET_MAP: Record<TurnButtonState, { es: string; en: string; fallbackEs: s
     fallbackEn: "Initiative",
   },
   waitingTurn: {
-    es: "esperando-turno.png",
-    en: "esperando-turno-eng.png",
+    es: "Esperando_turno_ENG.png", // Corrected
+    en: "Esperando_turno_ENG.png",
     fallbackEs: "Esperando turno",
     fallbackEn: "Waiting turn",
   },
@@ -48,14 +48,14 @@ const ASSET_MAP: Record<TurnButtonState, { es: string; en: string; fallbackEs: s
     fallbackEn: "Join late",
   },
   inLink: {
-    es: "esperando-turno.png",
-    en: "esperando-turno-eng.png",
+    es: "Esperando_turno_ENG.png", // Corrected
+    en: "Esperando_turno_ENG.png",
     fallbackEs: "En Enlace",
     fallbackEn: "In Link",
   },
   waitingDm: {
-    es: "esperando-turno.png",
-    en: "esperando-turno-eng.png",
+    es: "Esperando_turno_ENG.png", // Corrected
+    en: "Esperando_turno_ENG.png",
     fallbackEs: "Esperando DM",
     fallbackEn: "Waiting for DM",
   },
@@ -102,10 +102,10 @@ export function TurnAssetButton({ state, onClick, disabled, className, ariaLabel
           <img
             src={assetUrl}
             alt=""
-            className="block w-full h-auto pointer-events-none"
+            className="block w-full h-auto pointer-events-none object-contain"
             draggable={false}
             onError={() => setAssetError(true)}
-            style={{ marginTop: "-2%", marginBottom: "-2%" }}
+            style={{ marginTop: "-8%", marginBottom: "-8%" }}
           />
         ) : (
           /* FALLBACK BUTTON - RPG STYLE */
