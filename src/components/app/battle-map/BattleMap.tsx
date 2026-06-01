@@ -254,6 +254,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           [payload.payload.tokenId]: { x: payload.payload.x, y: payload.payload.y }
         }));
       })
+      .on('broadcast', { event: 'token-remove' }, (payload) => {
+        setRemoteTokenPositions(prev => {
+          const newState = { ...prev };
+          delete newState[payload.payload.tokenId];
+          return newState;
+        });
+      })
       .on('broadcast', { event: 'projection-update' }, (payload) => {
         setRemoteProjections(prev => ({
           ...prev,
@@ -304,6 +311,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       payload: { tokenId, x, y }
     });
   }, [campaign?.id]);
+
+  const handleBroadcastRemove = useCallback((tokenId: string) => {
+    if (!campaign?.id) return;
+    supabase.channel('battle-map-realtime:' + campaign.id).send({
+      type: 'broadcast',
+      event: 'token-remove',
+      payload: { tokenId }
+    });
 
   const handleBroadcastProjection = useCallback(async (projection: ProjectionState | null) => {
     if (!campaign?.id) return;
@@ -488,7 +503,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
 
 
-  const handleSaveCurrentSceneConfig = useCallback(async (customConfig?: Partial<MapConfig>) => {
+  const handleSaveCurrentSceneConfig = useCallback(async (
+    customConfig?: Partial<MapConfig>, 
+    customTokens?: Record<string, { x: number, y: number }>,
+    customLines?: ChalkLine[],
+    customNotes?: ChalkNote[]
+  ) => {
     if (!isDM) return false;
     
     // Si no hay activeSceneId, intentamos crear una escena inicial
@@ -506,9 +526,9 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     const currentConfig = customConfig || mapConfig;
     
     const updates: any = {
-      tokens_state: remoteTokenPositions as any,
-      chalk_lines: chalkLines as any,
-      chalk_notes: chalkNotes as any,
+      tokens_state: (customTokens || remoteTokenPositions) as any,
+      chalk_lines: (customLines || chalkLines) as any,
+      chalk_notes: (customNotes || chalkNotes) as any,
       background_url: currentConfig.backgroundUrl,
       background_type: currentConfig.backgroundType,
       background_scale: currentConfig.backgroundScale,
@@ -532,14 +552,18 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
     // Actualizar estado local inmediatamente
     setScenes(prev => prev.map(s => s.id === activeSceneId ? { ...s, ...updates } : s));
-    toast.success("Configuración de escena guardada");
     
     return true;
   }, [activeSceneId, remoteTokenPositions, chalkLines, chalkNotes, isDM, mapConfig, scenes.length, handleSaveScene]);
 
   // Mantener handleUpdateCurrentSceneState para compatibilidad
-  const handleUpdateCurrentSceneState = useCallback(async (customConfig?: Partial<MapConfig>) => {
-    return handleSaveCurrentSceneConfig(customConfig);
+  const handleUpdateCurrentSceneState = useCallback(async (
+    customConfig?: Partial<MapConfig>,
+    customTokens?: Record<string, { x: number, y: number }>,
+    customLines?: ChalkLine[],
+    customNotes?: ChalkNote[]
+  ) => {
+    return handleSaveCurrentSceneConfig(customConfig, customTokens, customLines, customNotes);
   }, [handleSaveCurrentSceneConfig]);
 
   const headerTitle = useMemo(() => campaign?.name || 'Campaña', [campaign?.name]);
@@ -579,9 +603,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   // FASE 4: Chalk Handlers
   const handleAddChalkLine = useCallback((line: ChalkLine) => {
-    setChalkLines(prev => [...prev, line]);
+    const nextLines = [...chalkLines, line];
+    setChalkLines(nextLines);
     playMapSound('chalk');
-  }, []);
+    // Guardar inmediatamente usando el nuevo estado
+    handleUpdateCurrentSceneState(undefined, undefined, nextLines);
+  }, [chalkLines, handleUpdateCurrentSceneState]);
   const handleUndoChalk = useCallback(() => setChalkLines(prev => prev.slice(0, -1)), []);
   const handleClearChalk = useCallback(() => {
     setConfirmModal({
@@ -602,12 +629,32 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     setIsNoteModalOpen({ x, y });
   }, []);
 
+  const handleFinishAddNote = useCallback((text: string) => {
+    if (!isNoteModalOpen) return;
+    const newNote: ChalkNote = {
+      id: Math.random().toString(36).substring(2, 9),
+      x: isNoteModalOpen.x,
+      y: isNoteModalOpen.y,
+      text
+    };
+    const nextNotes = [...chalkNotes, newNote];
+    setChalkNotes(nextNotes);
+    setIsNoteModalOpen(null);
+    setNewNoteText('');
+    handleUpdateCurrentSceneState(undefined, undefined, undefined, nextNotes);
+  }, [isNoteModalOpen, chalkNotes, handleUpdateCurrentSceneState]);
 
   const handleNoteUpdate = useCallback((id: string, x: number, y: number) => {
-    setChalkNotes(prev => prev.map(n => n.id === id ? { ...n, x, y } : n));
-  }, []);
+    const nextNotes = chalkNotes.map(n => n.id === id ? { ...n, x, y } : n);
+    setChalkNotes(nextNotes);
+    handleUpdateCurrentSceneState(undefined, undefined, undefined, nextNotes);
+  }, [chalkNotes, handleUpdateCurrentSceneState]);
 
-  const handleNoteDelete = useCallback((id: string) => setChalkNotes(prev => prev.filter(n => n.id !== id)), []);
+  const handleNoteDelete = useCallback((id: string) => {
+    const nextNotes = chalkNotes.filter(n => n.id !== id);
+    setChalkNotes(nextNotes);
+    handleUpdateCurrentSceneState(undefined, undefined, undefined, nextNotes);
+  }, [chalkNotes, handleUpdateCurrentSceneState]);
 
   const displayParticipants = useMemo(() => {
     const list = [...combat.participants];
@@ -660,12 +707,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const handleToggleMyToken = useCallback(() => {
     if (!character?.id) return;
     const isSummoned = !!remoteTokenPositions[character.id];
+    const nextState = { ...remoteTokenPositions };
     
     if (isSummoned) {
-      const newState = { ...remoteTokenPositions };
-      delete newState[character.id];
-      setRemoteTokenPositions(newState);
-      handleBroadcastMove(character.id, -9999, -9999);
+      delete nextState[character.id];
+      setRemoteTokenPositions(nextState);
+      handleBroadcastRemove(character.id);
       toast.success(t("battleMap.tokenRemoved") || "Token retirado");
     } else {
       // Calcular el centro del viewport en coordenadas del mundo
@@ -680,12 +727,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         };
       }
 
-      setRemoteTokenPositions(prev => ({ ...prev, [character.id]: pos }));
+      nextState[character.id] = pos;
+      setRemoteTokenPositions(nextState);
       handleBroadcastMove(character.id, pos.x, pos.y);
       toast.success(t("battleMap.tokenSummoned") || "Token invocado");
     }
-    handleUpdateCurrentSceneState();
-  }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleUpdateCurrentSceneState, t]);
+    // Guardar la escena con el nuevo estado de tokens explícitamente
+    handleUpdateCurrentSceneState(undefined, nextState);
+  }, [character?.id, remoteTokenPositions, dimensions, handleBroadcastMove, handleBroadcastRemove, handleUpdateCurrentSceneState, t]);
 
   const handleTurnRailClick = useCallback((block: TurnBlock) => {
     if (block.kind === 'solo') {
@@ -766,8 +815,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             chalkSize={chalkSize}
             chalkLines={chalkLines}
             chalkNotes={chalkNotes}
-            onAddChalkLine={(line) => { handleAddChalkLine(line); handleUpdateCurrentSceneState(); }}
-            onAddNote={(x, y) => { handleAddNote(x, y); handleUpdateCurrentSceneState(); }}
+            onAddChalkLine={handleAddChalkLine}
+            onAddNote={handleAddNote}
             onNoteUpdate={(id, x, y) => { handleNoteUpdate(id, x, y); handleUpdateCurrentSceneState(); }}
             onNoteClick={handleNoteDelete}
             remoteTokenPositions={remoteTokenPositions}
