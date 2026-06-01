@@ -225,6 +225,15 @@ export const useBattleMap = (campaignId: string) => {
           campaign_id: campaignId,
           name,
           is_active: scenes.length === 0,
+          background_scale: 1,
+          background_opacity: 1,
+          background_x: 0,
+          background_y: 0,
+          grid_enabled: true,
+          grid_size: 70,
+          grid_color: 'rgba(255,255,255,0.2)',
+          grid_opacity: 0.5,
+          snap_to_grid: true
         },
       ])
       .select()
