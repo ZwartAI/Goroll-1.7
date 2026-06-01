@@ -26,6 +26,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
   const { t } = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const handleChange = (key: keyof MapConfig, value: any) => {
     // Usar la versión funcional de onChange para evitar problemas de stale props si se llama rápido
@@ -39,6 +40,13 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Crear preview local inmediata
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLocalPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
 
     try {
       setIsUploading(true);
@@ -79,6 +87,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
       toast.error(error.message || 'Error al subir el archivo');
     } finally {
       setIsUploading(false);
+      setLocalPreview(null);
       // Limpiar el input para permitir subir el mismo archivo si se desea
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -119,20 +128,20 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
               <div 
                 className={`relative aspect-video w-full rounded-xl border border-white/10 bg-black/40 overflow-hidden flex items-center justify-center transition-all ${!config.backgroundUrl ? 'border-dashed border-white/20' : ''}`}
               >
-                {config.backgroundUrl ? (
+                {(config.backgroundUrl || localPreview) ? (
                   <>
-                    {config.backgroundType === 'video' ? (
+                    {(config.backgroundType === 'video' && !localPreview) ? (
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Video size={32} className="opacity-20" />
                         <span className="text-[10px] uppercase tracking-widest">Video configurado</span>
                       </div>
                     ) : (
                       <img 
-                        src={config.backgroundUrl} 
+                        src={localPreview || config.backgroundUrl} 
                         className="w-full h-full object-contain" 
                         alt="Preview" 
                         onLoad={() => console.log("Preview image loaded")}
-                        onError={() => console.error("Preview image failed to load", config.backgroundUrl)}
+                        onError={() => console.error("Preview image failed to load", localPreview || config.backgroundUrl)}
                       />
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">

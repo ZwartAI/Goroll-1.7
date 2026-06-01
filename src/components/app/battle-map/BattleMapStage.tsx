@@ -410,36 +410,38 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
           <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" listening={false} />
           
           
-          {config.backgroundUrl && (config.backgroundType === 'video' ? (
-            <KonvaImage 
-              image={videoRef.current!} 
-              x={0} y={0} 
-              width={videoRef.current ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 40} 
-              height={videoRef.current ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 40} 
-              opacity={config.backgroundOpacity} 
-              filters={[Konva.Filters.Brighten]}
-              brightness={config.backgroundBrightness - 1}
-            />
-          ) : bgImage && (
-            <KonvaImage 
-              ref={imageRef}
-              image={bgImage} 
-              x={0} y={0} 
-              width={bgImage.width * (config.backgroundScale || 1)} 
-              height={bgImage.height * (config.backgroundScale || 1)} 
-              opacity={config.backgroundOpacity} 
-              filters={[Konva.Filters.Brighten]}
-              brightness={config.backgroundBrightness - 1}
-            />
-          ))}
+          {config.backgroundUrl && (
+            config.backgroundType === 'video' ? (
+              <KonvaImage 
+                image={videoRef.current!} 
+                x={0} y={0} 
+                width={videoRef.current && videoRef.current.videoWidth > 0 ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 40} 
+                height={videoRef.current && videoRef.current.videoHeight > 0 ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 40} 
+                opacity={config.backgroundOpacity} 
+                filters={[Konva.Filters.Brighten]}
+                brightness={config.backgroundBrightness - 1}
+              />
+            ) : bgImage ? (
+              <KonvaImage 
+                ref={imageRef}
+                image={bgImage} 
+                x={0} y={0} 
+                width={bgImage.width * (config.backgroundScale || 1)} 
+                height={bgImage.height * (config.backgroundScale || 1)} 
+                opacity={config.backgroundOpacity} 
+                filters={[Konva.Filters.Brighten]}
+                brightness={config.backgroundBrightness - 1}
+              />
+            ) : null
+          )}
 
           {/* Grid sobre la imagen para asegurar visibilidad máxima */}
           <Group id="grid-group" listening={false} name="grid-layer">
             {gridLines}
           </Group>
           
-          {/* BLOQUE 7: Fallback/Debug visible if image fails */}
-          {(status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
+          {/* Fallback/Loading indicator visible if image takes time or fails */}
+          {config.backgroundUrl && (status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
               <Text 
                 text="Cargando mapa..." 
