@@ -82,6 +82,13 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(false); 
+  
+  // Refs para control táctil avanzado
+  const lastTouchPosRef = useRef<{ x: number; y: number } | null>(null);
+  const isTouchPanningRef = useRef(false);
+  const isPinchingRef = useRef(false);
+  const lastCenter = useRef<any>(null);
+  const lastDist = useRef<number>(0);
 
   // Exponer el stageRef al padre
   React.useImperativeHandle(ref, () => stageRef.current!);
