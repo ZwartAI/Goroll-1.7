@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { SceneConfig, MapToken, Drawing } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
@@ -15,7 +15,11 @@ interface Props {
   characterId?: string;
 }
 
-export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
+export interface StageHandle {
+  centerView: () => void;
+}
+
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
@@ -77,15 +81,63 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     setOffset({ x: newOffsetX, y: newOffsetY });
   }, []);
 
-  // Center the view ONLY on scene change
+  const centerView = useCallback(() => {
+    if (!stageRef.current || !activeScene) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    
+    // Find my token
+    const myToken = tokens.find((t: MapToken) => t.character_id === characterId);
+    
+    let targetX = 4000;
+    let targetY = 4000;
+    
+    if (myToken) {
+      targetX = myToken.x + (myToken.size / 2);
+      targetY = myToken.y + (myToken.size / 2);
+    }
+    
+    const newOffsetX = (rect.width / 2) / scaleRef.current - targetX;
+    const newOffsetY = (rect.height / 2) / scaleRef.current - targetY;
+    
+    setOffset({ x: newOffsetX, y: newOffsetY });
+    toast.success(myToken ? 'Centrado en tu ficha' : 'Vista centrada');
+  }, [tokens, characterId, activeScene]);
+
+  useImperativeHandle(ref, () => ({
+    centerView
+  }));
+
+  // Persistence: Save view position
+  useEffect(() => {
+    if (!activeScene?.id) return;
+    const timeout = setTimeout(() => {
+      localStorage.setItem(`battlemap_view_${activeScene.id}`, JSON.stringify({ scale, offset }));
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [scale, offset, activeScene?.id]);
+
+  // Center the view ONLY on scene change or load
   useEffect(() => {
     if (!stageRef.current || !activeScene?.id) return;
     
+    // Check if we have a saved position for this scene
+    const saved = localStorage.getItem(`battlemap_view_${activeScene.id}`);
+    if (saved) {
+      try {
+        const { scale: s, offset: o } = JSON.parse(saved);
+        setScale(s);
+        setOffset(o);
+        return;
+      } catch (e) {
+        console.error("Error loading saved view", e);
+      }
+    }
+
     const rect = stageRef.current.getBoundingClientRect();
     setScale(1);
     setOffset({ 
-      x: (rect.width / 2), 
-      y: (rect.height / 2)
+      x: (rect.width / 2) - 4000, 
+      y: (rect.height / 2) - 4000
     });
   }, [activeScene?.id]);
 
@@ -426,4 +478,4 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
 
     </div>
   );
-}
+});

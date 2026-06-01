@@ -111,14 +111,10 @@ export function Toolbar({
 
         <ToolButton 
           active={false} 
-          onClick={() => {
-            if (hasBackground) {
-              onResetView();
-            }
-          }}
-          icon={<Crosshair className={cn("w-5 h-5", !hasBackground && "opacity-20")} />}
+          onClick={onResetView}
+          icon={<Crosshair className="w-5 h-5" />}
           label="Centrar"
-          className={cn("border-white/10", !hasBackground && "cursor-not-allowed opacity-50")}
+          className="border-white/10"
         />
 
         <ToolButton 

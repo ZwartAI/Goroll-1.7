@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useBattleMap } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
-import { Stage } from './Stage';
+import { Stage, StageHandle } from './Stage';
 import { Toolbar, MapTool } from './Toolbar';
 import { Sidebar } from './Sidebar';
 import { Log } from './Log';
@@ -34,11 +34,12 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [activeTool, setActiveTool] = useState<MapTool>('move');
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
+  const stageRef = useRef<StageHandle>(null);
 
   const handleResetView = () => {
-    setResetKey(prev => prev + 1);
-    toast.success('Vista restablecida');
+    if (stageRef.current) {
+      stageRef.current.centerView();
+    }
   };
 
   const handleClearDrawings = async () => {
@@ -103,7 +104,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
       <div className="flex-1 relative overflow-hidden flex">
         {/* Main Stage Area */}
         <Stage 
-          key={resetKey}
+          ref={stageRef}
           battleMap={battleMap} 
           isDM={isDM} 
           activeTool={activeTool}
