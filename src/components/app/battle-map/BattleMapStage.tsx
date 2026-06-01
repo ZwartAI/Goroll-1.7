@@ -340,11 +340,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
       imageRef.current.getLayer()?.batchDraw();
     }
   };
-
-
-  const lastCenter = useRef<any>(null);
-  const lastDist = useRef<number>(0);
-
+  
   const getDistance = (p1: any, p2: any) => {
     return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
   };
@@ -356,35 +352,60 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
     };
   };
 
-  const handleTouchMove = (e: any) => {
-    const touch1 = e.evt.touches[0];
-    const touch2 = e.evt.touches[1];
-    const stage = stageRef.current;
+  const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+    
+    const touches = e.evt.touches;
+    
+    if (touches.length === 1) {
+      const touch = touches[0];
+      const pointer = { x: touch.clientX, y: touch.clientY };
+      lastTouchPosRef.current = pointer;
 
-    if (touch1 && touch2 && stage) {
+      // Si tocamos el fondo (no un token ni otra cosa)
+      const isTargetStage = e.target === stage || e.target.name() === 'grid-layer' || e.target.parent?.name() === 'grid-layer' || (e.target.attrs && e.target.attrs.listening === false);
+      
+      if (isRulerActive || isChalkMode) {
+        handleStageMouseDown(e);
+      } else if (isTargetStage) {
+        isTouchPanningRef.current = true;
+      }
+    } else if (touches.length === 2) {
+      isPinchingRef.current = true;
+      isTouchPanningRef.current = false;
+      
+      const p1 = { x: touches[0].clientX, y: touches[0].clientY };
+      const p2 = { x: touches[1].clientX, y: touches[1].clientY };
+      lastCenter.current = getCenter(p1, p2);
+      lastDist.current = getDistance(p1, p2);
+    }
+  }, [isRulerActive, isChalkMode, handleStageMouseDown]);
+
+  const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+    
+    const touches = e.evt.touches;
+
+    if (isPinchingRef.current && touches.length === 2) {
       e.evt.preventDefault();
       
-      const p1 = { x: touch1.clientX, y: touch1.clientY };
-      const p2 = { x: touch2.clientX, y: touch2.clientY };
-
-      if (!lastCenter.current) {
-        lastCenter.current = getCenter(p1, p2);
-        lastDist.current = getDistance(p1, p2);
-        return;
-      }
+      const p1 = { x: touches[0].clientX, y: touches[0].clientY };
+      const p2 = { x: touches[1].clientX, y: touches[1].clientY };
 
       const newDist = getDistance(p1, p2);
       const newCenter = getCenter(p1, p2);
 
       const oldScale = stage.scaleX();
-      const pointer = stage.getPointerPosition() || newCenter;
-
       const mousePointTo = {
         x: (newCenter.x - stage.x()) / oldScale,
         y: (newCenter.y - stage.y()) / oldScale,
       };
 
-      const newScale = oldScale * (newDist / lastDist.current);
+      let newScale = oldScale * (newDist / lastDist.current);
+      newScale = Math.max(0.05, Math.min(newScale, 10));
+      
       stage.scale({ x: newScale, y: newScale });
 
       const newPos = {
@@ -399,13 +420,40 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
       
       setScale(newScale);
       setPosition(newPos);
+    } else if (isTouchPanningRef.current && touches.length === 1) {
+      e.evt.preventDefault();
+      const touch = touches[0];
+      const pointer = { x: touch.clientX, y: touch.clientY };
+      
+      if (lastTouchPosRef.current) {
+        const dx = pointer.x - lastTouchPosRef.current.x;
+        const dy = pointer.y - lastTouchPosRef.current.y;
+        
+        const newPos = {
+          x: stage.x() + dx,
+          y: stage.y() + dy
+        };
+        
+        stage.position(newPos);
+        setPosition(newPos);
+        lastTouchPosRef.current = pointer;
+      }
+    } else if (isChalkMode || isRulerActive) {
+      handleStageMouseMove(e);
     }
-  };
+  }, [handleStageMouseMove, isChalkMode, isRulerActive]);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
+    isPinchingRef.current = false;
+    isTouchPanningRef.current = false;
+    lastTouchPosRef.current = null;
     lastDist.current = 0;
     lastCenter.current = null;
-  };
+    
+    if (isChalkMode || isRulerActive) {
+      handleStageMouseUp();
+    }
+  }, [isChalkMode, isRulerActive, handleStageMouseUp]);
 
   useEffect(() => {
     if (config.backgroundType === 'video' && config.backgroundUrl) {
