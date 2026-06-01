@@ -8,28 +8,45 @@ interface Props {
   active: boolean;
   gridSize: number;
   characterId?: string;
+  scale: number;
+  offset: { x: number, y: number };
 }
 
-export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, characterId }: Props) {
+export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, characterId, scale, offset }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentPoints, setCurrentPoints] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
 
+  const getLocalCoords = (e: React.MouseEvent) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    // The SVG is inside the scaled/translated div, but rect.left/top are screen space.
+    // However, in Stage.tsx, we pass scale and offset.
+    // Actually, if the SVG is INSIDE the scaled div, we just need to account for its own relative position.
+    // But since it's absolute inset-0, it matches the scaled div.
+    return {
+      x: (e.clientX - rect.left) / scale,
+      y: (e.clientY - rect.top) / scale
+    };
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!active || !svgRef.current) return;
     setIsDrawing(true);
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setCurrentPoints([x, y]);
+    const coords = getLocalCoords(e);
+    setCurrentPoints([coords.x, coords.y]);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!active || !isDrawing || !svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setCurrentPoints(prev => [...prev, x, y]);
+    const coords = getLocalCoords(e);
+    // Optimization: only add if distance is significant
+    const lastX = currentPoints[currentPoints.length - 2];
+    const lastY = currentPoints[currentPoints.length - 1];
+    const dist = Math.sqrt(Math.pow(coords.x - lastX, 2) + Math.pow(coords.y - lastY, 2));
+    if (dist > 2) {
+      setCurrentPoints(prev => [...prev, coords.x, coords.y]);
+    }
   };
 
   const handleMouseUp = () => {
