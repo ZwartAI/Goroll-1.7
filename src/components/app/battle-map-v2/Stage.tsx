@@ -6,15 +6,17 @@ import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'framer-motion';
 import { toast } from 'sonner';
 
+import { MapTool } from './Toolbar';
+
 interface Props {
   battleMap: any;
   isDM: boolean;
-  activeTool: 'move' | 'measure' | 'pencil';
+  activeTool: MapTool;
   characterId?: string;
 }
 
 export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing } = battleMap;
+  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
   // Initialize scale and offset to center the view
@@ -214,7 +216,8 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
           <DrawingLayer 
             drawings={drawings} 
             onAddDrawing={addDrawing}
-            active={activeTool === 'pencil'}
+            onRemoveDrawing={removeDrawing}
+            activeTool={activeTool}
             gridSize={activeScene.grid_size}
             characterId={characterId}
             scale={scale}

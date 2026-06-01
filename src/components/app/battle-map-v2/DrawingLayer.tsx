@@ -1,18 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { Drawing } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
+import { MapTool } from './Toolbar';
 
 interface Props {
   drawings: Drawing[];
   onAddDrawing: (drawing: Omit<Drawing, 'id' | 'campaign_id' | 'scene_id'>) => void;
-  active: boolean;
+  onRemoveDrawing: (id: string) => void;
+  activeTool: MapTool;
   gridSize: number;
   characterId?: string;
   scale: number;
   offset: { x: number, y: number };
 }
 
-export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, characterId, scale, offset }: Props) {
+export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTool, gridSize, characterId, scale, offset }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentPoints, setCurrentPoints] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -31,14 +33,14 @@ export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, charact
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!active || !svgRef.current) return;
+    if (activeTool !== 'pencil' || !svgRef.current) return;
     setIsDrawing(true);
     const coords = getLocalCoords(e);
     setCurrentPoints([coords.x, coords.y]);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!active || !isDrawing || !svgRef.current) return;
+    if (activeTool !== 'pencil' || !isDrawing || !svgRef.current) return;
     const coords = getLocalCoords(e);
     // Optimization: only add if distance is significant
     const lastX = currentPoints[currentPoints.length - 2];
@@ -50,7 +52,7 @@ export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, charact
   };
 
   const handleMouseUp = () => {
-    if (!active || !isDrawing) return;
+    if (activeTool !== 'pencil' || !isDrawing) return;
     setIsDrawing(false);
     if (currentPoints.length > 2) {
       onAddDrawing({
@@ -67,8 +69,10 @@ export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, charact
     <svg
       ref={svgRef}
       className={cn(
-        "absolute inset-0 w-full h-full",
-        active ? "pointer-events-auto cursor-crosshair" : "pointer-events-none"
+        "absolute inset-0 w-full h-full transition-colors duration-300",
+        activeTool === 'pencil' ? "pointer-events-auto cursor-crosshair bg-white/5" : 
+        activeTool === 'eraser' ? "pointer-events-auto cursor-pointer bg-red-500/5" : 
+        "pointer-events-none"
       )}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -82,9 +86,19 @@ export function DrawingLayer({ drawings, onAddDrawing, active, gridSize, charact
           points={drawing.points.join(',')}
           fill="none"
           stroke={drawing.color || '#FFD700'}
-          strokeWidth={drawing.stroke_width || 3}
+          strokeWidth={activeTool === 'eraser' ? 20 : (drawing.stroke_width || 3)}
           strokeLinecap="round"
           strokeLinejoin="round"
+          className={cn(
+            "transition-all duration-200",
+            activeTool === 'eraser' ? "cursor-pointer hover:stroke-red-500/50 hover:opacity-80 pointer-events-auto" : "pointer-events-none"
+          )}
+          onClick={(e) => {
+            if (activeTool === 'eraser') {
+              e.stopPropagation();
+              onRemoveDrawing(drawing.id);
+            }
+          }}
         />
       ))}
 
