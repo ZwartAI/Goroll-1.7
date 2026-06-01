@@ -297,7 +297,7 @@ export const useBattleMap = (campaignId: string) => {
       const ratio = updates.grid_size / activeScene.grid_size;
       const newGridSize = updates.grid_size;
       
-      // Update all tokens positions and sizes locally
+      // Update all tokens positions and sizes locally for instant feedback
       const updatedTokens = tokens.map(t => ({
         ...t,
         x: t.x * ratio,
@@ -306,18 +306,8 @@ export const useBattleMap = (campaignId: string) => {
       }));
       setTokens(updatedTokens);
 
-      // Update tokens in DB
-      // We do this individually or with a RPC if available, but for now individual updates
-      // This ensures all players see the change
-      for (const token of updatedTokens) {
-        supabase
-          .from('battle_map_tokens_simple')
-          .update({ x: token.x, y: token.y, size: token.size })
-          .eq('id', token.id)
-          .then(({ error }) => {
-            if (error) console.error('Error updating token after grid resize:', error);
-          });
-      }
+      // Persist token changes with debounce
+      debouncedUpdateTokens(updatedTokens);
     }
 
     // Optimistic local update
