@@ -93,7 +93,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 <label className="flex flex-col items-center gap-2 cursor-pointer hover:text-[var(--gold)] transition-colors">
                   <Upload className="w-8 h-8 opacity-40" />
                   <span className="text-[10px] uppercase tracking-widest opacity-40">Subir Imagen</span>
-                  <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" disabled={isUploading} />
+                  <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" disabled={isUploading} />
                 </label>
               )}
               {isUploading && (
