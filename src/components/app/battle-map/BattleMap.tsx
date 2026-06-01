@@ -1221,10 +1221,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                   style={{ background: 'var(--gold)', color: 'black' }}
                   onClick={() => {
                     playMapSound('chalk');
-                    setChalkNotes(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), x: isNoteModalOpen.x, y: isNoteModalOpen.y, text: newNoteText.trim() }]);
-                    setNewNoteText('');
-                    setIsNoteModalOpen(null);
-                    handleUpdateCurrentSceneState();
+                    handleFinishAddNote(newNoteText.trim());
                   }}
                 >
                   Añadir Nota
@@ -1254,5 +1251,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     </div>
   );
 };
+
+export default BattleMap;
 
 export default BattleMap;
