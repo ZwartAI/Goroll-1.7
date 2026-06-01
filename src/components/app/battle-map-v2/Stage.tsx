@@ -24,16 +24,47 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+  const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
   // Center the view on initial load or scene change
   useEffect(() => {
-    if (stageRef.current) {
+    const centerView = () => {
+      if (!stageRef.current) return;
       const rect = stageRef.current.getBoundingClientRect();
+      
+      // Default center: world origin (0,0) in middle of screen
+      let targetWorldX = 0;
+      let targetWorldY = 0;
+
+      // If background exists and is loaded, we can center on it better
+      if (activeScene?.background_url && bgMediaRef.current) {
+        const media = bgMediaRef.current;
+        const naturalWidth = 'naturalWidth' in media ? media.naturalWidth : (media as HTMLVideoElement).videoWidth;
+        const naturalHeight = 'naturalHeight' in media ? media.naturalHeight : (media as HTMLVideoElement).videoHeight;
+
+        if (naturalWidth > 0 && naturalHeight > 0) {
+          // Center of the image in world space
+          // Note: transform applies background_x/y as percentages
+          const bgX = (activeScene.background_x || 0) / 100;
+          const bgY = (activeScene.background_y || 0) / 100;
+          const bgScale = activeScene.background_scale || 1;
+          
+          // The image is centered at (0,0) world coords by the CSS layout usually, 
+          // but here we need to match the actual rendered position.
+          // Based on the CSS in the return: translate(bgX%, bgY%) scale(bgScale)
+          // We'll assume the image center is the target.
+          targetWorldX = 0; 
+          targetWorldY = 0;
+        }
+      }
+
       setOffset({ 
-        x: rect.width / 2 / scale, 
-        y: rect.height / 2 / scale 
+        x: rect.width / 2 / scale - targetWorldX, 
+        y: rect.height / 2 / scale - targetWorldY
       });
-    }
+    };
+
+    centerView();
   }, [activeScene?.id, scale]);
   
   // Ruler State
@@ -175,19 +206,35 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
             >
               {isVideo(activeScene.background_url) ? (
                 <video 
+                  ref={(el) => { bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar video')}
+                  onLoadedMetadata={() => {
+                    // Trigger a re-center once metadata is loaded
+                    if (stageRef.current) {
+                      const rect = stageRef.current.getBoundingClientRect();
+                      setOffset(prev => ({ ...prev })); // Force effect
+                    }
+                  }}
                 />
               ) : (
                 <img 
+                  ref={(el) => { bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   alt="" 
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar imagen')}
+                  onLoad={() => {
+                    // Trigger a re-center once image is loaded
+                    if (stageRef.current) {
+                      const rect = stageRef.current.getBoundingClientRect();
+                      setOffset(prev => ({ ...prev })); // Force effect
+                    }
+                  }}
                 />
               )}
             </div>
@@ -267,17 +314,6 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         )}
       </div>
 
-      {/* Zoom & Control Indicators */}
-      <div className="absolute bottom-6 left-6 flex flex-col gap-2 z-50">
-        <div className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-white/60 pointer-events-none">
-          Zoom: {Math.round(scale * 100)}%
-        </div>
-        {activeTool === 'move' && (
-          <div className="px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-white/40 pointer-events-none">
-            Arrastra para mover el mapa
-          </div>
-        )}
-      </div>
     </div>
   );
 }
