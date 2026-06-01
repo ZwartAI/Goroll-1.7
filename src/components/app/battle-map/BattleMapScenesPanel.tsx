@@ -90,59 +90,69 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
                 key={scene.id}
                 className={`
                   group relative ornate-card !p-3 cursor-pointer transition-all duration-300
-                  ${activeSceneId === scene.id ? 'border-[var(--gold)] bg-secondary/30' : 'bg-white/5 border-transparent hover:bg-white/10'}
+                  ${activeSceneId === scene.id ? 'border-[var(--gold)] bg-[var(--gold)]/5' : 'bg-white/5 border-white/5 hover:bg-white/10'}
                 `}
                 onClick={() => onSelectScene(scene.id)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-display text-[10px] uppercase tracking-wider ${activeSceneId === scene.id ? 'text-[var(--gold)] font-bold' : 'text-foreground/80'}`}>
-                    {scene.name}
-                  </span>
-                  {scene.is_active && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30">
-                      <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-[7px] text-green-400 font-bold uppercase tracking-widest">ACTIVA</span>
-                    </div>
-                  )}
-                </div>
-
-                <div 
-                  className="w-full h-24 rounded-xl bg-black/60 border border-white/5 mb-3 overflow-hidden flex items-center justify-center relative group-hover:border-white/20 transition-all"
-                >
-                  {scene.background_url ? (
-                    <>
-                      {scene.background_type === 'video' ? (
-                        <div className="w-full h-full flex items-center justify-center bg-black/40">
-                          <Video className="text-white/20" size={30} />
-                        </div>
+                <div className="flex items-center gap-3">
+                  {/* Thumbnail / Icon */}
+                  <div className="w-12 h-12 rounded-lg bg-black/60 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    {scene.background_url ? (
+                      scene.background_type === 'video' ? (
+                        <Video className="text-white/20" size={16} />
                       ) : (
-                        <img src={scene.background_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt="" />
+                        <img src={scene.background_url} className="w-full h-full object-cover opacity-60" alt="" />
+                      )
+                    ) : (
+                      <Layers className="text-white/10" size={16} />
+                    )}
+                  </div>
+
+                  {/* Name and Status */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`font-display text-[11px] uppercase tracking-wider truncate ${activeSceneId === scene.id ? 'text-[var(--gold)] font-bold' : 'text-foreground/90'}`}>
+                      {scene.name}
+                    </h4>
+                    <div className="mt-0.5">
+                      {scene.is_active ? (
+                        <span className="text-[7px] text-[var(--gold)] font-bold uppercase tracking-widest opacity-80">ESCENA ACTIVA</span>
+                      ) : (
+                        <span className="text-[7px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">INACTIVA</span>
                       )}
-                    </>
-                  ) : (
-                    <Layers className="text-white/10" size={24} />
-                  )}
-                  
-                  {/* Quick actions overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5">
                     {!scene.is_active && (
-                      <Button size="sm" className="bg-[var(--gold)] text-black h-8 px-3 text-[9px] font-bold" onClick={(e) => {
-                        e.stopPropagation();
-                        onActivateScene(scene.id);
-                      }}>
-                        USAR
+                      <Button 
+                        size="icon" 
+                        className="w-8 h-8 rounded-full bg-[var(--gold)] hover:bg-[var(--gold)]/80 text-black shadow-[0_0_10px_rgba(234,179,8,0.2)]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onActivateScene(scene.id);
+                        }}
+                      >
+                        <Play size={14} fill="currentColor" />
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenConfig();
-                    }}>
-                      <Edit3 size={12} />
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="w-8 h-8 rounded-full bg-white/5 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectScene(scene.id);
+                        setTimeout(() => onOpenConfig(), 50);
+                      }}
+                    >
+                      <Edit3 size={14} />
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
+                {/* Secondary Actions (Duplicate, Delete) - Only visible on hover or if selected */}
+                <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                    <div className="flex gap-1">
                       <Button variant="ghost" className="h-6 px-1.5 text-[8px] text-muted-foreground hover:text-white" onClick={(e) => {
                         e.stopPropagation();
@@ -164,6 +174,8 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
                   </Button>
                 </div>
               </div>
+            ))}
+          </div>
             ))}
           </div>
         </div>
