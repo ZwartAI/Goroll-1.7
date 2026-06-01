@@ -64,18 +64,25 @@ export function MapSettings({ battleMap, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[120] flex items-center justify-end p-4 bg-black/40 pointer-events-none">
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+        initial={{ opacity: 0, scale: 0.9, x: 100 }}
         animate={{ opacity: 1, scale: 1, x: 0 }}
-        exit={{ opacity: 0, scale: 0.9, x: 20 }}
-        className="w-full max-w-md bg-[#111] border border-[var(--gold)]/30 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        exit={{ opacity: 0, scale: 0.9, x: 100 }}
+        className="w-full max-w-sm bg-[#111]/90 border border-[var(--gold)]/30 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col pointer-events-auto mr-4"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest">
-            Configuración del Mapa
-          </h2>
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40">
+          <div className="flex flex-col">
+            <h2 className="font-display text-[var(--gold)] text-xs uppercase tracking-widest">
+              Configuración del Mapa
+            </h2>
+            <div className="flex gap-2 mt-1">
+              <span className="text-[8px] text-white/40 uppercase">X: {activeScene.background_x}%</span>
+              <span className="text-[8px] text-white/40 uppercase">Y: {activeScene.background_y}%</span>
+              <span className="text-[8px] text-white/40 uppercase">S: {activeScene.background_scale}x</span>
+            </div>
+          </div>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <X className="w-5 h-5 text-white/60" />
           </button>
