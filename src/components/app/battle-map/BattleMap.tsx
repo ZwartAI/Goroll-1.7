@@ -770,6 +770,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 if (isChalkMode) setIsChalkMode(false);
               }}
               onScenesToggle={() => setIsScenesPanelOpen(!isScenesPanelOpen)}
+              onCenterBackground={() => {
+                if (!mapConfig.backgroundUrl) {
+                  toast.info("No hay fondo de mapa cargado");
+                  return;
+                }
+                window.dispatchEvent(new CustomEvent('battle-map:center-background'));
+              }}
             />
 
             {isDM && (
