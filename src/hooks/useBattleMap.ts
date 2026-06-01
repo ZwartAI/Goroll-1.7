@@ -276,6 +276,18 @@ export const useBattleMap = (campaignId: string) => {
       }
     }, 500)
   ).current;
+  
+  const debouncedUpdateTokens = useRef(
+    debounce(async (updatedTokens: MapToken[]) => {
+      for (const token of updatedTokens) {
+        const { error } = await supabase
+          .from('battle_map_tokens_simple')
+          .update({ x: token.x, y: token.y, size: token.size })
+          .eq('id', token.id);
+        if (error) console.error('Error updating token after grid resize:', error);
+      }
+    }, 500)
+  ).current;
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
