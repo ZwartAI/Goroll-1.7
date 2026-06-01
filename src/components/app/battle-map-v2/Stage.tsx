@@ -196,7 +196,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 linear-gradient(to bottom, ${activeScene.grid_color} 1px, transparent 1px)
               `,
               backgroundSize: `${activeScene.grid_size}px ${activeScene.grid_size}px`,
-              backgroundPosition: 'center',
+              backgroundPosition: `${activeScene.grid_offset_x}px ${activeScene.grid_offset_y}px`,
               opacity: activeScene.grid_opacity,
               zIndex: 1
             }}
