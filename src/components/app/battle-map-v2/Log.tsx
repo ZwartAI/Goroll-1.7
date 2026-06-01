@@ -22,6 +22,7 @@ export function Log({ logs, expanded, onToggle, nameOverrides, onOpenChar }: Pro
         "absolute bottom-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-lg border-t border-[var(--gold)]/30 flex flex-col transition-all duration-300",
         expanded ? "rounded-t-2xl" : ""
       )}
+      data-map-ui="true"
     >
       {/* Toggle Button */}
       <button 

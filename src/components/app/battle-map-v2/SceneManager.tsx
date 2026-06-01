@@ -29,6 +29,7 @@ export function SceneManager({ battleMap, onClose }: Props) {
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className="w-full max-w-lg bg-[#111] border border-[var(--gold)]/30 rounded-2xl shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}
+        data-map-ui="true"
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest">

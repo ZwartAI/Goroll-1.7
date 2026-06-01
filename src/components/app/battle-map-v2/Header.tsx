@@ -12,7 +12,7 @@ export function Header({ onBack, isDM, campaignName }: Props) {
   const { t } = useT();
 
   return (
-    <header className="h-14 bg-black/80 border-b border-[var(--gold)]/30 px-4 flex items-center justify-between z-20 shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+    <header className="h-14 bg-black/80 border-b border-[var(--gold)]/30 px-4 flex items-center justify-between z-20 shadow-[0_4px_10px_rgba(0,0,0,0.5)]" data-map-ui="true">
       <div className="flex items-center gap-4">
         <button 
           onClick={onBack}

@@ -71,6 +71,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
         exit={{ opacity: 0, scale: 0.9, x: 100 }}
         className="w-full max-w-sm bg-[#111]/90 border border-[var(--gold)]/30 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col pointer-events-auto mr-4"
         onClick={e => e.stopPropagation()}
+        data-map-ui="true"
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40">
           <div className="flex flex-col">
