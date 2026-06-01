@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { LogList } from '@/components/app/LogList';
 import { LogSegments } from '@/components/app/LogSegments';
 import type { LogRow } from '@/lib/game';
@@ -38,6 +38,12 @@ export const BattleMapLog: React.FC<Props> = ({
       if (viewMode === 'full') setViewMode('medium');
     }
   };
+1: 
+2:   const toggleView = () => {
+3:     if (viewMode === 'compact') setViewMode('medium');
+4:     else if (viewMode === 'medium') setViewMode('full');
+5:     else setViewMode('compact');
+6:   };
 
   return (
     <motion.div 
@@ -46,20 +52,36 @@ export const BattleMapLog: React.FC<Props> = ({
       animate={{ height: heights[viewMode] }}
       className={`
         fixed inset-x-0 bottom-[64px] z-50 bg-[#0a0a0c]/80 backdrop-blur-md border-t border-white/10 flex flex-col
-        ${viewMode === 'full' ? 'bottom-0 h-screen' : ''}
+        ${viewMode === 'full' ? 'bottom-0 h-screen !z-[120]' : ''}
       `}
       style={{ boxShadow: '0 -10px 40px rgba(0,0,0,0.4)' }}
     >
-      {/* Handle de arrastre */}
-      <motion.div 
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.1}
-        onDragEnd={handleDragEnd}
-        className="h-6 w-full flex items-center justify-center cursor-ns-resize group"
-      >
-        <div className="w-12 h-1 rounded-full bg-white/10 group-hover:bg-[var(--gold)]/50 transition-colors" />
-      </motion.div>
+      {/* Header / Handle de arrastre */}
+      <div className="flex flex-col w-full">
+        <motion.div 
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.1}
+          onDragEnd={handleDragEnd}
+          className="h-2 w-full flex items-center justify-center cursor-ns-resize group"
+        >
+          <div className="w-12 h-1 rounded-full bg-white/10 group-hover:bg-[var(--gold)]/50 transition-colors" />
+        </motion.div>
+
+        <div 
+          onClick={toggleView}
+          className="px-4 py-1 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors group"
+        >
+          <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-display group-hover:text-[var(--gold)] transition-colors">
+            Registro de campaña
+          </span>
+          <div className="flex items-center gap-2">
+             <div className="w-1.5 h-1.5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <div className="w-0.5 h-0.5 rounded-full bg-green-500 animate-pulse" />
+             </div>
+          </div>
+        </div>
+      </div>
 
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {/* Controles rápidos */}
