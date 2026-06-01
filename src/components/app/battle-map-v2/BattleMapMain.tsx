@@ -3,7 +3,7 @@ import { useBattleMap } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
 import { Stage } from './Stage';
-import { Toolbar } from './Toolbar';
+import { Toolbar, MapTool } from './Toolbar';
 import { Sidebar } from './Sidebar';
 import { Log } from './Log';
 import { SceneManager } from './SceneManager';
@@ -31,7 +31,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const battleMap = useBattleMap(campaignId);
   const [showScenes, setShowScenes] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTool, setActiveTool] = useState<'move' | 'measure' | 'pencil' | 'eraser'>('move');
+  const [activeTool, setActiveTool] = useState<MapTool>('move');
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
   const [resetKey, setResetKey] = useState(0);
