@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { SceneConfig, MapToken, Drawing } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
@@ -19,12 +19,28 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
-  // Initialize scale and offset
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  
+  // Refs to avoid stale closures in event listeners
+  const scaleRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
+  useEffect(() => {
+    offsetRef.current = offset;
+  }, [offset]);
+
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
+
+  // Multi-touch / Gesture state
+  const activePointers = useRef(new Map<number, { x: number, y: number }>());
+  const lastPinchDist = useRef<number | null>(null);
 
   // Token dragging state
   const [draggingToken, setDraggingToken] = useState<{
@@ -36,47 +52,96 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   } | null>(null);
 
   // Helper function to convert screen coordinates to world coordinates
-  const screenToWorld = (clientX: number, clientY: number) => {
+  const screenToWorld = useCallback((clientX: number, clientY: number) => {
     if (!stageRef.current) return { x: 0, y: 0 };
     const rect = stageRef.current.getBoundingClientRect();
     
     return {
-      x: (clientX - rect.left) / scale - offset.x,
-      y: (clientY - rect.top) / scale - offset.y
+      x: (clientX - rect.left) / scaleRef.current - offsetRef.current.x,
+      y: (clientY - rect.top) / scaleRef.current - offsetRef.current.y
     };
-  };
+  }, []);
 
-  // Center the view ONLY on initial load or scene change
+  const zoomAtScreenPoint = useCallback((screenX: number, screenY: number, zoomFactor: number) => {
+    if (!stageRef.current) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    
+    const localX = screenX - rect.left;
+    const localY = screenY - rect.top;
+
+    const oldScale = scaleRef.current;
+    const newScale = Math.min(Math.max(oldScale * zoomFactor, 0.25), 5);
+    
+    if (newScale === oldScale) return;
+
+    // Point in world before zoom
+    const worldX = localX / oldScale - offsetRef.current.x;
+    const worldY = localY / oldScale - offsetRef.current.y;
+
+    const newOffsetX = localX / newScale - worldX;
+    const newOffsetY = localY / newScale - worldY;
+
+    setScale(newScale);
+    setOffset({ x: newOffsetX, y: newOffsetY });
+  }, []);
+
+  // Center the view ONLY on scene change
   useEffect(() => {
-    const centerView = () => {
-      if (!stageRef.current) return;
-      const rect = stageRef.current.getBoundingClientRect();
-      
-      setOffset({ 
-        x: (rect.width / 2) / scale, 
-        y: (rect.height / 2) / scale
-      });
+    if (!stageRef.current || !activeScene?.id) return;
+    
+    const rect = stageRef.current.getBoundingClientRect();
+    setScale(1);
+    setOffset({ 
+      x: (rect.width / 2), 
+      y: (rect.height / 2)
+    });
+  }, [activeScene?.id]);
+
+  // Prevent default browser behavior on mobile (manual listener for passive: false)
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // Always prevent native scroll/zoom on the map area
+      if (e.touches.length >= 1) {
+        e.preventDefault();
+      }
     };
 
-    centerView();
-  }, [activeScene?.id]);
+    stage.addEventListener('touchmove', handleTouchMove, { passive: false });
+    return () => stage.removeEventListener('touchmove', handleTouchMove);
+  }, []);
   
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    
     const target = e.target as HTMLElement;
     const coords = screenToWorld(e.clientX, e.clientY);
+
+    // If more than one pointer, start pinch Dist calculation
+    if (activePointers.current.size >= 2) {
+      setIsPanning(false);
+      setDraggingToken(null);
+      
+      const pointers = Array.from(activePointers.current.values());
+      const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+      lastPinchDist.current = dist;
+      return;
+    }
 
     // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
     if (tokenElement) {
       const tokenId = tokenElement.getAttribute('data-token-id')!;
       const token = tokens.find((t: MapToken) => t.id === tokenId);
-      const canMove = isDM || token?.character_id === characterId;
+      const canMoveToken = isDM || token?.character_id === characterId;
 
-      if (token && canMove) {
+      if (token && canMoveToken) {
         setDraggingToken({
           id: token.id,
           grabOffsetX: coords.x - token.x,
@@ -98,7 +163,6 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       setRulerStart(coords);
       setRulerEnd(coords);
     } else if (activeTool === 'move') {
-      // Check if clicking on stage background
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
         setIsPanning(true);
         lastPanPos.current = { x: e.clientX, y: e.clientY };
@@ -108,29 +172,49 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const coords = screenToWorld(e.clientX, e.clientY);
+
+    // Pinch Zoom Handling
+    if (activePointers.current.size >= 2 && lastPinchDist.current !== null) {
+      const pointers = Array.from(activePointers.current.values());
+      const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+      
+      const centerX = (pointers[0].x + pointers[1].x) / 2;
+      const centerY = (pointers[0].y + pointers[1].y) / 2;
+      
+      const zoomFactor = dist / lastPinchDist.current;
+      zoomAtScreenPoint(centerX, centerY, zoomFactor);
+      
+      lastPinchDist.current = dist;
+      return;
+    }
 
     if (draggingToken) {
       const newX = coords.x - draggingToken.grabOffsetX;
       const newY = coords.y - draggingToken.grabOffsetY;
       
       setDraggingToken(prev => prev ? { ...prev, currentX: newX, currentY: newY } : null);
-      // Optimistic update for others (throttled/debounced if needed, but hook handles local state)
       updateTokenPosition(draggingToken.id, newX, newY, false);
       return;
     }
 
     if (activeTool === 'measure' && rulerStart) {
       setRulerEnd(coords);
-    } else if (isPanning) {
-      const dx = (e.clientX - lastPanPos.current.x) / scale;
-      const dy = (e.clientY - lastPanPos.current.y) / scale;
+    } else if (isPanning && activePointers.current.size === 1) {
+      const dx = (e.clientX - lastPanPos.current.x) / scaleRef.current;
+      const dy = (e.clientY - lastPanPos.current.y) / scaleRef.current;
       setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
       lastPanPos.current = { x: e.clientX, y: e.clientY };
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId);
+    if (activePointers.current.size < 2) {
+      lastPinchDist.current = null;
+    }
+
     if (draggingToken) {
       let finalX = draggingToken.currentX;
       let finalY = draggingToken.currentY;
@@ -143,7 +227,6 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         const token = tokens.find((t: MapToken) => t.id === draggingToken.id);
         const size = token?.size || gridSize;
 
-        // Snap center to center of cell
         const centerX = finalX + size / 2;
         const centerY = finalY + size / 2;
 
@@ -164,6 +247,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         setRulerEnd(null);
       }, 3000);
     }
+    
     setIsPanning(false);
     if (e.target instanceof Element) {
       try {
@@ -174,32 +258,11 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
 
   const handleWheel = (e: React.WheelEvent) => {
     if (!(e.target as HTMLElement).closest('.stage-bg')) return;
-
     e.preventDefault();
     e.stopPropagation();
 
-    if (!stageRef.current) return;
-
-    const rect = stageRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const oldScale = scale;
     const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
-    const newScale = Math.min(Math.max(oldScale * zoomFactor, 0.25), 5);
-
-    if (newScale === oldScale) return;
-
-    // Calculate world coordinates of the mouse before zoom
-    const worldX = mouseX / oldScale - offset.x;
-    const worldY = mouseY / oldScale - offset.y;
-
-    // Calculate new offset to keep world coordinates under mouse
-    const newOffsetX = mouseX / newScale - worldX;
-    const newOffsetY = mouseY / newScale - worldY;
-
-    setScale(newScale);
-    setOffset({ x: newOffsetX, y: newOffsetY });
+    zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
   };
 
   if (!activeScene) {
