@@ -49,7 +49,11 @@ export const BattleMapScenesPanel: React.FC<Props> = ({
   onClose
 }) => {
   return (
-    <aside className="fixed inset-y-0 left-0 w-full sm:w-80 bg-[#0a0a0c]/98 border-r border-white/10 flex flex-col z-[90] backdrop-blur-xl shadow-2xl transition-all animate-in slide-in-from-left duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
+      <div 
+        className="w-full max-w-lg bg-[#0a0a0c]/98 border border-white/10 flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+        onClick={e => e.stopPropagation()}
+      >
       <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
         <div className="flex flex-col">
           <h2 className="font-display text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] flex items-center gap-2">
