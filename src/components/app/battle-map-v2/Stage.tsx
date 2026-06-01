@@ -26,13 +26,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   
-  useEffect(() => {
-    scaleRef.current = scale;
-  }, [scale]);
+  // Keep refs in sync immediately to avoid frame lag in coordinate conversion
+  scaleRef.current = scale;
+  offsetRef.current = offset;
 
-  useEffect(() => {
-    offsetRef.current = offset;
-  }, [offset]);
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
@@ -42,14 +39,9 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
   const lastPinchDist = useRef<number | null>(null);
 
-  // Token dragging state
-  const [draggingToken, setDraggingToken] = useState<{
-    id: string;
-    grabOffsetX: number;
-    grabOffsetY: number;
-    currentX: number;
-    currentY: number;
-  } | null>(null);
+  // Token dragging state (managed by individual Token components now)
+  const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
+
 
   // Helper function to convert screen coordinates to world coordinates
   const screenToWorld = useCallback((clientX: number, clientY: number) => {
@@ -141,7 +133,8 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     // Multi-touch / Pinch zoom
     if (activePointers.current.size >= 2) {
       setIsPanning(false);
-      setDraggingToken(null);
+      setDraggingTokenId(null);
+
       
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -203,10 +196,10 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       lastPinchDist.current = null;
     }
 
-    if (draggingToken) {
-      // Logic moved to Token.tsx
-      setDraggingToken(null);
+    if (draggingTokenId) {
+      setDraggingTokenId(null);
     }
+
 
 
     if (activeTool === 'measure') {
@@ -392,12 +385,15 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 scale={scale}
                 gridOffsetX={activeScene.grid_offset_x}
                 gridOffsetY={activeScene.grid_offset_y}
-                isDragging={draggingToken?.id === token.id}
+                isDragging={draggingTokenId === token.id}
                 onMove={(x: number, y: number, isFinal: boolean = true) => updateTokenPosition(token.id, x, y, isFinal)}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
+                onDragStart={(id) => setDraggingTokenId(id)}
+                onDragEnd={() => setDraggingTokenId(null)}
               />
+
 
             </div>
           ))}

@@ -26,8 +26,11 @@ export function Token({
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
   isDragging: isDraggingProp = false,
   onMove, onRemove, onUpdateSize,
-  screenToWorld
-}: Props) {
+  screenToWorld,
+  onDragStart,
+  onDragEnd
+}: Props & { onDragStart?: (id: string) => void, onDragEnd?: () => void }) {
+
   const [localDragging, setLocalDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [visualPos, setVisualPos] = useState({ x: token.x, y: token.y });
@@ -56,8 +59,10 @@ export function Token({
     });
     setLocalDragging(true);
     setVisualPos({ x: token.x, y: token.y });
+    onDragStart?.(token.id);
     
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -106,6 +111,8 @@ export function Token({
 
     setLocalDragging(false);
     onMove(finalX, finalY, true);
+    onDragEnd?.();
+
     
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
