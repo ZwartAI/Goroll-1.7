@@ -405,13 +405,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          {/* Capa de fondo base (solo si no hay imagen configurada para permitir ver el fallback HTML) */}
-          {!config.backgroundUrl && (
-            <>
-              <Rect x={-10000} y={-10000} width={20000} height={20000} fill="#0a0a0c" listening={false} />
-              <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" listening={false} />
-            </>
-          )}
+          {/* Capa de fondo base (siempre presente al fondo) */}
+          <Rect x={-10000} y={-10000} width={20000} height={20000} fill="#0a0a0c" listening={false} />
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" listening={false} />
+          
           
           {config.backgroundUrl && (config.backgroundType === 'video' ? (
             <KonvaImage 

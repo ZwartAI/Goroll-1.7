@@ -28,6 +28,7 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
   const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (key: keyof MapConfig, value: any) => {
+    // Usar la versión funcional de onChange para evitar problemas de stale props si se llama rápido
     onChange({ ...config, [key]: value });
   };
 
@@ -128,8 +129,10 @@ export const BattleMapConfigModal: React.FC<Props & { isOpen: boolean, onClose: 
                     ) : (
                       <img 
                         src={config.backgroundUrl} 
-                        className="w-full h-full object-cover opacity-60" 
+                        className="w-full h-full object-contain" 
                         alt="Preview" 
+                        onLoad={() => console.log("Preview image loaded")}
+                        onError={() => console.error("Preview image failed to load", config.backgroundUrl)}
                       />
                     )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
