@@ -117,6 +117,20 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 onChange={(v) => updateScene({ background_opacity: v })} 
               />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <RangeInput 
+                label="Desplazar X (%)" 
+                value={activeScene.background_x} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ background_x: v })} 
+              />
+              <RangeInput 
+                label="Desplazar Y (%)" 
+                value={activeScene.background_y} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ background_y: v })} 
+              />
+            </div>
           </section>
 
           {/* Grid Settings */}
