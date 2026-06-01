@@ -260,6 +260,19 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           [payload.payload.userId]: payload.payload.projection
         }));
       })
+      .on('broadcast', { event: 'dm-camera-focus' }, (payload) => {
+        if (!isDM) {
+          console.log("DM forced focus:", payload.payload);
+          const event = new CustomEvent('battle-map:focus-point', { 
+            detail: { 
+              x: payload.payload.x, 
+              y: payload.payload.y,
+              scale: payload.payload.scale
+            } 
+          });
+          window.dispatchEvent(event);
+        }
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
