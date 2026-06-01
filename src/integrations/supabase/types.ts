@@ -293,6 +293,9 @@ export type Database = {
           character_id: string | null
           created_at: string | null
           id: string
+          image_offset_x: number | null
+          image_offset_y: number | null
+          image_scale: number | null
           image_url: string | null
           is_visible: boolean | null
           name: string | null
@@ -308,6 +311,9 @@ export type Database = {
           character_id?: string | null
           created_at?: string | null
           id?: string
+          image_offset_x?: number | null
+          image_offset_y?: number | null
+          image_scale?: number | null
           image_url?: string | null
           is_visible?: boolean | null
           name?: string | null
@@ -323,6 +329,9 @@ export type Database = {
           character_id?: string | null
           created_at?: string | null
           id?: string
+          image_offset_x?: number | null
+          image_offset_y?: number | null
+          image_scale?: number | null
           image_url?: string | null
           is_visible?: boolean | null
           name?: string | null
