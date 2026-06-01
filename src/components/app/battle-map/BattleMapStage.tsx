@@ -8,18 +8,12 @@ import { BattleMapChalkLayer, type ChalkLine, type ChalkNote } from './BattleMap
 import { type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChalkControls';
 import useImage from 'use-image';
 
-// FASE 2: Background + Grid configurable + Snap
-// FASE 3: Projections
-// FASE 4: Chalk
-// FASE 5: Scenes + Realtime Sync
-
 interface Props {
   width: number;
   height: number;
   participants: CombatParticipant[];
   config: MapConfig;
   onLongPressToken?: (id: string, x: number, y: number) => void;
-  // FASE 4 Props
   isChalkMode?: boolean;
   chalkTool?: ChalkTool;
   chalkColor?: ChalkColor;
@@ -30,7 +24,6 @@ interface Props {
   onAddNote?: (x: number, y: number) => void;
   onNoteUpdate?: (id: string, x: number, y: number) => void;
   onNoteClick?: (id: string) => void;
-  // FASE 5 Props
   remoteTokenPositions?: Record<string, { x: number; y: number }>;
   remoteProjections?: Record<string, ProjectionState | null>;
   onTokenMove?: (id: string, x: number, y: number) => void;
@@ -41,7 +34,6 @@ interface Props {
   isRulerActive?: boolean;
 }
 
-
 export type ProjectionType = 'distance' | 'area' | 'line' | 'cone';
 
 export interface ProjectionState {
@@ -50,31 +42,32 @@ export interface ProjectionState {
   current: { x: number; y: number };
 }
 
-export const BattleMapStage: React.FC<Props> = React.memo(({ 
-  width, 
-  height, 
-  participants, 
-  config, 
-  onLongPressToken,
-  isChalkMode = false,
-  chalkTool = 'pencil',
-  chalkColor = '#ffffff',
-  chalkSize = 5,
-  chalkLines,
-  chalkNotes,
-  onAddChalkLine,
-  onAddNote,
-  onNoteUpdate,
-  onNoteClick,
-  remoteTokenPositions = {},
-  remoteProjections = {},
-  onTokenMove,
-  onTokenMoveEnd,
-  onProjectionUpdate,
-  role,
-  currentUserId,
-  isRulerActive = false
-}) => {
+export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((props, ref) => {
+  const { 
+    width, 
+    height, 
+    participants, 
+    config, 
+    onLongPressToken,
+    isChalkMode = false,
+    chalkTool = 'pencil',
+    chalkColor = '#ffffff',
+    chalkSize = 5,
+    chalkLines,
+    chalkNotes,
+    onAddChalkLine,
+    onAddNote,
+    onNoteUpdate,
+    onNoteClick,
+    remoteTokenPositions = {},
+    remoteProjections = {},
+    onTokenMove,
+    onTokenMoveEnd,
+    onProjectionUpdate,
+    role,
+    currentUserId,
+    isRulerActive = false
+  } = props;
 
   const stageRef = useRef<Konva.Stage>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -88,6 +81,9 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const [projection, setProjection] = useState<ProjectionState | null>(null);
   const [isReady, setIsReady] = useState(false); 
 
+  // Exponer el stageRef al padre
+  React.useImperativeHandle(ref, () => stageRef.current!);
+
   // Centrar el mapa inicialmente
   useEffect(() => {
     const stage = stageRef.current;
@@ -96,12 +92,11 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       const newY = height / 2;
       stage.position({ x: newX, y: newY });
       setPosition({ x: newX, y: newY });
-      // If there is no background, we are ready immediately
       if (!config.backgroundUrl) {
         setIsReady(true);
       }
     }
-  }, [width, height]);
+  }, [width, height, config.backgroundUrl]);
 
   // Re-centrar y ajustar escala cuando se carga imagen o video
   useEffect(() => {
@@ -143,14 +138,14 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         setTimeout(() => {
           if (imageRef.current) {
             imageRef.current.cache();
+            imageRef.current.getLayer()?.batchDraw();
           }
-        }, 100);
+        }, 300);
       }
     } else if (status === 'failed' || (!config.backgroundUrl)) {
-      // BLOQUE 9: Resetear transform si no hay imagen para asegurar que la grid sea visible
       const stageWidth = width;
       const stageHeight = height;
-      const newScale = 1;
+      const newScale = 0.5;
       const newX = stageWidth / 2;
       const newY = stageHeight / 2;
       
@@ -162,8 +157,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     }
   }, [status, bgImage, isVideoReady, config.backgroundScale, config.backgroundUrl, config.backgroundType, width, height]);
 
-
-  // FASE 7: Subtle particles
+  // Subtle particles
   const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, size: number}>>([]);
   
   useEffect(() => {
@@ -266,7 +260,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     }
   }, [isChalkMode, isRulerActive, chalkTool, onAddNote, onProjectionUpdate]);
 
-
   const handleStageMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
@@ -305,17 +298,99 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     e.evt.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
+
     const oldScale = stage.scaleX();
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-    const mousePointTo = { x: (pointer.x - stage.x()) / oldScale, y: (pointer.y - stage.y()) / oldScale };
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
     const speed = 1.1;
-    const newScale = e.evt.deltaY < 0 ? oldScale * speed : oldScale / speed;
+    let newScale = e.evt.deltaY < 0 ? oldScale * speed : oldScale / speed;
+    newScale = Math.max(0.05, Math.min(newScale, 10));
+
+    const newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+
     stage.scale({ x: newScale, y: newScale });
-    const newPos = { x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale };
     stage.position(newPos);
+    
     setScale(newScale);
     setPosition(newPos);
+    
+    if (imageRef.current) {
+      imageRef.current.getLayer()?.batchDraw();
+    }
+  };
+
+  const lastCenter = useRef<any>(null);
+  const lastDist = useRef<number>(0);
+
+  const getDistance = (p1: any, p2: any) => {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+  };
+
+  const getCenter = (p1: any, p2: any) => {
+    return {
+      x: (p1.x + p2.x) / 2,
+      y: (p1.y + p2.y) / 2,
+    };
+  };
+
+  const handleTouchMove = (e: any) => {
+    const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    const stage = stageRef.current;
+
+    if (touch1 && touch2 && stage) {
+      e.evt.preventDefault();
+      
+      const p1 = { x: touch1.clientX, y: touch1.clientY };
+      const p2 = { x: touch2.clientX, y: touch2.clientY };
+
+      if (!lastCenter.current) {
+        lastCenter.current = getCenter(p1, p2);
+        lastDist.current = getDistance(p1, p2);
+        return;
+      }
+
+      const newDist = getDistance(p1, p2);
+      const newCenter = getCenter(p1, p2);
+
+      const oldScale = stage.scaleX();
+      const pointer = stage.getPointerPosition() || newCenter;
+
+      const mousePointTo = {
+        x: (newCenter.x - stage.x()) / oldScale,
+        y: (newCenter.y - stage.y()) / oldScale,
+      };
+
+      const newScale = oldScale * (newDist / lastDist.current);
+      stage.scale({ x: newScale, y: newScale });
+
+      const newPos = {
+        x: newCenter.x - mousePointTo.x * newScale,
+        y: newCenter.y - mousePointTo.y * newScale,
+      };
+
+      stage.position(newPos);
+      
+      lastDist.current = newDist;
+      lastCenter.current = newCenter;
+      
+      setScale(newScale);
+      setPosition(newPos);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    lastDist.current = 0;
+    lastCenter.current = null;
   };
 
   useEffect(() => {
@@ -393,20 +468,39 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         const centerX = (mapW * bgScale) / 2;
         const centerY = (mapH * bgScale) / 2;
         
-        const currentScale = stage.scaleX();
+        const targetScale = Math.min(
+          (width * 0.9) / (mapW * bgScale),
+          (height * 0.9) / (mapH * bgScale)
+        );
         
-        // Objetivo: el centro de la imagen (centerX, centerY) debe quedar en (width/2, height/2) del viewport
-        const targetX = width / 2 - centerX * currentScale;
-        const targetY = height / 2 - centerY * currentScale;
+        const finalScale = Math.max(0.1, Math.min(targetScale, 1.5));
+        const targetX = width / 2 - centerX * finalScale;
+        const targetY = height / 2 - centerY * finalScale;
 
-        // Animación suave
         stage.to({
           x: targetX,
           y: targetY,
-          duration: 0.5,
+          scaleX: finalScale,
+          scaleY: finalScale,
+          duration: 0.8,
           easing: Konva.Easings.EaseInOut,
           onFinish: () => {
             setPosition({ x: targetX, y: targetY });
+            setScale(finalScale);
+          }
+        });
+      } else {
+        const targetX = width / 2;
+        const targetY = height / 2;
+        stage.to({
+          x: targetX,
+          y: targetY,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 0.5,
+          onFinish: () => {
+            setPosition({ x: targetX, y: targetY });
+            setScale(1);
           }
         });
       }
@@ -422,12 +516,10 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       const stage = stageRef.current;
       if (!stage) return;
 
-      // Calculate target X, Y to center the world point (x, y) in the viewport center (width/2, height/2)
       const currentScale = targetScale || stage.scaleX();
       const targetX = width / 2 - x * currentScale;
       const targetY = height / 2 - y * currentScale;
 
-      // Smooth animation
       stage.to({
         x: targetX,
         y: targetY,
@@ -449,12 +541,11 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
   const gridLines = useMemo(() => {
     if (!config.showGrid) return null;
     const lines = [];
-    const size = 20000; 
-    const offset = -10000;
+    const size = 10000; 
+    const offset = -5000;
     
     const gSize = Math.max(10, gridSize);
     const s = scale || 1;
-    // BLOQUE 8: Asegurar que la grid sea visible incluso con escala baja
     const lineThickness = Math.max(1, 1 / s); 
     const gridLinesOpacity = Math.max(0.2, config.gridOpacity || 0.4);
     const gridColor = config.gridColor || 'rgba(255,255,255,0.25)';
@@ -470,22 +561,18 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     return lines;
   }, [gridSize, config.gridColor, config.gridOpacity, config.showGrid, scale]);
 
-
   return (
     <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5">
       <Stage
         width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
         onDragEnd={(e) => setPosition(e.target.position())}
         onMouseDown={handleStageMouseDown} onTouchStart={handleStageMouseDown}
-        onMouseMove={handleStageMouseMove} onTouchMove={handleStageMouseMove}
-        onMouseUp={handleStageMouseUp} onTouchEnd={handleStageMouseUp}
+        onMouseMove={handleStageMouseMove} onTouchMove={handleTouchMove}
+        onMouseUp={handleStageMouseUp} onTouchEnd={handleTouchEnd}
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
       >
         <Layer ref={layerRef}>
-          {/* Capa de fondo base (siempre presente al fondo) */}
-          <Rect x={-10000} y={-10000} width={20000} height={20000} fill="#0a0a0c" listening={false} />
-          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#121214" listening={false} />
-          
+          <Rect x={-5000} y={-5000} width={10000} height={10000} fill="#0a0a0c" listening={false} />
           
           {config.backgroundUrl && (
             config.backgroundType === 'video' ? (
@@ -497,6 +584,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
                 opacity={config.backgroundOpacity} 
                 filters={[Konva.Filters.Brighten]}
                 brightness={config.backgroundBrightness - 1}
+                listening={false}
               />
             ) : bgImage ? (
               <KonvaImage 
@@ -508,93 +596,45 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
                 opacity={config.backgroundOpacity} 
                 filters={[Konva.Filters.Brighten]}
                 brightness={config.backgroundBrightness - 1}
+                listening={false}
               />
             ) : null
           )}
 
-          {/* Grid sobre la imagen para asegurar visibilidad máxima */}
           <Group id="grid-group" listening={false} name="grid-layer">
             {gridLines}
           </Group>
           
-          {/* Fallback/Loading indicator visible if image takes time or fails */}
           {config.backgroundUrl && (status === 'loading' || (config.backgroundType === 'video' && !isVideoReady)) && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
-              <Text 
-                text="Cargando mapa..." 
-                fill="var(--gold)" 
-                fontSize={24 / scale} 
-                fontStyle="bold"
-                align="center" 
-                width={400 / scale} 
-                offsetX={200 / scale} 
-              />
+              <Text text="Cargando mapa..." fill="var(--gold)" fontSize={24 / scale} fontStyle="bold" align="center" width={400 / scale} offsetX={200 / scale} />
             </Group>
           )}
 
           {status === 'failed' && config.backgroundUrl && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
-              <Text 
-                text="⚠️ Error al cargar la imagen del mapa" 
-                fill="#ef4444" 
-                fontSize={24 / scale} 
-                fontStyle="bold"
-                align="center" 
-                width={600 / scale} 
-                offsetX={300 / scale} 
-              />
-              <Text 
-                text={config.backgroundUrl.substring(0, 50) + "..."} 
-                fill="#ef4444" 
-                fontSize={12 / scale} 
-                y={30 / scale}
-                align="center" 
-                width={600 / scale} 
-                offsetX={300 / scale} 
-                opacity={0.7}
-              />
+              <Text text="⚠️ Error al cargar la imagen del mapa" fill="#ef4444" fontSize={24 / scale} fontStyle="bold" align="center" width={600 / scale} offsetX={300 / scale} />
             </Group>
           )}
 
           {!config.backgroundUrl && isReady && (
             <Group x={(width/2 - position.x)/scale} y={(height/2 - position.y)/scale}>
-              <Text 
-                text="Lienzo Vacío - Configura un fondo en Ajustes" 
-                fill="rgba(255,255,255,0.2)" 
-                fontSize={20 / scale} 
-                align="center" 
-                width={600 / scale} 
-                offsetX={300 / scale} 
-              />
+              <Text text="Lienzo Vacío - Configura un fondo en Ajustes" fill="rgba(255,255,255,0.2)" fontSize={20 / scale} align="center" width={600 / scale} offsetX={300 / scale} />
             </Group>
           )}
 
-          {/* FASE 7: Floating magical particles */}
           {particles.map(p => (
-            <KonvaCircle
-              key={p.id}
-              x={p.x}
-              y={p.y}
-              radius={p.size}
-              fill="rgba(234, 179, 8, 0.2)"
-              shadowBlur={5}
-              shadowColor="var(--gold)"
-              listening={false}
-            />
+            <KonvaCircle key={p.id} x={p.x} y={p.y} radius={p.size} fill="rgba(234, 179, 8, 0.2)" shadowBlur={5} shadowColor="var(--gold)" listening={false} />
           ))}
         </Layer>
 
         <Layer id="tokens-layer">
           {isReady && participants.map((p, i) => {
             const remotePos = remoteTokenPositions[p.id];
-            
-            // FASE 7: Posicionamiento inicial centrado en viewport real corregido por stage transform
             const initialX = (width / 2 + (i % 3) * gridSize - gridSize - position.x) / scale;
             const initialY = (height / 2 + Math.floor(i / 3) * gridSize - gridSize - position.y) / scale;
-            
             const finalX = remotePos?.x ?? initialX;
             const finalY = remotePos?.y ?? initialY;
-
             const isDM = role === 'dm';
             const isOwner = !!(currentUserId && p.character_id === currentUserId);
 
@@ -618,16 +658,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
         
         {isDrawing && currentLinePoints.length > 2 && (
           <Layer listening={false} opacity={0.7}>
-            <Line 
-              points={currentLinePoints} 
-              stroke={chalkColor} 
-              strokeWidth={chalkSize} 
-              tension={0.5} 
-              lineCap="round" 
-              lineJoin="round" 
-              shadowBlur={chalkSize * 0.8} 
-              shadowColor={chalkColor} 
-            />
+            <Line points={currentLinePoints} stroke={chalkColor} strokeWidth={chalkSize} tension={0.5} lineCap="round" lineJoin="round" shadowBlur={chalkSize * 0.8} shadowColor={chalkColor} />
           </Layer>
         )}
         
@@ -638,6 +669,6 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
       </Stage>
     </div>
   );
-});
+}));
 
 BattleMapStage.displayName = 'BattleMapStage';
