@@ -79,7 +79,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <label className="p-2 bg-[var(--gold)] text-black rounded-lg cursor-pointer hover:scale-105 transition-transform">
                       <Upload className="w-5 h-5" />
-                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" disabled={isUploading} />
+                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" disabled={isUploading} />
                     </label>
                     <button 
                       onClick={() => updateScene({ background_url: null })}
@@ -93,7 +93,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 <label className="flex flex-col items-center gap-2 cursor-pointer hover:text-[var(--gold)] transition-colors">
                   <Upload className="w-8 h-8 opacity-40" />
                   <span className="text-[10px] uppercase tracking-widest opacity-40">Subir Imagen</span>
-                  <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" disabled={isUploading} />
+                  <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" disabled={isUploading} />
                 </label>
               )}
               {isUploading && (
@@ -115,6 +115,20 @@ export function MapSettings({ battleMap, onClose }: Props) {
                 value={activeScene.background_opacity} 
                 min={0} max={1} step={0.1}
                 onChange={(v) => updateScene({ background_opacity: v })} 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <RangeInput 
+                label="Desplazar X (%)" 
+                value={activeScene.background_x} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ background_x: v })} 
+              />
+              <RangeInput 
+                label="Desplazar Y (%)" 
+                value={activeScene.background_y} 
+                min={-100} max={100} step={1}
+                onChange={(v) => updateScene({ background_y: v })} 
               />
             </div>
           </section>
