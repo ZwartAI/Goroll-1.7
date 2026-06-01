@@ -31,7 +31,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const battleMap = useBattleMap(campaignId);
   const [showScenes, setShowScenes] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTool, setActiveTool] = useState<'move' | 'measure' | 'pencil'>('move');
+  const [activeTool, setActiveTool] = useState<'move' | 'measure' | 'pencil' | 'eraser'>('move');
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
   const [resetKey, setResetKey] = useState(0);
