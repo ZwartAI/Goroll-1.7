@@ -34,6 +34,18 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [activeTool, setActiveTool] = useState<'move' | 'measure' | 'pencil'>('move');
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+
+  const handleResetView = () => {
+    setResetKey(prev => prev + 1);
+    toast.success('Vista restablecida');
+  };
+
+  const handleClearDrawings = async () => {
+    if (confirm('¿Borrar todos los dibujos?')) {
+      await battleMap.clearDrawings();
+    }
+  };
 
   useEffect(() => {
     if (isDM && !battleMap.isLoading && battleMap.scenes.length === 0) {
