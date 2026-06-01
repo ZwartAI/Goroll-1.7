@@ -94,8 +94,8 @@ export function Token({
       const gy = gridOffsetY || 0;
       
       // Calculate the center of the token
-      const centerX = finalX + token.size / 2;
-      const centerY = finalY + token.size / 2;
+      const centerX = finalX + gridSize / 2;
+      const centerY = finalY + gridSize / 2;
 
       // Find the center of the closest grid cell
       const cellX = Math.round((centerX - gx - gridSize / 2) / gridSize);
@@ -105,8 +105,8 @@ export function Token({
       const snappedCenterY = cellY * gridSize + gy + gridSize / 2;
 
       // Offset back to top-left
-      finalX = snappedCenterX - token.size / 2;
-      finalY = snappedCenterY - token.size / 2;
+      finalX = snappedCenterX - gridSize / 2;
+      finalY = snappedCenterY - gridSize / 2;
     }
 
     setLocalDragging(false);
