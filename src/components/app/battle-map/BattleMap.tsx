@@ -708,7 +708,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0a0c] flex flex-col overflow-hidden text-foreground animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] bg-[#0a0a0c] flex flex-col overflow-hidden text-foreground animate-in fade-in duration-300 select-none">
       <BattleMapHeader 
         title={headerTitle} 
         onBack={async () => {
@@ -753,7 +753,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         </div>
 
         {/* FASE 7: Canvas Stage */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 select-none">
           <BattleMapStage 
             width={dimensions.width} 
             height={Math.max(300, dimensions.height - 112)} // Adjusted for Header + BottomBar
