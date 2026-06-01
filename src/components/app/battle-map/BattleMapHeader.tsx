@@ -48,7 +48,7 @@ export const BattleMapHeader: React.FC<Props> = ({
       <div className="flex items-center gap-4">
         <button 
           onClick={onMenuToggle}
-          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-[var(--gold)] border border-white/10 hover:scale-105 active:scale-95"
+          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-[var(--gold)] border border-white/10 hover:scale-105 active:scale-95 flex items-center justify-center shadow-lg active:bg-[var(--gold)] active:text-black"
           title="Menú del Mapa"
         >
           <Menu size={20} />
