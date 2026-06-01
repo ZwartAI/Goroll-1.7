@@ -26,7 +26,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
-  // Center the view on initial load or scene change
+  // Center the view ONLY on initial load or scene change
   useEffect(() => {
     const centerView = () => {
       if (!stageRef.current) return;
@@ -38,34 +38,20 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
 
       // If background exists and is loaded, we can center on it better
       if (activeScene?.background_url && bgMediaRef.current) {
-        const media = bgMediaRef.current;
-        const naturalWidth = 'naturalWidth' in media ? media.naturalWidth : (media as HTMLVideoElement).videoWidth;
-        const naturalHeight = 'naturalHeight' in media ? media.naturalHeight : (media as HTMLVideoElement).videoHeight;
-
-        if (naturalWidth > 0 && naturalHeight > 0) {
-          // Center of the image in world space
-          // Note: transform applies background_x/y as percentages
-          const bgX = (activeScene.background_x || 0) / 100;
-          const bgY = (activeScene.background_y || 0) / 100;
-          const bgScale = activeScene.background_scale || 1;
-          
-          // The image is centered at (0,0) world coords by the CSS layout usually, 
-          // but here we need to match the actual rendered position.
-          // Based on the CSS in the return: translate(bgX%, bgY%) scale(bgScale)
-          // We'll assume the image center is the target.
-          targetWorldX = 0; 
-          targetWorldY = 0;
-        }
+        // We'll keep it simple for now and center at world 0,0
+        // which is where the image center is positioned by CSS
+        targetWorldX = 0; 
+        targetWorldY = 0;
       }
 
       setOffset({ 
-        x: rect.width / 2 / scale - targetWorldX, 
-        y: rect.height / 2 / scale - targetWorldY
+        x: (rect.width / 2) / scale - targetWorldX, 
+        y: (rect.height / 2) / scale - targetWorldY
       });
     };
 
     centerView();
-  }, [activeScene?.id, scale]);
+  }, [activeScene?.id]); // REMOVED scale from dependencies to prevent reset on zoom
   
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
