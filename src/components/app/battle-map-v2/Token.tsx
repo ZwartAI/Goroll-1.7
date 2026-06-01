@@ -135,8 +135,8 @@ export function Token({
         (localDragging || isDraggingProp) && "cursor-grabbing z-50"
       )}
       style={{ 
-        width: token.size,
-        height: token.size,
+        width: gridSize,
+        height: gridSize,
         left: 0,
         top: 0,
         transform: `translate3d(${visualPos.x}px, ${visualPos.y}px, 0)`,
