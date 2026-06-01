@@ -79,7 +79,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <label className="p-2 bg-[var(--gold)] text-black rounded-lg cursor-pointer hover:scale-105 transition-transform">
                       <Upload className="w-5 h-5" />
-                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" disabled={isUploading} />
+                      <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" disabled={isUploading} />
                     </label>
                     <button 
                       onClick={() => updateScene({ background_url: null })}
