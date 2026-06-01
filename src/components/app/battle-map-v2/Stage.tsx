@@ -146,38 +146,47 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         className="absolute inset-0 origin-top-left stage-bg"
         style={{ 
           transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`,
-          width: '10000px', // Even larger area
-          height: '10000px'
+          width: '5000px',
+          height: '5000px',
+          left: '-2500px',
+          top: '-2500px'
         }}
       >
         {/* Map Background Layer */}
         {activeScene.background_url && (
           <div 
-            className="absolute inset-0 bg-no-repeat bg-center pointer-events-none"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
             style={{ 
               opacity: activeScene.background_opacity,
               zIndex: 0
             }}
           >
-            {isVideo(activeScene.background_url) ? (
-              <video 
-                src={activeScene.background_url} 
-                autoPlay loop muted playsInline
-                className="w-full h-full object-contain"
-                style={{ 
-                  transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)` 
-                }}
-              />
-            ) : (
-              <img 
-                src={activeScene.background_url} 
-                alt="" 
-                className="w-full h-full object-contain"
-                style={{ 
-                  transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)` 
-                }}
-              />
-            )}
+            <div 
+              style={{ 
+                transform: `scale(${activeScene.background_scale}) translate(${activeScene.background_x}%, ${activeScene.background_y}%)`,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isVideo(activeScene.background_url) ? (
+                <video 
+                  src={activeScene.background_url} 
+                  autoPlay loop muted playsInline
+                  className="max-w-none max-h-none shadow-2xl"
+                  style={{ width: 'auto', height: 'auto' }}
+                />
+              ) : (
+                <img 
+                  src={activeScene.background_url} 
+                  alt="" 
+                  className="max-w-none max-h-none shadow-2xl"
+                  style={{ width: 'auto', height: 'auto' }}
+                />
+              )}
+            </div>
           </div>
         )}
 
@@ -191,7 +200,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 linear-gradient(to bottom, ${activeScene.grid_color} 1px, transparent 1px)
               `,
               backgroundSize: `${activeScene.grid_size}px ${activeScene.grid_size}px`,
-              backgroundPosition: `${activeScene.grid_offset_x}px ${activeScene.grid_offset_y}px`,
+              backgroundPosition: 'center',
               opacity: activeScene.grid_opacity,
               zIndex: 1
             }}
