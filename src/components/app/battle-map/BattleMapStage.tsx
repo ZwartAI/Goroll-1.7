@@ -629,9 +629,9 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   return (
     <div className="w-full h-full bg-[#0a0a0c] relative overflow-hidden border border-white/5 select-none" style={{ touchAction: 'none', overscrollBehavior: 'none' }}>
       <Stage
-        width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing}
+        width={width} height={height} ref={stageRef} onWheel={handleWheel} draggable={!isChalkMode && !isDrawing && !isRulerActive}
         onDragEnd={(e) => setPosition(e.target.position())}
-        onMouseDown={handleStageMouseDown} onTouchStart={handleStageMouseDown}
+        onMouseDown={handleStageMouseDown} onTouchStart={handleTouchStart}
         onMouseMove={handleStageMouseMove} onTouchMove={handleTouchMove}
         onMouseUp={handleStageMouseUp} onTouchEnd={handleTouchEnd}
         className={isChalkMode ? (chalkTool === 'pencil' ? 'cursor-crosshair' : 'cursor-text') : 'cursor-grab active:cursor-grabbing'}
