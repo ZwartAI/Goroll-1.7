@@ -206,7 +206,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
             >
               {isVideo(activeScene.background_url) ? (
                 <video 
-                  ref={el => bgMediaRef.current = el}
+                  ref={(el) => { bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
@@ -222,7 +222,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
                 />
               ) : (
                 <img 
-                  ref={el => bgMediaRef.current = el}
+                  ref={(el) => { bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   alt="" 
                   className="max-w-none max-h-none shadow-2xl"
