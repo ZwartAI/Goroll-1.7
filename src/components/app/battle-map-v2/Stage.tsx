@@ -57,34 +57,40 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
 
-  const getRelativeCoords = (e: React.MouseEvent | React.TouchEvent) => {
+  const getRelativeCoords = (e: React.PointerEvent | React.WheelEvent) => {
     if (!stageRef.current) return { x: 0, y: 0 };
     const rect = stageRef.current.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
     // Calculate local coordinates inside the scaled/panned container
     return {
-      x: (clientX - rect.left) / scale - offset.x,
-      y: (clientY - rect.top) / scale - offset.y
+      x: (e.clientX - rect.left) / scale - offset.x,
+      y: (e.clientY - rect.top) / scale - offset.y
     };
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // Prevent panning if we're touching a token or UI element
+    if (target.closest('[data-token="true"]') || target.closest('[data-map-ui="true"]')) {
+      return;
+    }
+
     const coords = getRelativeCoords(e);
     if (activeTool === 'measure') {
       setRulerStart(coords);
       setRulerEnd(coords);
     } else if (activeTool === 'move') {
-      // Check if clicking on stage background (not on a token handled by its own component)
-      if ((e.target as HTMLElement).classList.contains('stage-bg')) {
+      // Check if clicking on stage background
+      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
         setIsPanning(true);
         lastPanPos.current = { x: e.clientX, y: e.clientY };
+        target.setPointerCapture(e.pointerId);
       }
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (activeTool === 'measure' && rulerStart) {
       setRulerEnd(getRelativeCoords(e));
     } else if (isPanning) {
@@ -95,7 +101,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (activeTool === 'measure') {
       setTimeout(() => {
         setRulerStart(null);
@@ -103,6 +109,13 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       }, 3000);
     }
     setIsPanning(false);
+    if (e.target instanceof Element) {
+      try {
+        e.target.releasePointerCapture(e.pointerId);
+      } catch (err) {
+        // Ignore capture errors
+      }
+    }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -183,14 +196,16 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         overscrollBehavior: "none"
       }}
       onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
       ref={stageRef}
     >
       <div 
         className="absolute inset-0 origin-top-left stage-bg"
+        data-map-background="true"
         style={{ 
           transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`,
           width: '8000px',
@@ -201,6 +216,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         {activeScene.background_url && (
           <div 
             className="absolute inset-0 pointer-events-none"
+            data-map-background="true"
             style={{ 
               opacity: activeScene.background_opacity,
               zIndex: 0

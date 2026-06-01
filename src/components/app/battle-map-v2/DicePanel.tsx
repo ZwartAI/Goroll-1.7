@@ -43,7 +43,7 @@ export const DicePanel: React.FC<Props> = ({ onClose, onRoll }) => {
 
   return (
     <div className="absolute inset-x-0 bottom-24 z-[80] animate-in slide-in-from-bottom-5 duration-300 pointer-events-none">
-      <div className="mx-auto max-w-sm w-[95%] bg-[#0a0a0c]/95 border border-white/10 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-xl pointer-events-auto overflow-hidden">
+      <div className="mx-auto max-w-sm w-[95%] bg-[#0a0a0c]/95 border border-white/10 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-xl pointer-events-auto overflow-hidden" data-map-ui="true">
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="font-display text-[10px] uppercase tracking-widest text-[var(--gold)]">
             Tirada Rápida

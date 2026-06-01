@@ -119,9 +119,13 @@ export function Token({
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
-      onPointerDown={(e) => e.stopPropagation()}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        // Allow focus/click without panning
+      }}
       onMouseDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
+      data-token="true"
       animate={controls}
       initial={{ x: token.x, y: token.y }}
       className={cn(
@@ -169,6 +173,7 @@ export function Token({
             onClick={(e) => { e.stopPropagation(); onRemove(); }}
             className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-colors hover:scale-110 active:scale-95"
             title="Eliminar token"
+            data-map-ui="true"
           >
             <Trash2 className="w-4 h-4" />
           </button>

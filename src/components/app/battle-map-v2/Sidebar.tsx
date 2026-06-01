@@ -38,7 +38,7 @@ export function Sidebar({ onOpenChar }: Props) {
       }));
 
   return (
-    <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2">
+    <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
       {participants.map((p, idx) => (
         <motion.div
           initial={{ x: -20, opacity: 0 }}
