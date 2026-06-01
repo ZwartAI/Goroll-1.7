@@ -210,13 +210,26 @@ export const useBattleMap = (campaignId: string) => {
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
+    
+    // Optimistic update
+    const previousScene = activeScene;
+    const updatedScene = { ...activeScene, ...updates };
+    setActiveScene(updatedScene);
+    
+    // Also update in the scenes list
+    setScenes(prev => prev.map(s => s.id === activeScene.id ? updatedScene : s));
+
     const { error } = await supabase
       .from('battle_map_scenes_simple')
       .update(updates)
       .eq('id', activeScene.id);
 
     if (error) {
+      console.error('Error updating scene:', error);
       toast.error('No se pudo actualizar la escena');
+      // Rollback on error
+      setActiveScene(previousScene);
+      setScenes(prev => prev.map(s => s.id === activeScene.id ? previousScene : s));
     }
   };
 
