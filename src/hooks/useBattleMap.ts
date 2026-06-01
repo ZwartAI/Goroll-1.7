@@ -305,9 +305,15 @@ export const useBattleMap = (campaignId: string) => {
     }
   };
 
-  const updateTokenPosition = async (tokenId: string, x: number, y: number) => {
+  const updateTokenPosition = async (tokenId: string, x: number, y: number, isFinal: boolean = true) => {
     // Optimistic local update
     setTokens(prev => prev.map(t => t.id === tokenId ? { ...t, x, y } : t));
+
+    // Only update DB if it's the final position to avoid excessive writes
+    // and let realtime handle the intermediate states for others if needed.
+    // However, the user asked for realtime DM and players seeing changes.
+    // We'll use a small debounce or only update on final for performance.
+    if (!isFinal) return;
 
     const { error } = await supabase
       .from('battle_map_tokens_simple')
