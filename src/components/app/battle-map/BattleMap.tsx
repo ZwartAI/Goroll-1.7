@@ -319,6 +319,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       event: 'token-remove',
       payload: { tokenId }
     });
+  }, [campaign?.id]);
 
   const handleBroadcastProjection = useCallback(async (projection: ProjectionState | null) => {
     if (!campaign?.id) return;
