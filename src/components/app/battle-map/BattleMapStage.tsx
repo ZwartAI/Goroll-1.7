@@ -335,7 +335,7 @@ export const BattleMapStage: React.FC<Props> = React.memo(({
     
     // Forzar redibujado de la caché si es necesario
     if (imageRef.current) {
-      imageRef.current.batchDraw();
+      imageRef.current.getLayer()?.batchDraw();
     }
   };
 
