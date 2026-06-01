@@ -238,18 +238,30 @@ export function MapSettings({ battleMap, onClose }: Props) {
 }
 
 function RangeInput({ label, value, min, max, step, onChange }: { label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void }) {
+  // Local state for smooth sliding
+  const [localValue, setLocalValue] = useState(value);
+
+  // Sync with prop when it changes from outside
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
   return (
-    <div>
+    <div className="group">
       <div className="flex items-center justify-between mb-1">
-        <label className="text-[9px] uppercase tracking-widest text-white/40">{label}</label>
-        <span className="text-[10px] text-[var(--gold)] font-mono">{value}</span>
+        <label className="text-[9px] uppercase tracking-[0.15em] text-white/40 group-hover:text-white/60 transition-colors">{label}</label>
+        <span className="text-[10px] text-[var(--gold)] font-mono font-bold">{localValue}</span>
       </div>
       <input 
         type="range" 
         min={min} max={max} step={step} 
-        value={value} 
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--gold)]"
+        value={localValue} 
+        onChange={(e) => {
+          const val = parseFloat(e.target.value);
+          setLocalValue(val);
+          onChange(val);
+        }}
+        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--gold)] hover:bg-white/15 transition-all outline-none focus:ring-1 focus:ring-[var(--gold)]/30"
       />
     </div>
   );
