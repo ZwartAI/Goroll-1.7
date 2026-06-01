@@ -144,8 +144,11 @@ export const useBattleMap = (campaignId: string) => {
           filter: `campaign_id=eq.${campaignId}`,
         },
         (payload) => {
-          if (payload.eventType === 'UPDATE' && (payload.new as any).is_active) {
-            setActiveScene(payload.new as unknown as SceneConfig);
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const newScene = payload.new as any;
+            if (newScene.is_active && newScene.campaign_id === campaignId) {
+              setActiveScene(newScene as unknown as SceneConfig);
+            }
           }
           fetchScenes();
         }
