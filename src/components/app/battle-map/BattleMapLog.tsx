@@ -38,12 +38,11 @@ export const BattleMapLog: React.FC<Props> = ({
       if (viewMode === 'full') setViewMode('medium');
     }
   };
-1: 
-2:   const toggleView = () => {
-3:     if (viewMode === 'compact') setViewMode('medium');
-4:     else if (viewMode === 'medium') setViewMode('full');
-5:     else setViewMode('compact');
-6:   };
+  const toggleView = () => {
+    if (viewMode === 'compact') setViewMode('medium');
+    else if (viewMode === 'medium') setViewMode('full');
+    else setViewMode('compact');
+  };
 
   return (
     <motion.div 
