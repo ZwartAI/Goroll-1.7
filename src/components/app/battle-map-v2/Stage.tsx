@@ -15,10 +15,23 @@ interface Props {
 export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize scale and offset to center the view
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+
+  // Center the view on initial load or scene change
+  useEffect(() => {
+    if (stageRef.current) {
+      const rect = stageRef.current.getBoundingClientRect();
+      setOffset({ 
+        x: rect.width / 2 / scale, 
+        y: rect.height / 2 / scale 
+      });
+    }
+  }, [activeScene?.id, scale]);
   
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
