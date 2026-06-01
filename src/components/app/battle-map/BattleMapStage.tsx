@@ -363,8 +363,18 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
       const pointer = { x: touch.clientX, y: touch.clientY };
       lastTouchPosRef.current = pointer;
 
-      // Si tocamos el fondo (no un token ni otra cosa)
-      const isTargetStage = e.target === stage || e.target.name() === 'grid-layer' || e.target.parent?.name() === 'grid-layer' || (e.target.attrs && e.target.attrs.listening === false);
+      // Detectar si tocamos un token
+      let node = e.target;
+      let isToken = false;
+      while (node && node !== stage) {
+        if (node.name() === 'token-group') {
+          isToken = true;
+          break;
+        }
+        node = node.getParent();
+      }
+
+      const isTargetStage = !isToken && (e.target === stage || e.target.name() === 'grid-layer' || e.target.parent?.name() === 'grid-layer' || (e.target.attrs && e.target.attrs.listening === false));
       
       if (isRulerActive || isChalkMode) {
         handleStageMouseDown(e);
