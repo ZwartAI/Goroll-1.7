@@ -345,6 +345,7 @@ export const useBattleMap = (campaignId: string) => {
     createScene,
     activateScene,
     updateTokenPosition,
+    updateTokenSize,
     addToken,
     removeToken,
     addDrawing,
