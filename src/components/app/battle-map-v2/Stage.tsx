@@ -106,6 +106,13 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
+    // Check if we are over the stage background or a non-interactive element
+    // to allow scrolling sidebars/logs if the mouse is over them
+    if (!(e.target as HTMLElement).closest('.stage-bg')) {
+      // If it's not the stage, let the default scroll happen (e.g. for sidebar/logs)
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -116,9 +123,12 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     const mouseY = e.clientY - rect.top;
 
     const oldScale = scale;
-    // zoomFactor logic
-    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    // zoomFactor logic - smaller increments for smoother zoom
+    const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
     const newScale = Math.min(Math.max(oldScale * zoomFactor, 0.25), 5);
+
+    // If scale hasn't changed (hit limits), don't update offset
+    if (newScale === oldScale) return;
 
     // Calculate world coordinates of the mouse before zoom
     const worldX = mouseX / oldScale - offset.x;
