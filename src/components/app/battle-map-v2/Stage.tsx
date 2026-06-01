@@ -118,19 +118,16 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    // Only handle primary button for most things, but allow touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     
     const target = e.target as HTMLElement;
     const coords = screenToWorld(e.clientX, e.clientY);
 
-    // If more than one pointer, start pinch Dist calculation
-    if (activePointers.current.size >= 2) {
-      setIsPanning(false);
-      setDraggingToken(null);
-      
-      const pointers = Array.from(activePointers.current.values());
-      const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
-      lastPinchDist.current = dist;
+    // Prevent panning if we're touching UI element
+    if (target.closest('[data-map-ui="true"]')) {
       return;
     }
 
@@ -142,6 +139,9 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       const canMoveToken = isDM || token?.character_id === characterId;
 
       if (token && canMoveToken) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         setDraggingToken({
           id: token.id,
           grabOffsetX: coords.x - token.x,
@@ -149,15 +149,23 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
           currentX: token.x,
           currentY: token.y
         });
+        
         target.setPointerCapture(e.pointerId);
         return;
       }
     }
-    
-    // Prevent panning if we're touching UI element
-    if (target.closest('[data-map-ui="true"]')) {
+
+    // Multi-touch / Pinch zoom
+    if (activePointers.current.size >= 2) {
+      setIsPanning(false);
+      setDraggingToken(null);
+      
+      const pointers = Array.from(activePointers.current.values());
+      const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+      lastPinchDist.current = dist;
       return;
     }
+
 
     if (activeTool === 'measure') {
       setRulerStart(coords);
@@ -191,6 +199,9 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     }
 
     if (draggingToken) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const newX = coords.x - draggingToken.grabOffsetX;
       const newY = coords.y - draggingToken.grabOffsetY;
       
@@ -216,6 +227,9 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     }
 
     if (draggingToken) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       let finalX = draggingToken.currentX;
       let finalY = draggingToken.currentY;
 
@@ -227,12 +241,19 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         const token = tokens.find((t: MapToken) => t.id === draggingToken.id);
         const size = token?.size || gridSize;
 
+        // Correct centering calculation:
+        // 1. Calculate the center of the token
         const centerX = finalX + size / 2;
         const centerY = finalY + size / 2;
 
-        const snappedCenterX = Math.floor((centerX - gx) / gridSize) * gridSize + gx + gridSize / 2;
-        const snappedCenterY = Math.floor((centerY - gy) / gridSize) * gridSize + gy + gridSize / 2;
+        // 2. Find the center of the closest grid cell
+        const cellX = Math.round((centerX - gx - gridSize / 2) / gridSize);
+        const cellY = Math.round((centerY - gy - gridSize / 2) / gridSize);
+        
+        const snappedCenterX = cellX * gridSize + gx + gridSize / 2;
+        const snappedCenterY = cellY * gridSize + gy + gridSize / 2;
 
+        // 3. Offset back to top-left
         finalX = snappedCenterX - size / 2;
         finalY = snappedCenterY - size / 2;
       }
