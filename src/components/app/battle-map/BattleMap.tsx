@@ -427,18 +427,26 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     playMapSound('click');
     
     try {
+      console.log("Activating scene:", sceneId);
       // 1. Desactivar todas las escenas de la campaña
-      await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
+      const { error: deactivateError } = await supabase.from('battle_map_scenes').update({ is_active: false }).eq('campaign_id', campaign.id);
+      if (deactivateError) {
+        console.error("Error deactivating scenes:", deactivateError);
+        throw deactivateError;
+      }
       
       // 2. Activar la seleccionada y obtener los datos frescos
-      const { data, error } = await supabase
+      const { data, error: activateError } = await supabase
         .from('battle_map_scenes')
         .update({ is_active: true })
         .eq('id', sceneId)
         .select()
         .single();
         
-      if (error) throw error;
+      if (activateError) {
+        console.error("Error activating scene:", activateError);
+        throw activateError;
+      }
       
       if (data) {
         const typedScene = {
@@ -461,7 +469,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       }
     } catch (err: any) {
       console.error("Error activating scene:", err);
-      toast.error("Error al activar la escena: " + err.message);
+      toast.error("Error al activar la escena: " + (err.message || "Error desconocido"));
     }
   }, [campaign?.id]);
 
@@ -919,9 +927,13 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
                 setIsScenesPanelOpen(false); // Cerrar panel al activar
               }, 400);
             }}
-            onOpenAddScene={() => {
-              setNewSceneName('');
-              setIsAddSceneModalOpen(true);
+            onOpenAddScene={(name) => {
+              if (typeof name === 'string' && name.trim()) {
+                handleSaveScene(name.trim());
+              } else {
+                setNewSceneName('');
+                setIsAddSceneModalOpen(true);
+              }
             }}
             onDeleteScene={handleDeleteScene}
             onDuplicateScene={(id) => {
