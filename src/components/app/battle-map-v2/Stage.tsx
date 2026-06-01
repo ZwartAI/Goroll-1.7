@@ -205,6 +205,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     >
       <div 
         className="absolute inset-0 origin-top-left stage-bg"
+        data-map-background="true"
         style={{ 
           transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`,
           width: '8000px',
