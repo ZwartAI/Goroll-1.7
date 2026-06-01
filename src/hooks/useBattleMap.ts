@@ -30,6 +30,9 @@ export interface MapToken {
   token_type: 'player' | 'enemy' | 'npc';
   name: string | null;
   image_url: string | null;
+  image_scale?: number;
+  image_offset_x?: number;
+  image_offset_y?: number;
   x: number;
   y: number;
   size: number;
@@ -148,7 +151,19 @@ export const useBattleMap = (campaignId: string) => {
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const newScene = payload.new as any;
             if (newScene.is_active && newScene.campaign_id === campaignId) {
-              setActiveScene(newScene as unknown as SceneConfig);
+              // If grid_size changed, locally scale tokens for smooth transition
+              setActiveScene(prev => {
+                if (prev && newScene.grid_size !== prev.grid_size) {
+                  const ratio = newScene.grid_size / prev.grid_size;
+                  setTokens(currentTokens => currentTokens.map(t => ({
+                    ...t,
+                    x: t.x * ratio,
+                    y: t.y * ratio,
+                    size: newScene.grid_size
+                  })));
+                }
+                return newScene as unknown as SceneConfig;
+              });
             }
           }
           fetchScenes();
@@ -273,10 +288,40 @@ export const useBattleMap = (campaignId: string) => {
       }
     }, 500)
   ).current;
+  
+  const debouncedUpdateTokens = useRef(
+    debounce(async (updatedTokens: MapToken[]) => {
+      for (const token of updatedTokens) {
+        const { error } = await supabase
+          .from('battle_map_tokens_simple')
+          .update({ x: token.x, y: token.y, size: token.size })
+          .eq('id', token.id);
+        if (error) console.error('Error updating token after grid resize:', error);
+      }
+    }, 500)
+  ).current;
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
     
+    // Check if grid_size changed to scale tokens
+    if (updates.grid_size && updates.grid_size !== activeScene.grid_size) {
+      const ratio = updates.grid_size / activeScene.grid_size;
+      const newGridSize = updates.grid_size;
+      
+      // Update all tokens positions and sizes locally for instant feedback
+      const updatedTokens = tokens.map(t => ({
+        ...t,
+        x: t.x * ratio,
+        y: t.y * ratio,
+        size: newGridSize
+      }));
+      setTokens(updatedTokens);
+
+      // Persist token changes with debounce
+      debouncedUpdateTokens(updatedTokens);
+    }
+
     // Optimistic local update
     const updatedScene = { ...activeScene, ...updates };
     setActiveScene(updatedScene);
@@ -379,7 +424,10 @@ export const useBattleMap = (campaignId: string) => {
       ...token, 
       campaign_id: campaignId, 
       scene_id: activeScene.id,
-      size: token.size || activeScene.grid_size // Default size
+      size: activeScene.grid_size, // Force size to match grid
+      image_scale: token.image_scale || 1,
+      image_offset_x: token.image_offset_x ?? 50,
+      image_offset_y: token.image_offset_y ?? 50
     };
 
     const { data, error } = await supabase

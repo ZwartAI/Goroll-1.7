@@ -113,6 +113,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         {/* Sidebar (Turns/Participants) */}
         <Sidebar 
           onOpenChar={onOpenChar}
+          battleMap={battleMap}
+          isDM={isDM}
         />
 
         {/* Toolbar (Right) */}
@@ -136,6 +138,9 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
                   character_id: character.id,
                   name: character.name,
                   image_url: character.image_url,
+                  image_scale: (character as any).image_scale || 1,
+                  image_offset_x: (character as any).image_offset_x ?? 50,
+                  image_offset_y: (character as any).image_offset_y ?? 50,
                   token_type: 'player',
                   x: 100,
                   y: 100

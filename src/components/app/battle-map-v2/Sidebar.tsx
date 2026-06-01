@@ -2,13 +2,17 @@ import React from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { UserPlus, UserMinus } from 'lucide-react';
 
 interface Props {
   onOpenChar: (id: string) => void;
+  battleMap: any;
+  isDM: boolean;
 }
 
-export function Sidebar({ onOpenChar }: Props) {
+export function Sidebar({ onOpenChar, battleMap, isDM }: Props) {
   const { combat, characters } = useGameData();
+  const { tokens, addToken, removeToken, activeScene } = battleMap;
   
   // Use combat participants if active, otherwise just online characters
   const participants = combat.encounter?.status === 'active' 
@@ -24,7 +28,9 @@ export function Sidebar({ onOpenChar }: Props) {
           color: p.color,
           image_url: p.image_url,
           is_turn: combat.encounter?.current_turn_index === idx,
-          hp_percent: (currentHp / maxHp) * 100
+          hp_percent: (currentHp / maxHp) * 100,
+          type: p.participant_type,
+          original: p
         };
       })
     : characters.filter(c => c.role !== 'dm').map(c => ({
@@ -34,8 +40,39 @@ export function Sidebar({ onOpenChar }: Props) {
         color: c.color,
         image_url: c.image_url,
         is_turn: false,
-        hp_percent: (c.current_hp / (c.base_hp || 1)) * 100
+        hp_percent: (c.current_hp / (c.base_hp || 1)) * 100,
+        type: 'player',
+        original: c
       }));
+
+  const handleToggleToken = (p: any) => {
+    if (!activeScene) return;
+    
+    // Check if token already exists for this participant/character
+    const existingToken = tokens.find((t: any) => 
+      (p.characterId && t.character_id === p.characterId) || 
+      (!p.characterId && t.name === p.name)
+    );
+
+    if (existingToken) {
+      removeToken(existingToken.id);
+    } else {
+      const isEnemy = p.type === 'enemy';
+      const original = p.original;
+      
+      addToken({
+        character_id: p.characterId || null,
+        name: p.name,
+        image_url: p.image_url,
+        token_type: isEnemy ? 'enemy' : 'player',
+        image_scale: isEnemy ? (original.enemy_image_scale || 1) : (original.image_scale || 1),
+        image_offset_x: isEnemy ? (original.enemy_image_offset_x ?? 50) : (original.image_offset_x ?? 50),
+        image_offset_y: isEnemy ? (original.enemy_image_offset_y ?? 50) : (original.image_offset_y ?? 50),
+        x: 100,
+        y: 100
+      });
+    }
+  };
 
   return (
     <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
@@ -77,6 +114,27 @@ export function Sidebar({ onOpenChar }: Props) {
               />
             </div>
           </div>
+
+          {/* DM Action to toggle token */}
+          {isDM && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleToken(p);
+              }}
+              className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100",
+                tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
+                  ? "bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white"
+                  : "bg-green-500/20 text-green-500 hover:bg-green-500 hover:text-white"
+              )}
+            >
+              {tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
+                ? <UserMinus className="w-3.5 h-3.5" />
+                : <UserPlus className="w-3.5 h-3.5" />
+              }
+            </button>
+          )}
         </motion.div>
       ))}
     </div>

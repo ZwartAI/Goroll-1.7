@@ -94,8 +94,8 @@ export function Token({
       const gy = gridOffsetY || 0;
       
       // Calculate the center of the token
-      const centerX = finalX + token.size / 2;
-      const centerY = finalY + token.size / 2;
+      const centerX = finalX + gridSize / 2;
+      const centerY = finalY + gridSize / 2;
 
       // Find the center of the closest grid cell
       const cellX = Math.round((centerX - gx - gridSize / 2) / gridSize);
@@ -105,8 +105,8 @@ export function Token({
       const snappedCenterY = cellY * gridSize + gy + gridSize / 2;
 
       // Offset back to top-left
-      finalX = snappedCenterX - token.size / 2;
-      finalY = snappedCenterY - token.size / 2;
+      finalX = snappedCenterX - gridSize / 2;
+      finalY = snappedCenterY - gridSize / 2;
     }
 
     setLocalDragging(false);
@@ -135,8 +135,8 @@ export function Token({
         (localDragging || isDraggingProp) && "cursor-grabbing z-50"
       )}
       style={{ 
-        width: token.size,
-        height: token.size,
+        width: gridSize,
+        height: gridSize,
         left: 0,
         top: 0,
         transform: `translate3d(${visualPos.x}px, ${visualPos.y}px, 0)`,
@@ -156,6 +156,10 @@ export function Token({
             alt={token.name || 'Token'} 
             draggable="false"
             className="w-full h-full object-cover select-none pointer-events-none"
+            style={{ 
+              transform: `translate(${(token.image_offset_x ?? 50) - 50}%, ${(token.image_offset_y ?? 50) - 50}%) scale(${token.image_scale || 1})`,
+              transformOrigin: 'center center'
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-xl select-none">
