@@ -24,120 +24,21 @@ export function Token({
   scale, gridOffsetX, gridOffsetY,
   onMove, onRemove, onUpdateSize 
 }: Props) {
-  const controls = useAnimation();
-  const [isDragging, setIsDragging] = useState(false);
-  const [isSlowMove, setIsSlowMove] = useState(false);
-  const pressTimer = useRef<NodeJS.Timeout | null>(null);
-  const startTime = useRef<number>(0);
-
-  // Debounced update for real-time movement sync
-  const debouncedMove = useRef(
-    debounce((x: number, y: number) => {
-      onMove(x, y);
-    }, 50)
-  ).current;
-
-  const handleDragStart = () => {
-    setIsDragging(true);
-    startTime.current = Date.now();
-    
-    // Timer for slow move / long press detection (to bypass snap if needed)
-    pressTimer.current = setTimeout(() => {
-      setIsSlowMove(true);
-    }, 500);
-  };
-
-  const handleDrag = (_: any, info: any) => {
-    const safeScale = scale || 1;
-    const newX = token.x + info.offset.x / safeScale;
-    const newY = token.y + info.offset.y / safeScale;
-    
-    // For real-time sync during drag, we update the DB (debounced)
-    // Note: This might cause some jitter if the network is slow, but it's what was requested
-    debouncedMove(newX, newY);
-  };
-
-  const handleDragEnd = (_: any, info: any) => {
-    setIsDragging(false);
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-    
-    const dragDuration = Date.now() - startTime.current;
-    
-    const safeScale = scale || 1;
-    let newX = token.x + info.offset.x / safeScale;
-    let newY = token.y + info.offset.y / safeScale;
-
-    // Snapping logic: Center the token on the grid cell center
-    const shouldSnap = snapToGrid && (!isSlowMove || dragDuration < 1000);
-
-    if (shouldSnap) {
-      const gx = gridOffsetX || 0;
-      const gy = gridOffsetY || 0;
-      
-      // Calculate where the center of the token is currently
-      const currentCenterX = newX + (token.size / 2);
-      const currentCenterY = newY + (token.size / 2);
-
-      // Find the nearest grid cell center
-      // Grid cells are at: gx + i*gridSize + gridSize/2
-      const snappedCenterX = Math.round((currentCenterX - gx - gridSize/2) / gridSize) * gridSize + gx + gridSize/2;
-      const snappedCenterY = Math.round((currentCenterY - gy - gridSize/2) / gridSize) * gridSize + gy + gridSize/2;
-
-      // New top-left position is snapped center minus half token size
-      newX = snappedCenterX - (token.size / 2);
-      newY = snappedCenterY - (token.size / 2);
-    }
-
-    setIsSlowMove(false);
-    
-    // Animate to final position
-    controls.start({
-      x: newX,
-      y: newY,
-      transition: { type: 'spring', stiffness: 400, damping: 35 }
-    });
-
-    onMove(newX, newY);
-  };
-
-  // Sync animation with token position from props (real-time updates from other users)
-  useEffect(() => {
-    if (!isDragging) {
-      controls.start({
-        x: token.x,
-        y: token.y,
-        transition: { type: 'spring', stiffness: 400, damping: 35 }
-      });
-    }
-  }, [token.x, token.y, isDragging, controls]);
-
   return (
-    <motion.div
-      drag={canMove}
-      dragMomentum={false}
-      dragElastic={0}
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        // Allow focus/click without panning
-      }}
-      onMouseDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
+    <div
+      data-token-id={token.id}
       data-token="true"
-      animate={controls}
-      initial={{ x: token.x, y: token.y }}
       className={cn(
         "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto",
-        !token.is_visible && "opacity-50 grayscale",
-        isDragging && "z-50 shadow-2xl scale-110"
+        !token.is_visible && "opacity-50 grayscale"
       )}
       style={{ 
         width: token.size,
         height: token.size,
         left: 0,
-        top: 0
+        top: 0,
+        transform: `translate3d(${token.x}px, ${token.y}px, 0)`,
+        transition: 'transform 0.1s linear'
       }}
     >
       <div className="relative w-full h-full rounded-full border-2 border-[var(--gold)] bg-black/60 overflow-hidden shadow-xl group-hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all">
@@ -159,11 +60,6 @@ export function Token({
             {token.name}
           </div>
         )}
-
-        {/* Slow move indicator */}
-        {isSlowMove && isDragging && (
-          <div className="absolute inset-0 bg-[var(--gold)]/20 animate-pulse pointer-events-none" />
-        )}
       </div>
 
       {/* Control Buttons (Only trash as requested) */}
@@ -179,6 +75,6 @@ export function Token({
           </button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

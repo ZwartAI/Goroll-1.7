@@ -19,12 +19,32 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
-  // Initialize scale and offset to center the view
+  // Initialize scale and offset
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
+
+  // Token dragging state
+  const [draggingToken, setDraggingToken] = useState<{
+    id: string;
+    grabOffsetX: number;
+    grabOffsetY: number;
+    currentX: number;
+    currentY: number;
+  } | null>(null);
+
+  // Helper function to convert screen coordinates to world coordinates
+  const screenToWorld = (clientX: number, clientY: number) => {
+    if (!stageRef.current) return { x: 0, y: 0 };
+    const rect = stageRef.current.getBoundingClientRect();
+    
+    return {
+      x: (clientX - rect.left) / scale - offset.x,
+      y: (clientY - rect.top) / scale - offset.y
+    };
+  };
 
   // Center the view ONLY on initial load or scene change
   useEffect(() => {
@@ -32,51 +52,48 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
       if (!stageRef.current) return;
       const rect = stageRef.current.getBoundingClientRect();
       
-      // Default center: world origin (0,0) in middle of screen
-      let targetWorldX = 0;
-      let targetWorldY = 0;
-
-      // If background exists and is loaded, we can center on it better
-      if (activeScene?.background_url && bgMediaRef.current) {
-        // We'll keep it simple for now and center at world 0,0
-        // which is where the image center is positioned by CSS
-        targetWorldX = 0; 
-        targetWorldY = 0;
-      }
-
       setOffset({ 
-        x: (rect.width / 2) / scale - targetWorldX, 
-        y: (rect.height / 2) / scale - targetWorldY
+        x: (rect.width / 2) / scale, 
+        y: (rect.height / 2) / scale
       });
     };
 
     centerView();
-  }, [activeScene?.id]); // REMOVED scale from dependencies to prevent reset on zoom
+  }, [activeScene?.id]);
   
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
 
-  const getRelativeCoords = (e: React.PointerEvent | React.WheelEvent) => {
-    if (!stageRef.current) return { x: 0, y: 0 };
-    const rect = stageRef.current.getBoundingClientRect();
-    
-    // Calculate local coordinates inside the scaled/panned container
-    return {
-      x: (e.clientX - rect.left) / scale - offset.x,
-      y: (e.clientY - rect.top) / scale - offset.y
-    };
-  };
-
   const handlePointerDown = (e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
+    const coords = screenToWorld(e.clientX, e.clientY);
+
+    // Check if we're clicking a token
+    const tokenElement = target.closest('[data-token-id]');
+    if (tokenElement) {
+      const tokenId = tokenElement.getAttribute('data-token-id')!;
+      const token = tokens.find((t: MapToken) => t.id === tokenId);
+      const canMove = isDM || token?.character_id === characterId;
+
+      if (token && canMove) {
+        setDraggingToken({
+          id: token.id,
+          grabOffsetX: coords.x - token.x,
+          grabOffsetY: coords.y - token.y,
+          currentX: token.x,
+          currentY: token.y
+        });
+        target.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
     
-    // Prevent panning if we're touching a token or UI element
-    if (target.closest('[data-token="true"]') || target.closest('[data-map-ui="true"]')) {
+    // Prevent panning if we're touching UI element
+    if (target.closest('[data-map-ui="true"]')) {
       return;
     }
 
-    const coords = getRelativeCoords(e);
     if (activeTool === 'measure') {
       setRulerStart(coords);
       setRulerEnd(coords);
@@ -91,8 +108,20 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    const coords = screenToWorld(e.clientX, e.clientY);
+
+    if (draggingToken) {
+      const newX = coords.x - draggingToken.grabOffsetX;
+      const newY = coords.y - draggingToken.grabOffsetY;
+      
+      setDraggingToken(prev => prev ? { ...prev, currentX: newX, currentY: newY } : null);
+      // Optimistic update for others (throttled/debounced if needed, but hook handles local state)
+      updateTokenPosition(draggingToken.id, newX, newY, false);
+      return;
+    }
+
     if (activeTool === 'measure' && rulerStart) {
-      setRulerEnd(getRelativeCoords(e));
+      setRulerEnd(coords);
     } else if (isPanning) {
       const dx = (e.clientX - lastPanPos.current.x) / scale;
       const dy = (e.clientY - lastPanPos.current.y) / scale;
@@ -102,6 +131,33 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (draggingToken) {
+      let finalX = draggingToken.currentX;
+      let finalY = draggingToken.currentY;
+
+      if (activeScene.snap_to_grid) {
+        const gx = activeScene.grid_offset_x || 0;
+        const gy = activeScene.grid_offset_y || 0;
+        const gridSize = activeScene.grid_size;
+        
+        const token = tokens.find((t: MapToken) => t.id === draggingToken.id);
+        const size = token?.size || gridSize;
+
+        // Snap center to center of cell
+        const centerX = finalX + size / 2;
+        const centerY = finalY + size / 2;
+
+        const snappedCenterX = Math.floor((centerX - gx) / gridSize) * gridSize + gx + gridSize / 2;
+        const snappedCenterY = Math.floor((centerY - gy) / gridSize) * gridSize + gy + gridSize / 2;
+
+        finalX = snappedCenterX - size / 2;
+        finalY = snappedCenterY - size / 2;
+      }
+
+      updateTokenPosition(draggingToken.id, finalX, finalY, true);
+      setDraggingToken(null);
+    }
+
     if (activeTool === 'measure') {
       setTimeout(() => {
         setRulerStart(null);
@@ -112,19 +168,12 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     if (e.target instanceof Element) {
       try {
         e.target.releasePointerCapture(e.pointerId);
-      } catch (err) {
-        // Ignore capture errors
-      }
+      } catch (err) {}
     }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    // Check if we are over the stage background or a non-interactive element
-    // to allow scrolling sidebars/logs if the mouse is over them
-    if (!(e.target as HTMLElement).closest('.stage-bg')) {
-      // If it's not the stage, let the default scroll happen (e.g. for sidebar/logs)
-      return;
-    }
+    if (!(e.target as HTMLElement).closest('.stage-bg')) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -136,11 +185,9 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
     const mouseY = e.clientY - rect.top;
 
     const oldScale = scale;
-    // zoomFactor logic - smaller increments for smoother zoom
     const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
     const newScale = Math.min(Math.max(oldScale * zoomFactor, 0.25), 5);
 
-    // If scale hasn't changed (hit limits), don't update offset
     if (newScale === oldScale) return;
 
     // Calculate world coordinates of the mouse before zoom
@@ -207,7 +254,7 @@ export function Stage({ battleMap, isDM, activeTool, characterId }: Props) {
         className="absolute inset-0 origin-top-left stage-bg"
         data-map-background="true"
         style={{ 
-          transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`,
+          transform: `translate(${offset.x * scale}px, ${offset.y * scale}px) scale(${scale})`,
           width: '8000px',
           height: '8000px'
         }}
