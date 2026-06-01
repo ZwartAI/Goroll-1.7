@@ -72,7 +72,7 @@ export const BattleMapLog: React.FC<Props> = ({
           </button>
         </div>
 
-        <div className={`flex-1 overflow-y-auto px-4 py-2 custom-scrollbar ${viewMode === 'compact' ? 'mask-bottom-fade' : ''}`}>
+        <div className={`flex-1 overflow-y-auto px-4 py-2 custom-scrollbar select-text ${viewMode === 'compact' ? 'mask-bottom-fade' : ''}`}>
           <LogList 
             rows={logs} 
             initial={viewMode === 'full' ? 50 : 10} 
