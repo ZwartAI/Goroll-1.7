@@ -6,9 +6,10 @@ interface Props {
   onBack: () => void;
   isDM: boolean;
   campaignName: string;
+  onMenuToggle?: () => void;
 }
 
-export function Header({ onBack, isDM, campaignName }: Props) {
+export function Header({ onBack, isDM, campaignName, onMenuToggle }: Props) {
   const { t } = useT();
 
   return (
