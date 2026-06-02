@@ -1,5 +1,5 @@
-import React, { useMemo, useRef } from 'react';
-import { Group, Circle, Image } from 'react-konva';
+import React, { useMemo, useRef, useState } from 'react';
+import { Group, Circle, Image, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import useImage from 'use-image';
 import type { CombatParticipant } from '@/lib/combat';
@@ -26,13 +26,12 @@ export const MapToken: React.FC<Props> = ({
   draggable, onDragMove, onDragEnd
 }) => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
   
   const customImg = useMemo(() => {
     if (participant.participant_type === 'enemy') {
       return getEnemyCustomImage(participant);
     }
-    // Para jugadores, usamos los campos de offset y escala del personaje
-    // Estos campos suelen venir en el objeto participant si es un jugador
     return {
       offsetX: (participant as any).image_offset_x ?? 50,
       offsetY: (participant as any).image_offset_y ?? 50,
@@ -57,6 +56,11 @@ export const MapToken: React.FC<Props> = ({
   
   const isMyTurn = false; 
 
+  // Tooltip dimensions and styling
+  const tooltipWidth = 140;
+  const tooltipHeight = 40;
+  const tooltipPadding = 8;
+
   return (
     <Group 
       x={x} 
@@ -67,6 +71,8 @@ export const MapToken: React.FC<Props> = ({
       onDragMove={onDragMove}
       onClick={onSelect}
       onTap={onSelect}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onMouseDown={(e) => {
         longPressTimer.current = setTimeout(() => {
           const stage = e.target.getStage();
@@ -180,6 +186,58 @@ export const MapToken: React.FC<Props> = ({
            <Circle radius={8} fill="var(--gold)" shadowBlur={8} shadowColor="black" />
            <Circle radius={2} fill="black" x={-2} y={0} />
            <Circle radius={2} fill="black" x={2} y={0} />
+        </Group>
+      )}
+
+      {/* Pop-up de información (Vida y Nombre) */}
+      {isHovered && (
+        <Group y={-radius - 50} x={-tooltipWidth / 2}>
+          {/* Fondo del pop-up */}
+          <Rect
+            width={tooltipWidth}
+            height={tooltipHeight}
+            fill="#0a0a0c"
+            opacity={0.9}
+            cornerRadius={8}
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth={1}
+            shadowBlur={10}
+            shadowColor="black"
+            shadowOpacity={0.5}
+          />
+          
+          {/* Nombre */}
+          <Text
+            text={participant.display_name.toUpperCase()}
+            fontSize={10}
+            fontFamily="Display"
+            fill="white"
+            x={tooltipPadding}
+            y={tooltipPadding}
+            width={tooltipWidth - tooltipPadding * 2}
+            align="center"
+            wrap="none"
+            ellipsis={true}
+            listening={false}
+          />
+
+          {/* Barra de Vida */}
+          <Group y={tooltipHeight - 12} x={tooltipPadding}>
+            {/* Fondo barra */}
+            <Rect
+              width={tooltipWidth - tooltipPadding * 2}
+              height={4}
+              fill="rgba(255,255,255,0.1)"
+              cornerRadius={2}
+            />
+            {/* Vida actual */}
+            <Rect
+              width={(tooltipWidth - tooltipPadding * 2) * 1.0} // Asumiendo 100% por ahora
+              height={4}
+              fill="#22c55e"
+              cornerRadius={2}
+            />
+          </Group>
         </Group>
       )}
     </Group>
