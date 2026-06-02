@@ -72,8 +72,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [isTokenPickerOpen, setIsTokenPickerOpen] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map)
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
+  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
   const [showToolbar, setShowToolbar] = useState(true);
+
 
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
