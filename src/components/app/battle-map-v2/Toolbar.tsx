@@ -21,6 +21,7 @@ interface Props {
   onOpenDice: () => void;
   hasMyToken: boolean;
   hasBackground: boolean;
+  drawings?: any[];
 }
 
 export function Toolbar({ 
@@ -38,13 +39,36 @@ export function Toolbar({
   hasBackground,
   characterId,
   authorName,
-  authorColor
+  authorColor,
+  drawings = []
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
+
+  // Extract unique authors for DM management
+  const authors = React.useMemo(() => {
+    const authorMap = new Map<string, { id: string, name: string, color: string, count: number }>();
+    
+    drawings.forEach(d => {
+      const id = d.author_character_id || 'unknown';
+      const existing = authorMap.get(id);
+      if (existing) {
+        existing.count++;
+      } else {
+        authorMap.set(id, {
+          id,
+          name: d.author_name || (id === 'unknown' ? 'Autor Desconocido' : 'Jugador'),
+          color: d.author_color || d.color || '#FFD700',
+          count: 1
+        });
+      }
+    });
+    
+    return Array.from(authorMap.values());
+  }, [drawings]);
 
   // Get unique authors from drawings to show in DM clear menu
   // Since Toolbar doesn't have drawings, we might need to pass them or the list of authors.
