@@ -134,6 +134,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
           />
         )}
       </div>
+      )}
 
       {/* Waiting Entities Section */}
       {waitingEnemies.length > 0 && (
