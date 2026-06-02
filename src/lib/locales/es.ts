@@ -1551,6 +1551,7 @@ export const es = {
   },
   npcs: {
     title: "NPCs",
+    addFromNpcs: "Añadir desde NPCs",
     label: "NPC",
     dmOnly: "Solo el DM puede gestionar NPCs.",
     search: "Buscar NPC...",
