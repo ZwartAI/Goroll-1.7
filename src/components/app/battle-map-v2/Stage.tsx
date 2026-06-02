@@ -320,14 +320,17 @@ export const Stage = forwardRef<StageHandle, Props>(({
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    const wasPinching = activePointers.current.size >= 2;
     activePointers.current.delete(e.pointerId);
+    
     if (activePointers.current.size < 2) {
       lastPinchDist.current = null;
     }
 
     // Sync ref back to state when interaction finishes
-    if (isPanning) {
+    if (isPanning || (wasPinching && activePointers.current.size < 2)) {
       setOffset(offsetRef.current);
+      setScale(scaleRef.current);
     }
 
     if (activeTool === 'measure' && isMeasuring.current) {
