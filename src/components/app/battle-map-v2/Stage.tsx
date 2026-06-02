@@ -15,6 +15,7 @@ interface Props {
   characterId?: string;
   authorName?: string;
   authorColor?: string;
+  onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
 }
 
 export interface StageHandle {
@@ -22,7 +23,7 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId, authorName, authorColor }, ref) => {
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId, authorName, authorColor, onMeasure }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
@@ -166,6 +167,8 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
   const isMeasuring = useRef(false);
 
+  const rulerStartTokenId = useRef<string | null>(null);
+  
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only handle primary button for most things, but allow touch
     if (e.button !== 0 && e.pointerType === 'mouse') return;
@@ -199,6 +202,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     if (activeTool === 'measure') {
       isMeasuring.current = true;
       let startCoords = coords;
+      rulerStartTokenId.current = tokenId || null;
 
       // If we clicked a token, link to its center
       if (tokenId) {
@@ -280,6 +284,15 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
+      
+      const distance = calculateDistance();
+      if (distance > 0) {
+        const target = e.target as HTMLElement;
+        const endTokenElement = target.closest('[data-token-id]');
+        const endTokenId = endTokenElement?.getAttribute('data-token-id') || undefined;
+        onMeasure?.(distance, rulerStartTokenId.current || undefined, endTokenId);
+      }
+
       setTimeout(() => {
         // Only clear if another measurement hasn't started
         if (!isMeasuring.current) {
