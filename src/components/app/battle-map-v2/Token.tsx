@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { MapToken } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
-import { debounce } from 'lodash';
+import { throttle } from 'lodash';
 
 interface Props {
   token: MapToken;
@@ -23,7 +23,7 @@ interface Props {
   className?: string;
 }
 
-export function Token({ 
+export const Token = memo(function Token({ 
   token, isDM, canMove, gridSize, snapToGrid, 
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
   isDragging: isDraggingProp = false,
