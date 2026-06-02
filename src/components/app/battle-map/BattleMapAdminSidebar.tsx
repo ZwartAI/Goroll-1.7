@@ -35,7 +35,7 @@ export const BattleMapAdminSidebar: React.FC<Props> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="fixed inset-y-0 right-0 w-full sm:w-80 bg-[#0a0a0c]/98 border-l border-white/10 flex flex-col z-[150] backdrop-blur-xl shadow-2xl transition-all animate-in slide-in-from-right duration-300">
+    <aside className="fixed inset-y-0 right-0 w-[85%] sm:w-80 bg-[#0a0a0c]/98 border-l border-white/10 flex flex-col z-[150] backdrop-blur-xl shadow-2xl transition-all animate-in slide-in-from-right duration-300">
       <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
         <div className="flex flex-col">
           <h2 className="font-display text-[10px] uppercase tracking-[0.3em] text-[var(--gold)]">
