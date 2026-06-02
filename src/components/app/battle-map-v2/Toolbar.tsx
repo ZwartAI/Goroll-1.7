@@ -77,178 +77,181 @@ export function Toolbar({
   // Let's modify Props to include drawings or a derived author list.
 
   return (
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
-      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
-        <ToolButton 
-          active={activeTool === 'move'} 
-          onClick={() => {
-            setActiveTool('move');
-            setPencilMenuOpen(false);
-          }}
-          icon={<MousePointer2 className="w-5 h-5" />}
-          label="Mover"
-        />
-        <ToolButton 
-          active={activeTool === 'measure'} 
-          onClick={() => {
-            setActiveTool('measure');
-            setPencilMenuOpen(false);
-          }}
-          icon={<Ruler className="w-5 h-5" />}
-          label="Regla"
-        />
-        
-        <div className="relative group/pencil">
+    <>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
+        <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           <ToolButton 
-            active={isPencilActive} 
+            active={activeTool === 'move'} 
             onClick={() => {
-              if (activeTool !== 'pencil' && activeTool !== 'eraser') {
-                setActiveTool('pencil');
-              }
-              setPencilMenuOpen(!pencilMenuOpen);
+              setActiveTool('move');
+              setPencilMenuOpen(false);
             }}
-            icon={<Pencil className="w-5 h-5" />}
-            label="Dibujo"
+            icon={<MousePointer2 className="w-5 h-5" />}
+            label="Mover"
+          />
+          <ToolButton 
+            active={activeTool === 'measure'} 
+            onClick={() => {
+              setActiveTool('measure');
+              setPencilMenuOpen(false);
+            }}
+            icon={<Ruler className="w-5 h-5" />}
+            label="Regla"
           />
           
-          <AnimatePresence>
-            {pencilMenuOpen && (
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
-              >
-                <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
-                  <ToolButton 
-                    active={activeTool === 'pencil'} 
-                    onClick={() => setActiveTool('pencil')}
-                    icon={<Pencil className="w-4 h-4" />}
-                    label="Lápiz"
-                    small
-                  />
-                  <ToolButton 
-                    active={activeTool === 'eraser'} 
-                    onClick={() => setActiveTool('eraser')}
-                    icon={<Eraser className="w-4 h-4" />}
-                    label="Goma / Gestionar"
-                    small
-                  />
-                </div>
+          <div className="relative group/pencil">
+            <ToolButton 
+              active={isPencilActive} 
+              onClick={() => {
+                if (activeTool !== 'pencil' && activeTool !== 'eraser') {
+                  setActiveTool('pencil');
+                }
+                setPencilMenuOpen(!pencilMenuOpen);
+              }}
+              icon={<Pencil className="w-5 h-5" />}
+              label="Dibujo"
+            />
+            
+            <AnimatePresence>
+              {pencilMenuOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
+                >
+                  <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
+                    <ToolButton 
+                      active={activeTool === 'pencil'} 
+                      onClick={() => setActiveTool('pencil')}
+                      icon={<Pencil className="w-4 h-4" />}
+                      label="Lápiz"
+                      small
+                    />
+                    <ToolButton 
+                      active={activeTool === 'eraser'} 
+                      onClick={() => setActiveTool('eraser')}
+                      icon={<Eraser className="w-4 h-4" />}
+                      label="Goma / Gestionar"
+                      small
+                    />
+                  </div>
 
-                <div className="flex flex-col gap-1">
-                  <button 
-                    onClick={onUndoDrawing}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 opacity-60" />
-                    <span className="text-[9px] uppercase tracking-tighter">Deshacer</span>
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button 
+                      onClick={onUndoDrawing}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 opacity-60" />
+                      <span className="text-[9px] uppercase tracking-tighter">Deshacer</span>
+                    </button>
 
-                  <button 
-                    onClick={() => setShowClearModal('mine')}
-                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span className="text-[9px] uppercase tracking-tighter">Borrar mis dibujos</span>
-                  </button>
+                    <button 
+                      onClick={() => setShowClearModal('mine')}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span className="text-[9px] uppercase tracking-tighter">Borrar mis dibujos</span>
+                    </button>
 
-                  {isDM && (
-                    <>
-                      <div className="h-px bg-[var(--gold)]/10 my-1" />
-                      {authors.filter(a => a.id !== characterId).map(author => (
+                    {isDM && (
+                      <>
+                        <div className="h-px bg-[var(--gold)]/10 my-1" />
+                        {authors.filter(a => a.id !== characterId).map(author => (
+                          <button 
+                            key={author.id}
+                            onClick={() => {
+                              setSelectedAuthorId(author.id);
+                              setShowClearModal('player');
+                            }}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors text-left group"
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: author.color }} />
+                            <span className="text-[9px] uppercase tracking-tighter flex-1 truncate">{author.name}</span>
+                            <span className="text-[8px] opacity-40 group-hover:opacity-100">{author.count}</span>
+                          </button>
+                        ))}
+                        
                         <button 
-                          key={author.id}
-                          onClick={() => {
-                            setSelectedAuthorId(author.id);
-                            setShowClearModal('player');
-                          }}
-                          className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors text-left group"
+                          onClick={() => setShowClearModal('all')}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-500 transition-colors text-left mt-1 border border-red-500/10"
                         >
-                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: author.color }} />
-                          <span className="text-[9px] uppercase tracking-tighter flex-1 truncate">{author.name}</span>
-                          <span className="text-[8px] opacity-40 group-hover:opacity-100">{author.count}</span>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Todo</span>
                         </button>
-                      ))}
-                      
-                      <button 
-                        onClick={() => setShowClearModal('all')}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-500 transition-colors text-left mt-1 border border-red-500/10"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Todo</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <ToolButton 
+            active={false} 
+            onClick={onResetView}
+            icon={<Crosshair className="w-5 h-5" />}
+            label="Centrar"
+            className="border-white/10"
+          />
+
+          <ToolButton 
+            active={false} 
+            onClick={onOpenDice}
+            icon={<Box className="w-5 h-5" />}
+            label="Dados"
+            className="border-[var(--gold)]/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
+          />
         </div>
 
-        <ToolButton 
-          active={false} 
-          onClick={onResetView}
-          icon={<Crosshair className="w-5 h-5" />}
-          label="Centrar"
-          className="border-white/10"
-        />
-
-        <ToolButton 
-          active={false} 
-          onClick={onOpenDice}
-          icon={<Box className="w-5 h-5" />}
-          label="Dados"
-          className="border-[var(--gold)]/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
-        />
-      </div>
-
-      <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
-        <ToolButton 
-          active={false}
-          onClick={() => {
-            if (hasMyToken) {
-              onInvokeToken();
-            } else {
-              // Create the template for placement
-              onInvokeToken({
-                character_id: null, // characterId will be filled by parent
-                name: '', // Will be filled by parent
-                token_type: 'player'
-              });
-            }
-          }}
-          icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
-          label={hasMyToken ? "Retirar" : "Invocar"}
-          className={hasMyToken ? "border-red-500/30" : "border-green-500/30"}
-        />
-      </div>
-
-      {isDM && (
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           <ToolButton 
             active={false}
-            onClick={onOpenScenes}
-            icon={<Layers className="w-5 h-5" />}
-            label="Escenas"
-          />
-          <ToolButton 
-            active={false}
-            onClick={onOpenSettings}
-            icon={<Settings className="w-5 h-5" />}
-            label="Config"
+            onClick={() => {
+              if (hasMyToken) {
+                onInvokeToken();
+              } else {
+                // Create the template for placement
+                onInvokeToken({
+                  character_id: null, // characterId will be filled by parent
+                  name: '', // Will be filled by parent
+                  token_type: 'player'
+                });
+              }
+            }}
+            icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
+            label={hasMyToken ? "Retirar" : "Invocar"}
+            className={hasMyToken ? "border-red-500/30" : "border-green-500/30"}
           />
         </div>
-      )}
-      {/* Confirmation Modals */}
+
+        {isDM && (
+          <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
+            <ToolButton 
+              active={false}
+              onClick={onOpenScenes}
+              icon={<Layers className="w-5 h-5" />}
+              label="Escenas"
+            />
+            <ToolButton 
+              active={false}
+              onClick={onOpenSettings}
+              icon={<Settings className="w-5 h-5" />}
+              label="Config"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Confirmation Modals - Moved outside the transformed container to fix mobile centering */}
       <AnimatePresence>
         {showClearModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-black/90 border border-[var(--gold)]/30 p-6 rounded-2xl max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] border-t-[var(--gold)]/50"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-black/95 border border-[var(--gold)]/30 p-6 rounded-2xl max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] border-t-[var(--gold)]/50 pointer-events-auto"
             >
               <h3 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest mb-4">
                 {showClearModal === 'mine' ? '¿Borrar tus dibujos?' : 
@@ -286,7 +289,9 @@ export function Toolbar({
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </>
+  );
+}
   );
 }
 
