@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { CloudOff, Trash2 } from 'lucide-react';
 import { SceneConfig, MapToken, Drawing, isVideoUrl, FogStroke } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
