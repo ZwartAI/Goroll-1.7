@@ -264,7 +264,7 @@ export function Toolbar({
               <ToolButton 
                 active={isFogActive} 
                 onClick={() => {
-                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase') {
+                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase' && activeTool !== 'fogBlock') {
                     setActiveTool('fogPaint');
                   }
                   setFogMenuOpen(!fogMenuOpen);
