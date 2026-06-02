@@ -14,6 +14,7 @@ interface Props {
 }
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, showParticipants = true }: Props) {
+  const [activeTab, setActiveTab] = useState<'participants' | 'fog'>('participants');
   const sidebarRef = useRef<HTMLDivElement>(null);
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
