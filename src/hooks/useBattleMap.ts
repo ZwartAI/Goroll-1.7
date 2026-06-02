@@ -414,6 +414,11 @@ export const useBattleMap = (campaignId: string) => {
     fetchFog(activeScene.id);
   };
 
+  const removeFogStroke = async (strokeId: string) => {
+    setFogStrokes(prev => prev.filter(f => f.id !== strokeId));
+    await supabase.from('battle_map_fog_simple').delete().eq('id', strokeId);
+  };
+
   const clearFog = async () => {
     if (!activeScene) return;
     await supabase.from('battle_map_fog_simple').delete().match({ scene_id: activeScene.id, campaign_id: campaignId });
