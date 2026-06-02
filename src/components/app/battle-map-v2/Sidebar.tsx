@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, UserMinus } from 'lucide-react';
 import { buildOrderedTurns } from '@/lib/combat';
 
@@ -14,7 +14,8 @@ interface Props {
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Props) {
   const { combat, characters } = useGameData();
-  const { tokens, addToken, removeToken, activeScene } = battleMap;
+  const { tokens, removeToken, activeScene } = battleMap;
+  const [expandedNameId, setExpandedNameId] = useState<string | null>(null);
   
   const blocks = useMemo(() => {
     if (combat.encounter?.status === 'active') {
@@ -107,7 +108,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
   const handleToggleToken = (p: any) => {
     if (!activeScene) return;
     
-    // Check if token already exists for this participant/character
     const existingToken = tokens.find((t: any) => 
       (p.characterId && t.character_id === p.characterId) || 
       (!p.characterId && t.name === p.name)
@@ -131,69 +131,147 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
     }
   };
 
-  return (
-    <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
-      {participants.map((p, idx) => (
-        <motion.div
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: idx * 0.05 }}
-          key={p.id}
-          className={cn(
-            "pointer-events-auto flex items-center gap-3 p-1.5 rounded-lg border backdrop-blur-md transition-all duration-300 cursor-pointer group",
-            p.is_turn 
-              ? "bg-[var(--gold)]/20 border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
-              : "bg-black/40 border-white/10 hover:border-white/30"
-          )}
-          onClick={() => p.characterId && onOpenChar(p.characterId)}
-        >
-          <div className="relative w-8 h-8 rounded-full border border-white/20 overflow-hidden shrink-0">
-            {p.image_url ? (
-              <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-secondary text-xs">🧙</div>
-            )}
-            {p.is_turn && (
-              <div className="absolute inset-0 border-2 border-[var(--gold)] animate-pulse rounded-full" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-display uppercase tracking-wider truncate" style={{ color: p.color || 'var(--gold)' }}>
-              {p.name}
-            </p>
-            <div className="h-1 w-full bg-black/40 rounded-full mt-1 overflow-hidden">
-              <div 
-                className={cn(
-                  "h-full transition-all duration-500",
-                  p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
-                )}
-                style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
-              />
-            </div>
-          </div>
+  const formatDisplayName = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length <= 1) return name;
+    return `${parts[0]}...`;
+  };
 
-          {/* DM Action to toggle token */}
-          {isDM && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleToken(p);
-              }}
-              className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100",
-                tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
-                  ? "bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white"
-                  : "bg-green-500/20 text-green-500 hover:bg-green-500 hover:text-white"
+  return (
+    <>
+      {/* Desktop View */}
+      <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
+        {participants.map((p, idx) => (
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: idx * 0.05 }}
+            key={p.id}
+            className={cn(
+              "pointer-events-auto flex items-center gap-3 p-1.5 rounded-lg border backdrop-blur-md transition-all duration-300 cursor-pointer group",
+              p.is_turn 
+                ? "bg-[var(--gold)]/20 border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
+                : "bg-black/40 border-white/10 hover:border-white/30"
+            )}
+            onClick={() => p.characterId && onOpenChar(p.characterId)}
+          >
+            <div className="relative w-8 h-8 rounded-full border border-white/20 overflow-hidden shrink-0">
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-secondary text-xs">🧙</div>
               )}
+              {p.is_turn && (
+                <div className="absolute inset-0 border-2 border-[var(--gold)] animate-pulse rounded-full" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-display uppercase tracking-wider truncate" style={{ color: p.color || 'var(--gold)' }}>
+                {p.name}
+              </p>
+              <div className="h-1 w-full bg-black/40 rounded-full mt-1 overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full transition-all duration-500",
+                    p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
+                  )}
+                  style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
+                />
+              </div>
+            </div>
+
+            {isDM && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleToken(p);
+                }}
+                className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100",
+                  tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
+                    ? "bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white"
+                    : "bg-green-500/20 text-green-500 hover:bg-green-500 hover:text-white"
+                )}
+              >
+                {tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
+                  ? <UserMinus className="w-3.5 h-3.5" />
+                  : <UserPlus className="w-3.5 h-3.5" />
+                }
+              </button>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Mobile/Compact View */}
+      <div className="absolute left-4 top-20 right-4 pointer-events-none z-30 flex flex-wrap gap-2 sm:hidden" data-map-ui="true">
+        {participants.map((p, idx) => {
+          const isExpanded = expandedNameId === p.id;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              key={`mobile-${p.id}`}
+              className={cn(
+                "pointer-events-auto relative flex items-center gap-1.5 px-2 py-1 rounded-full border backdrop-blur-lg transition-all duration-300 shadow-lg",
+                p.is_turn 
+                  ? "bg-[var(--gold)] text-black border-[var(--gold)] scale-110 z-10" 
+                  : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
+              )}
+              onClick={() => setExpandedNameId(isExpanded ? null : p.id)}
             >
-              {tokens.some((t: any) => (p.characterId && t.character_id === p.characterId) || (!p.characterId && t.name === p.name))
-                ? <UserMinus className="w-3.5 h-3.5" />
-                : <UserPlus className="w-3.5 h-3.5" />
-              }
-            </button>
-          )}
-        </motion.div>
-      ))}
-    </div>
+              <div className={cn(
+                "w-4 h-4 rounded-full border overflow-hidden shrink-0",
+                p.is_turn ? "border-black/20" : "border-[var(--gold)]/40"
+              )}>
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-secondary text-[8px]">🧙</div>
+                )}
+              </div>
+              
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-tight whitespace-nowrap",
+                p.is_turn ? "text-black" : ""
+              )} style={!p.is_turn ? { color: p.color || 'var(--gold)' } : {}}>
+                {isExpanded ? p.name : formatDisplayName(p.name)}
+              </span>
+
+              {/* Turn indicator dot */}
+              {p.is_turn && (
+                <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+              )}
+              
+              {/* Tooltip for full name if not expanded but is multiple words */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="absolute bottom-full left-0 mb-2 p-2 bg-black border border-[var(--gold)]/30 rounded-lg text-white text-[10px] whitespace-normal min-w-[120px] shadow-2xl z-50 pointer-events-none"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <p className="font-display text-[var(--gold)]">{p.name}</p>
+                      <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                          className={cn(
+                            "h-full",
+                            p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${p.hp_percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
+      </div>
+    </>
   );
 }
