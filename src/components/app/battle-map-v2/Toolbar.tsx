@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, Cloud, CloudOff } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fogPaint' | 'fogErase' | 'fogBlock';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   onResetView: () => void;
   onClearDrawings: (options?: { authorId?: string, all?: boolean }) => void;
   onUndoDrawing: () => void;
-  onClearFog: () => void;
+  
   characterId?: string;
   authorName?: string;
   authorColor?: string;
@@ -30,16 +30,6 @@ interface Props {
   drawings?: any[];
   brushSize: number;
   setBrushSize: (size: number) => void;
-  // Fog Phase 3
-  onCoverAll?: () => void;
-  onCoverImage?: () => void;
-  onCoverEdges?: () => void;
-  fogAnimationReduced?: boolean;
-  setFogAnimationReduced?: (v: boolean) => void;
-  showTokensUnderFog?: boolean;
-  setShowTokensUnderFog?: (v: boolean) => void;
-  revealAroundTokens?: boolean;
-  setRevealAroundTokens?: (v: boolean) => void;
 }
 
 export function Toolbar({ 
@@ -56,7 +46,7 @@ export function Toolbar({
   onResetView,
   onClearDrawings,
   onUndoDrawing,
-  onClearFog,
+  
   onOpenDice,
   hasMyToken,
   hasBackground,
@@ -66,24 +56,15 @@ export function Toolbar({
   drawings = [],
   brushSize,
   setBrushSize,
-  onCoverAll,
-  onCoverImage,
-  onCoverEdges,
-  fogAnimationReduced,
-  setFogAnimationReduced,
-  showTokensUnderFog,
-  setShowTokensUnderFog,
-  revealAroundTokens,
-  setRevealAroundTokens
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
-  const [fogMenuOpen, setFogMenuOpen] = useState(false);
+  
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase' || activeTool === 'fogBlock';
+  
 
   // Extract unique authors for DM management
   const authors = React.useMemo(() => {
