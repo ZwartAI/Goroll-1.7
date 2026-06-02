@@ -311,12 +311,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     setRemoteTokenPositions(scene.tokens_state || {});
   };
 
-  const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number) => {
+  const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number, metadata?: any) => {
     if (!campaign?.id) return;
     supabase.channel('battle-map-realtime:' + campaign.id).send({
       type: 'broadcast',
       event: 'token-move',
-      payload: { tokenId, x, y }
+      payload: { tokenId, x, y, ...metadata }
     });
   }, [campaign?.id]);
 
