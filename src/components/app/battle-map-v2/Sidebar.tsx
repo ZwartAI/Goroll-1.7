@@ -148,7 +148,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
             transition={{ delay: idx * 0.05 }}
             key={p.id}
             className={cn(
-              "pointer-events-auto flex items-center gap-3 p-1.5 rounded-lg border backdrop-blur-md transition-all duration-300 cursor-pointer group",
+              "pointer-events-auto flex items-center gap-3 p-1.5 rounded-lg border backdrop-blur-md transition-all duration-300 cursor-pointer group overflow-visible",
               p.is_turn 
                 ? "bg-[var(--gold)]/20 border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.2)]" 
                 : "bg-black/40 border-white/10 hover:border-white/30"
