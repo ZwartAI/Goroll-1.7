@@ -1269,9 +1269,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             }
 
             tokens.forEach((t, i) => {
-              // Offset slightly each token to avoid overlapping perfectly
-              const pos = { x: basePos.x + (i * 40), y: basePos.y + (i * 40) };
-              // We use a random suffix to allow multiple instances of the same enemy/npc
+              const pos = { 
+                x: basePos.x + (i * 20), 
+                y: basePos.y + (i * 20),
+                name: t.name,
+                icon: t.icon,
+                color: t.color,
+                type: t.type
+              };
               const instanceId = `${t.id}_${Math.random().toString(36).substring(2, 7)}`;
               nextState[instanceId] = pos;
               handleBroadcastMove(instanceId, pos.x, pos.y);
