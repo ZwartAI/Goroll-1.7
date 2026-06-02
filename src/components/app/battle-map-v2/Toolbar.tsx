@@ -117,33 +117,70 @@ export function Toolbar({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[44px]"
+                className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
               >
-                <ToolButton 
-                  active={activeTool === 'pencil'} 
-                  onClick={() => setActiveTool('pencil')}
-                  icon={<Pencil className="w-4 h-4" />}
-                  label="Lápiz"
-                  small
-                />
-                <ToolButton 
-                  active={activeTool === 'eraser'} 
-                  onClick={() => setActiveTool('eraser')}
-                  icon={<Eraser className="w-4 h-4" />}
-                  label="Goma"
-                  small
-                />
-                <ToolButton 
-                  active={false} 
-                  onClick={() => {
-                    onClearDrawings();
-                    setPencilMenuOpen(false);
-                  }}
-                  icon={<Trash2 className="w-4 h-4 text-red-400" />}
-                  label="Borrar Todo"
-                  small
-                  className="border-red-500/20"
-                />
+                <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
+                  <ToolButton 
+                    active={activeTool === 'pencil'} 
+                    onClick={() => setActiveTool('pencil')}
+                    icon={<Pencil className="w-4 h-4" />}
+                    label="Lápiz"
+                    small
+                  />
+                  <ToolButton 
+                    active={activeTool === 'eraser'} 
+                    onClick={() => setActiveTool('eraser')}
+                    icon={<Eraser className="w-4 h-4" />}
+                    label="Goma / Gestionar"
+                    small
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <button 
+                    onClick={onUndoDrawing}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 opacity-60" />
+                    <span className="text-[9px] uppercase tracking-tighter">Deshacer</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowClearModal('mine')}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="text-[9px] uppercase tracking-tighter">Borrar mis dibujos</span>
+                  </button>
+
+                  {isDM && (
+                    <>
+                      <div className="h-px bg-[var(--gold)]/10 my-1" />
+                      {authors.filter(a => a.id !== characterId).map(author => (
+                        <button 
+                          key={author.id}
+                          onClick={() => {
+                            setSelectedAuthorId(author.id);
+                            setShowClearModal('player');
+                          }}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors text-left group"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: author.color }} />
+                          <span className="text-[9px] uppercase tracking-tighter flex-1 truncate">{author.name}</span>
+                          <span className="text-[8px] opacity-40 group-hover:opacity-100">{author.count}</span>
+                        </button>
+                      ))}
+                      
+                      <button 
+                        onClick={() => setShowClearModal('all')}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-500 transition-colors text-left mt-1 border border-red-500/10"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Todo</span>
+                      </button>
+                    </>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

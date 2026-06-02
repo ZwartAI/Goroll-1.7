@@ -10,6 +10,8 @@ interface Props {
   activeTool: MapTool;
   gridSize: number;
   characterId?: string;
+  authorName?: string;
+  authorColor?: string;
   scale: number;
   offset: { x: number, y: number };
 }
