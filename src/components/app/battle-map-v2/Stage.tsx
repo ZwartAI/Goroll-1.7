@@ -17,6 +17,7 @@ interface Props {
 
 export interface StageHandle {
   centerView: () => void;
+  screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId }, ref) => {
@@ -104,7 +105,8 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   }, [tokens, characterId, activeScene]);
 
   useImperativeHandle(ref, () => ({
-    centerView
+    centerView,
+    screenToWorld
   }));
 
   // Persistence: Save view position
