@@ -189,19 +189,19 @@ export const MapToken: React.FC<Props> = ({
         </Group>
       )}
 
-      {/* Pop-up de información (Vida y Nombre) */}
+      {/* Pop-up de nombre (Fase 8: Sin barra de vida por petición del usuario) */}
       {isHovered && (
-        <Group y={-radius - 50} x={-tooltipWidth / 2} listening={false}>
+        <Group y={-radius - 25} x={-tooltipWidth / 2} listening={false}>
           {/* Fondo del pop-up */}
           <Rect
             width={tooltipWidth}
-            height={tooltipHeight + 10}
+            height={25}
             fill="#0a0a0c"
             opacity={0.95}
-            cornerRadius={8}
+            cornerRadius={6}
             stroke="rgba(255,255,255,0.2)"
             strokeWidth={1.5}
-            shadowBlur={15}
+            shadowBlur={10}
             shadowColor="black"
             shadowOpacity={0.6}
           />
@@ -214,30 +214,12 @@ export const MapToken: React.FC<Props> = ({
             fontStyle="bold"
             fill="white"
             x={tooltipPadding}
-            y={tooltipPadding}
+            y={7}
             width={tooltipWidth - tooltipPadding * 2}
             align="center"
             wrap="none"
             ellipsis={true}
           />
-
-          {/* Barra de Vida */}
-          <Group y={tooltipHeight - 12} x={tooltipPadding}>
-            {/* Fondo barra */}
-            <Rect
-              width={tooltipWidth - tooltipPadding * 2}
-              height={4}
-              fill="rgba(255,255,255,0.1)"
-              cornerRadius={2}
-            />
-            {/* Vida actual */}
-            <Rect
-              width={(tooltipWidth - tooltipPadding * 2) * 1.0} // Asumiendo 100% por ahora
-              height={4}
-              fill="#22c55e"
-              cornerRadius={2}
-            />
-          </Group>
         </Group>
       )}
     </Group>
