@@ -502,12 +502,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
       ref={stageRef}
     >
       <div 
+        ref={containerRef}
         className="absolute inset-0 origin-top-left stage-bg"
         data-map-background="true"
         style={{ 
-          transform: `translate(${offset.x * scale}px, ${offset.y * scale}px) scale(${scale})`,
+          transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
           width: '8000px',
-          height: '8000px'
+          height: '8000px',
+          willChange: 'transform'
         }}
       >
         {activeScene.background_url && (
