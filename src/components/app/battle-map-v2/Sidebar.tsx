@@ -150,6 +150,8 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
     return `${parts[0]}...`;
   };
 
+  if (!showParticipants) return null;
+
   return (
     <>
       {/* Desktop View */}
