@@ -354,6 +354,38 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
             onClose={() => setShowSettings(false)} 
           />
         )}
+        {showFogClearModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-black/90 border border-[var(--gold)]/40 p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4"
+            >
+              <h3 className="text-[var(--gold)] font-display text-lg mb-2">Eliminar Niebla</h3>
+              <p className="text-white/70 text-sm mb-6">
+                ¿Quieres eliminar toda la niebla de guerra de esta escena? Los jugadores podrán ver todo el mapa revelado.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button 
+                  onClick={() => setShowFogClearModal(false)}
+                  className="px-4 py-2 rounded-lg text-white/60 hover:text-white transition-colors text-sm uppercase tracking-wider"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={async () => {
+                    await battleMap.clearFog();
+                    setShowFogClearModal(false);
+                    toast.success("Niebla de guerra eliminada");
+                  }}
+                  className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors text-sm uppercase tracking-wider"
+                >
+                  Eliminar Niebla
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       <BattleMapAdminSidebar 
