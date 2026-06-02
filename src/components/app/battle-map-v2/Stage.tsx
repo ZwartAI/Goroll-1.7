@@ -318,6 +318,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
+    if (activeTool === 'fogBlock' && fogBlockStart) {
+      setFogBlockEnd(coords);
+      return;
+    }
+
     // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
       const gridSize = activeScene.grid_size;
