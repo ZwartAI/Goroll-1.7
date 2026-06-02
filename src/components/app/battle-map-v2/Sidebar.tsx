@@ -17,6 +17,16 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
   const [expandedNameId, setExpandedNameId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (expandedNameId && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setExpandedNameId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expandedNameId]);
   
   const blocks = useMemo(() => {
     if (combat.encounter?.status === 'active') {
