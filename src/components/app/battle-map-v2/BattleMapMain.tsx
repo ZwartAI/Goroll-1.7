@@ -58,11 +58,12 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
     }
   }, [isDM, battleMap.isLoading, battleMap.scenes.length]);
 
-  const handleRollDice = useCallback((selections: DieSelection[]) => {
+  const handleRollDice = useCallback(async (selections: DieSelection[]) => {
     setShowDicePanel(false);
     
     let total = 0;
     const individualResults: string[] = [];
+    const diceData: any[] = [];
 
     selections.forEach(sel => {
       const sides = parseInt(sel.type.substring(1));
@@ -70,10 +71,19 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         const res = Math.floor(Math.random() * sides) + 1;
         total += res;
         individualResults.push(`${sel.type}: ${res}`);
+        diceData.push({
+          id: Math.random().toString(36).substring(2, 9),
+          type: sel.type,
+          sides,
+          result: res,
+          x: (Math.random() - 0.5) * 400,
+          y: (Math.random() - 0.5) * 400
+        });
       }
     });
 
     if (campaignId && character) {
+      // 1. Log to history
       pushLog(campaignId, [
         { t: 'char', v: character.name, color: character.color || 'var(--gold)', id: character.id },
         { t: 'text', v: ' ha lanzado los dados: ' },
@@ -81,9 +91,17 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         { t: 'text', v: ' | Total: ' },
         { t: 'text', v: total.toString() }
       ]);
-      toast.success(`Tirada: ${total}`);
+
+      // 2. Trigger global animation via DB
+      await supabase.from('dice_rolls').insert({
+        campaign_id: campaignId,
+        character_id: character.id,
+        dice_data: diceData,
+        total: total
+      });
     }
   }, [campaignId, character]);
+
 
   if (battleMap.isLoading) {
     return (
