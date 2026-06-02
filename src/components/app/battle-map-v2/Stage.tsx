@@ -315,7 +315,12 @@ export const Stage = forwardRef<StageHandle, Props>(({
           y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
         };
       }
-      setRulerEnd(snappedCoords);
+      
+      // Throttle state update to avoid heavy useMemo re-calc on every frame
+      if (!lastPanPos.current.lastMeasureTime || Date.now() - lastPanPos.current.lastMeasureTime > 32) {
+        setRulerEnd(snappedCoords);
+        lastPanPos.current.lastMeasureTime = Date.now();
+      }
     }
   };
 
