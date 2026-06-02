@@ -1247,6 +1247,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           </div>
         )}
 
+        {/* Admin Sidebar Backdrop (Mobile) */}
+        {isAdminSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-[145] sm:hidden transition-all animate-in fade-in duration-300" 
+            onClick={() => setIsAdminSidebarOpen(false)}
+          />
+        )}
+
         {/* Admin Sidebar */}
         <BattleMapAdminSidebar 
           isOpen={isAdminSidebarOpen}
