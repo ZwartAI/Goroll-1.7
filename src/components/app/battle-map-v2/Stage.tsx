@@ -60,6 +60,31 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const isFogging = useRef(false);
   const currentFogPoints = useRef<{ x: number, y: number }[]>([]);
   const [localFogPoints, setLocalFogPoints] = useState<{ x: number, y: number }[]>([]);
+  const lastDrawTime = useRef(0);
+
+  // Fog Animation State
+  const [fogOffset, setFogOffset] = useState({ x: 0, y: 0 });
+  const requestRef = useRef<number>();
+
+  useEffect(() => {
+    if (fogAnimationReduced) {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      return;
+    }
+
+    const animate = (time: number) => {
+      setFogOffset({
+        x: Math.sin(time / 5000) * 20,
+        y: Math.cos(time / 7000) * 20
+      });
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [fogAnimationReduced]);
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
@@ -72,6 +97,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const [selectedFogId, setSelectedFogId] = useState<string | null>(null);
   const [fogBlockStart, setFogBlockStart] = useState<{ x: number, y: number } | null>(null);
   const [fogBlockEnd, setFogBlockEnd] = useState<{ x: number, y: number } | null>(null);
+  
+  // Visibility checking canvas (miniature)
+  const visibilityCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [hiddenTokenIds, setHiddenTokenIds] = useState<Set<string>>(new Set());
+
 
   const blockColors = [
     'rgba(255, 0, 0, 0.4)',    // Rojo
