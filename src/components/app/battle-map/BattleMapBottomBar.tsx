@@ -28,7 +28,7 @@ interface Props {
 
 }
 
-export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection }) => {
+export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection, showSocial = true }) => {
   const { t } = useT();
 
   return (
