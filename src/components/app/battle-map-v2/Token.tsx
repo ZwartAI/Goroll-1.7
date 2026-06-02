@@ -67,8 +67,15 @@ export const Token = memo(function Token({
     onDragStart?.(token.id);
     
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-
   };
+
+  // Throttle the intermediate move updates to improve performance
+  const throttledOnMove = useCallback(
+    throttle((x: number, y: number) => {
+      onMove(x, y, false);
+    }, 50),
+    [onMove]
+  );
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!localDragging) return;
@@ -82,7 +89,7 @@ export const Token = memo(function Token({
     
     setVisualPos({ x: newX, y: newY });
     // Intermediate update for other players (realtime)
-    onMove(newX, newY, false);
+    throttledOnMove(newX, newY);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -213,4 +220,4 @@ export const Token = memo(function Token({
       )}
     </div>
   );
-}
+});
