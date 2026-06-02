@@ -47,7 +47,7 @@ export const MapToken: React.FC<Props> = ({
   
   const color = useMemo(() => {
     if (participant.participant_type === 'enemy') return '#ef4444';
-    if (participant.npc_template_id) return '#ffffff';
+    if (participant.participant_type === 'npc' || participant.npc_template_id) return '#ffffff';
     return participant.color || "var(--gold)";
   }, [participant]);
 
@@ -56,7 +56,7 @@ export const MapToken: React.FC<Props> = ({
   // FASE 7: Role-based glow color
   const roleGlowColor = useMemo(() => {
     if (participant.participant_type === 'enemy') return '#ef4444'; // Red for Enemy
-    if (participant.npc_template_id) return '#ffffff'; // White for NPCs
+    if (participant.participant_type === 'npc' || participant.npc_template_id) return '#ffffff'; // White for NPCs
     return participant.color || '#3b82f6'; // Personal color for Players
   }, [participant]);
   
