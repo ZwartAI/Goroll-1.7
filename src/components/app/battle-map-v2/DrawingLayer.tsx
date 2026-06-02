@@ -30,26 +30,28 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
     };
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent) => {
     if (activeTool !== 'pencil' || !svgRef.current) return;
     setIsDrawing(true);
     const coords = getLocalCoords(e);
     setCurrentPoints([coords.x, coords.y]);
+    // Prevent dragging the map while drawing
+    (e.target as Element).setPointerCapture(e.pointerId);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (activeTool !== 'pencil' || !isDrawing || !svgRef.current) return;
     const coords = getLocalCoords(e);
     // Optimization: only add if distance is significant
     const lastX = currentPoints[currentPoints.length - 2];
     const lastY = currentPoints[currentPoints.length - 1];
     const dist = Math.sqrt(Math.pow(coords.x - lastX, 2) + Math.pow(coords.y - lastY, 2));
-    if (dist > 2) {
+    if (dist > 1.5) {
       setCurrentPoints(prev => [...prev, coords.x, coords.y]);
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (activeTool !== 'pencil' || !isDrawing) return;
     setIsDrawing(false);
     if (currentPoints.length > 2) {
@@ -63,6 +65,9 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
       });
     }
     setCurrentPoints([]);
+    try {
+      (e.target as Element).releasePointerCapture(e.pointerId);
+    } catch (err) {}
   };
 
   return (
