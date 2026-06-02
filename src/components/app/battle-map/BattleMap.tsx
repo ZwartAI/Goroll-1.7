@@ -20,9 +20,10 @@ import { BattleMapChalkControls, type ChalkTool, type ChalkColor, type ChalkSize
 import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
 import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
-import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
+import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
 import { BattleMapToolbar } from './BattleMapToolbar';
 import { BattleMapBottomBar } from './BattleMapBottomBar';
+
 import { playMapSound } from './BattleMapSounds';
 import type { CombatParticipant, TurnBlock, CombatTurnGroup } from '@/lib/combat';
 import { EnemyCombatSheetModal } from '@/components/app/EnemyCombatSheetModal';
