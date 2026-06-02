@@ -1281,7 +1281,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
               };
               const instanceId = `${t.id}_${Math.random().toString(36).substring(2, 7)}`;
               nextState[instanceId] = pos;
-              handleBroadcastMove(instanceId, pos.x, pos.y);
+              handleBroadcastMove(instanceId, pos.x, pos.y, pos);
             });
 
             setRemoteTokenPositions(nextState);
