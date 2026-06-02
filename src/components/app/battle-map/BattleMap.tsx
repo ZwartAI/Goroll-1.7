@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
 import { type LogRow, ENABLE_BATTLE_MAP } from '@/lib/game';
 import { buildOrderedTurns } from '@/lib/combat';
+import { pushLog } from '@/lib/log';
+
 
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
