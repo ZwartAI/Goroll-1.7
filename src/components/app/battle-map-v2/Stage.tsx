@@ -827,6 +827,83 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           />
         </div>
 
+        {/* Fog Blocks DM View */}
+        {isDM && fogStrokes.map((stroke: FogStroke) => {
+          if (stroke.fog_type !== 'block' || stroke.points.length < 2) return null;
+          const { x, y } = stroke.points[0];
+          const { x: width, y: height } = stroke.points[1];
+          const isSelected = selectedFogId === stroke.id;
+          
+          return (
+            <div
+              key={stroke.id}
+              data-fog-id={stroke.id}
+              className={cn(
+                "absolute border-2 transition-all cursor-pointer pointer-events-auto",
+                isSelected ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] z-[42]" : "border-current z-[41]"
+              )}
+              style={{
+                left: x,
+                top: y,
+                width: width,
+                height: height,
+                backgroundColor: stroke.block_color || 'rgba(255,0,0,0.3)',
+                color: stroke.block_color?.replace('0.4', '1') || 'red',
+              }}
+            >
+              <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[10px] text-white font-bold select-none pointer-events-none">
+                {stroke.label || 'Bloque'}
+              </div>
+              
+              {isSelected && (
+                <div 
+                  className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-1 bg-black/90 p-1.5 rounded-lg border border-white/20 shadow-2xl pointer-events-auto"
+                  data-map-ui="true"
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      battleMap.removeFogStroke(stroke.id);
+                      setSelectedFogId(null);
+                      toast.success('Zona revelada');
+                    }}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
+                  >
+                    <CloudOff className="w-3 h-3" />
+                    REVELAR
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      battleMap.removeFogStroke(stroke.id);
+                      setSelectedFogId(null);
+                      toast.success('Bloque eliminado');
+                    }}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    ELIMINAR
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Current Fog Block Creation Preview */}
+        {fogBlockStart && fogBlockEnd && (
+          <div
+            className="absolute border-2 border-dashed border-white bg-white/20 pointer-events-none"
+            style={{
+              left: Math.min(fogBlockStart.x, fogBlockEnd.x),
+              top: Math.min(fogBlockStart.y, fogBlockEnd.y),
+              width: Math.abs(fogBlockEnd.x - fogBlockStart.x),
+              height: Math.abs(fogBlockEnd.y - fogBlockStart.y),
+              zIndex: 45
+            }}
+          />
+        )}
+
         {/* Local Drawing Fog Preview */}
         {localFogPoints.length > 0 && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 45 }}>
