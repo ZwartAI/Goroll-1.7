@@ -116,6 +116,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
 
   return (
     <div className="fixed inset-0 z-[110] bg-[#0a0a0a] flex flex-col overflow-hidden text-white font-sans">
+      <SharedDiceAnimationOverlay />
+
       {/* Header */}
       <Header 
         onBack={onBack} 
