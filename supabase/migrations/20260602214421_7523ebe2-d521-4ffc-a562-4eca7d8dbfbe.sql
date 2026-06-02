@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.battle_map_fog_simple;
