@@ -30,12 +30,41 @@ const RARITY_ALIASES: Record<string, Rarity> = {
   dorada: "gold", dorado: "gold", oro: "gold", legendaria: "gold", legendario: "gold", gold: "gold",
 };
 
+const CATEGORY_ALIASES: Record<string, ItemCategory> = {
+  equipo: "equipo", equipment: "equipo", gear: "equipo",
+  consumible: "consumible", consumable: "consumible", pocion: "consumible", poción: "consumible", potion: "consumible",
+  material: "material", resource: "material",
+  herramienta: "herramienta", tool: "herramienta",
+  tela: "tela", venda: "tela", cloth: "tela", bandage: "tela",
+  comida: "comida", food: "comida",
+  libro: "libro", pergamino: "libro", book: "libro", scroll: "libro",
+  llave: "llave", key: "llave",
+  tesoro: "tesoro", treasure: "tesoro", loot: "tesoro",
+  otro: "otro", other: "otro",
+};
+
+const SLOT_ALIASES: Record<string, Slot> = {
+  casco: "casco", head: "casco", helmet: "casco",
+  pecho: "pecho", chest: "pecho", armor: "pecho",
+  pantalon: "pantalon", pantalones: "pantalon", pants: "pantalon", legs: "pantalon",
+  botas: "botas", boots: "botas", feet: "botas",
+  cinturon: "cinturon", belt: "cinturon",
+  guantes: "guantes", gloves: "guantes", hands: "guantes",
+  mochila: "mochila", backpack: "mochila",
+  arma_principal: "arma_principal", main_hand: "arma_principal", weapon: "arma_principal",
+  arma_secundaria: "arma_secundaria", off_hand: "arma_secundaria", shield: "arma_secundaria",
+  accesorio1: "accesorio1", accessory1: "accesorio1", ring1: "accesorio1",
+  accesorio2: "accesorio2", accessory2: "accesorio2", ring2: "accesorio2", necklace: "accesorio2",
+  aditamento: "aditamento", attachment: "aditamento",
+};
+
 /** Normalizes string for key/header matching. */
 export function normKey(s: string): string {
   return (s || "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/\s+/g, " ")
+    .replace(/_/g, " ")
     .trim();
 }
 
@@ -50,12 +79,14 @@ function rarityFrom(raw: any): Rarity | null {
 
 function categoryFrom(raw: any): ItemCategory | null {
   const k = normKey(String(raw ?? ""));
+  if (CATEGORY_ALIASES[k]) return CATEGORY_ALIASES[k];
   const cat = ITEM_CATEGORIES.find(c => normKey(c.label) === k || normKey(c.key) === k);
   return cat ? cat.key : null;
 }
 
 function slotFrom(raw: any): Slot | null {
   const k = normKey(String(raw ?? ""));
+  if (SLOT_ALIASES[k]) return SLOT_ALIASES[k];
   const slot = SLOTS.find(s => normKey(s.label) === k || normKey(s.key) === k);
   return slot ? slot.key : null;
 }
