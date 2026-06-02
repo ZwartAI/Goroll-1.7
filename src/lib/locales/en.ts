@@ -749,6 +749,8 @@ export const en: Dict = {
     handedItem: "handed",
     importHint: "📥 Import boosters from .xlsx or .txt.",
     importXlsx: 'XLSX: sheet "Extra Skills - DND". Rows 1-2 headers (ID, Type, Rarity, Name, Cast mode, Distance, Targets, Dice to roll, Effect or Condition). Row 3 onward data.',
+    importItemsXlsx: 'XLSX: Sheet "Items". Headers: Name, Category, Rarity, Slot (if applies), Def, HP, Damage, Uses, Description.',
+    importItemsHint: "📥 Import objects and equipment from .xlsx.",
     importTxt: "TXT: blocks separated by blank lines. Each line with label: ID:, Type:, Rarity:, Name:, Effect or Condition:...",
     importErrors: "{n} error(s): {detail}",
     importing: "Creating / updating boosters…",
