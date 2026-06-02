@@ -137,6 +137,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           isDM={isDM} 
           activeTool={activeTool}
           characterId={character?.id}
+          authorName={character?.name}
+          authorColor={character?.color || '#FFD700'}
         />
 
         {/* Sidebar (Turns/Participants) */}

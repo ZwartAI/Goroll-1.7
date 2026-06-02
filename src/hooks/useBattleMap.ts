@@ -520,7 +520,9 @@ export const useBattleMap = (campaignId: string) => {
       return false; // Default clear all
     }));
 
-    const { error } = await supabase.from('battle_map_drawings_simple').delete() // Re-execute with filters if needed
+    const { error } = await supabase
+      .from('battle_map_drawings_simple')
+      .delete()
       .match({ 
         scene_id: activeScene.id, 
         campaign_id: campaignId,

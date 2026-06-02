@@ -13,6 +13,8 @@ interface Props {
   isDM: boolean;
   activeTool: MapTool;
   characterId?: string;
+  authorName?: string;
+  authorColor?: string;
 }
 
 export interface StageHandle {
@@ -20,7 +22,7 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId }, ref) => {
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId, authorName, authorColor }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
@@ -421,6 +423,8 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
             activeTool={activeTool}
             gridSize={activeScene.grid_size}
             characterId={characterId}
+            authorName={authorName}
+            authorColor={authorColor}
             scale={scale}
             offset={offset}
           />
