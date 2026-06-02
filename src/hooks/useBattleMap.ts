@@ -44,6 +44,8 @@ export interface Drawing {
   campaign_id: string;
   scene_id: string;
   author_character_id: string | null;
+  author_name?: string;
+  author_color?: string;
   color: string;
   stroke_width: number;
   points: number[];
@@ -468,6 +470,17 @@ export const useBattleMap = (campaignId: string) => {
 
   const addDrawing = async (drawing: Omit<Drawing, 'id' | 'campaign_id' | 'scene_id'>) => {
     if (!activeScene) return;
+    
+    // Optimistic update
+    const tempId = Math.random().toString(36).substr(2, 9);
+    const newDrawing = {
+      ...drawing,
+      id: tempId,
+      campaign_id: campaignId,
+      scene_id: activeScene.id
+    } as Drawing;
+    setDrawings(prev => [...prev, newDrawing]);
+
     const { error } = await supabase
       .from('battle_map_drawings_simple')
       .insert([{ 
@@ -479,30 +492,73 @@ export const useBattleMap = (campaignId: string) => {
 
     if (error) {
       console.error('Error adding drawing:', error);
+      toast.error('Error al guardar el dibujo');
+      setDrawings(prev => prev.filter(d => d.id !== tempId));
     }
   };
 
-  const clearDrawings = async () => {
+  const clearDrawings = async (options?: { authorId?: string, all?: boolean }) => {
     if (!activeScene) return;
+    
+    let query = supabase
+      .from('battle_map_drawings_simple')
+      .delete()
+      .eq('scene_id', activeScene.id)
+      .eq('campaign_id', campaignId);
+
+    if (options?.authorId) {
+      query = query.eq('author_character_id', options.authorId);
+    } else if (!options?.all) {
+      // Default to "clear all" if no options provided for legacy compatibility, 
+      // but we will use options in new UI
+    }
+
+    // Optimistic update
+    setDrawings(prev => prev.filter(d => {
+      if (options?.all) return false;
+      if (options?.authorId) return d.author_character_id !== options.authorId;
+      return false; // Default clear all
+    }));
+
     const { error } = await supabase
       .from('battle_map_drawings_simple')
       .delete()
-      .eq('scene_id', activeScene.id);
+      .match({ 
+        scene_id: activeScene.id, 
+        campaign_id: campaignId,
+        ...(options?.authorId ? { author_character_id: options.authorId } : {})
+      });
 
     if (error) {
       toast.error('No se pudieron borrar los dibujos');
+      fetchDrawings(activeScene.id);
     }
   };
 
   const removeDrawing = async (drawingId: string) => {
+    // Optimistic update
+    setDrawings(prev => prev.filter(d => d.id !== drawingId));
+
     const { error } = await supabase
       .from('battle_map_drawings_simple')
       .delete()
       .eq('id', drawingId);
 
     if (error) {
-      console.error('Error removing drawing:', error);
+      toast.error('Error al borrar trazo');
+      if (activeScene) fetchDrawings(activeScene.id);
     }
+  };
+
+  const undoLastDrawing = async (authorId: string) => {
+    if (!activeScene) return;
+    
+    // Find the latest drawing from this author in local state
+    const authorDrawings = drawings.filter(d => d.author_character_id === authorId);
+    if (authorDrawings.length === 0) return;
+    
+    const lastDrawing = authorDrawings[authorDrawings.length - 1];
+    await removeDrawing(lastDrawing.id);
   };
 
   return {
@@ -521,5 +577,6 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
+    undoLastDrawing
   };
 };

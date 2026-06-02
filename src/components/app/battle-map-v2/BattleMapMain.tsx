@@ -46,11 +46,15 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
     }
   };
 
-  const handleClearDrawings = async () => {
-    if (confirm('¿Borrar todos los dibujos?')) {
-      await battleMap.clearDrawings();
-    }
+  const handleClearDrawings = async (options?: { authorId?: string, all?: boolean }) => {
+    await battleMap.clearDrawings(options);
   };
+
+  const handleUndoDrawing = useCallback(async () => {
+    if (character?.id) {
+      await battleMap.undoLastDrawing(character.id);
+    }
+  }, [battleMap, character?.id]);
 
   useEffect(() => {
     if (isDM && !battleMap.isLoading && battleMap.scenes.length === 0) {
@@ -133,6 +137,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           isDM={isDM} 
           activeTool={activeTool}
           characterId={character?.id}
+          authorName={character?.name}
+          authorColor={character?.color || '#FFD700'}
         />
 
         {/* Sidebar (Turns/Participants) */}
@@ -152,6 +158,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onOpenSettings={() => setShowSettings(true)}
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
+          onUndoDrawing={handleUndoDrawing}
+          characterId={character?.id}
+          authorName={character?.name}
+          authorColor={character?.color || '#FFD700'}
+          drawings={battleMap.drawings}
           onOpenDice={() => setShowDicePanel(!showDicePanel)}
           onInvokeToken={(template) => {
             if (character && battleMap.activeScene) {

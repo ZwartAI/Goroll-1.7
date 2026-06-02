@@ -13,10 +13,15 @@ interface Props {
   onOpenSettings: () => void;
   onInvokeToken: (tokenToPlace?: any) => void;
   onResetView: () => void;
-  onClearDrawings: () => void;
+  onClearDrawings: (options?: { authorId?: string, all?: boolean }) => void;
+  onUndoDrawing: () => void;
+  characterId?: string;
+  authorName?: string;
+  authorColor?: string;
   onOpenDice: () => void;
   hasMyToken: boolean;
   hasBackground: boolean;
+  drawings?: any[];
 }
 
 export function Toolbar({ 
@@ -28,13 +33,48 @@ export function Toolbar({
   onInvokeToken,
   onResetView,
   onClearDrawings,
+  onUndoDrawing,
   onOpenDice,
   hasMyToken,
-  hasBackground
+  hasBackground,
+  characterId,
+  authorName,
+  authorColor,
+  drawings = []
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
+  const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
+
+  // Extract unique authors for DM management
+  const authors = React.useMemo(() => {
+    const authorMap = new Map<string, { id: string, name: string, color: string, count: number }>();
+    
+    drawings.forEach(d => {
+      const id = d.author_character_id || 'unknown';
+      const existing = authorMap.get(id);
+      if (existing) {
+        existing.count++;
+      } else {
+        authorMap.set(id, {
+          id,
+          name: d.author_name || (id === 'unknown' ? 'Autor Desconocido' : 'Jugador'),
+          color: d.author_color || d.color || '#FFD700',
+          count: 1
+        });
+      }
+    });
+    
+    return Array.from(authorMap.values());
+  }, [drawings]);
+
+  // Get unique authors from drawings to show in DM clear menu
+  // Since Toolbar doesn't have drawings, we might need to pass them or the list of authors.
+  // For now, let's assume DM can clear "All" or "Mine". 
+  // To clear specific player, we need the list of authors.
+  // Let's modify Props to include drawings or a derived author list.
 
   return (
     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
@@ -77,33 +117,70 @@ export function Toolbar({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[44px]"
+                className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
               >
-                <ToolButton 
-                  active={activeTool === 'pencil'} 
-                  onClick={() => setActiveTool('pencil')}
-                  icon={<Pencil className="w-4 h-4" />}
-                  label="Lápiz"
-                  small
-                />
-                <ToolButton 
-                  active={activeTool === 'eraser'} 
-                  onClick={() => setActiveTool('eraser')}
-                  icon={<Eraser className="w-4 h-4" />}
-                  label="Goma"
-                  small
-                />
-                <ToolButton 
-                  active={false} 
-                  onClick={() => {
-                    onClearDrawings();
-                    setPencilMenuOpen(false);
-                  }}
-                  icon={<Trash2 className="w-4 h-4 text-red-400" />}
-                  label="Borrar Todo"
-                  small
-                  className="border-red-500/20"
-                />
+                <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
+                  <ToolButton 
+                    active={activeTool === 'pencil'} 
+                    onClick={() => setActiveTool('pencil')}
+                    icon={<Pencil className="w-4 h-4" />}
+                    label="Lápiz"
+                    small
+                  />
+                  <ToolButton 
+                    active={activeTool === 'eraser'} 
+                    onClick={() => setActiveTool('eraser')}
+                    icon={<Eraser className="w-4 h-4" />}
+                    label="Goma / Gestionar"
+                    small
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <button 
+                    onClick={onUndoDrawing}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 opacity-60" />
+                    <span className="text-[9px] uppercase tracking-tighter">Deshacer</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setShowClearModal('mine')}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="text-[9px] uppercase tracking-tighter">Borrar mis dibujos</span>
+                  </button>
+
+                  {isDM && (
+                    <>
+                      <div className="h-px bg-[var(--gold)]/10 my-1" />
+                      {authors.filter(a => a.id !== characterId).map(author => (
+                        <button 
+                          key={author.id}
+                          onClick={() => {
+                            setSelectedAuthorId(author.id);
+                            setShowClearModal('player');
+                          }}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors text-left group"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: author.color }} />
+                          <span className="text-[9px] uppercase tracking-tighter flex-1 truncate">{author.name}</span>
+                          <span className="text-[8px] opacity-40 group-hover:opacity-100">{author.count}</span>
+                        </button>
+                      ))}
+                      
+                      <button 
+                        onClick={() => setShowClearModal('all')}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-500 transition-colors text-left mt-1 border border-red-500/10"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Todo</span>
+                      </button>
+                    </>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -163,6 +240,52 @@ export function Toolbar({
           />
         </div>
       )}
+      {/* Confirmation Modals */}
+      <AnimatePresence>
+        {showClearModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-black/90 border border-[var(--gold)]/30 p-6 rounded-2xl max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] border-t-[var(--gold)]/50"
+            >
+              <h3 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest mb-4">
+                {showClearModal === 'mine' ? '¿Borrar tus dibujos?' : 
+                 showClearModal === 'all' ? '¿Borrar TODOS los dibujos?' : 
+                 `¿Borrar dibujos de ${authors.find(a => a.id === selectedAuthorId)?.name}?`}
+              </h3>
+              
+              <p className="text-white/60 text-xs mb-8">
+                {showClearModal === 'all' ? 
+                  'Esta acción limpiará todos los trazos de la escena actual para todos los jugadores. No se puede deshacer.' : 
+                  'Esta acción eliminará permanentemente los trazos seleccionados en esta escena.'}
+              </p>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowClearModal(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-white/40 text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    if (showClearModal === 'mine') onClearDrawings({ authorId: characterId });
+                    else if (showClearModal === 'all') onClearDrawings({ all: true });
+                    else if (showClearModal === 'player') onClearDrawings({ authorId: selectedAuthorId! });
+                    setShowClearModal(null);
+                    setPencilMenuOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white text-[10px] uppercase tracking-widest font-bold hover:bg-red-600 transition-colors"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
