@@ -1,10 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
-import { CloudOff, Trash2 } from 'lucide-react';
 import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
-import { motion, useAnimation } from 'framer-motion';
 import { toast } from 'sonner';
 
 import { MapTool, MeasureMode } from './Toolbar';
@@ -20,7 +18,6 @@ interface Props {
   authorColor?: string;
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
-  brushSize?: number;
   onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
 }
 
@@ -30,12 +27,11 @@ export interface StageHandle {
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
-  battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140,
+  battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
   onMapLoad
 }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
-  const fogCanvasRef = useRef<HTMLCanvasElement>(null);
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -48,21 +44,16 @@ export const Stage = forwardRef<StageHandle, Props>(({
   scaleRef.current = scale;
   offsetRef.current = offset;
 
-
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
-
-
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
   const lastPinchDist = useRef<number | null>(null);
 
-  // Token dragging state (managed by individual Token components now)
+  // Token dragging state
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
-
-
 
   // Helper function to convert screen coordinates to world coordinates
   const screenToWorld = useCallback((clientX: number, clientY: number) => {
@@ -159,13 +150,12 @@ export const Stage = forwardRef<StageHandle, Props>(({
     });
   }, [activeScene?.id]);
 
-  // Prevent default browser behavior on mobile (manual listener for passive: false)
+  // Prevent default browser behavior on mobile
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
 
     const handleTouchMove = (e: TouchEvent) => {
-      // Always prevent native scroll/zoom on the map area
       if (e.touches.length >= 1) {
         e.preventDefault();
       }
@@ -179,11 +169,9 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
   const isMeasuring = useRef(false);
-
   const rulerStartTokenId = useRef<string | null>(null);
   
   const handlePointerDown = (e: React.PointerEvent) => {
-    // Only handle primary button for most things, but allow touch
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -191,17 +179,13 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const target = e.target as HTMLElement;
     const coords = screenToWorld(e.clientX, e.clientY);
 
-    // Prevent interactions if we're touching UI element
     if (target.closest('[data-map-ui="true"]')) {
       return;
     }
 
-
-    // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
     const tokenId = tokenElement?.getAttribute('data-token-id');
 
-    // Multi-touch / Pinch zoom
     if (activePointers.current.size >= 2) {
       setIsPanning(false);
       setDraggingTokenId(null);
@@ -230,7 +214,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       
       rulerStartTokenId.current = tokenId || null;
 
-      // If we clicked a token, link to its center
       if (tokenId) {
         const token = tokens.find((t: MapToken) => t.id === tokenId);
         if (token) {
@@ -244,12 +227,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
       setRulerStart(startCoords);
       setRulerEnd(startCoords);
       
-      // Capture pointer to prevent losing the ruler during fast movement
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
     } else if (activeTool === 'move') {
-      if (tokenId) return; // Token handles its own drag
+      if (tokenId) return;
 
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
         setIsPanning(true);
@@ -265,8 +247,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     let coords = screenToWorld(e.clientX, e.clientY);
 
-
-    // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
       const gridSize = activeScene.grid_size;
       const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
@@ -278,7 +258,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       };
     }
 
-    // Pinch Zoom Handling
     if (activePointers.current.size >= 2 && lastPinchDist.current !== null) {
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -309,7 +288,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       lastPinchDist.current = null;
     }
 
-
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
       
@@ -322,7 +300,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
 
       setTimeout(() => {
-        // Only clear if another measurement hasn't started
         if (!isMeasuring.current) {
           setRulerStart(null);
           setRulerEnd(null);
@@ -347,147 +324,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
     zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
   };
 
-  // Render Fog of War on canvas
-  useEffect(() => {
-    const canvas = fogCanvasRef.current;
-    if (!canvas || !activeScene) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (fogStrokes.length === 0 && localFogPoints.length === 0) {
-      setHiddenTokenIds(new Set());
-      return;
-    }
-
-    // We use a temporary canvas to compose the fog and erasers
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx) return;
-
-    // 1. Draw base fog (paint strokes)
-    tempCtx.lineCap = 'round';
-    tempCtx.lineJoin = 'round';
-    
-    const allStrokes = [...fogStrokes];
-    if (localFogPoints.length > 0) {
-      allStrokes.push({
-        id: 'local',
-        campaign_id: '',
-        scene_id: activeScene.id,
-        fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
-        shape: 'brush',
-        points: localFogPoints,
-        brush_size: brushSize,
-        opacity: 1,
-        is_visible: true,
-        color: null
-      });
-    }
-
-    allStrokes.forEach((stroke: FogStroke) => {
-      if (stroke.fog_type === 'brush') {
-        tempCtx.beginPath();
-        tempCtx.lineWidth = stroke.brush_size;
-        tempCtx.strokeStyle = 'black'; 
-        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
-          if (i === 0) tempCtx.moveTo(p.x, p.y);
-          else tempCtx.lineTo(p.x, p.y);
-        });
-        tempCtx.stroke();
-      } else if (stroke.fog_type === 'block' && stroke.shape === 'rect' && stroke.points.length >= 2) {
-        const { x, y } = stroke.points[0];
-        const { x: width, y: height } = stroke.points[1];
-        tempCtx.fillStyle = 'black';
-        tempCtx.fillRect(x, y, width, height);
-      }
-    });
-
-    // 2. Subtract erasers with soft edges
-    tempCtx.globalCompositeOperation = 'destination-out';
-    allStrokes.forEach((stroke: FogStroke) => {
-      if (stroke.fog_type === 'eraser') {
-        // Use soft brushes for erasers if not in reduced animation mode
-        if (!fogAnimationReduced) {
-          stroke.points.forEach((p: {x: number, y: number}) => {
-            const gradient = tempCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, stroke.brush_size / 2);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            tempCtx.fillStyle = gradient;
-            tempCtx.beginPath();
-            tempCtx.arc(p.x, p.y, stroke.brush_size / 2, 0, Math.PI * 2);
-            tempCtx.fill();
-          });
-        } else {
-          tempCtx.beginPath();
-          tempCtx.lineWidth = stroke.brush_size;
-          tempCtx.strokeStyle = 'white';
-          stroke.points.forEach((p: {x: number, y: number}, i: number) => {
-            if (i === 0) tempCtx.moveTo(p.x, p.y);
-            else tempCtx.lineTo(p.x, p.y);
-          });
-          tempCtx.stroke();
-        }
-      }
-    });
-
-    // 3. Update Token Visibility (Hidden Tokens)
-    if (!isDM) {
-      const newHidden = new Set<string>();
-      tokens.forEach((token: MapToken) => {
-        // Sample center of token
-        const tx = Math.floor(token.x + token.size / 2);
-        const ty = Math.floor(token.y + token.size / 2);
-        
-        if (tx >= 0 && tx < tempCanvas.width && ty >= 0 && ty < tempCanvas.height) {
-          const pixel = tempCtx.getImageData(tx, ty, 1, 1).data;
-          // If alpha > 128, it means there's fog here (since we draw fog with black and destination-out with white)
-          // Wait, tempCtx has alpha where fog is, and 0 where revealed.
-          if (pixel[3] > 128) {
-            newHidden.add(token.id);
-          }
-        }
-      });
-      setHiddenTokenIds(newHidden);
-    } else {
-      setHiddenTokenIds(new Set());
-    }
-
-    // 4. Render the composed mask to the main canvas with final styling
-    ctx.globalAlpha = isDM ? 0.6 : 1.0; 
-    
-    // Smoke/Cloud effect using animated offset
-    if (!fogAnimationReduced) {
-      ctx.translate(fogOffset.x, fogOffset.y);
-    }
-    
-    ctx.drawImage(tempCanvas, 0, 0);
-    
-    if (!fogAnimationReduced) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-    }
-    
-    // Use the mask to draw the fog
-    ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = '#050505';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add texture
-    if (!fogAnimationReduced) {
-      ctx.globalAlpha = 0.05;
-      ctx.fillStyle = '#111';
-      for (let i = 0; i < 50; i++) {
-        ctx.beginPath();
-        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 200, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }, [fogStrokes, localFogPoints, isDM, activeScene, fogOffset, fogAnimationReduced, tokens]);
-
   // Handle image load to send dimensions
   useEffect(() => {
     if (activeScene?.background_url && onMapLoad) {
@@ -502,7 +338,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       };
       img.src = activeScene.background_url;
     }
-  }, [activeScene?.background_url]);
+  }, [activeScene?.background_url, onMapLoad]);
 
 
   if (!activeScene) {
@@ -540,14 +376,12 @@ export const Stage = forwardRef<StageHandle, Props>(({
     
     if (radius < 2) return [];
 
-    // Bounding box for searching cells
     const searchRadius = radius + gridSize;
     const minX = rulerStart.x - searchRadius;
     const maxX = rulerStart.x + searchRadius;
     const minY = rulerStart.y - searchRadius;
     const maxY = rulerStart.y + searchRadius;
     
-    // Grid range
     const startCol = Math.floor((minX - (activeScene.grid_offset_x || 0)) / gridSize);
     const endCol = Math.ceil((maxX - (activeScene.grid_offset_x || 0)) / gridSize);
     const startRow = Math.floor((minY - (activeScene.grid_offset_y || 0)) / gridSize);
@@ -557,8 +391,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const angle = Math.atan2(dy, dx);
     const halfSpread = (30 * Math.PI) / 180;
     
-    // Use a small buffer to avoid searching the entire 8000x8000 map
-    const maxSearch = 40; // Don't check more than 40x40 cells for performance
+    const maxSearch = 40;
     const colCount = Math.min(endCol - startCol, maxSearch);
     const rowCount = Math.min(endRow - startRow, maxSearch);
     
@@ -569,20 +402,17 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const col = actualStartCol + i;
       for (let j = 0; j <= rowCount; j++) {
         const row = actualStartRow + j;
-        
         const cellX = col * gridSize + (activeScene.grid_offset_x || 0);
         const cellY = row * gridSize + (activeScene.grid_offset_y || 0);
         
-        // Sample points in the cell to determine coverage
         let pointsInside = 0;
-        const samples = 4; // 4x4 grid = 16 points
-        const threshold = 10; // ~62.5% (10/16)
+        const samples = 4;
+        const threshold = 10;
         
         for (let sx = 0; sx < samples; sx++) {
           for (let sy = 0; sy < samples; sy++) {
             const px = cellX + (sx + 0.5) * (gridSize / samples);
             const py = cellY + (sy + 0.5) * (gridSize / samples);
-            
             let inside = false;
             const distToStart = Math.hypot(px - rulerStart.x, py - rulerStart.y);
 
@@ -601,7 +431,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
               const lay = rulerStart.y;
               const lbx = rulerEnd.x;
               const lby = rulerEnd.y;
-              
               const L2 = (lbx - lax)**2 + (lby - lay)**2;
               if (L2 < 1) {
                 inside = distToStart <= gridSize / 2;
@@ -613,12 +442,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 inside = d <= gridSize / 2;
               }
             }
-            
             if (inside) pointsInside++;
           }
-          if (pointsInside >= threshold) break; // Optimization
+          if (pointsInside >= threshold) break;
         }
-        
         if (pointsInside >= threshold) {
           cells.push({ x: cellX, y: cellY });
         }
@@ -627,8 +454,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
     return cells;
   }, [rulerStart, rulerEnd, measureMode, activeScene]);
 
-  // No longer needed locally since we export it from useBattleMap
-  // but keeping the call compatible
   const isVideo = isVideoUrl;
 
   return (
@@ -637,10 +462,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
         "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
         activeTool === 'move' ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
       )}
-      style={{ 
-        touchAction: "none",
-        overscrollBehavior: "none"
-      }}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -658,7 +479,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
           height: '8000px'
         }}
       >
-        {/* Map Background Layer */}
         {activeScene.background_url && (
           <div 
             className="absolute inset-0 pointer-events-none"
@@ -681,42 +501,27 @@ export const Stage = forwardRef<StageHandle, Props>(({
             >
               {isVideo(activeScene.background_url) ? (
                 <video 
-                  ref={(el) => { bgMediaRef.current = el; }}
+                  ref={(el) => { if (el) bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar video')}
-                  onLoadedMetadata={() => {
-                    // Trigger a re-center once metadata is loaded
-                    if (stageRef.current) {
-                      const rect = stageRef.current.getBoundingClientRect();
-                      setOffset(prev => ({ ...prev })); // Force effect
-                    }
-                  }}
                 />
               ) : (
                 <img 
-                  ref={(el) => { bgMediaRef.current = el; }}
+                  ref={(el) => { if (el) bgMediaRef.current = el; }}
                   src={activeScene.background_url} 
                   alt="" 
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar imagen')}
-                  onLoad={() => {
-                    // Trigger a re-center once image is loaded
-                    if (stageRef.current) {
-                      const rect = stageRef.current.getBoundingClientRect();
-                      setOffset(prev => ({ ...prev })); // Force effect
-                    }
-                  }}
                 />
               )}
             </div>
           </div>
         )}
 
-        {/* Grid Layer - Always on top of background */}
         {activeScene.grid_enabled && (
           <div 
             className="absolute inset-0 pointer-events-none"
@@ -733,7 +538,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
           />
         )}
 
-        {/* Grid Highlight Layer */}
         {highlightedCells.map((cell, i) => (
           <div 
             key={`${cell.x}-${cell.y}-${i}`}
@@ -763,10 +567,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
           />
         </div>
 
-        {/* Tokens Layer */}
         <div style={{ zIndex: 10, position: 'absolute', inset: 0 }} className="pointer-events-none">
           {(() => {
-            // Prioritize current player's tokens to be on top for easier selection
             const sortedTokens = (!isDM && characterId) 
               ? [
                   ...tokens.filter((t: MapToken) => t.character_id !== characterId), 
@@ -789,143 +591,18 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 activeTool={activeTool}
                 onMove={(x: number, y: number, isFinal: boolean = true) => {
                   updateTokenPosition(token.id, x, y, isFinal);
-                  if (isFinal && isDM && revealAroundTokens) {
-                    // Experimental: Reveal fog around token
-                    const radius = activeScene.grid_size * 2;
-                    const points = [];
-                    // Create a circle of points for the "brush" or just a few points
-                    points.push({ x, y });
-                    addFogStroke({
-                      fog_type: 'eraser',
-                      shape: 'brush',
-                      points: [{ x: x + token.size / 2, y: y + token.size / 2 }],
-                      brush_size: radius * 2,
-                      opacity: 1,
-                      is_visible: true
-                    });
-                  }
                 }}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
                 onDragStart={(id) => setDraggingTokenId(id)}
                 onDragEnd={() => setDraggingTokenId(null)}
-                className={cn(
-                  !isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : "",
-                  isDM && showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-40 grayscale" : "",
-                  isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : ""
-                )}
               />
             </div>
             ))
           })()}
         </div>
 
-        {/* Fog of War Layer */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ zIndex: 40 }}
-        >
-          <canvas 
-            ref={fogCanvasRef}
-            width={8000}
-            height={8000}
-            className="absolute inset-0 pointer-events-none"
-          />
-        </div>
-
-        {/* Fog Blocks DM View */}
-        {isDM && fogStrokes.map((stroke: FogStroke) => {
-          if (stroke.fog_type !== 'block' || stroke.points.length < 2) return null;
-          const { x, y } = stroke.points[0];
-          const { x: width, y: height } = stroke.points[1];
-          const isSelected = selectedFogId === stroke.id;
-          
-          return (
-            <div
-              key={stroke.id}
-              data-fog-id={stroke.id}
-              className={cn(
-                "absolute border-2 transition-all cursor-pointer pointer-events-auto",
-                isSelected ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] z-[42]" : "border-current z-[41]"
-              )}
-              style={{
-                left: x,
-                top: y,
-                width: width,
-                height: height,
-                backgroundColor: stroke.block_color || 'rgba(255,0,0,0.3)',
-                color: stroke.block_color?.replace('0.4', '1') || 'red',
-              }}
-            >
-              <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[10px] text-white font-bold select-none pointer-events-none">
-                {stroke.label || 'Bloque'}
-              </div>
-              
-              {isSelected && (
-                <div 
-                  className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-1 bg-black/90 p-1.5 rounded-lg border border-white/20 shadow-2xl pointer-events-auto"
-                  data-map-ui="true"
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      battleMap.removeFogStroke(stroke.id);
-                      setSelectedFogId(null);
-                      toast.success('Zona revelada');
-                    }}
-                    className="flex items-center gap-1.5 px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
-                  >
-                    <CloudOff className="w-3 h-3" />
-                    REVELAR
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      battleMap.removeFogStroke(stroke.id);
-                      setSelectedFogId(null);
-                      toast.success('Bloque eliminado');
-                    }}
-                    className="flex items-center gap-1.5 px-2 py-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    ELIMINAR
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Current Fog Block Creation Preview */}
-        {fogBlockStart && fogBlockEnd && (
-          <div
-            className="absolute border-2 border-dashed border-white bg-white/20 pointer-events-none"
-            style={{
-              left: Math.min(fogBlockStart.x, fogBlockEnd.x),
-              top: Math.min(fogBlockStart.y, fogBlockEnd.y),
-              width: Math.abs(fogBlockEnd.x - fogBlockStart.x),
-              height: Math.abs(fogBlockEnd.y - fogBlockStart.y),
-              zIndex: 45
-            }}
-          />
-        )}
-
-        {/* Local Drawing Fog Preview */}
-        {localFogPoints.length > 0 && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 45 }}>
-            <polyline
-              points={localFogPoints.map(p => `${p.x},${p.y}`).join(' ')}
-              fill="none"
-              stroke={activeTool === 'fogPaint' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}
-              strokeWidth={brushSize}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-
-        {/* Ruler Layer */}
         {rulerStart && rulerEnd && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 50 }}>
             {measureMode === 'line' && (
@@ -939,78 +616,49 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 <circle cx={rulerEnd.x} cy={rulerEnd.y} r={4 / scale} fill="var(--gold)" />
               </>
             )}
-
+            
             {measureMode === 'circle' && (
-              <>
-                <circle 
-                  cx={rulerStart.x} cy={rulerStart.y} 
-                  r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} 
-                  fill="var(--gold)" fillOpacity="0.1"
-                  stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
-                />
-                <line 
-                  x1={rulerStart.x} y1={rulerStart.y} 
-                  x2={rulerEnd.x} y2={rulerEnd.y} 
-                  stroke="var(--gold)" strokeWidth={1 / scale} opacity="0.5"
-                />
-                <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
-              </>
+              <circle 
+                cx={rulerStart.x} cy={rulerStart.y} 
+                r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)}
+                fill="var(--gold)" fillOpacity={0.1}
+                stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+              />
             )}
 
-            {measureMode === 'cone' && (() => {
-              const dx = rulerEnd.x - rulerStart.x;
-              const dy = rulerEnd.y - rulerStart.y;
-              const radius = Math.hypot(dx, dy);
-              const angle = Math.atan2(dy, dx);
-              const halfSpread = (30 * Math.PI) / 180; // 30 degrees each side for 60 total
-              
-              const startAngle = angle - halfSpread;
-              const endAngle = angle + halfSpread;
-              
-              const x1 = rulerStart.x + radius * Math.cos(startAngle);
-              const y1 = rulerStart.y + radius * Math.sin(startAngle);
-              const x2 = rulerStart.x + radius * Math.cos(endAngle);
-              const y2 = rulerStart.y + radius * Math.sin(endAngle);
-              
-              const pathData = `
-                M ${rulerStart.x} ${rulerStart.y}
-                L ${x1} ${y1}
-                A ${radius} ${radius} 0 0 1 ${x2} ${y2}
-                Z
-              `;
-              
-              return (
-                <>
-                  <path 
-                    d={pathData}
-                    fill="var(--gold)" fillOpacity="0.1"
-                    stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
-                  />
-                  <line 
-                    x1={rulerStart.x} y1={rulerStart.y} 
-                    x2={rulerEnd.x} y2={rulerEnd.y} 
-                    stroke="var(--gold)" strokeWidth={1 / scale} opacity="0.5"
-                  />
-                  <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
-                </>
-              );
-            })()}
-
-            <foreignObject 
-              x={rulerEnd.x + (10 / scale)} y={rulerEnd.y + (10 / scale)} 
-              width={150 / scale} height={60 / scale}
-            >
-              <div 
-                className="bg-black/80 border border-[var(--gold)]/30 px-2 py-1 rounded text-[var(--gold)] font-bold shadow-xl"
-                style={{ fontSize: `${12 / scale}px` }}
-              >
-                {calculateDistance()} ft
-              </div>
-            </foreignObject>
+            {measureMode === 'cone' && (
+              <path 
+                d={`
+                  M ${rulerStart.x} ${rulerStart.y}
+                  L ${rulerEnd.x} ${rulerEnd.y}
+                  A ${Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} ${Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} 0 0 1 
+                  ${rulerStart.x + Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) * Math.cos(Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) - Math.PI / 3)}
+                  ${rulerStart.y + Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) * Math.sin(Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) - Math.PI / 3)}
+                  Z
+                `}
+                fill="var(--gold)" fillOpacity={0.1}
+                stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+              />
+            )}
           </svg>
         )}
-      </div>
 
+        {rulerEnd && (
+          <div 
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border border-[var(--gold)]/50 rounded-lg px-2 py-1 text-[var(--gold)] text-xs font-bold shadow-2xl z-[60]"
+            style={{ 
+              left: rulerEnd.x + 10,
+              top: rulerEnd.y + 10,
+              transform: `scale(${1/scale})`,
+              transformOrigin: 'top left'
+            }}
+          >
+            {calculateDistance()} ft
+          </div>
+        )}
+      </div>
     </div>
   );
 });
+
+Stage.displayName = 'Stage';
