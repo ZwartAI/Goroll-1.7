@@ -407,7 +407,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           brush_size: 0,
           points: [{ x, y }, { x: width, y: height }], // Storing dimensions in second point for simplicity in this schema
           is_visible: true,
-          label: `Bloque ${fogStrokes.filter(f => f.fog_type === 'block').length + 1}`
+          label: `Bloque ${fogStrokes.filter((f: FogStroke) => f.fog_type === 'block').length + 1}`
         });
       }
       setFogBlockStart(null);
