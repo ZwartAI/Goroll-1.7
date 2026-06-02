@@ -1210,6 +1210,56 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           </div>
         )}
 
+        {/* Admin Sidebar */}
+        <BattleMapAdminSidebar 
+          isOpen={isAdminSidebarOpen}
+          onClose={() => setIsAdminSidebarOpen(false)}
+          isDM={isDM}
+          showIniciativa={showSidebar}
+          onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+          showToolbar={showToolbar}
+          onToggleToolbar={() => setShowToolbar(!showToolbar)}
+          onInvokeToken={() => setIsTokenPickerOpen(true)}
+          onOpenSettings={() => {
+            setIsConfigModalOpen(true);
+            setIsAdminSidebarOpen(false);
+          }}
+        />
+
+        {/* Token Picker Modal */}
+        <BattleMapTokenPickerModal 
+          isOpen={isTokenPickerOpen}
+          onClose={() => setIsTokenPickerOpen(false)}
+          campaignId={campaign?.id || ''}
+          onSummon={(tokens) => {
+            const nextState = { ...remoteTokenPositions };
+            const stage = stageRef.current;
+            let basePos = { x: dimensions.width / 2, y: dimensions.height / 2 };
+            
+            if (stage) {
+              const currentScale = stage.scaleX();
+              basePos = {
+                x: (dimensions.width / 2 - stage.x()) / currentScale,
+                y: (dimensions.height / 2 - stage.y()) / currentScale
+              };
+            }
+
+            tokens.forEach((t, i) => {
+              // Offset slightly each token to avoid overlapping perfectly
+              const pos = { x: basePos.x + (i * 40), y: basePos.y + (i * 40) };
+              // We use a random suffix to allow multiple instances of the same enemy/npc
+              const instanceId = `${t.id}_${Math.random().toString(36).substring(2, 7)}`;
+              nextState[instanceId] = pos;
+              handleBroadcastMove(instanceId, pos.x, pos.y);
+            });
+
+            setRemoteTokenPositions(nextState);
+            handleUpdateCurrentSceneState(undefined, nextState);
+            toast.success(`${tokens.length} tokens invocados al mapa`);
+            setIsTokenPickerOpen(false);
+          }}
+        />
+
         {/* Generic Confirm Modal */}
         {confirmModal && (
           <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setConfirmModal(null))}>
