@@ -156,8 +156,35 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
   return (
     <>
       {/* Desktop View */}
-      <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
-        {participants.map((p, idx) => (
+      <div className="absolute left-4 top-20 bottom-32 w-52 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
+        {isDM && (
+          <div className="flex gap-1 mb-2 pointer-events-auto">
+            <button
+              onClick={() => setActiveTab('participants')}
+              className={cn(
+                "flex-1 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeTab === 'participants' 
+                  ? "bg-[var(--gold)]/20 border-[var(--gold)] text-[var(--gold)]" 
+                  : "bg-black/40 border-white/10 text-white/40 hover:border-white/30"
+              )}
+            >
+              Participantes
+            </button>
+            <button
+              onClick={() => setActiveTab('fog')}
+              className={cn(
+                "flex-1 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeTab === 'fog' 
+                  ? "bg-[var(--gold)]/20 border-[var(--gold)] text-[var(--gold)]" 
+                  : "bg-black/40 border-white/10 text-white/40 hover:border-white/30"
+              )}
+            >
+              Niebla
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'participants' && participants.map((p, idx) => (
           <motion.div
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
