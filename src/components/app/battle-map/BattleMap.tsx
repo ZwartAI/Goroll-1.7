@@ -786,7 +786,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
       nextState[character.id] = pos;
       setRemoteTokenPositions(nextState);
-      handleBroadcastMove(character.id, pos.x, pos.y);
+      handleBroadcastMove(character.id, pos.x, pos.y, { name: character.name, color: character.color, type: 'player' });
       toast.success(t("battleMap.tokenSummoned") || "Token invocado");
     }
     // Guardar la escena con el nuevo estado de tokens explícitamente
