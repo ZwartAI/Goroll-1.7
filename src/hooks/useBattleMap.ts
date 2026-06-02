@@ -63,6 +63,8 @@ export interface FogStroke {
   brush_size: number;
   points: { x: number; y: number }[];
   is_visible: boolean;
+  label?: string | null;
+  block_color?: string | null;
 }
 
 export const isVideoUrl = (url: string | null | undefined) => {
