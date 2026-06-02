@@ -559,17 +559,6 @@ export const useBattleMap = (campaignId: string) => {
     await removeDrawing(lastDrawing.id);
   };
 
-  const removeDrawing = async (drawingId: string) => {
-    const { error } = await supabase
-      .from('battle_map_drawings_simple')
-      .delete()
-      .eq('id', drawingId);
-
-    if (error) {
-      console.error('Error removing drawing:', error);
-    }
-  };
-
   return {
     activeScene,
     scenes,
@@ -586,5 +575,6 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
+    undoLastDrawing
   };
 };

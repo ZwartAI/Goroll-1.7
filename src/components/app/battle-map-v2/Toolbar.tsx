@@ -13,7 +13,11 @@ interface Props {
   onOpenSettings: () => void;
   onInvokeToken: (tokenToPlace?: any) => void;
   onResetView: () => void;
-  onClearDrawings: () => void;
+  onClearDrawings: (options?: { authorId?: string, all?: boolean }) => void;
+  onUndoDrawing: () => void;
+  characterId?: string;
+  authorName?: string;
+  authorColor?: string;
   onOpenDice: () => void;
   hasMyToken: boolean;
   hasBackground: boolean;
@@ -28,13 +32,25 @@ export function Toolbar({
   onInvokeToken,
   onResetView,
   onClearDrawings,
+  onUndoDrawing,
   onOpenDice,
   hasMyToken,
-  hasBackground
+  hasBackground,
+  characterId,
+  authorName,
+  authorColor
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
+  const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
+
+  // Get unique authors from drawings to show in DM clear menu
+  // Since Toolbar doesn't have drawings, we might need to pass them or the list of authors.
+  // For now, let's assume DM can clear "All" or "Mine". 
+  // To clear specific player, we need the list of authors.
+  // Let's modify Props to include drawings or a derived author list.
 
   return (
     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
