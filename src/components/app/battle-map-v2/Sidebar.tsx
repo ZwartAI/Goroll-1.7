@@ -217,7 +217,11 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
       </div>
 
       {/* Mobile/Compact View */}
-      <div className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" data-map-ui="true">
+      <div 
+        ref={sidebarRef}
+        className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" 
+        data-map-ui="true"
+      >
         {participants.map((p, idx) => {
           const isExpanded = expandedNameId === p.id;
           return (
