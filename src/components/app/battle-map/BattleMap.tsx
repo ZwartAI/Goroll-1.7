@@ -259,7 +259,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       .on('broadcast', { event: 'token-move' }, (payload) => {
         setRemoteTokenPositions(prev => ({
           ...prev,
-          [payload.payload.tokenId]: { x: payload.payload.x, y: payload.payload.y }
+          [payload.payload.tokenId]: { ...payload.payload }
         }));
       })
       .on('broadcast', { event: 'token-remove' }, (payload) => {
