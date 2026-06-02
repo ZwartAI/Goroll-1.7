@@ -176,7 +176,7 @@ export function NpcPickerModal({ campaignId, encounter, dm, onClose }: Props) {
                     className={`ornate-card no-hover-grow !p-2 flex items-center gap-2 text-left transition-colors disabled:opacity-50 ${isSelected ? "border-[var(--gold)] bg-[color-mix(in_oklab,var(--gold)_15%,transparent)]" : "hover:border-[var(--gold)]"}`}
                     onClick={() => toggleSelect(tpl.id)}
                   >
-                    <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center bg-card shrink-0"
+                    <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center bg-card shrink-0 relative overflow-hidden"
                       style={{ borderColor: tpl.color, color: tpl.color }}>
                       <EnemyIcon name={tpl.icon_key} size={20} fill={hasAsset} customImage={customImg} />
                     </div>
