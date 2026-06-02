@@ -152,7 +152,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
-          showGrid={battleMap.activeScene?.show_grid}
           showParticipants={showParticipants}
         />
 
