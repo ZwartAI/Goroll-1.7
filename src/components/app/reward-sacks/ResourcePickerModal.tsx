@@ -130,7 +130,6 @@ export function ResourcePickerModal({ title, type, campaignId, selectedIds, onCl
           <button 
             className="flex-1 py-2 rounded bg-[var(--gold)] text-black hover:opacity-90 transition-opacity text-xs uppercase font-bold"
             onClick={() => onSelect(tempSelected)}
-            className="flex-1 py-2 rounded bg-[var(--gold)] text-black hover:opacity-90 transition-opacity text-xs uppercase font-bold"
           >
             {t("common.confirm")} ({tempSelected.length})
           </button>
