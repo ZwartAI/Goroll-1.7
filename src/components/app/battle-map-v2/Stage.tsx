@@ -32,20 +32,31 @@ export const Stage = forwardRef<StageHandle, Props>(({
 }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   
-  // Refs to avoid stale closures in event listeners
+  // Refs to avoid stale closures and for direct DOM updates during interactions
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   
-  // Keep refs in sync immediately to avoid frame lag in coordinate conversion
-  scaleRef.current = scale;
-  offsetRef.current = offset;
+  // Sync refs with state for component-level knowledge
+  useEffect(() => {
+    scaleRef.current = scale;
+    offsetRef.current = offset;
+    updateTransform();
+  }, [scale, offset]);
+
+  const updateTransform = () => {
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+    }
+  };
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+  const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
   // Multi-touch / Gesture state
@@ -66,7 +77,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     };
   }, []);
 
-  const zoomAtScreenPoint = useCallback((screenX: number, screenY: number, zoomFactor: number) => {
+  const zoomAtScreenPoint = useCallback((screenX: number, screenY: number, zoomFactor: number, isFinal: boolean = true) => {
     if (!stageRef.current) return;
     const rect = stageRef.current.getBoundingClientRect();
     
@@ -85,8 +96,19 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const newOffsetX = localX / newScale - worldX;
     const newOffsetY = localY / newScale - worldY;
 
-    setScale(newScale);
-    setOffset({ x: newOffsetX, y: newOffsetY });
+    // Update refs immediately
+    scaleRef.current = newScale;
+    offsetRef.current = { x: newOffsetX, y: newOffsetY };
+
+    // Direct DOM update
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
+    }
+
+    if (isFinal) {
+      setScale(newScale);
+      setOffset({ x: newOffsetX, y: newOffsetY });
+    }
   }, []);
 
   const centerView = useCallback(() => {
@@ -245,19 +267,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const handlePointerMove = (e: React.PointerEvent) => {
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    let coords = screenToWorld(e.clientX, e.clientY);
-
-    if (activeTool === 'measure' && measureSnap && activeScene) {
-      const gridSize = activeScene.grid_size;
-      const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
-      const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-      
-      coords = {
-        x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
-        y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
-      };
-    }
-
+    
     if (activePointers.current.size >= 2 && lastPinchDist.current !== null) {
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -266,26 +276,67 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const centerY = (pointers[0].y + pointers[1].y) / 2;
       
       const zoomFactor = dist / lastPinchDist.current;
-      zoomAtScreenPoint(centerX, centerY, zoomFactor);
+      zoomAtScreenPoint(centerX, centerY, zoomFactor, false);
       
       lastPinchDist.current = dist;
       return;
     }
 
-    if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
-      setRulerEnd(coords);
-    } else if (isPanning && activePointers.current.size === 1) {
+    if (isPanning && activePointers.current.size === 1) {
       const dx = (e.clientX - lastPanPos.current.x) / scaleRef.current;
       const dy = (e.clientY - lastPanPos.current.y) / scaleRef.current;
-      setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      
+      // Update refs for immediate coordinate conversion
+      offsetRef.current = { 
+        x: offsetRef.current.x + dx, 
+        y: offsetRef.current.y + dy 
+      };
+      
+      // Direct DOM update for 60fps performance
+      if (containerRef.current) {
+        containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+      }
+      
       lastPanPos.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
+
+    // Ruler logic - throttle this or it's very expensive
+    if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
+      const coords = screenToWorld(e.clientX, e.clientY);
+      let snappedCoords = coords;
+      
+      if (measureSnap && activeScene) {
+        const gridSize = activeScene.grid_size;
+        const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
+        const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
+        
+        snappedCoords = {
+          x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
+          y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
+        };
+      }
+      
+      // Throttle state update to avoid heavy useMemo re-calc on every frame
+      if (Date.now() - lastMeasureTime.current > 32) {
+        setRulerEnd(snappedCoords);
+        lastMeasureTime.current = Date.now();
+      }
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    const wasPinching = activePointers.current.size >= 2;
     activePointers.current.delete(e.pointerId);
+    
     if (activePointers.current.size < 2) {
       lastPinchDist.current = null;
+    }
+
+    // Sync ref back to state when interaction finishes
+    if (isPanning || (wasPinching && activePointers.current.size < 2)) {
+      setOffset(offsetRef.current);
+      setScale(scaleRef.current);
     }
 
     if (activeTool === 'measure' && isMeasuring.current) {
@@ -321,7 +372,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     e.stopPropagation();
 
     const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
-    zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
+    zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor, true);
   };
 
   // Handle image load to send dimensions
@@ -471,12 +522,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
       ref={stageRef}
     >
       <div 
+        ref={containerRef}
         className="absolute inset-0 origin-top-left stage-bg"
         data-map-background="true"
         style={{ 
-          transform: `translate(${offset.x * scale}px, ${offset.y * scale}px) scale(${scale})`,
+          transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
           width: '8000px',
-          height: '8000px'
+          height: '8000px',
+          willChange: 'transform'
         }}
       >
         {activeScene.background_url && (

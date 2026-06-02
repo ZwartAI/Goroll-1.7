@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, memo } from 'react';
 import { Drawing } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
 import { MapTool } from './Toolbar';
@@ -15,6 +15,35 @@ interface Props {
   scale: number;
   offset: { x: number, y: number };
 }
+
+const MemoizedPolyline = memo(({ drawing, activeTool, onRemoveDrawing }: { 
+  drawing: Drawing, 
+  activeTool: MapTool, 
+  onRemoveDrawing: (id: string) => void 
+}) => {
+  const pointsStr = useMemo(() => drawing.points.join(','), [drawing.points]);
+  
+  return (
+    <polyline
+      points={pointsStr}
+      fill="none"
+      stroke={drawing.color || '#FFD700'}
+      strokeWidth={activeTool === 'eraser' ? 20 : (drawing.stroke_width || 3)}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn(
+        "transition-all duration-200",
+        activeTool === 'eraser' ? "cursor-pointer hover:stroke-red-500/50 hover:opacity-80 pointer-events-auto" : "pointer-events-none"
+      )}
+      onClick={(e) => {
+        if (activeTool === 'eraser') {
+          e.stopPropagation();
+          onRemoveDrawing(drawing.id);
+        }
+      }}
+    />
+  );
+});
 
 export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTool, gridSize, characterId, authorName, authorColor, scale, offset }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -87,24 +116,11 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
     >
       {/* Existing Drawings */}
       {drawings.map((drawing) => (
-        <polyline
-          key={drawing.id}
-          points={drawing.points.join(',')}
-          fill="none"
-          stroke={drawing.color || '#FFD700'}
-          strokeWidth={activeTool === 'eraser' ? 20 : (drawing.stroke_width || 3)}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={cn(
-            "transition-all duration-200",
-            activeTool === 'eraser' ? "cursor-pointer hover:stroke-red-500/50 hover:opacity-80 pointer-events-auto" : "pointer-events-none"
-          )}
-          onClick={(e) => {
-            if (activeTool === 'eraser') {
-              e.stopPropagation();
-              onRemoveDrawing(drawing.id);
-            }
-          }}
+        <MemoizedPolyline 
+          key={drawing.id} 
+          drawing={drawing} 
+          activeTool={activeTool} 
+          onRemoveDrawing={onRemoveDrawing} 
         />
       ))}
 
