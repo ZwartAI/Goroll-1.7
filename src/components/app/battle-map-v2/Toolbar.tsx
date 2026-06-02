@@ -258,6 +258,77 @@ export function Toolbar({
               )}
             </AnimatePresence>
           </div>
+          
+          {isDM && (
+            <div className="relative group/fog">
+              <ToolButton 
+                active={isFogActive} 
+                onClick={() => {
+                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase') {
+                    setActiveTool('fogPaint');
+                  }
+                  setFogMenuOpen(!fogMenuOpen);
+                  setPencilMenuOpen(false);
+                  setMeasureMenuOpen(false);
+                }}
+                icon={<Cloud className="w-5 h-5" />}
+                label="Niebla"
+              />
+              
+              <AnimatePresence>
+                {fogMenuOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[140px]"
+                  >
+                    <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
+                      <ToolButton 
+                        active={activeTool === 'fogPaint'} 
+                        onClick={() => setActiveTool('fogPaint')}
+                        icon={<Cloud className="w-4 h-4 text-white" />}
+                        label="Pintar Niebla"
+                        small
+                      />
+                      <ToolButton 
+                        active={activeTool === 'fogErase'} 
+                        onClick={() => setActiveTool('fogErase')}
+                        icon={<CloudOff className="w-4 h-4 text-white/60" />}
+                        label="Revelar Mapa"
+                        small
+                      />
+                    </div>
+
+                    <div className="px-2 pb-2 flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[8px] uppercase tracking-tighter text-white/40">Tamaño: {brushSize}px</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="40" 
+                        max="400" 
+                        step="10"
+                        value={brushSize}
+                        onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                        className="w-full accent-[var(--gold)]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 border-t border-[var(--gold)]/10 pt-2">
+                      <button 
+                        onClick={onClearFog}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-400 transition-colors text-left"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Niebla</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           <ToolButton 
             active={false} 
