@@ -164,6 +164,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   // Ruler State
   const [rulerStart, setRulerStart] = useState<{ x: number, y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number, y: number } | null>(null);
+  const isMeasuring = useRef(false);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only handle primary button for most things, but allow touch
@@ -179,34 +180,53 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
-    // Check if we're clicking a token - handled by Token component now
+    // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
-    if (tokenElement) {
-      return;
-    }
-
+    const tokenId = tokenElement?.getAttribute('data-token-id');
 
     // Multi-touch / Pinch zoom
     if (activePointers.current.size >= 2) {
       setIsPanning(false);
       setDraggingTokenId(null);
+      isMeasuring.current = false;
 
-      
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
       lastPinchDist.current = dist;
       return;
     }
 
-
     if (activeTool === 'measure') {
-      setRulerStart(coords);
-      setRulerEnd(coords);
+      isMeasuring.current = true;
+      let startCoords = coords;
+
+      // If we clicked a token, link to its center
+      if (tokenId) {
+        const token = tokens.find((t: MapToken) => t.id === tokenId);
+        if (token) {
+          startCoords = {
+            x: token.x + (token.size / 2),
+            y: token.y + (token.size / 2)
+          };
+        }
+      }
+
+      setRulerStart(startCoords);
+      setRulerEnd(startCoords);
+      
+      // Capture pointer to prevent losing the ruler during fast movement
+      if (stageRef.current) {
+        stageRef.current.setPointerCapture(e.pointerId);
+      }
     } else if (activeTool === 'move') {
+      if (tokenId) return; // Token handles its own drag
+
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
         setIsPanning(true);
         lastPanPos.current = { x: e.clientX, y: e.clientY };
-        target.setPointerCapture(e.pointerId);
+        if (stageRef.current) {
+          stageRef.current.setPointerCapture(e.pointerId);
+        }
       }
     }
   };
@@ -236,7 +256,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     }
 
 
-    if (activeTool === 'measure' && rulerStart) {
+    if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
       setRulerEnd(coords);
     } else if (isPanning && activePointers.current.size === 1) {
       const dx = (e.clientX - lastPanPos.current.x) / scaleRef.current;
@@ -258,17 +278,21 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
 
 
-    if (activeTool === 'measure') {
+    if (activeTool === 'measure' && isMeasuring.current) {
+      isMeasuring.current = false;
       setTimeout(() => {
-        setRulerStart(null);
-        setRulerEnd(null);
+        // Only clear if another measurement hasn't started
+        if (!isMeasuring.current) {
+          setRulerStart(null);
+          setRulerEnd(null);
+        }
       }, 3000);
     }
     
     setIsPanning(false);
-    if (e.target instanceof Element) {
+    if (stageRef.current) {
       try {
-        e.target.releasePointerCapture(e.pointerId);
+        stageRef.current.releasePointerCapture(e.pointerId);
       } catch (err) {}
     }
   };
@@ -444,6 +468,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
                 gridOffsetX={activeScene.grid_offset_x}
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingTokenId === token.id}
+                activeTool={activeTool}
                 onMove={(x: number, y: number, isFinal: boolean = true) => updateTokenPosition(token.id, x, y, isFinal)}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
