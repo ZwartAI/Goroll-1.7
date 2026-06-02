@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { totals, fmtMod, modifier, RARITY_COLOR, type Character, type Item, type Rarity } from "@/lib/game";
@@ -170,7 +171,14 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
 
   return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-2" {...backdropProps(onClose)}>
-      <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-hidden relative" onClick={e => e.stopPropagation()}>
+        <button 
+          onClick={onClose}
+          className="absolute top-3 right-3 z-[60] p-1.5 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-[var(--gold)]"
+          title={t("sheet.goBack")}
+        >
+          <X size={20} />
+        </button>
         <div className="p-4 space-y-3 max-h-[92vh] overflow-y-auto">
 
         <div className="text-center">
@@ -332,13 +340,10 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
             {!achievements.length && <p className="text-[10px] text-muted-foreground">{t("sheet.noAchievements")}</p>}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button className="btn-fantasy" onClick={() => setShowNotes(true)}
-            style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
-            {t("sheet.viewNotes")}
-          </button>
-          <button className="btn-fantasy" onClick={onClose}>{t("sheet.goBack")}</button>
-        </div>
+        <button className="btn-fantasy w-full" onClick={() => setShowNotes(true)}
+          style={{ background: "linear-gradient(135deg, oklch(0.45 0.12 220), oklch(0.30 0.10 220))", color: "white" }}>
+          {t("sheet.viewNotes")}
+        </button>
         {showNotes && character && (
           <NotesEditor
             characterId={character.id}
