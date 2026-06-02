@@ -387,6 +387,33 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       setDraggingTokenId(null);
     }
 
+    if (activeTool === 'fogBlock' && fogBlockStart && fogBlockEnd) {
+      const width = Math.abs(fogBlockEnd.x - fogBlockStart.x);
+      const height = Math.abs(fogBlockEnd.y - fogBlockStart.y);
+      
+      if (width > 10 && height > 10) {
+        const x = Math.min(fogBlockStart.x, fogBlockEnd.x);
+        const y = Math.min(fogBlockStart.y, fogBlockEnd.y);
+        
+        // Randomly assign a color for the DM
+        const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
+        
+        addFogStroke({
+          fog_type: 'block',
+          shape: 'rect',
+          color: '#000000',
+          block_color: randomColor,
+          opacity: 0.85,
+          brush_size: 0,
+          points: [{ x, y }, { x: width, y: height }], // Storing dimensions in second point for simplicity in this schema
+          is_visible: true,
+          label: `Bloque ${fogStrokes.filter(f => f.fog_type === 'block').length + 1}`
+        });
+      }
+      setFogBlockStart(null);
+      setFogBlockEnd(null);
+    }
+
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
       
