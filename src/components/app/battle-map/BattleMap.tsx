@@ -1244,7 +1244,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           onToggleParticipants={() => setShowParticipants(!showParticipants)}
           showToolbar={showToolbar}
           onToggleToolbar={() => setShowToolbar(!showToolbar)}
-          onInvokeToken={() => setIsTokenPickerOpen(true)}
+          onInvokeToken={() => {
+            setIsTokenPickerOpen(true);
+            setIsAdminSidebarOpen(false);
+          }}
           onOpenSettings={() => {
             setIsConfigModalOpen(true);
             setIsAdminSidebarOpen(false);
