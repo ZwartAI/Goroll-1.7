@@ -381,6 +381,80 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
   };
 
+  // Render Fog of War on canvas
+  useEffect(() => {
+    const canvas = fogCanvasRef.current;
+    if (!canvas || !activeScene) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (fogStrokes.length === 0) return;
+
+    // We use a temporary canvas to compose the fog and erasers
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+
+    // 1. Draw base fog (paint strokes)
+    tempCtx.lineCap = 'round';
+    tempCtx.lineJoin = 'round';
+    
+    fogStrokes.forEach(stroke => {
+      if (stroke.fog_type === 'brush') {
+        tempCtx.beginPath();
+        tempCtx.lineWidth = stroke.brush_size;
+        tempCtx.strokeStyle = 'black'; // Always black for the mask
+        stroke.points.forEach((p, i) => {
+          if (i === 0) tempCtx.moveTo(p.x, p.y);
+          else tempCtx.lineTo(p.x, p.y);
+        });
+        tempCtx.stroke();
+      }
+    });
+
+    // 2. Subtract erasers
+    tempCtx.globalCompositeOperation = 'destination-out';
+    fogStrokes.forEach(stroke => {
+      if (stroke.fog_type === 'eraser') {
+        tempCtx.beginPath();
+        tempCtx.lineWidth = stroke.brush_size;
+        tempCtx.strokeStyle = 'white';
+        stroke.points.forEach((p, i) => {
+          if (i === 0) tempCtx.moveTo(p.x, p.y);
+          else tempCtx.lineTo(p.x, p.y);
+        });
+        tempCtx.stroke();
+      }
+    });
+
+    // 3. Render the composed mask to the main canvas with final styling
+    ctx.globalAlpha = isDM ? 0.6 : 0.95; // DM sees transparency, players see mostly opaque
+    
+    // Fill the mask with dark color or pattern
+    ctx.drawImage(tempCanvas, 0, 0);
+    
+    // Use the mask to draw the fog
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Optional: Add a subtle texture/noise
+    ctx.globalAlpha = 0.05;
+    for (let i = 0; i < 100; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+  }, [fogStrokes, isDM, activeScene]);
+
   if (!activeScene) {
     return (
       <div className="flex-1 bg-[#111] flex items-center justify-center">
