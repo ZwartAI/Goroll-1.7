@@ -169,11 +169,13 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
               <p className="text-[10px] font-display uppercase tracking-wider truncate" style={{ color: p.color || 'var(--gold)' }}>
                 {p.name}
               </p>
-              <div className="h-1 w-full bg-black/40 rounded-full mt-1 overflow-hidden">
+              <div className="h-1.5 w-full bg-black/40 rounded-full mt-1 overflow-visible">
                 <div 
                   className={cn(
-                    "h-full transition-all duration-500",
-                    p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
+                    "h-full rounded-full transition-all duration-500",
+                    p.hp_percent > 50 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : 
+                    p.hp_percent > 20 ? "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]" : 
+                    "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
                   )}
                   style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
                 />
