@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, Cloud, CloudOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fogPaint' | 'fogErase';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -20,6 +20,7 @@ interface Props {
   onResetView: () => void;
   onClearDrawings: (options?: { authorId?: string, all?: boolean }) => void;
   onUndoDrawing: () => void;
+  onClearFog: () => void;
   characterId?: string;
   authorName?: string;
   authorColor?: string;
@@ -27,6 +28,8 @@ interface Props {
   hasMyToken: boolean;
   hasBackground: boolean;
   drawings?: any[];
+  brushSize: number;
+  setBrushSize: (size: number) => void;
 }
 
 export function Toolbar({ 
