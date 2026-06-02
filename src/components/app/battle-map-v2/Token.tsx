@@ -20,6 +20,7 @@ interface Props {
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
   screenToWorld: (x: number, y: number) => { x: number, y: number };
+  className?: string;
 }
 
 export function Token({ 
