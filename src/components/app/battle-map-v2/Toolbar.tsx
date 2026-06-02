@@ -298,6 +298,13 @@ export function Toolbar({
                         label="Revelar Mapa"
                         small
                       />
+                      <ToolButton 
+                        active={activeTool === 'fogBlock'} 
+                        onClick={() => setActiveTool('fogBlock')}
+                        icon={<Box className="w-4 h-4 text-white/60" />}
+                        label="Bloque de Niebla"
+                        small
+                      />
                     </div>
 
                     <div className="px-2 pb-2 flex flex-col gap-2">
