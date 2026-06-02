@@ -302,7 +302,30 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
         className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" 
         data-map-ui="true"
       >
-        {participants.map((p, idx) => {
+        {isDM && (
+          <div className="flex gap-1 mb-2 pointer-events-auto">
+            <button
+              onClick={() => setActiveTab('participants')}
+              className={cn(
+                "p-1.5 rounded-full border transition-all",
+                activeTab === 'participants' ? "bg-[var(--gold)] border-[var(--gold)] text-black" : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
+              )}
+            >
+              <UserPlus className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => setActiveTab('fog')}
+              className={cn(
+                "p-1.5 rounded-full border transition-all",
+                activeTab === 'fog' ? "bg-[var(--gold)] border-[var(--gold)] text-black" : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
+              )}
+            >
+              <Cloud className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'participants' && participants.map((p, idx) => {
           const isExpanded = expandedNameId === p.id;
           return (
             <motion.div
