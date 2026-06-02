@@ -171,7 +171,14 @@ export function CharacterSheetModal({ characterId, campaignId, editor, onClose, 
 
   return (
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-2" {...backdropProps(onClose)}>
-      <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="ornate-card max-w-md w-full max-h-[92vh] overflow-hidden relative" onClick={e => e.stopPropagation()}>
+        <button 
+          onClick={onClose}
+          className="absolute top-3 right-3 z-[60] p-1.5 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-[var(--gold)]"
+          title={t("sheet.goBack")}
+        >
+          <X size={20} />
+        </button>
         <div className="p-4 space-y-3 max-h-[92vh] overflow-y-auto">
 
         <div className="text-center">
