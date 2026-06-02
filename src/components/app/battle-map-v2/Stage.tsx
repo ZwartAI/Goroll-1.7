@@ -348,6 +348,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
     let coords = screenToWorld(e.clientX, e.clientY);
 
     if (isFogging.current) {
+      const now = Date.now();
+      if (now - lastDrawTime.current < 32) return; // Throttle ~30fps for drawing
+      lastDrawTime.current = now;
+
       const lastPoint = currentFogPoints.current[currentFogPoints.current.length - 1];
       if (!lastPoint || Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y) > 5) {
         currentFogPoints.current.push(coords);
