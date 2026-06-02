@@ -12,6 +12,7 @@ import { DiceButton } from './DiceButton';
 import { DicePanel, DieSelection } from './DicePanel';
 import { useT } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { toast } from 'sonner';
 
