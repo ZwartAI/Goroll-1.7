@@ -30,6 +30,16 @@ interface Props {
   drawings?: any[];
   brushSize: number;
   setBrushSize: (size: number) => void;
+  // Fog Phase 3
+  onCoverAll?: () => void;
+  onCoverImage?: () => void;
+  onCoverEdges?: () => void;
+  fogAnimationReduced?: boolean;
+  setFogAnimationReduced?: (v: boolean) => void;
+  showTokensUnderFog?: boolean;
+  setShowTokensUnderFog?: (v: boolean) => void;
+  revealAroundTokens?: boolean;
+  setRevealAroundTokens?: (v: boolean) => void;
 }
 
 export function Toolbar({ 
