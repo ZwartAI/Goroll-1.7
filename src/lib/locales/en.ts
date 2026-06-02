@@ -1549,6 +1549,7 @@ export const en: Dict = {
   },
   npcs: {
     title: "NPCs",
+    addFromNpcs: "Add from NPCs",
     label: "NPC",
     dmOnly: "Only the DM can manage NPCs.",
     search: "Search NPC...",
