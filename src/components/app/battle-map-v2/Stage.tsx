@@ -677,6 +677,33 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           })()}
         </div>
 
+        {/* Fog of War Layer */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 40 }}
+        >
+          <canvas 
+            ref={fogCanvasRef}
+            width={8000}
+            height={8000}
+            className="absolute inset-0 pointer-events-none"
+          />
+        </div>
+
+        {/* Local Drawing Fog Preview */}
+        {localFogPoints.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 45 }}>
+            <polyline
+              points={localFogPoints.map(p => `${p.x},${p.y}`).join(' ')}
+              fill="none"
+              stroke={activeTool === 'fogPaint' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}
+              strokeWidth={brushSize}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+
         {/* Ruler Layer */}
         {rulerStart && rulerEnd && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 50 }}>
