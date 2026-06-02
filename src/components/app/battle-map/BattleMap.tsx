@@ -60,12 +60,14 @@ interface Props {
 const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar }) => {
   const { combat, campaign, character, characters, onlineIds } = useGameData();
   const { t } = useT();
-  const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
+  const [activePanel, setActivePanel] = useState<'none' | 'participants'>('participants'); // Por defecto abierta
   const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
   const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
   const [isDicePanelOpen, setIsDicePanelOpen] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
+  const [isTokenPickerOpen, setIsTokenPickerOpen] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map)
   const [showSidebar, setShowSidebar] = useState(true);
