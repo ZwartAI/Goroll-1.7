@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { useT } from '@/lib/i18n';
 import { type LogRow, ENABLE_BATTLE_MAP } from '@/lib/game';
 import { buildOrderedTurns } from '@/lib/combat';
+import { pushLog } from '@/lib/log';
+
 
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
@@ -20,9 +22,10 @@ import { BattleMapChalkControls, type ChalkTool, type ChalkColor, type ChalkSize
 import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
 import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
-import { BattleMapDiceAnimation } from './BattleMapDiceAnimation';
+import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
 import { BattleMapToolbar } from './BattleMapToolbar';
 import { BattleMapBottomBar } from './BattleMapBottomBar';
+
 import { playMapSound } from './BattleMapSounds';
 import type { CombatParticipant, TurnBlock, CombatTurnGroup } from '@/lib/combat';
 import { EnemyCombatSheetModal } from '@/components/app/EnemyCombatSheetModal';
@@ -571,7 +574,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const handleDiceClick = useCallback(() => setIsDicePanelOpen(true), []);
 
-  const handleRollDice = useCallback((selections: DieSelection[]) => {
+  const handleRollDice = useCallback(async (selections: DieSelection[]) => {
     setIsDicePanelOpen(false);
     playMapSound('dice');
     const newRolls: any[] = [];
@@ -589,16 +592,40 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           type: sel.type,
           sides,
           result: res,
-          // Random scatter positions
           x: (Math.random() - 0.5) * (dimensions.width * 0.4),
           y: (Math.random() - 0.5) * (dimensions.height * 0.4)
         });
       }
     });
 
-    setActiveDiceRolls(newRolls);
+    if (campaign?.id && character) {
+      // 1. Log to history (pushLog already does this via Supabase)
+      // Note: We don't push the log here because usually the system handles it, 
+      // but the user said "apareça no log, como atualmente já o faz".
+      // Let's see if BattleMap was already pushing logs. 
+      // Actually, handleRollDice in BattleMap.tsx was only logging to console.
+      // Let's make it push to logs table too for consistency.
+      
+      pushLog(campaign.id, [
+        { t: 'char', v: character.name, color: character.color || 'var(--gold)', id: character.id },
+        { t: 'text', v: ' ha lanzado los dados: ' },
+        { t: 'text', v: individualResults.join(', ') },
+        { t: 'text', v: ' | Total: ' },
+        { t: 'text', v: total.toString() }
+      ]);
+
+      // 2. Trigger global animation via DB
+      await supabase.from('dice_rolls').insert({
+        campaign_id: campaign.id,
+        character_id: character.id,
+        dice_data: newRolls,
+        total: total
+      });
+    }
+
     console.log(`Tirada: ${individualResults.join(', ')} | Total: ${total}`);
-  }, [dimensions]);
+  }, [dimensions, campaign?.id, character]);
+
 
   const toggleParticipants = useCallback(() => setActivePanel(prev => prev === 'participants' ? 'none' : 'participants'), []);
 
@@ -947,10 +974,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
         {/* Dice Animation */}
         {activeDiceRolls && (
-          <BattleMapDiceAnimation 
-            dice={activeDiceRolls} 
-            onComplete={() => setActiveDiceRolls(null)} 
-          />
+          <SharedDiceAnimationOverlay />
+
         )}
 
         {/* Chalk Controls */}
