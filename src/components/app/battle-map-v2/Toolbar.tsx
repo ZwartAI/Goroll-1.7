@@ -240,6 +240,52 @@ export function Toolbar({
           />
         </div>
       )}
+      {/* Confirmation Modals */}
+      <AnimatePresence>
+        {showClearModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-black/90 border border-[var(--gold)]/30 p-6 rounded-2xl max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] border-t-[var(--gold)]/50"
+            >
+              <h3 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest mb-4">
+                {showClearModal === 'mine' ? '¿Borrar tus dibujos?' : 
+                 showClearModal === 'all' ? '¿Borrar TODOS los dibujos?' : 
+                 `¿Borrar dibujos de ${authors.find(a => a.id === selectedAuthorId)?.name}?`}
+              </h3>
+              
+              <p className="text-white/60 text-xs mb-8">
+                {showClearModal === 'all' ? 
+                  'Esta acción limpiará todos los trazos de la escena actual para todos los jugadores. No se puede deshacer.' : 
+                  'Esta acción eliminará permanentemente los trazos seleccionados en esta escena.'}
+              </p>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowClearModal(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-white/40 text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    if (showClearModal === 'mine') onClearDrawings({ authorId: characterId });
+                    else if (showClearModal === 'all') onClearDrawings({ all: true });
+                    else if (showClearModal === 'player') onClearDrawings({ authorId: selectedAuthorId! });
+                    setShowClearModal(null);
+                    setPencilMenuOpen(false);
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white text-[10px] uppercase tracking-widest font-bold hover:bg-red-600 transition-colors"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
