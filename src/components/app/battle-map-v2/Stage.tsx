@@ -27,9 +27,10 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure }, ref) => {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140 }, ref) => {
+  const { activeScene, tokens, drawings, fogStrokes, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogStroke } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  const fogCanvasRef = useRef<HTMLCanvasElement>(null);
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -46,6 +47,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
+
+  // Fog of War drawing state
+  const isFogging = useRef(false);
+  const currentFogPoints = useRef<{ x: number, y: number }[]>([]);
+  const [localFogPoints, setLocalFogPoints] = useState<{ x: number, y: number }[]>([]);
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
