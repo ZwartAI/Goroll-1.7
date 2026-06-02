@@ -14,7 +14,6 @@ interface Props {
 }
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, showParticipants = true }: Props) {
-  
   const sidebarRef = useRef<HTMLDivElement>(null);
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
@@ -37,7 +36,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
     return [];
   }, [combat.encounter?.status, combat.participants, combat.groups, combat.pins]);
 
-  // Use combat participants if active, otherwise just online characters
   const participants = useMemo(() => {
     if (combat.encounter?.status === 'active') {
       return blocks.flatMap((block, bIdx) => {
@@ -157,7 +155,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
     <>
       {/* Desktop View */}
       <div className="absolute left-4 top-20 bottom-32 w-52 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
-
         {participants.map((p, idx) => (
           <motion.div
             initial={{ x: -20, opacity: 0 }}
@@ -220,7 +217,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
             )}
           </motion.div>
         ))}
-
       </div>
 
       {/* Mobile/Compact View */}
@@ -229,7 +225,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
         className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" 
         data-map-ui="true"
       >
-
         {participants.map((p, idx) => {
           const isExpanded = expandedNameId === p.id;
           return (
@@ -264,12 +259,10 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
                 {isExpanded ? p.name : formatDisplayName(p.name)}
               </span>
 
-              {/* Turn indicator dot */}
               {p.is_turn && (
                 <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
               )}
               
-              {/* Tooltip for full name/HP if expanded */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
@@ -298,24 +291,8 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
                 )}
               </AnimatePresence>
             </motion.div>
-            );
+          );
         })}
-
-                className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-[var(--gold)]/30 bg-black/60 shadow-lg"
-                onClick={() => battleMap.removeFogStroke(stroke.id)}
-              >
-                <div 
-                  className="w-2.5 h-2.5 rounded-full" 
-                  style={{ backgroundColor: stroke.block_color || 'red' }} 
-                />
-                <span className="text-[8px] font-bold text-white/90 uppercase truncate max-w-[80px]">
-                  {stroke.label || `B${idx + 1}`}
-                </span>
-                <Trash2 className="w-2.5 h-2.5 text-red-400" />
-              </motion.div>
-            ))}
-          </div>
-        )}
       </div>
     </>
   );
