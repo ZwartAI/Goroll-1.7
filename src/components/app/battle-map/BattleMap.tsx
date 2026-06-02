@@ -881,18 +881,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         )}
 
         {/* FASE 7: Turn Rail (Left Side) */}
-        {orderedTurns.length > 0 && (
+        {showSidebar && orderedTurns.length > 0 && (
           <BattleMapTurnRail 
             blocks={orderedTurns} 
             activeBlockIndex={activeBlockIndex} 
             onItemClick={handleTurnRailClick}
           />
-
         )}
 
 
         {/* Sidebar / Tools */}
-        <div className="absolute top-10 right-4 z-40 flex flex-col gap-3 items-end">
+        <div className={`absolute top-10 right-4 z-40 flex flex-col gap-3 items-end transition-all duration-500 ${showToolbar ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0 pointer-events-none'}`}>
             <BattleMapToolbar 
               isDM={isDM}
               isChalkMode={isChalkMode}
