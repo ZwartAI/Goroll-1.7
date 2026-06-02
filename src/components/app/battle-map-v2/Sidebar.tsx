@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,9 +13,20 @@ interface Props {
 }
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Props) {
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
   const [expandedNameId, setExpandedNameId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (expandedNameId && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setExpandedNameId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expandedNameId]);
   
   const blocks = useMemo(() => {
     if (combat.encounter?.status === 'active') {
@@ -206,7 +217,11 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
       </div>
 
       {/* Mobile/Compact View */}
-      <div className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" data-map-ui="true">
+      <div 
+        ref={sidebarRef}
+        className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" 
+        data-map-ui="true"
+      >
         {participants.map((p, idx) => {
           const isExpanded = expandedNameId === p.id;
           return (
@@ -253,11 +268,11 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
                     initial={{ opacity: 0, scale: 0.9, x: 10 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.9, x: 10 }}
-                    className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-normal min-w-[140px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
+                    className="absolute left-[calc(100%+8px)] top-0 p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-nowrap min-w-[140px] max-w-[200px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
                   >
-                    <div className="flex flex-col gap-1.5">
-                      <p className="font-display text-[var(--gold)] uppercase tracking-wider">{p.name}</p>
-                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <p className="font-display text-[var(--gold)] uppercase tracking-wider truncate w-full" title={p.name}>{p.name}</p>
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 shrink-0">
                         <div 
                           className={cn(
                             "h-full transition-all duration-500",
@@ -266,7 +281,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
                           style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[7px] text-white/40 font-bold uppercase tracking-tighter">
+                      <div className="flex justify-between text-[7px] text-white/40 font-bold uppercase tracking-tighter shrink-0">
                         <span>HP</span>
                         <span>{Math.round(p.hp_percent)}%</span>
                       </div>
