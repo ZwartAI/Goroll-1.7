@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { CloudOff, Trash2 } from 'lucide-react';
-import { SceneConfig, MapToken, Drawing, isVideoUrl, FogStroke } from '@/hooks/useBattleMap';
+import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
@@ -21,9 +21,6 @@ interface Props {
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
   brushSize?: number;
-  fogAnimationReduced?: boolean;
-  showTokensUnderFog?: boolean;
-  revealAroundTokens?: boolean;
   onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
 }
 
@@ -34,9 +31,9 @@ export interface StageHandle {
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140,
-  fogAnimationReduced = false, showTokensUnderFog = true, revealAroundTokens = false, onMapLoad
+  onMapLoad
 }, ref) => {
-  const { activeScene, tokens, drawings, fogStrokes, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogStroke } = battleMap;
+  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const fogCanvasRef = useRef<HTMLCanvasElement>(null);
   
@@ -56,35 +53,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
-  // Fog of War drawing state
-  const isFogging = useRef(false);
-  const currentFogPoints = useRef<{ x: number, y: number }[]>([]);
-  const [localFogPoints, setLocalFogPoints] = useState<{ x: number, y: number }[]>([]);
-  const lastDrawTime = useRef(0);
 
-  // Fog Animation State
-  const [fogOffset, setFogOffset] = useState({ x: 0, y: 0 });
-  const requestRef = useRef<number>(undefined);
-
-  useEffect(() => {
-    if (fogAnimationReduced) {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      return;
-    }
-
-    const animate = (time: number) => {
-      setFogOffset({
-        x: Math.sin(time / 5000) * 20,
-        y: Math.cos(time / 7000) * 20
-      });
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [fogAnimationReduced]);
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
@@ -93,24 +62,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
   // Token dragging state (managed by individual Token components now)
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
 
-  // Fog Block selection and creation state
-  const [selectedFogId, setSelectedFogId] = useState<string | null>(null);
-  const [fogBlockStart, setFogBlockStart] = useState<{ x: number, y: number } | null>(null);
-  const [fogBlockEnd, setFogBlockEnd] = useState<{ x: number, y: number } | null>(null);
-  
-  // Visibility checking canvas (miniature)
-  const visibilityCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [hiddenTokenIds, setHiddenTokenIds] = useState<Set<string>>(new Set());
-
-
-  const blockColors = [
-    'rgba(255, 0, 0, 0.4)',    // Rojo
-    'rgba(0, 0, 255, 0.4)',    // Azul
-    'rgba(128, 0, 128, 0.4)',  // Morado
-    'rgba(0, 128, 0, 0.4)',    // Verde
-    'rgba(255, 215, 0, 0.4)',  // Dorado
-    'rgba(0, 255, 255, 0.4)',  // Cyan
-  ];
 
 
   // Helper function to convert screen coordinates to world coordinates
@@ -245,38 +196,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       return;
     }
 
-    if (activeTool === 'fogPaint' || activeTool === 'fogErase') {
-      if (!isDM) return;
-      isFogging.current = true;
-      currentFogPoints.current = [coords];
-      setLocalFogPoints([coords]);
-      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
-      setSelectedFogId(null);
-      return;
-    }
-
-    if (activeTool === 'fogBlock') {
-      if (!isDM) return;
-      
-      // Check if we're clicking an existing block to select it
-      const fogBlockElement = target.closest('[data-fog-id]');
-      if (fogBlockElement) {
-        const id = fogBlockElement.getAttribute('data-fog-id');
-        setSelectedFogId(id);
-        return;
-      }
-
-      setFogBlockStart(coords);
-      setFogBlockEnd(coords);
-      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
-      setSelectedFogId(null);
-      return;
-    }
-
-    // Unselect fog block if clicking elsewhere
-    if (selectedFogId) {
-      setSelectedFogId(null);
-    }
 
     // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
@@ -287,7 +206,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       setIsPanning(false);
       setDraggingTokenId(null);
       isMeasuring.current = false;
-      isFogging.current = false;
 
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -347,23 +265,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     let coords = screenToWorld(e.clientX, e.clientY);
 
-    if (isFogging.current) {
-      const now = Date.now();
-      if (now - lastDrawTime.current < 32) return; // Throttle ~30fps for drawing
-      lastDrawTime.current = now;
-
-      const lastPoint = currentFogPoints.current[currentFogPoints.current.length - 1];
-      if (!lastPoint || Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y) > 5) {
-        currentFogPoints.current.push(coords);
-        setLocalFogPoints([...currentFogPoints.current]);
-      }
-      return;
-    }
-
-    if (activeTool === 'fogBlock' && fogBlockStart) {
-      setFogBlockEnd(coords);
-      return;
-    }
 
     // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
@@ -408,53 +309,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       lastPinchDist.current = null;
     }
 
-    if (isFogging.current) {
-      isFogging.current = false;
-      if (currentFogPoints.current.length > 0) {
-        addFogStroke({
-          fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
-          shape: 'circle',
-          color: activeTool === 'fogPaint' ? '#000000' : null,
-          opacity: 0.85,
-          brush_size: brushSize,
-          points: currentFogPoints.current,
-          is_visible: true
-        });
-      }
-      currentFogPoints.current = [];
-      setLocalFogPoints([]);
-    }
-
-    if (draggingTokenId) {
-      setDraggingTokenId(null);
-    }
-
-    if (activeTool === 'fogBlock' && fogBlockStart && fogBlockEnd) {
-      const width = Math.abs(fogBlockEnd.x - fogBlockStart.x);
-      const height = Math.abs(fogBlockEnd.y - fogBlockStart.y);
-      
-      if (width > 10 && height > 10) {
-        const x = Math.min(fogBlockStart.x, fogBlockEnd.x);
-        const y = Math.min(fogBlockStart.y, fogBlockEnd.y);
-        
-        // Randomly assign a color for the DM
-        const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
-        
-        addFogStroke({
-          fog_type: 'block',
-          shape: 'rect',
-          color: '#000000',
-          block_color: randomColor,
-          opacity: 0.85,
-          brush_size: 0,
-          points: [{ x, y }, { x: width, y: height }], // Storing dimensions in second point for simplicity in this schema
-          is_visible: true,
-          label: `Bloque ${fogStrokes.filter((f: FogStroke) => f.fog_type === 'block').length + 1}`
-        });
-      }
-      setFogBlockStart(null);
-      setFogBlockEnd(null);
-    }
 
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
