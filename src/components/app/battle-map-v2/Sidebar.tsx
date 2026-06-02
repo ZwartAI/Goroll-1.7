@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, UserMinus } from 'lucide-react';
+import { UserPlus, UserMinus, Cloud, Trash2 } from 'lucide-react';
 import { buildOrderedTurns } from '@/lib/combat';
 
 interface Props {
