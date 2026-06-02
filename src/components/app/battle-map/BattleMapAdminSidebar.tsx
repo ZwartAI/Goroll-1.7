@@ -11,8 +11,11 @@ interface Props {
   // Visibility toggles
   showIniciativa: boolean;
   onToggleIniciativa: () => void;
+  showParticipants: boolean;
+  onToggleParticipants: () => void;
   showToolbar: boolean;
   onToggleToolbar: () => void;
+
   
   // Actions
   onInvokeToken: () => void;
