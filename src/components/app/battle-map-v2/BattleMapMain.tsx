@@ -3,6 +3,7 @@ import { useBattleMap, MapToken } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
 import { Stage, StageHandle } from './Stage';
+import { toast } from 'sonner';
 import { Toolbar, MapTool, MeasureMode } from './Toolbar';
 import { Sidebar } from './Sidebar';
 import { Log } from './Log';
@@ -16,6 +17,7 @@ import { ChevronRight } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
 import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+import { BattleMapAdminSidebar } from '../battle-map/BattleMapAdminSidebar';
 
 
 interface Props {
@@ -41,6 +43,12 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [measureSnap, setMeasureSnap] = useState(true);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
+  const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+
+  // Estados de visibilidad de UI (Bar Map)
+  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
+  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
+  const [showToolbar, setShowToolbar] = useState(true);
 
   const handleResetView = () => {
     if (stageRef.current) {
@@ -129,6 +137,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         onBack={onBack} 
         isDM={isDM} 
         campaignName={campaign?.name || ''} 
+        onMenuToggle={() => setShowAdminSidebar(true)}
       />
 
       <div className="flex-1 relative overflow-hidden flex">
@@ -143,6 +152,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
+          showParticipants={showParticipants}
         />
 
         {/* Sidebar (Turns/Participants) */}
@@ -151,6 +161,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           battleMap={battleMap}
           isDM={isDM}
           onInitiatePlacement={(token) => setTokenToPlace(token)}
+          showParticipants={showParticipants}
         />
 
         {/* Toolbar (Right) */}
@@ -325,6 +336,28 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           />
         )}
       </AnimatePresence>
+
+      <BattleMapAdminSidebar 
+        isOpen={showAdminSidebar}
+        onClose={() => setShowAdminSidebar(false)}
+        isDM={isDM}
+        showIniciativa={showSidebar}
+        onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+        showParticipants={showParticipants}
+        onToggleParticipants={() => setShowParticipants(!showParticipants)}
+        showToolbar={showToolbar}
+        onToggleToolbar={() => setShowToolbar(!showToolbar)}
+        onInvokeToken={() => {
+          // Implementación para abrir selector de tokens si fuera necesario
+          // Por ahora solo cerramos para indicar que recibió el click
+          setShowAdminSidebar(false);
+          toast.info("Función de invocar en desarrollo para v2");
+        }}
+        onOpenSettings={() => {
+          setShowSettings(true);
+          setShowAdminSidebar(false);
+        }}
+      />
     </div>
   );
 }

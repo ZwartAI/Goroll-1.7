@@ -10,9 +10,10 @@ interface Props {
   battleMap: any;
   isDM: boolean;
   onInitiatePlacement: (token: any) => void;
+  showParticipants?: boolean;
 }
 
-export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Props) {
+export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, showParticipants = true }: Props) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
@@ -148,6 +149,8 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
     if (parts.length <= 1) return name;
     return `${parts[0]}...`;
   };
+
+  if (!showParticipants) return null;
 
   return (
     <>

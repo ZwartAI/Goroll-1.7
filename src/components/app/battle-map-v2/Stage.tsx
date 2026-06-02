@@ -18,6 +18,7 @@ interface Props {
   authorName?: string;
   authorColor?: string;
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
+  showParticipants?: boolean;
 }
 
 export interface StageHandle {

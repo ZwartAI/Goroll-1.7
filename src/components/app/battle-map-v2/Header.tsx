@@ -6,9 +6,10 @@ interface Props {
   onBack: () => void;
   isDM: boolean;
   campaignName: string;
+  onMenuToggle?: () => void;
 }
 
-export function Header({ onBack, isDM, campaignName }: Props) {
+export function Header({ onBack, isDM, campaignName, onMenuToggle }: Props) {
   const { t } = useT();
 
   return (
@@ -36,7 +37,10 @@ export function Header({ onBack, isDM, campaignName }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-[var(--gold)]">
+        <button 
+          onClick={onMenuToggle}
+          className="p-2 hover:bg-white/10 rounded-full transition-colors text-[var(--gold)]"
+        >
           <Menu className="w-5 h-5" />
         </button>
       </div>
