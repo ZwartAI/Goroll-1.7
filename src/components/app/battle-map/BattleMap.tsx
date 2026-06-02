@@ -797,14 +797,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           if (isDM) await handleUpdateCurrentSceneState();
           onBack();
         }} 
-        onMenuToggle={toggleParticipants} 
+        onMenuToggle={() => setIsAdminSidebarOpen(true)} 
         onScenesToggle={isDM ? () => setIsScenesPanelOpen(true) : undefined}
         onlineCount={onlineIds.size}
         isDM={isDM}
-        showSidebar={showSidebar}
-        onToggleSidebar={() => setShowSidebar(prev => !prev)}
-        showToolbar={showToolbar}
-        onToggleToolbar={() => setShowToolbar(prev => !prev)}
       />
 
       <main className="flex-1 relative overflow-hidden bg-[#050507]">
