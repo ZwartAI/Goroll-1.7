@@ -16,6 +16,7 @@ import { ChevronRight } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
 import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+import { BattleMapAdminSidebar } from '../battle-map/BattleMapAdminSidebar';
 
 
 interface Props {
