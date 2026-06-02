@@ -50,7 +50,7 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   const handleDuplicate = async (sack: RewardSack) => {
     try {
       await duplicateRewardSack(sack);
-      toast.success("Saco duplicado");
+      toast.success(t("rewards.duplicate"));
       reload();
     } catch (e: any) {
       toast.error(e.message);
@@ -58,10 +58,10 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Seguro que quieres eliminar este saco?")) return;
+    if (!confirm(t("rewards.deleteConfirm"))) return;
     try {
       await deleteRewardSack(id);
-      toast.success("Saco eliminado");
+      toast.success(t("rewards.deleted"));
       reload();
     } catch (e: any) {
       toast.error(e.message);
@@ -81,7 +81,7 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
           <div className="flex items-center gap-3">
             <Gift className="text-[var(--gold)] w-6 h-6" />
             <h2 className="font-display text-xl uppercase tracking-widest text-[var(--gold)]">
-              Sacos de Recompensa
+              {t("rewards.title")}
             </h2>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-white transition-colors">
@@ -98,7 +98,7 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
               <input 
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar saco..."
+                placeholder={t("rewards.searchPlaceholder")}
                 className="w-full bg-black/40 border border-white/10 rounded-md py-2 pl-10 pr-4 text-sm focus:border-[var(--gold)] outline-none transition-colors"
               />
             </div>
@@ -107,7 +107,7 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
               className="btn-fantasy flex items-center gap-2 px-6 py-2 bg-[var(--gold)] text-black font-bold uppercase tracking-widest"
               style={{ background: "var(--gradient-gold)" }}
             >
-              <Plus size={18} /> Nuevo Saco
+              <Plus size={18} /> {t("rewards.newSack")}
             </button>
           </div>
 
@@ -129,14 +129,14 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                         {sack.name}
                       </h3>
                       <span className="text-[9px] uppercase tracking-widest text-muted-foreground">
-                        Tipo: {sack.type}
+                        {t("rewards.typeLabel", { type: sack.type })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleDuplicate(sack)} className="p-1.5 hover:text-[var(--gold)] transition-colors" title="Duplicar">
+                      <button onClick={() => handleDuplicate(sack)} className="p-1.5 hover:text-[var(--gold)] transition-colors" title={t("common.duplicate") || "Duplicate"}>
                         <Copy size={14} />
                       </button>
-                      <button onClick={() => handleDelete(sack.id)} className="p-1.5 hover:text-[var(--loss)] transition-colors" title="Eliminar">
+                      <button onClick={() => handleDelete(sack.id)} className="p-1.5 hover:text-[var(--loss)] transition-colors" title={t("common.delete")}>
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -150,12 +150,12 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                       <Gift size={32} style={{ color: SACK_TYPE_COLORS[sack.type], filter: `drop-shadow(0 0 5px ${SACK_TYPE_COLORS[sack.type]}44)` }} />
                     </div>
                     <div className="flex-1 space-y-1 text-[10px] text-muted-foreground">
-                      {sack.has_coins && <p>💰 {sack.coins_min}-{sack.coins_max} Monedas</p>}
-                      {sack.has_items && <p>⚔️ Equipamiento</p>}
-                      {sack.has_boosters && <p>✨ Potenciadores</p>}
-                      {sack.has_special_items && <p>💎 Especiales</p>}
+                      {sack.has_coins && <p>💰 {sack.coins_min}-{sack.coins_max} {t("rewards.coins")}</p>}
+                      {sack.has_items && <p>⚔️ {t("rewards.equipment")}</p>}
+                      {sack.has_boosters && <p>✨ {t("rewards.boosters")}</p>}
+                      {sack.has_special_items && <p>💎 {t("rewards.specialItems")}</p>}
                       {!sack.has_coins && !sack.has_items && !sack.has_boosters && !sack.has_special_items && (
-                         <p className="italic">Sin contenido configurado</p>
+                         <p className="italic">{t("rewards.noConfigured")}</p>
                       )}
                     </div>
                   </div>
@@ -165,19 +165,19 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                       onClick={() => setAssigningSack(sack)}
                       className="flex-1 py-1.5 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest hover:scale-105 transition-all shadow-[0_0_10px_rgba(234,179,8,0.2)]"
                     >
-                      Entregar
+                      {t("rewards.delivery")}
                     </button>
                     <button 
                       onClick={() => setEditingSack(sack)}
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
-                      title="Editar configuración"
+                      title={t("rewards.editSack")}
                     >
                       <Plus size={14} className="scale-75 rotate-45" />
                     </button>
                     <button 
                       onClick={() => setSimulatingSack(sack)}
                       className="px-3 py-1.5 rounded bg-white/5 hover:bg-white/10 text-white transition-colors"
-                      title="Probar simulador"
+                      title={t("rewards.testSimulator")}
                     >
                       <Play size={14} />
                     </button>
@@ -189,7 +189,7 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
               {filteredSacks.length === 0 && !loading && (
                 <div className="col-span-full py-20 text-center space-y-2 opacity-50">
                   <Boxes className="mx-auto w-12 h-12" />
-                  <p className="text-sm">No hay sacos de recompensa creados.</p>
+                  <p className="text-sm">{t("rewards.noSacks")}</p>
                 </div>
               )}
             </div>
