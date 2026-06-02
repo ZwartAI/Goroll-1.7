@@ -483,7 +483,6 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           else tempCtx.lineTo(p.x, p.y);
         });
         tempCtx.stroke();
-      }
       } else if (stroke.fog_type === 'block' && stroke.shape === 'rect' && stroke.points.length >= 2) {
         const { x, y } = stroke.points[0];
         const { x: width, y: height } = stroke.points[1];
