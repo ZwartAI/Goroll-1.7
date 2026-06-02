@@ -974,10 +974,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
         {/* Dice Animation */}
         {activeDiceRolls && (
-          <BattleMapDiceAnimation 
-            dice={activeDiceRolls} 
-            onComplete={() => setActiveDiceRolls(null)} 
-          />
+          <SharedDiceAnimationOverlay />
+
         )}
 
         {/* Chalk Controls */}
