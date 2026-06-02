@@ -41,9 +41,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [showDicePanel, setShowDicePanel] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('line');
   const [measureSnap, setMeasureSnap] = useState(true);
+  const [brushSize, setBrushSize] = useState(140);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+  const [showFogClearModal, setShowFogClearModal] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
   const [showSidebar, setShowSidebar] = useState(() => {
