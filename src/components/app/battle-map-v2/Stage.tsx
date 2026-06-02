@@ -494,8 +494,17 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
         {/* Tokens Layer */}
         <div style={{ zIndex: 10, position: 'absolute', inset: 0 }} className="pointer-events-none">
-          {tokens.map((token: MapToken) => (
-            <div key={token.id} className="pointer-events-auto">
+          {(() => {
+            // Prioritize current player's tokens to be on top for easier selection
+            const sortedTokens = (!isDM && characterId) 
+              ? [
+                  ...tokens.filter((t: MapToken) => t.character_id !== characterId), 
+                  ...tokens.filter((t: MapToken) => t.character_id === characterId)
+                ]
+              : tokens;
+              
+            return sortedTokens.map((token: MapToken) => (
+              <div key={token.id} className="pointer-events-auto">
               <Token 
                 token={token} 
                 isDM={isDM} 
@@ -517,7 +526,8 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
 
             </div>
-          ))}
+            ))
+          })()}
         </div>
 
         {/* Ruler Layer */}
