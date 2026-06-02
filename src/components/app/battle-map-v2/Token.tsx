@@ -184,7 +184,12 @@ export function Token({
 
         {/* Name Label */}
         {token.name && (
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-[9px] font-bold uppercase tracking-tighter text-white whitespace-nowrap rounded-t border-t border-x border-[var(--gold)]/30 pointer-events-none">
+          <div className={cn(
+            "absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-[9px] font-bold uppercase tracking-tighter text-white whitespace-nowrap rounded-t border-t border-x pointer-events-none",
+            token.token_type === 'enemy' ? "border-[#ef4444]/30" :
+            token.token_type === 'npc' ? "border-[#ffffff]/30" :
+            "border-[var(--token-color,var(--gold))]/30"
+          )}>
             {token.name}
           </div>
         )}
