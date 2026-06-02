@@ -14,7 +14,9 @@ import { useT } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { pushLog } from '@/lib/log';
-import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+
 
 interface Props {
   onBack: () => void;
