@@ -444,6 +444,7 @@ export const useBattleMap = (campaignId: string) => {
     removeDrawing,
     undoLastDrawing,
     addFogStroke,
+    removeFogStroke,
     clearFog
   };
 };
