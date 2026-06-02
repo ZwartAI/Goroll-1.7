@@ -1068,7 +1068,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
           participants={displayParticipants} 
-          isOpen={showSidebar && activePanel === 'participants'} 
+          isOpen={showParticipants && activePanel === 'participants'} 
+
           onOpenChar={onOpenChar} 
           onClose={() => setActivePanel('none')}
           isDM={isDM}
