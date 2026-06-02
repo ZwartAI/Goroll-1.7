@@ -64,7 +64,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   // Fog Animation State
   const [fogOffset, setFogOffset] = useState({ x: 0, y: 0 });
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number>(undefined);
 
   useEffect(() => {
     if (fogAnimationReduced) {
