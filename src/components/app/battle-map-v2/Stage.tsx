@@ -502,7 +502,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (fogStrokes.length === 0) return;
+    if (fogStrokes.length === 0 && localFogPoints.length === 0) {
+      setHiddenTokenIds(new Set());
+      return;
+    }
 
     // We use a temporary canvas to compose the fog and erasers
     const tempCanvas = document.createElement('canvas');
@@ -515,11 +518,27 @@ export const Stage = forwardRef<StageHandle, Props>(({
     tempCtx.lineCap = 'round';
     tempCtx.lineJoin = 'round';
     
-    fogStrokes.forEach((stroke: FogStroke) => {
+    const allStrokes = [...fogStrokes];
+    if (localFogPoints.length > 0) {
+      allStrokes.push({
+        id: 'local',
+        campaign_id: '',
+        scene_id: activeScene.id,
+        fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
+        shape: 'brush',
+        points: localFogPoints,
+        brush_size: brushSize,
+        opacity: 1,
+        is_visible: true,
+        color: null
+      });
+    }
+
+    allStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'brush') {
         tempCtx.beginPath();
         tempCtx.lineWidth = stroke.brush_size;
-        tempCtx.strokeStyle = 'black'; // Always black for the mask
+        tempCtx.strokeStyle = 'black'; 
         stroke.points.forEach((p: {x: number, y: number}, i: number) => {
           if (i === 0) tempCtx.moveTo(p.x, p.y);
           else tempCtx.lineTo(p.x, p.y);
@@ -533,32 +552,104 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
     });
 
-    // 2. Subtract erasers
+    // 2. Subtract erasers with soft edges
     tempCtx.globalCompositeOperation = 'destination-out';
-    fogStrokes.forEach((stroke: FogStroke) => {
+    allStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'eraser') {
-        tempCtx.beginPath();
-        tempCtx.lineWidth = stroke.brush_size;
-        tempCtx.strokeStyle = 'white';
-        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
-          if (i === 0) tempCtx.moveTo(p.x, p.y);
-          else tempCtx.lineTo(p.x, p.y);
-        });
-        tempCtx.stroke();
+        // Use soft brushes for erasers if not in reduced animation mode
+        if (!fogAnimationReduced) {
+          stroke.points.forEach((p: {x: number, y: number}) => {
+            const gradient = tempCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, stroke.brush_size / 2);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            tempCtx.fillStyle = gradient;
+            tempCtx.beginPath();
+            tempCtx.arc(p.x, p.y, stroke.brush_size / 2, 0, Math.PI * 2);
+            tempCtx.fill();
+          });
+        } else {
+          tempCtx.beginPath();
+          tempCtx.lineWidth = stroke.brush_size;
+          tempCtx.strokeStyle = 'white';
+          stroke.points.forEach((p: {x: number, y: number}, i: number) => {
+            if (i === 0) tempCtx.moveTo(p.x, p.y);
+            else tempCtx.lineTo(p.x, p.y);
+          });
+          tempCtx.stroke();
+        }
       }
     });
 
-    // 3. Render the composed mask to the main canvas with final styling
-    ctx.globalAlpha = isDM ? 0.6 : 0.95; // DM sees transparency, players see mostly opaque
+    // 3. Update Token Visibility (Hidden Tokens)
+    if (!isDM) {
+      const newHidden = new Set<string>();
+      tokens.forEach((token: MapToken) => {
+        // Sample center of token
+        const tx = Math.floor(token.x + token.size / 2);
+        const ty = Math.floor(token.y + token.size / 2);
+        
+        if (tx >= 0 && tx < tempCanvas.width && ty >= 0 && ty < tempCanvas.height) {
+          const pixel = tempCtx.getImageData(tx, ty, 1, 1).data;
+          // If alpha > 128, it means there's fog here (since we draw fog with black and destination-out with white)
+          // Wait, tempCtx has alpha where fog is, and 0 where revealed.
+          if (pixel[3] > 128) {
+            newHidden.add(token.id);
+          }
+        }
+      });
+      setHiddenTokenIds(newHidden);
+    } else {
+      setHiddenTokenIds(new Set());
+    }
+
+    // 4. Render the composed mask to the main canvas with final styling
+    ctx.globalAlpha = isDM ? 0.6 : 1.0; 
     
-    // Fill the mask with dark color or pattern
+    // Smoke/Cloud effect using animated offset
+    if (!fogAnimationReduced) {
+      ctx.translate(fogOffset.x, fogOffset.y);
+    }
+    
     ctx.drawImage(tempCanvas, 0, 0);
+    
+    if (!fogAnimationReduced) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
     
     // Use the mask to draw the fog
     ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = '#0a0a0a';
+    ctx.fillStyle = '#050505';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, [fogStrokes, isDM, activeScene]);
+    
+    // Add texture
+    if (!fogAnimationReduced) {
+      ctx.globalAlpha = 0.05;
+      ctx.fillStyle = '#111';
+      for (let i = 0; i < 50; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 200, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }, [fogStrokes, localFogPoints, isDM, activeScene, fogOffset, fogAnimationReduced, tokens]);
+
+  // Handle image load to send dimensions
+  useEffect(() => {
+    if (activeScene?.background_url && onMapLoad) {
+      const img = new Image();
+      img.onload = () => {
+        onMapLoad({
+          width: 8000,
+          height: 8000,
+          imgWidth: img.width,
+          imgHeight: img.height
+        });
+      };
+      img.src = activeScene.background_url;
+    }
+  }, [activeScene?.background_url]);
+
 
   if (!activeScene) {
     return (
