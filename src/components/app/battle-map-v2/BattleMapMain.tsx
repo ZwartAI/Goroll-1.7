@@ -333,6 +333,28 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           />
         )}
       </AnimatePresence>
+
+      <BattleMapAdminSidebar 
+        isOpen={showAdminSidebar}
+        onClose={() => setShowAdminSidebar(false)}
+        isDM={isDM}
+        showIniciativa={showSidebar}
+        onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+        showParticipants={showParticipants}
+        onToggleParticipants={() => setShowParticipants(!showParticipants)}
+        showToolbar={showToolbar}
+        onToggleToolbar={() => setShowToolbar(!showToolbar)}
+        onInvokeToken={() => {
+          // Implementación para abrir selector de tokens si fuera necesario
+          // Por ahora solo cerramos para indicar que recibió el click
+          setShowAdminSidebar(false);
+          toast.info("Función de invocar en desarrollo para v2");
+        }}
+        onOpenSettings={() => {
+          setShowSettings(true);
+          setShowAdminSidebar(false);
+        }}
+      />
     </div>
   );
 }
