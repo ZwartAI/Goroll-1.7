@@ -124,13 +124,6 @@ const TurnRailItem: React.FC<{ block: TurnBlock; isActive: boolean; onClick: () 
           )}
         </div>
       </div>
-      
-      {/* Active Indicator on the RIGHT of the expanded label */}
-      {(isHovered || isActive) && (
-          <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ChevronRight className="w-3 h-3 text-white/20" />
-          </div>
-      )}
     </button>
   );
 };

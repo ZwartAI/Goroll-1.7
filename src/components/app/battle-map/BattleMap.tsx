@@ -1103,23 +1103,16 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           <BattleMapDiceButton onClick={handleDiceClick} />
         </div>
 
-        {/* Selected Entity Sheet (Enemy/NPC) */}
-        {selectedEntityForSheet && (
-          isDM ? (
-            <EnemyCombatSheetModal 
-              participant={selectedEntityForSheet}
-              encounter={combat.encounter!}
-              participants={combat.participants}
-              groups={combat.groups}
-              pins={combat.pins}
-              onClose={() => setSelectedEntityForSheet(null)}
-            />
-          ) : (
-            <EntityPortraitModal 
-              participant={selectedEntityForSheet} 
-              onClose={() => setSelectedEntityForSheet(null)} 
-            />
-          )
+        {/* Selected Entity Sheet (Enemy/NPC) - Removed for non-DM users as requested, only DM can see the full sheet from here now if needed */}
+        {selectedEntityForSheet && isDM && (
+          <EnemyCombatSheetModal 
+            participant={selectedEntityForSheet}
+            encounter={combat.encounter!}
+            participants={combat.participants}
+            groups={combat.groups}
+            pins={combat.pins}
+            onClose={() => setSelectedEntityForSheet(null)}
+          />
         )}
 
         {/* Group Summary Modal */}
