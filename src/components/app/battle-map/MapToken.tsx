@@ -191,26 +191,27 @@ export const MapToken: React.FC<Props> = ({
 
       {/* Pop-up de información (Vida y Nombre) */}
       {isHovered && (
-        <Group y={-radius - 50} x={-tooltipWidth / 2}>
+        <Group y={-radius - 50} x={-tooltipWidth / 2} listening={false}>
           {/* Fondo del pop-up */}
           <Rect
             width={tooltipWidth}
-            height={tooltipHeight}
+            height={tooltipHeight + 10}
             fill="#0a0a0c"
-            opacity={0.9}
+            opacity={0.95}
             cornerRadius={8}
-            stroke="rgba(255,255,255,0.1)"
-            strokeWidth={1}
-            shadowBlur={10}
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth={1.5}
+            shadowBlur={15}
             shadowColor="black"
-            shadowOpacity={0.5}
+            shadowOpacity={0.6}
           />
           
           {/* Nombre */}
           <Text
             text={participant.display_name.toUpperCase()}
-            fontSize={10}
+            fontSize={11}
             fontFamily="Display"
+            fontStyle="bold"
             fill="white"
             x={tooltipPadding}
             y={tooltipPadding}
@@ -218,7 +219,6 @@ export const MapToken: React.FC<Props> = ({
             align="center"
             wrap="none"
             ellipsis={true}
-            listening={false}
           />
 
           {/* Barra de Vida */}
