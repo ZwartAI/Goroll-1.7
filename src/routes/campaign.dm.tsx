@@ -202,6 +202,7 @@ function DM() {
             <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Hammer size={16} /> Crear ítems o crear objetos</h3>
             <p className="text-xs text-muted-foreground">Personaliza equipamiento, consumibles o tesoros para tus jugadores.</p>
             <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+            <BulkItemImport campaignId={campaign.id} />
           </div>
 
           <div className="ornate-card p-4 space-y-2">
