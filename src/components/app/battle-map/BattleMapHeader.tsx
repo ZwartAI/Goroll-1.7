@@ -1,7 +1,16 @@
-import React from 'react';
-import { Menu, ArrowLeft, Users, HelpCircle, ChevronDown, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, ArrowLeft, Users, HelpCircle, Layers, Eye, EyeOff } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
 
 interface Props {
   title: string;
@@ -10,6 +19,10 @@ interface Props {
   onScenesToggle?: () => void;
   onlineCount?: number;
   isDM?: boolean;
+  showSidebar: boolean;
+  onToggleSidebar: () => void;
+  showToolbar: boolean;
+  onToggleToolbar: () => void;
 }
 
 
@@ -19,7 +32,11 @@ export const BattleMapHeader: React.FC<Props> = ({
   onMenuToggle, 
   onScenesToggle,
   onlineCount = 0,
-  isDM = false
+  isDM = false,
+  showSidebar,
+  onToggleSidebar,
+  showToolbar,
+  onToggleToolbar
 }) => {
   const { t } = useT();
 
@@ -46,13 +63,51 @@ export const BattleMapHeader: React.FC<Props> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <button 
-          onClick={onMenuToggle}
-          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-[var(--gold)] border border-white/10 hover:scale-105 active:scale-95 flex items-center justify-center shadow-lg active:bg-[var(--gold)] active:text-black"
-          title="Menú del Mapa"
-        >
-          <Menu size={20} />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button 
+              className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-[var(--gold)] border border-white/10 hover:scale-105 active:scale-95 flex items-center justify-center shadow-lg active:bg-[var(--gold)] active:text-black"
+              title="Menú del Mapa"
+            >
+              <Menu size={20} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-[#1a1a1e] border-white/10 text-white min-w-[180px] z-[100]">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-[var(--gold)] opacity-70">Visibilidad</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/5" />
+            
+            <DropdownMenuCheckboxItem
+              checked={showSidebar}
+              onCheckedChange={onToggleSidebar}
+              className="text-xs uppercase tracking-wider focus:bg-white/5 focus:text-[var(--gold)] cursor-pointer py-2"
+            >
+              <div className="flex items-center gap-2">
+                {showSidebar ? <Eye size={14} /> : <EyeOff size={14} />}
+                Lista Iniciativa
+              </div>
+            </DropdownMenuCheckboxItem>
+
+            <DropdownMenuCheckboxItem
+              checked={showToolbar}
+              onCheckedChange={onToggleToolbar}
+              className="text-xs uppercase tracking-wider focus:bg-white/5 focus:text-[var(--gold)] cursor-pointer py-2"
+            >
+              <div className="flex items-center gap-2">
+                {showToolbar ? <Eye size={14} /> : <EyeOff size={14} />}
+                Iconos Derecha
+              </div>
+            </DropdownMenuCheckboxItem>
+
+            <DropdownMenuSeparator className="bg-white/5" />
+            <DropdownMenuItem 
+              onClick={onMenuToggle}
+              className="text-xs uppercase tracking-wider focus:bg-white/5 focus:text-[var(--gold)] cursor-pointer py-2"
+            >
+              Otros Ajustes
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Indicador de usuarios online */}
         <div className="hidden xs:flex items-center gap-2 px-2 py-1 bg-white/5 rounded-full border border-white/5">
           <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
