@@ -216,7 +216,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
               transition={{ delay: idx * 0.05 }}
               key={`mobile-${p.id}`}
               className={cn(
-                "pointer-events-auto relative flex items-center gap-1.5 px-2 py-1 rounded-full border backdrop-blur-lg transition-all duration-300 shadow-lg",
+                "pointer-events-auto relative flex items-center gap-1.5 px-2 py-1 rounded-full border backdrop-blur-lg transition-all duration-300 shadow-lg overflow-visible",
                 p.is_turn 
                   ? "bg-[var(--gold)] text-black border-[var(--gold)] scale-110 z-10" 
                   : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
