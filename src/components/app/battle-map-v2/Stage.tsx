@@ -275,7 +275,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const centerY = (pointers[0].y + pointers[1].y) / 2;
       
       const zoomFactor = dist / lastPinchDist.current;
-      zoomAtScreenPoint(centerX, centerY, zoomFactor);
+      zoomAtScreenPoint(centerX, centerY, zoomFactor, false);
       
       lastPinchDist.current = dist;
       return;
