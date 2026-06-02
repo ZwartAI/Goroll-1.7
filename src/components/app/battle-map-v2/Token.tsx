@@ -31,8 +31,9 @@ export function Token({
   onMove, onRemove, onUpdateSize,
   screenToWorld,
   onDragStart,
-  onDragEnd
-}: Props & { onDragStart?: (id: string) => void, onDragEnd?: () => void, className?: string }) {
+  onDragEnd,
+  className
+}: Props & { onDragStart?: (id: string) => void, onDragEnd?: () => void }) {
 
   const [localDragging, setLocalDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
