@@ -1276,6 +1276,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dice_rolls: {
+        Row: {
+          campaign_id: string
+          character_id: string
+          created_at: string
+          dice_data: Json
+          id: string
+          total: number
+        }
+        Insert: {
+          campaign_id: string
+          character_id: string
+          created_at?: string
+          dice_data: Json
+          id?: string
+          total: number
+        }
+        Update: {
+          campaign_id?: string
+          character_id?: string
+          created_at?: string
+          dice_data?: Json
+          id?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dice_rolls_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dice_rolls_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dm_join_requests: {
         Row: {
           campaign_id: string
