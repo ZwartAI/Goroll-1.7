@@ -152,7 +152,19 @@ export function Token({
         touchAction: 'none'
       }}
     >
-      <div className="relative w-full h-full rounded-full border-2 border-[var(--gold)] bg-black/60 overflow-hidden shadow-xl group-hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all pointer-events-none" draggable="false">
+      <div 
+        className={cn(
+          "relative w-full h-full rounded-full border-2 bg-black/60 overflow-hidden shadow-xl transition-all pointer-events-none",
+          token.token_type === 'enemy' ? "border-[#ef4444] group-hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]" :
+          token.token_type === 'npc' ? "border-[#ffffff] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]" :
+          "border-[var(--token-color,var(--gold))] group-hover:shadow-[0_0_20px_var(--token-color-glow,rgba(234,179,8,0.4))]"
+        )}
+        style={{ 
+          '--token-color': token.color || 'var(--gold)',
+          '--token-color-glow': token.color ? `${token.color}66` : 'rgba(234,179,8,0.4)'
+        } as React.CSSProperties}
+        draggable="false"
+      >
         {token.image_url ? (
           <img 
             src={token.image_url} 
@@ -172,7 +184,12 @@ export function Token({
 
         {/* Name Label */}
         {token.name && (
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-[9px] font-bold uppercase tracking-tighter text-white whitespace-nowrap rounded-t border-t border-x border-[var(--gold)]/30 pointer-events-none">
+          <div className={cn(
+            "absolute bottom-0 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black/80 text-[9px] font-bold uppercase tracking-tighter text-white whitespace-nowrap rounded-t border-t border-x pointer-events-none",
+            token.token_type === 'enemy' ? "border-[#ef4444]/30" :
+            token.token_type === 'npc' ? "border-[#ffffff]/30" :
+            "border-[var(--token-color,var(--gold))]/30"
+          )}>
             {token.name}
           </div>
         )}

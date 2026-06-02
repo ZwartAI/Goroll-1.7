@@ -297,6 +297,7 @@ export type Database = {
         Row: {
           campaign_id: string
           character_id: string | null
+          color: string | null
           created_at: string | null
           id: string
           image_offset_x: number | null
@@ -315,6 +316,7 @@ export type Database = {
         Insert: {
           campaign_id: string
           character_id?: string | null
+          color?: string | null
           created_at?: string | null
           id?: string
           image_offset_x?: number | null
@@ -333,6 +335,7 @@ export type Database = {
         Update: {
           campaign_id?: string
           character_id?: string | null
+          color?: string | null
           created_at?: string | null
           id?: string
           image_offset_x?: number | null

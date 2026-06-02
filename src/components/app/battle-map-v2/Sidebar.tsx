@@ -138,6 +138,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
         image_scale: isEnemy ? (original.enemy_image_scale || 1) : (original.image_scale || 1),
         image_offset_x: isEnemy ? (original.enemy_image_offset_x ?? 50) : (original.image_offset_x ?? 50),
         image_offset_y: isEnemy ? (original.enemy_image_offset_y ?? 50) : (original.image_offset_y ?? 50),
+        color: p.color || null,
       });
     }
   };
