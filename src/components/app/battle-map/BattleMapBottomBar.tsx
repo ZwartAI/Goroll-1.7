@@ -59,11 +59,14 @@ export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection, showSocial 
           label={t('nav.notes') || 'Notas'} 
           onClick={() => onOpenSection('notes')} 
         />
-        <NavItem 
-          icon={Users} 
-          label={t('nav.social') || 'Social'} 
-          onClick={() => onOpenSection('social')} 
-        />
+        {showSocial && (
+          <NavItem 
+            icon={Users} 
+            label={t('nav.social') || 'Social'} 
+            onClick={() => onOpenSection('social')} 
+          />
+        )}
+
       </div>
     </div>
   );
