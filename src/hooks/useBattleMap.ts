@@ -425,6 +425,54 @@ export const useBattleMap = (campaignId: string) => {
     setFogStrokes([]);
   };
 
+  const coverWholeMap = async (width: number, height: number, x: number = 0, y: number = 0) => {
+    if (!activeScene) return;
+    await addFogStroke({
+      fog_type: 'block',
+      shape: 'rect',
+      color: null,
+      opacity: 1,
+      brush_size: 0,
+      points: [{ x, y }, { x: width, y: height }],
+      is_visible: true,
+      label: 'Mapa Completo'
+    });
+  };
+
+  const coverImage = async (imgWidth: number, imgHeight: number) => {
+    if (!activeScene) return;
+    await coverWholeMap(imgWidth, imgHeight, activeScene.background_x || 0, activeScene.background_y || 0);
+  };
+
+  const coverEdges = async (width: number, height: number, imgWidth: number, imgHeight: number) => {
+    if (!activeScene) return;
+    const padding = 500;
+    // Top
+    await addFogStroke({
+      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
+      points: [{ x: -padding, y: -padding }, { x: width + padding * 2, y: padding }],
+      is_visible: true, label: 'Borde Superior'
+    });
+    // Bottom
+    await addFogStroke({
+      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
+      points: [{ x: -padding, y: height }, { x: width + padding * 2, y: padding }],
+      is_visible: true, label: 'Borde Inferior'
+    });
+    // Left
+    await addFogStroke({
+      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
+      points: [{ x: -padding, y: 0 }, { x: padding, y: height }],
+      is_visible: true, label: 'Borde Izquierdo'
+    });
+    // Right
+    await addFogStroke({
+      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
+      points: [{ x: width, y: 0 }, { x: padding, y: height }],
+      is_visible: true, label: 'Borde Derecho'
+    });
+  };
+
   return {
     activeScene,
     scenes,
@@ -445,6 +493,9 @@ export const useBattleMap = (campaignId: string) => {
     undoLastDrawing,
     addFogStroke,
     removeFogStroke,
-    clearFog
+    clearFog,
+    coverWholeMap,
+    coverImage,
+    coverEdges
   };
 };

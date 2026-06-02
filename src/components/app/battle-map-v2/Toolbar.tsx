@@ -30,6 +30,16 @@ interface Props {
   drawings?: any[];
   brushSize: number;
   setBrushSize: (size: number) => void;
+  // Fog Phase 3
+  onCoverAll?: () => void;
+  onCoverImage?: () => void;
+  onCoverEdges?: () => void;
+  fogAnimationReduced?: boolean;
+  setFogAnimationReduced?: (v: boolean) => void;
+  showTokensUnderFog?: boolean;
+  setShowTokensUnderFog?: (v: boolean) => void;
+  revealAroundTokens?: boolean;
+  setRevealAroundTokens?: (v: boolean) => void;
 }
 
 export function Toolbar({ 
@@ -55,7 +65,16 @@ export function Toolbar({
   authorColor,
   drawings = [],
   brushSize,
-  setBrushSize
+  setBrushSize,
+  onCoverAll,
+  onCoverImage,
+  onCoverEdges,
+  fogAnimationReduced,
+  setFogAnimationReduced,
+  showTokensUnderFog,
+  setShowTokensUnderFog,
+  revealAroundTokens,
+  setRevealAroundTokens
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
@@ -324,11 +343,67 @@ export function Toolbar({
 
                     <div className="flex flex-col gap-1 border-t border-[var(--gold)]/10 pt-2">
                       <button 
+                        onClick={onCoverAll}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Todo el Mapa</span>
+                      </button>
+                      <button 
+                        onClick={onCoverImage}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Imagen</span>
+                      </button>
+                      <button 
+                        onClick={onCoverEdges}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Bordes</span>
+                      </button>
+                      
+                      <div className="h-px bg-[var(--gold)]/10 my-1" />
+
+                      <button 
+                        onClick={() => setFogAnimationReduced?.(!fogAnimationReduced)}
+                        className={cn(
+                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
+                          fogAnimationReduced ? "bg-[var(--gold)]/20 text-[var(--gold)]" : "hover:bg-[var(--gold)]/10 text-white/70"
+                        )}
+                      >
+                        <span className="text-[9px] uppercase tracking-tighter">Rendimiento (Estática)</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setShowTokensUnderFog?.(!showTokensUnderFog)}
+                        className={cn(
+                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
+                          showTokensUnderFog ? "bg-[var(--gold)]/20 text-[var(--gold)]" : "hover:bg-[var(--gold)]/10 text-white/70"
+                        )}
+                      >
+                        <span className="text-[9px] uppercase tracking-tighter">Ver Tokens bajo Niebla</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setRevealAroundTokens?.(!revealAroundTokens)}
+                        className={cn(
+                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
+                          revealAroundTokens ? "bg-purple-500/20 text-purple-400" : "hover:bg-purple-500/10 text-white/40"
+                        )}
+                      >
+                        <span className="text-[9px] uppercase tracking-tighter">Exp. Revelar x Token</span>
+                      </button>
+
+                      <div className="h-px bg-[var(--gold)]/10 my-1" />
+
+                      <button 
                         onClick={onClearFog}
                         className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-400 transition-colors text-left"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter font-bold">Borrar Niebla</span>
+                        <span className="text-[9px] uppercase tracking-tighter font-bold">Reset de Niebla</span>
                       </button>
                     </div>
                   </motion.div>

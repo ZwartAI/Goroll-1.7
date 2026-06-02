@@ -20,6 +20,7 @@ interface Props {
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
   screenToWorld: (x: number, y: number) => { x: number, y: number };
+  className?: string;
 }
 
 export function Token({ 
@@ -30,7 +31,8 @@ export function Token({
   onMove, onRemove, onUpdateSize,
   screenToWorld,
   onDragStart,
-  onDragEnd
+  onDragEnd,
+  className
 }: Props & { onDragStart?: (id: string) => void, onDragEnd?: () => void }) {
 
   const [localDragging, setLocalDragging] = useState(false);
@@ -135,7 +137,8 @@ export function Token({
       className={cn(
         "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto select-none",
         !token.is_visible && "opacity-50 grayscale",
-        (localDragging || isDraggingProp) && "cursor-grabbing z-50"
+        (localDragging || isDraggingProp) && "cursor-grabbing z-50",
+        className
       )}
       style={{ 
         width: gridSize,

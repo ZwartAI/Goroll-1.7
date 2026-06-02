@@ -21,6 +21,10 @@ interface Props {
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
   brushSize?: number;
+  fogAnimationReduced?: boolean;
+  showTokensUnderFog?: boolean;
+  revealAroundTokens?: boolean;
+  onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
 }
 
 export interface StageHandle {
@@ -28,7 +32,10 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140 }, ref) => {
+export const Stage = forwardRef<StageHandle, Props>(({ 
+  battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140,
+  fogAnimationReduced = false, showTokensUnderFog = true, revealAroundTokens = false, onMapLoad
+}, ref) => {
   const { activeScene, tokens, drawings, fogStrokes, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogStroke } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const fogCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,6 +60,31 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   const isFogging = useRef(false);
   const currentFogPoints = useRef<{ x: number, y: number }[]>([]);
   const [localFogPoints, setLocalFogPoints] = useState<{ x: number, y: number }[]>([]);
+  const lastDrawTime = useRef(0);
+
+  // Fog Animation State
+  const [fogOffset, setFogOffset] = useState({ x: 0, y: 0 });
+  const requestRef = useRef<number>(undefined);
+
+  useEffect(() => {
+    if (fogAnimationReduced) {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      return;
+    }
+
+    const animate = (time: number) => {
+      setFogOffset({
+        x: Math.sin(time / 5000) * 20,
+        y: Math.cos(time / 7000) * 20
+      });
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [fogAnimationReduced]);
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
@@ -65,6 +97,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   const [selectedFogId, setSelectedFogId] = useState<string | null>(null);
   const [fogBlockStart, setFogBlockStart] = useState<{ x: number, y: number } | null>(null);
   const [fogBlockEnd, setFogBlockEnd] = useState<{ x: number, y: number } | null>(null);
+  
+  // Visibility checking canvas (miniature)
+  const visibilityCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [hiddenTokenIds, setHiddenTokenIds] = useState<Set<string>>(new Set());
+
 
   const blockColors = [
     'rgba(255, 0, 0, 0.4)',    // Rojo
@@ -311,6 +348,10 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     let coords = screenToWorld(e.clientX, e.clientY);
 
     if (isFogging.current) {
+      const now = Date.now();
+      if (now - lastDrawTime.current < 32) return; // Throttle ~30fps for drawing
+      lastDrawTime.current = now;
+
       const lastPoint = currentFogPoints.current[currentFogPoints.current.length - 1];
       if (!lastPoint || Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y) > 5) {
         currentFogPoints.current.push(coords);
@@ -461,7 +502,10 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (fogStrokes.length === 0) return;
+    if (fogStrokes.length === 0 && localFogPoints.length === 0) {
+      setHiddenTokenIds(new Set());
+      return;
+    }
 
     // We use a temporary canvas to compose the fog and erasers
     const tempCanvas = document.createElement('canvas');
@@ -474,11 +518,27 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     tempCtx.lineCap = 'round';
     tempCtx.lineJoin = 'round';
     
-    fogStrokes.forEach((stroke: FogStroke) => {
+    const allStrokes = [...fogStrokes];
+    if (localFogPoints.length > 0) {
+      allStrokes.push({
+        id: 'local',
+        campaign_id: '',
+        scene_id: activeScene.id,
+        fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
+        shape: 'brush',
+        points: localFogPoints,
+        brush_size: brushSize,
+        opacity: 1,
+        is_visible: true,
+        color: null
+      });
+    }
+
+    allStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'brush') {
         tempCtx.beginPath();
         tempCtx.lineWidth = stroke.brush_size;
-        tempCtx.strokeStyle = 'black'; // Always black for the mask
+        tempCtx.strokeStyle = 'black'; 
         stroke.points.forEach((p: {x: number, y: number}, i: number) => {
           if (i === 0) tempCtx.moveTo(p.x, p.y);
           else tempCtx.lineTo(p.x, p.y);
@@ -492,32 +552,104 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       }
     });
 
-    // 2. Subtract erasers
+    // 2. Subtract erasers with soft edges
     tempCtx.globalCompositeOperation = 'destination-out';
-    fogStrokes.forEach((stroke: FogStroke) => {
+    allStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'eraser') {
-        tempCtx.beginPath();
-        tempCtx.lineWidth = stroke.brush_size;
-        tempCtx.strokeStyle = 'white';
-        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
-          if (i === 0) tempCtx.moveTo(p.x, p.y);
-          else tempCtx.lineTo(p.x, p.y);
-        });
-        tempCtx.stroke();
+        // Use soft brushes for erasers if not in reduced animation mode
+        if (!fogAnimationReduced) {
+          stroke.points.forEach((p: {x: number, y: number}) => {
+            const gradient = tempCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, stroke.brush_size / 2);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            tempCtx.fillStyle = gradient;
+            tempCtx.beginPath();
+            tempCtx.arc(p.x, p.y, stroke.brush_size / 2, 0, Math.PI * 2);
+            tempCtx.fill();
+          });
+        } else {
+          tempCtx.beginPath();
+          tempCtx.lineWidth = stroke.brush_size;
+          tempCtx.strokeStyle = 'white';
+          stroke.points.forEach((p: {x: number, y: number}, i: number) => {
+            if (i === 0) tempCtx.moveTo(p.x, p.y);
+            else tempCtx.lineTo(p.x, p.y);
+          });
+          tempCtx.stroke();
+        }
       }
     });
 
-    // 3. Render the composed mask to the main canvas with final styling
-    ctx.globalAlpha = isDM ? 0.6 : 0.95; // DM sees transparency, players see mostly opaque
+    // 3. Update Token Visibility (Hidden Tokens)
+    if (!isDM) {
+      const newHidden = new Set<string>();
+      tokens.forEach((token: MapToken) => {
+        // Sample center of token
+        const tx = Math.floor(token.x + token.size / 2);
+        const ty = Math.floor(token.y + token.size / 2);
+        
+        if (tx >= 0 && tx < tempCanvas.width && ty >= 0 && ty < tempCanvas.height) {
+          const pixel = tempCtx.getImageData(tx, ty, 1, 1).data;
+          // If alpha > 128, it means there's fog here (since we draw fog with black and destination-out with white)
+          // Wait, tempCtx has alpha where fog is, and 0 where revealed.
+          if (pixel[3] > 128) {
+            newHidden.add(token.id);
+          }
+        }
+      });
+      setHiddenTokenIds(newHidden);
+    } else {
+      setHiddenTokenIds(new Set());
+    }
+
+    // 4. Render the composed mask to the main canvas with final styling
+    ctx.globalAlpha = isDM ? 0.6 : 1.0; 
     
-    // Fill the mask with dark color or pattern
+    // Smoke/Cloud effect using animated offset
+    if (!fogAnimationReduced) {
+      ctx.translate(fogOffset.x, fogOffset.y);
+    }
+    
     ctx.drawImage(tempCanvas, 0, 0);
+    
+    if (!fogAnimationReduced) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
     
     // Use the mask to draw the fog
     ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = '#0a0a0a';
+    ctx.fillStyle = '#050505';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, [fogStrokes, isDM, activeScene]);
+    
+    // Add texture
+    if (!fogAnimationReduced) {
+      ctx.globalAlpha = 0.05;
+      ctx.fillStyle = '#111';
+      for (let i = 0; i < 50; i++) {
+        ctx.beginPath();
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 200, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }, [fogStrokes, localFogPoints, isDM, activeScene, fogOffset, fogAnimationReduced, tokens]);
+
+  // Handle image load to send dimensions
+  useEffect(() => {
+    if (activeScene?.background_url && onMapLoad) {
+      const img = new Image();
+      img.onload = () => {
+        onMapLoad({
+          width: 8000,
+          height: 8000,
+          imgWidth: img.width,
+          imgHeight: img.height
+        });
+      };
+      img.src = activeScene.background_url;
+    }
+  }, [activeScene?.background_url]);
+
 
   if (!activeScene) {
     return (
@@ -801,15 +933,35 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingTokenId === token.id}
                 activeTool={activeTool}
-                onMove={(x: number, y: number, isFinal: boolean = true) => updateTokenPosition(token.id, x, y, isFinal)}
+                onMove={(x: number, y: number, isFinal: boolean = true) => {
+                  updateTokenPosition(token.id, x, y, isFinal);
+                  if (isFinal && isDM && revealAroundTokens) {
+                    // Experimental: Reveal fog around token
+                    const radius = activeScene.grid_size * 2;
+                    const points = [];
+                    // Create a circle of points for the "brush" or just a few points
+                    points.push({ x, y });
+                    addFogStroke({
+                      fog_type: 'eraser',
+                      shape: 'brush',
+                      points: [{ x: x + token.size / 2, y: y + token.size / 2 }],
+                      brush_size: radius * 2,
+                      opacity: 1,
+                      is_visible: true
+                    });
+                  }
+                }}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
                 onDragStart={(id) => setDraggingTokenId(id)}
                 onDragEnd={() => setDraggingTokenId(null)}
+                className={cn(
+                  !isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : "",
+                  isDM && showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-40 grayscale" : "",
+                  isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : ""
+                )}
               />
-
-
             </div>
             ))
           })()}
