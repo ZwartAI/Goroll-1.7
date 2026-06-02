@@ -523,7 +523,8 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
 
             </div>
-          ))}
+            ))
+          })()}
         </div>
 
         {/* Ruler Layer */}
