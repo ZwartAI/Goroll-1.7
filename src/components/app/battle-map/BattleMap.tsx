@@ -1247,6 +1247,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           isDM={isDM}
           showIniciativa={showSidebar}
           onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+          showParticipants={showParticipants}
+          onToggleParticipants={() => setShowParticipants(!showParticipants)}
           showToolbar={showToolbar}
           onToggleToolbar={() => setShowToolbar(!showToolbar)}
           onInvokeToken={() => setIsTokenPickerOpen(true)}
@@ -1255,6 +1257,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             setIsAdminSidebarOpen(false);
           }}
         />
+
 
         {/* Token Picker Modal */}
         <BattleMapTokenPickerModal 
