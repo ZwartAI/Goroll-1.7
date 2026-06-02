@@ -360,7 +360,6 @@ export const useBattleMap = (campaignId: string) => {
     scenes,
     tokens,
     drawings,
-    
     isLoading,
     updateScene,
     createScene,
@@ -372,5 +371,6 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
+    undoLastDrawing
   };
 };
