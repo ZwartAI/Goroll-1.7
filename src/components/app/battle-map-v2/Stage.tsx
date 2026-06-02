@@ -370,6 +370,103 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     return Math.round(cells * 5); // 5ft per cell
   };
 
+  const highlightedCells = React.useMemo(() => {
+    if (!rulerStart || !rulerEnd || !activeScene || !activeScene.grid_enabled) return [];
+    
+    const gridSize = activeScene.grid_size;
+    const dx = rulerEnd.x - rulerStart.x;
+    const dy = rulerEnd.y - rulerStart.y;
+    const radius = Math.hypot(dx, dy);
+    
+    if (radius < 2) return [];
+
+    // Bounding box for searching cells
+    const searchRadius = radius + gridSize;
+    const minX = rulerStart.x - searchRadius;
+    const maxX = rulerStart.x + searchRadius;
+    const minY = rulerStart.y - searchRadius;
+    const maxY = rulerStart.y + searchRadius;
+    
+    // Grid range
+    const startCol = Math.floor((minX - (activeScene.grid_offset_x || 0)) / gridSize);
+    const endCol = Math.ceil((maxX - (activeScene.grid_offset_x || 0)) / gridSize);
+    const startRow = Math.floor((minY - (activeScene.grid_offset_y || 0)) / gridSize);
+    const endRow = Math.ceil((maxY - (activeScene.grid_offset_y || 0)) / gridSize);
+    
+    const cells: {x: number, y: number}[] = [];
+    const angle = Math.atan2(dy, dx);
+    const halfSpread = (30 * Math.PI) / 180;
+    
+    // Use a small buffer to avoid searching the entire 8000x8000 map
+    const maxSearch = 40; // Don't check more than 40x40 cells for performance
+    const colCount = Math.min(endCol - startCol, maxSearch);
+    const rowCount = Math.min(endRow - startRow, maxSearch);
+    
+    const actualStartCol = Math.max(0, startCol);
+    const actualStartRow = Math.max(0, startRow);
+
+    for (let i = 0; i <= colCount; i++) {
+      const col = actualStartCol + i;
+      for (let j = 0; j <= rowCount; j++) {
+        const row = actualStartRow + j;
+        
+        const cellX = col * gridSize + (activeScene.grid_offset_x || 0);
+        const cellY = row * gridSize + (activeScene.grid_offset_y || 0);
+        
+        // Sample points in the cell to determine coverage
+        let pointsInside = 0;
+        const samples = 4; // 4x4 grid = 16 points
+        const threshold = 10; // ~62.5% (10/16)
+        
+        for (let sx = 0; sx < samples; sx++) {
+          for (let sy = 0; sy < samples; sy++) {
+            const px = cellX + (sx + 0.5) * (gridSize / samples);
+            const py = cellY + (sy + 0.5) * (gridSize / samples);
+            
+            let inside = false;
+            const distToStart = Math.hypot(px - rulerStart.x, py - rulerStart.y);
+
+            if (measureMode === 'circle') {
+              inside = distToStart <= radius;
+            } else if (measureMode === 'cone') {
+              if (distToStart <= radius) {
+                let pAngle = Math.atan2(py - rulerStart.y, px - rulerStart.x);
+                let diff = pAngle - angle;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                inside = Math.abs(diff) <= halfSpread;
+              }
+            } else if (measureMode === 'line') {
+              const lax = rulerStart.x;
+              const lay = rulerStart.y;
+              const lbx = rulerEnd.x;
+              const lby = rulerEnd.y;
+              
+              const L2 = (lbx - lax)**2 + (lby - lay)**2;
+              if (L2 < 1) {
+                inside = distToStart <= gridSize / 2;
+              } else {
+                const t = Math.max(0, Math.min(1, ((px - lax) * (lbx - lax) + (py - lay) * (lby - lay)) / L2));
+                const projX = lax + t * (lbx - lax);
+                const projY = lay + t * (lby - lay);
+                const d = Math.hypot(px - projX, py - projY);
+                inside = d <= gridSize / 2;
+              }
+            }
+            
+            if (inside) pointsInside++;
+          }
+          if (pointsInside >= threshold) break; // Optimization
+        }
+        
+        if (pointsInside >= threshold) {
+          cells.push({ x: cellX, y: cellY });
+        }
+      }
+    }
+    return cells;
+  }, [rulerStart, rulerEnd, measureMode, activeScene]);
+
   // No longer needed locally since we export it from useBattleMap
   // but keeping the call compatible
   const isVideo = isVideoUrl;
