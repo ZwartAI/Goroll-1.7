@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
+import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { SceneConfig, MapToken, Drawing, isVideoUrl, FogStroke } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ interface Props {
   authorColor?: string;
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
+  brushSize?: number;
 }
 
 export interface StageHandle {
@@ -26,9 +27,10 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure }, ref) => {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140 }, ref) => {
+  const { activeScene, tokens, drawings, fogStrokes, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogStroke } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  const fogCanvasRef = useRef<HTMLCanvasElement>(null);
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -45,6 +47,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
+
+  // Fog of War drawing state
+  const isFogging = useRef(false);
+  const currentFogPoints = useRef<{ x: number, y: number }[]>([]);
+  const [localFogPoints, setLocalFogPoints] = useState<{ x: number, y: number }[]>([]);
 
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
@@ -186,6 +193,15 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
+    if (activeTool === 'fogPaint' || activeTool === 'fogErase') {
+      if (!isDM) return;
+      isFogging.current = true;
+      currentFogPoints.current = [coords];
+      setLocalFogPoints([coords]);
+      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      return;
+    }
+
     // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
     const tokenId = tokenElement?.getAttribute('data-token-id');
@@ -195,6 +211,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       setIsPanning(false);
       setDraggingTokenId(null);
       isMeasuring.current = false;
+      isFogging.current = false;
 
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -254,6 +271,15 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     let coords = screenToWorld(e.clientX, e.clientY);
 
+    if (isFogging.current) {
+      const lastPoint = currentFogPoints.current[currentFogPoints.current.length - 1];
+      if (!lastPoint || Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y) > 5) {
+        currentFogPoints.current.push(coords);
+        setLocalFogPoints([...currentFogPoints.current]);
+      }
+      return;
+    }
+
     // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
       const gridSize = activeScene.grid_size;
@@ -281,12 +307,6 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
-    if (draggingTokenId) {
-      // Logic moved to Token.tsx
-      return;
-    }
-
-
     if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
       setRulerEnd(coords);
     } else if (isPanning && activePointers.current.size === 1) {
@@ -303,11 +323,26 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       lastPinchDist.current = null;
     }
 
+    if (isFogging.current) {
+      isFogging.current = false;
+      if (currentFogPoints.current.length > 0) {
+        addFogStroke({
+          fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
+          shape: 'circle',
+          color: activeTool === 'fogPaint' ? '#000000' : null,
+          opacity: 0.85,
+          brush_size: brushSize,
+          points: currentFogPoints.current,
+          is_visible: true
+        });
+      }
+      currentFogPoints.current = [];
+      setLocalFogPoints([]);
+    }
+
     if (draggingTokenId) {
       setDraggingTokenId(null);
     }
-
-
 
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
@@ -345,6 +380,68 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
     zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
   };
+
+  // Render Fog of War on canvas
+  useEffect(() => {
+    const canvas = fogCanvasRef.current;
+    if (!canvas || !activeScene) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (fogStrokes.length === 0) return;
+
+    // We use a temporary canvas to compose the fog and erasers
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+
+    // 1. Draw base fog (paint strokes)
+    tempCtx.lineCap = 'round';
+    tempCtx.lineJoin = 'round';
+    
+    fogStrokes.forEach((stroke: FogStroke) => {
+      if (stroke.fog_type === 'brush') {
+        tempCtx.beginPath();
+        tempCtx.lineWidth = stroke.brush_size;
+        tempCtx.strokeStyle = 'black'; // Always black for the mask
+        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
+          if (i === 0) tempCtx.moveTo(p.x, p.y);
+          else tempCtx.lineTo(p.x, p.y);
+        });
+        tempCtx.stroke();
+      }
+    });
+
+    // 2. Subtract erasers
+    tempCtx.globalCompositeOperation = 'destination-out';
+    fogStrokes.forEach((stroke: FogStroke) => {
+      if (stroke.fog_type === 'eraser') {
+        tempCtx.beginPath();
+        tempCtx.lineWidth = stroke.brush_size;
+        tempCtx.strokeStyle = 'white';
+        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
+          if (i === 0) tempCtx.moveTo(p.x, p.y);
+          else tempCtx.lineTo(p.x, p.y);
+        });
+        tempCtx.stroke();
+      }
+    });
+
+    // 3. Render the composed mask to the main canvas with final styling
+    ctx.globalAlpha = isDM ? 0.6 : 0.95; // DM sees transparency, players see mostly opaque
+    
+    // Fill the mask with dark color or pattern
+    ctx.drawImage(tempCanvas, 0, 0);
+    
+    // Use the mask to draw the fog
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }, [fogStrokes, isDM, activeScene]);
 
   if (!activeScene) {
     return (
@@ -641,6 +738,33 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
             ))
           })()}
         </div>
+
+        {/* Fog of War Layer */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 40 }}
+        >
+          <canvas 
+            ref={fogCanvasRef}
+            width={8000}
+            height={8000}
+            className="absolute inset-0 pointer-events-none"
+          />
+        </div>
+
+        {/* Local Drawing Fog Preview */}
+        {localFogPoints.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 45 }}>
+            <polyline
+              points={localFogPoints.map(p => `${p.x},${p.y}`).join(' ')}
+              fill="none"
+              stroke={activeTool === 'fogPaint' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)'}
+              strokeWidth={brushSize}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
 
         {/* Ruler Layer */}
         {rulerStart && rulerEnd && (

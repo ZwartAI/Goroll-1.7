@@ -41,9 +41,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [showDicePanel, setShowDicePanel] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('line');
   const [measureSnap, setMeasureSnap] = useState(true);
+  const [brushSize, setBrushSize] = useState(140);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+  const [showFogClearModal, setShowFogClearModal] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
   const [showSidebar, setShowSidebar] = useState(() => {
@@ -192,6 +194,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
+          onClearFog={() => setShowFogClearModal(true)}
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
@@ -219,6 +222,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           }}
           hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
         />
 
 
@@ -348,6 +353,38 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
             battleMap={battleMap} 
             onClose={() => setShowSettings(false)} 
           />
+        )}
+        {showFogClearModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-black/90 border border-[var(--gold)]/40 p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4"
+            >
+              <h3 className="text-[var(--gold)] font-display text-lg mb-2">Eliminar Niebla</h3>
+              <p className="text-white/70 text-sm mb-6">
+                ¿Quieres eliminar toda la niebla de guerra de esta escena? Los jugadores podrán ver todo el mapa revelado.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button 
+                  onClick={() => setShowFogClearModal(false)}
+                  className="px-4 py-2 rounded-lg text-white/60 hover:text-white transition-colors text-sm uppercase tracking-wider"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={async () => {
+                    await battleMap.clearFog();
+                    setShowFogClearModal(false);
+                    toast.success("Niebla de guerra eliminada");
+                  }}
+                  className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors text-sm uppercase tracking-wider"
+                >
+                  Eliminar Niebla
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

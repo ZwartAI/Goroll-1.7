@@ -159,6 +159,54 @@ export type Database = {
           },
         ]
       }
+      battle_map_fog_simple: {
+        Row: {
+          brush_size: number | null
+          campaign_id: string
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          fog_type: string
+          id: string
+          is_visible: boolean | null
+          opacity: number | null
+          points: Json
+          scene_id: string
+          shape: string
+          updated_at: string | null
+        }
+        Insert: {
+          brush_size?: number | null
+          campaign_id: string
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          fog_type?: string
+          id?: string
+          is_visible?: boolean | null
+          opacity?: number | null
+          points: Json
+          scene_id: string
+          shape?: string
+          updated_at?: string | null
+        }
+        Update: {
+          brush_size?: number | null
+          campaign_id?: string
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          fog_type?: string
+          id?: string
+          is_visible?: boolean | null
+          opacity?: number | null
+          points?: Json
+          scene_id?: string
+          shape?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       battle_map_scenes: {
         Row: {
           background_brightness: number | null

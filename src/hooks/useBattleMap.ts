@@ -52,6 +52,19 @@ export interface Drawing {
   points: number[];
 }
 
+export interface FogStroke {
+  id: string;
+  campaign_id: string;
+  scene_id: string;
+  fog_type: string;
+  shape: string;
+  color: string | null;
+  opacity: number;
+  brush_size: number;
+  points: { x: number; y: number }[];
+  is_visible: boolean;
+}
+
 export const isVideoUrl = (url: string | null | undefined) => {
   if (!url) return false;
   const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
@@ -63,7 +76,13 @@ export const useBattleMap = (campaignId: string) => {
   const [scenes, setScenes] = useState<SceneConfig[]>([]);
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
+  const [fogStrokes, setFogStrokes] = useState<FogStroke[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const activeSceneIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    activeSceneIdRef.current = activeScene?.id ?? null;
+  }, [activeScene?.id]);
 
   const fetchActiveScene = useCallback(async () => {
     const { data, error } = await supabase
@@ -125,13 +144,31 @@ export const useBattleMap = (campaignId: string) => {
       return;
     }
 
-    // Transform points from Json to number[]
     const transformedDrawings = (data || []).map(d => ({
       ...d,
       points: d.points as number[]
     }));
 
     setDrawings(transformedDrawings as unknown as Drawing[]);
+  }, []);
+
+  const fetchFog = useCallback(async (sceneId: string) => {
+    const { data, error } = await supabase
+      .from('battle_map_fog_simple')
+      .select('*')
+      .eq('scene_id', sceneId);
+
+    if (error) {
+      console.error('Error fetching fog:', error);
+      return;
+    }
+
+    const transformedFog = (data || []).map(f => ({
+      ...f,
+      points: f.points as { x: number; y: number }[]
+    }));
+
+    setFogStrokes(transformedFog as unknown as FogStroke[]);
   }, []);
 
   useEffect(() => {
@@ -160,7 +197,6 @@ export const useBattleMap = (campaignId: string) => {
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const newScene = payload.new as any;
             if (newScene.is_active && newScene.campaign_id === campaignId) {
-              // If grid_size changed, locally scale tokens for smooth transition
               setActiveScene(prev => {
                 if (prev && newScene.grid_size !== prev.grid_size) {
                   const ratio = newScene.grid_size / prev.grid_size;
@@ -185,21 +221,17 @@ export const useBattleMap = (campaignId: string) => {
     };
   }, [campaignId, fetchActiveScene, fetchScenes]);
 
-  const activeSceneIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    activeSceneIdRef.current = activeScene?.id ?? null;
-  }, [activeScene?.id]);
-
   useEffect(() => {
     if (!activeScene?.id) {
       setTokens([]);
       setDrawings([]);
+      setFogStrokes([]);
       return;
     }
 
     fetchTokens(activeScene.id);
     fetchDrawings(activeScene.id);
+    fetchFog(activeScene.id);
 
     const tokensSubscription = supabase
       .channel(`battle_map_tokens_${activeScene.id}`)
@@ -212,45 +244,16 @@ export const useBattleMap = (campaignId: string) => {
           filter: `scene_id=eq.${activeScene.id}`,
         },
         (payload) => {
-          console.info('BattleMap token realtime event:', {
-            eventType: payload.eventType,
-            sceneId: activeScene.id,
-            activeSceneIdRef: activeSceneIdRef.current
-          });
-
           if (payload.eventType === 'INSERT') {
             const newToken = payload.new as MapToken;
             if (newToken.scene_id !== activeSceneIdRef.current) return;
-
             setTokens(prev => {
-              const exists = prev.some(t => t.id === newToken.id);
-              if (exists) return prev;
-              
-              const withoutSameChar = prev.filter(t => 
-                !(t.character_id && t.character_id === newToken.character_id && t.scene_id === newToken.scene_id)
-              );
-              return [...withoutSameChar, newToken];
+              if (prev.some(t => t.id === newToken.id)) return prev;
+              return [...prev, newToken];
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedToken = payload.new as MapToken;
-            if (updatedToken.scene_id !== activeSceneIdRef.current) {
-              setTokens(prev => prev.filter(t => t.id !== updatedToken.id));
-              return;
-            }
-
-            // If it's the active scene, check if it's visible
-            // The Token component handles opacity for is_visible=false, 
-            // but if we want to remove it entirely when hidden, we'd filter here.
-            // As per user request: "visualmente no aparece o no desaparece"
-            setTokens(prev => {
-              const exists = prev.some(t => t.id === updatedToken.id);
-              if (exists) {
-                return prev.map(t => t.id === updatedToken.id ? updatedToken : t);
-              } else if (updatedToken.is_visible !== false) {
-                return [...prev, updatedToken];
-              }
-              return prev;
-            });
+            setTokens(prev => prev.map(t => t.id === updatedToken.id ? updatedToken : t));
           } else if (payload.eventType === 'DELETE') {
             const oldToken = payload.old as { id: string };
             setTokens(prev => prev.filter(t => t.id !== oldToken.id));
@@ -270,9 +273,23 @@ export const useBattleMap = (campaignId: string) => {
           filter: `scene_id=eq.${activeScene.id}`,
         },
         () => {
-          if (activeSceneIdRef.current) {
-            fetchDrawings(activeSceneIdRef.current);
-          }
+          if (activeSceneIdRef.current) fetchDrawings(activeSceneIdRef.current);
+        }
+      )
+      .subscribe();
+
+    const fogSubscription = supabase
+      .channel(`battle_map_fog_${activeScene.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'battle_map_fog_simple',
+          filter: `scene_id=eq.${activeScene.id}`,
+        },
+        () => {
+          if (activeSceneIdRef.current) fetchFog(activeSceneIdRef.current);
         }
       )
       .subscribe();
@@ -280,280 +297,125 @@ export const useBattleMap = (campaignId: string) => {
     return () => {
       tokensSubscription.unsubscribe();
       drawingsSubscription.unsubscribe();
+      fogSubscription.unsubscribe();
     };
-  }, [activeScene?.id, fetchTokens, fetchDrawings]);
-
-  // Debounced DB update
-  const debouncedUpdate = useRef(
-    debounce(async (sceneId: string, updates: Partial<SceneConfig>) => {
-      const { error } = await supabase
-        .from('battle_map_scenes_simple')
-        .update(updates)
-        .eq('id', sceneId);
-
-      if (error) {
-        console.error('Error updating scene:', error);
-        toast.error('No se pudo sincronizar el cambio con el servidor');
-      }
-    }, 500)
-  ).current;
-  
-  const debouncedUpdateTokens = useRef(
-    debounce(async (updatedTokens: MapToken[]) => {
-      for (const token of updatedTokens) {
-        const { error } = await supabase
-          .from('battle_map_tokens_simple')
-          .update({ x: token.x, y: token.y, size: token.size })
-          .eq('id', token.id);
-        if (error) console.error('Error updating token after grid resize:', error);
-      }
-    }, 500)
-  ).current;
+  }, [activeScene?.id, fetchTokens, fetchDrawings, fetchFog]);
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
-    
-    // Check if grid_size changed to scale tokens
-    if (updates.grid_size && updates.grid_size !== activeScene.grid_size) {
-      const ratio = updates.grid_size / activeScene.grid_size;
-      const newGridSize = updates.grid_size;
-      
-      // Update all tokens positions and sizes locally for instant feedback
-      const updatedTokens = tokens.map(t => ({
-        ...t,
-        x: t.x * ratio,
-        y: t.y * ratio,
-        size: newGridSize
-      }));
-      setTokens(updatedTokens);
-
-      // Persist token changes with debounce
-      debouncedUpdateTokens(updatedTokens);
-    }
-
-    // Optimistic local update
     const updatedScene = { ...activeScene, ...updates };
     setActiveScene(updatedScene);
-    
-    // Update in scenes list
     setScenes(prev => prev.map(s => s.id === activeScene.id ? updatedScene : s));
-
-    // Call debounced DB update
-    debouncedUpdate(activeScene.id, updates);
+    
+    await supabase.from('battle_map_scenes_simple').update(updates).eq('id', activeScene.id);
   };
 
   const createScene = async (name: string) => {
     const { data, error } = await supabase
       .from('battle_map_scenes_simple')
-      .insert([
-        {
-          campaign_id: campaignId,
-          name,
-          is_active: scenes.length === 0,
-          background_scale: 1,
-          background_opacity: 1,
-          background_x: 0,
-          background_y: 0,
-          grid_enabled: true,
-          grid_size: 70,
-          grid_color: 'rgba(255,255,255,0.2)',
-          grid_opacity: 0.5,
-          snap_to_grid: true
-        },
-      ])
+      .insert([{
+        campaign_id: campaignId,
+        name,
+        is_active: scenes.length === 0,
+        background_scale: 1,
+        background_opacity: 1,
+        background_x: 0,
+        background_y: 0,
+        grid_enabled: true,
+        grid_size: 70,
+        grid_color: 'rgba(255,255,255,0.2)',
+        grid_opacity: 0.5,
+        snap_to_grid: true
+      }])
       .select()
       .single();
 
-    if (error) {
-      toast.error('No se pudo crear la escena');
-    } else if (data.is_active) {
-      setActiveScene(data as unknown as SceneConfig);
-    }
+    if (!error && data.is_active) setActiveScene(data as unknown as SceneConfig);
     fetchScenes();
   };
 
   const activateScene = async (sceneId: string) => {
-    await supabase
-      .from('battle_map_scenes_simple')
-      .update({ is_active: false })
-      .eq('campaign_id', campaignId);
-
-    const { data, error } = await supabase
-      .from('battle_map_scenes_simple')
-      .update({ is_active: true })
-      .eq('id', sceneId)
-      .select()
-      .single();
-
-    if (error) {
-      toast.error('No se pudo activar la escena');
-    } else {
-      setActiveScene(data as unknown as SceneConfig);
-    }
+    await supabase.from('battle_map_scenes_simple').update({ is_active: false }).eq('campaign_id', campaignId);
+    const { data, error } = await supabase.from('battle_map_scenes_simple').update({ is_active: true }).eq('id', sceneId).select().single();
+    if (!error) setActiveScene(data as unknown as SceneConfig);
   };
 
   const updateTokenPosition = async (tokenId: string, x: number, y: number, isFinal: boolean = true) => {
-    // Optimistic local update
     setTokens(prev => prev.map(t => t.id === tokenId ? { ...t, x, y } : t));
-
-    // Only update DB if it's the final position to avoid excessive writes
-    // and let realtime handle the intermediate states for others if needed.
-    // However, the user asked for realtime DM and players seeing changes.
-    // We'll use a small debounce or only update on final for performance.
     if (!isFinal) return;
-
-    const { error } = await supabase
-      .from('battle_map_tokens_simple')
-      .update({ x, y })
-      .eq('id', tokenId);
-
-    if (error) {
-      console.error('Error updating token position:', error);
-      toast.error('Error al sincronizar posición');
-      // Refetch to sync correctly
-      if (activeScene) fetchTokens(activeScene.id);
-    }
+    await supabase.from('battle_map_tokens_simple').update({ x, y }).eq('id', tokenId);
   };
 
   const updateTokenSize = async (tokenId: string, size: number) => {
-    const { error } = await supabase
-      .from('battle_map_tokens_simple')
-      .update({ size })
-      .eq('id', tokenId);
-
-    if (error) {
-      console.error('Error updating token size:', error);
-    }
+    await supabase.from('battle_map_tokens_simple').update({ size }).eq('id', tokenId);
   };
 
   const addToken = async (token: Partial<MapToken>) => {
     if (!activeScene) return;
-    
-    const newTokenData = { 
-      ...token, 
-      campaign_id: campaignId, 
+    const { data, error } = await supabase.from('battle_map_tokens_simple').insert([{
+      ...token,
+      campaign_id: campaignId,
       scene_id: activeScene.id,
-      size: activeScene.grid_size, // Force size to match grid
+      size: activeScene.grid_size,
       image_scale: token.image_scale || 1,
       image_offset_x: token.image_offset_x ?? 50,
       image_offset_y: token.image_offset_y ?? 50
-    };
-
-    const { data, error } = await supabase
-      .from('battle_map_tokens_simple')
-      .insert([newTokenData])
-      .select()
-      .single();
-
-    if (error) {
-      toast.error('No se pudo añadir el token');
-    } else if (data) {
-      const insertedToken = data as unknown as MapToken;
-      setTokens(prev => {
-        const withoutSame = prev.filter(t => 
-          t.id !== insertedToken.id && 
-          !(t.character_id && t.character_id === insertedToken.character_id && t.scene_id === insertedToken.scene_id)
-        );
-        return [...withoutSame, insertedToken];
-      });
-    }
+    }]).select().single();
+    if (!error && data) setTokens(prev => [...prev.filter(t => t.id !== data.id), data as unknown as MapToken]);
   };
 
   const removeToken = async (tokenId: string) => {
-    // Optimistic local update
     setTokens(prev => prev.filter(t => t.id !== tokenId));
-
-    const { error } = await supabase
-      .from('battle_map_tokens_simple')
-      .delete()
-      .eq('id', tokenId);
-
-    if (error) {
-      toast.error('No se pudo retirar el token');
-      // Refetch to sync correctly
-      if (activeScene) fetchTokens(activeScene.id);
-    }
+    await supabase.from('battle_map_tokens_simple').delete().eq('id', tokenId);
   };
 
   const addDrawing = async (drawing: Omit<Drawing, 'id' | 'campaign_id' | 'scene_id'>) => {
     if (!activeScene) return;
-    
-    // Optimistic update
-    const tempId = Math.random().toString(36).substr(2, 9);
-    const newDrawing = {
+    const { data, error } = await supabase.from('battle_map_drawings_simple').insert([{
       ...drawing,
-      id: tempId,
       campaign_id: campaignId,
-      scene_id: activeScene.id
-    } as Drawing;
-    setDrawings(prev => [...prev, newDrawing]);
-
-    const { error } = await supabase
-      .from('battle_map_drawings_simple')
-      .insert([{ 
-        ...drawing, 
-        campaign_id: campaignId, 
-        scene_id: activeScene.id,
-        points: drawing.points as any // points is JSONB in DB
-      }]);
-
-    if (error) {
-      console.error('Error adding drawing:', error);
-      toast.error('Error al guardar el dibujo');
-      setDrawings(prev => prev.filter(d => d.id !== tempId));
-    }
+      scene_id: activeScene.id,
+      points: drawing.points as any
+    }]).select().single();
+    if (!error && data) fetchDrawings(activeScene.id);
   };
 
   const clearDrawings = async (options?: { authorId?: string, all?: boolean }) => {
     if (!activeScene) return;
-    
-    // Optimistic update
-    setDrawings(prev => prev.filter(d => {
-      if (options?.all) return false;
-      if (options?.authorId) return d.author_character_id !== options.authorId;
-      return false; // Default clear all
-    }));
-
-    const { error } = await supabase
-      .from('battle_map_drawings_simple')
-      .delete()
-      .match({ 
-        scene_id: activeScene.id, 
-        campaign_id: campaignId,
-        ...(options?.authorId ? { author_character_id: options.authorId } : {})
-      });
-
-    if (error) {
-      console.error('Error clearing drawings:', error);
-      toast.error('No se pudieron borrar los dibujos');
-      fetchDrawings(activeScene.id);
-    }
+    await supabase.from('battle_map_drawings_simple').delete().match({
+      scene_id: activeScene.id,
+      campaign_id: campaignId,
+      ...(options?.authorId ? { author_character_id: options.authorId } : {})
+    });
+    fetchDrawings(activeScene.id);
   };
 
   const removeDrawing = async (drawingId: string) => {
-    // Optimistic update
     setDrawings(prev => prev.filter(d => d.id !== drawingId));
-
-    const { error } = await supabase
-      .from('battle_map_drawings_simple')
-      .delete()
-      .eq('id', drawingId);
-
-    if (error) {
-      toast.error('Error al borrar trazo');
-      if (activeScene) fetchDrawings(activeScene.id);
-    }
+    await supabase.from('battle_map_drawings_simple').delete().eq('id', drawingId);
   };
 
   const undoLastDrawing = async (authorId: string) => {
     if (!activeScene) return;
-    
-    // Find the latest drawing from this author in local state
     const authorDrawings = drawings.filter(d => d.author_character_id === authorId);
-    if (authorDrawings.length === 0) return;
-    
-    const lastDrawing = authorDrawings[authorDrawings.length - 1];
-    await removeDrawing(lastDrawing.id);
+    if (authorDrawings.length > 0) await removeDrawing(authorDrawings[authorDrawings.length - 1].id);
+  };
+
+  const addFogStroke = async (stroke: Omit<FogStroke, 'id' | 'campaign_id' | 'scene_id'>) => {
+    if (!activeScene) return;
+    await supabase.from('battle_map_fog_simple').insert([{
+      ...stroke,
+      campaign_id: campaignId,
+      scene_id: activeScene.id,
+      points: stroke.points as any
+    }]);
+    fetchFog(activeScene.id);
+  };
+
+  const clearFog = async () => {
+    if (!activeScene) return;
+    await supabase.from('battle_map_fog_simple').delete().match({ scene_id: activeScene.id, campaign_id: campaignId });
+    setFogStrokes([]);
   };
 
   return {
@@ -561,6 +423,7 @@ export const useBattleMap = (campaignId: string) => {
     scenes,
     tokens,
     drawings,
+    fogStrokes,
     isLoading,
     updateScene,
     createScene,
@@ -572,6 +435,8 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing
+    undoLastDrawing,
+    addFogStroke,
+    clearFog
   };
 };
