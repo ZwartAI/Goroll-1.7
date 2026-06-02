@@ -60,6 +60,20 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
   // Token dragging state (managed by individual Token components now)
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
 
+  // Fog Block selection and creation state
+  const [selectedFogId, setSelectedFogId] = useState<string | null>(null);
+  const [fogBlockStart, setFogBlockStart] = useState<{ x: number, y: number } | null>(null);
+  const [fogBlockEnd, setFogBlockEnd] = useState<{ x: number, y: number } | null>(null);
+
+  const blockColors = [
+    'rgba(255, 0, 0, 0.4)',    // Rojo
+    'rgba(0, 0, 255, 0.4)',    // Azul
+    'rgba(128, 0, 128, 0.4)',  // Morado
+    'rgba(0, 128, 0, 0.4)',    // Verde
+    'rgba(255, 215, 0, 0.4)',  // Dorado
+    'rgba(0, 255, 255, 0.4)',  // Cyan
+  ];
+
 
   // Helper function to convert screen coordinates to world coordinates
   const screenToWorld = useCallback((clientX: number, clientY: number) => {
