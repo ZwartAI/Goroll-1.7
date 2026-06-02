@@ -255,6 +255,15 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           hasBackground={!!battleMap.activeScene?.background_url}
           brushSize={brushSize}
           setBrushSize={setBrushSize}
+          onCoverAll={() => battleMap.coverWholeMap(mapDimensions.width, mapDimensions.height)}
+          onCoverImage={() => battleMap.coverImage(mapDimensions.imgWidth, mapDimensions.imgHeight)}
+          onCoverEdges={() => battleMap.coverEdges(mapDimensions.width, mapDimensions.height, mapDimensions.imgWidth, mapDimensions.imgHeight)}
+          fogAnimationReduced={fogAnimationReduced}
+          setFogAnimationReduced={setFogAnimationReduced}
+          showTokensUnderFog={showTokensUnderFog}
+          setShowTokensUnderFog={setShowTokensUnderFog}
+          revealAroundTokens={revealAroundTokens}
+          setRevealAroundTokens={setRevealAroundTokens}
         />
 
 
