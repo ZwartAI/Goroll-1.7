@@ -11,6 +11,8 @@ import { pushLog } from '@/lib/log';
 
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
+import { BattleMapAdminSidebar } from './BattleMapAdminSidebar';
+import { BattleMapTokenPickerModal } from './BattleMapTokenPickerModal';
 import { BattleMapTurnRail } from './BattleMapTurnRail';
 import { BattleMapStage, type ProjectionType, type ProjectionState } from './BattleMapStage';
 import { BattleMapDiceButton } from './BattleMapDiceButton';
@@ -60,12 +62,14 @@ interface Props {
 const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar }) => {
   const { combat, campaign, character, characters, onlineIds } = useGameData();
   const { t } = useT();
-  const [activePanel, setActivePanel] = useState<'none' | 'participants'>('none');
+  const [activePanel, setActivePanel] = useState<'none' | 'participants'>('participants'); // Por defecto abierta
   const [isScenesPanelOpen, setIsScenesPanelOpen] = useState(false);
   const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
   const [isDicePanelOpen, setIsDicePanelOpen] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
+  const [isTokenPickerOpen, setIsTokenPickerOpen] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map)
   const [showSidebar, setShowSidebar] = useState(true);
@@ -255,7 +259,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       .on('broadcast', { event: 'token-move' }, (payload) => {
         setRemoteTokenPositions(prev => ({
           ...prev,
-          [payload.payload.tokenId]: { x: payload.payload.x, y: payload.payload.y }
+          [payload.payload.tokenId]: { ...payload.payload }
         }));
       })
       .on('broadcast', { event: 'token-remove' }, (payload) => {
@@ -307,12 +311,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
     setRemoteTokenPositions(scene.tokens_state || {});
   };
 
-  const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number) => {
+  const handleBroadcastMove = useCallback((tokenId: string, x: number, y: number, metadata?: any) => {
     if (!campaign?.id) return;
     supabase.channel('battle-map-realtime:' + campaign.id).send({
       type: 'broadcast',
       event: 'token-move',
-      payload: { tokenId, x, y }
+      payload: { tokenId, x, y, ...metadata }
     });
   }, [campaign?.id]);
 
@@ -687,11 +691,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const displayParticipants = useMemo(() => {
     const list = [...combat.participants];
-    const summonedIdsInScene = Object.keys(remoteTokenPositions);
+    const summonedEntries = Object.entries(remoteTokenPositions);
     
+    // Primero añadimos personajes (jugadores) si están invocados pero no en el combate
     characters.forEach(char => {
       if (list.some(p => p.character_id === char.id)) return;
-      if (summonedIdsInScene.includes(char.id)) {
+      if (remoteTokenPositions[char.id]) {
         list.push({
           id: char.id,
           encounter_id: combat.encounter?.id || 'none',
@@ -706,6 +711,30 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           image_offset_x: (char as any).image_offset_x,
           image_offset_y: (char as any).image_offset_y,
           image_scale: char.image_scale,
+        } as any);
+      }
+    });
+
+    // Luego añadimos otros tokens (Enemigos/NPCs invocados manualmente)
+    summonedEntries.forEach(([id, pos]) => {
+      // Si ya está en la lista (por character_id o por id directo), saltar
+      if (list.some(p => p.id === id || p.character_id === id)) return;
+      
+      // Si el pos tiene metadata (nombre, icon, etc)
+      const metadata = pos as any;
+      if (metadata.name) {
+        list.push({
+          id: id,
+          encounter_id: combat.encounter?.id || 'none',
+          campaign_id: campaign?.id || '',
+          participant_type: 'enemy', // Usamos 'enemy' como base para Konva
+          display_name: metadata.name,
+          enemy_icon: metadata.icon,
+          enemy_color: metadata.color,
+          color: metadata.color,
+          initiative: 0,
+          order_index: 1000,
+          npc_template_id: metadata.type === 'npc' ? id : null // Esto activará el color blanco en MapToken
         } as any);
       }
     });
@@ -758,7 +787,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
       nextState[character.id] = pos;
       setRemoteTokenPositions(nextState);
-      handleBroadcastMove(character.id, pos.x, pos.y);
+      handleBroadcastMove(character.id, pos.x, pos.y, { name: character.name, color: character.color, type: 'player' });
       toast.success(t("battleMap.tokenSummoned") || "Token invocado");
     }
     // Guardar la escena con el nuevo estado de tokens explícitamente
@@ -793,14 +822,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           if (isDM) await handleUpdateCurrentSceneState();
           onBack();
         }} 
-        onMenuToggle={toggleParticipants} 
+        onMenuToggle={() => setIsAdminSidebarOpen(true)} 
         onScenesToggle={isDM ? () => setIsScenesPanelOpen(true) : undefined}
         onlineCount={onlineIds.size}
         isDM={isDM}
-        showSidebar={showSidebar}
-        onToggleSidebar={() => setShowSidebar(prev => !prev)}
-        showToolbar={showToolbar}
-        onToggleToolbar={() => setShowToolbar(prev => !prev)}
       />
 
       <main className="flex-1 relative overflow-hidden bg-[#050507]">
@@ -855,8 +880,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             remoteTokenPositions={remoteTokenPositions}
             remoteProjections={remoteProjections}
             onTokenMove={(id: string, x: number, y: number) => {
-              setRemoteTokenPositions(prev => ({ ...prev, [id]: { x, y } }));
-              handleBroadcastMove(id, x, y);
+              const current = remoteTokenPositions[id] || {};
+              const next = { ...current, x, y };
+              setRemoteTokenPositions(prev => ({ ...prev, [id]: next }));
+              handleBroadcastMove(id, x, y, current); // Enviar también la metadata existente
             }}
             onTokenMoveEnd={handleUpdateCurrentSceneState}
             onProjectionUpdate={handleBroadcastProjection}
@@ -1209,6 +1236,61 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             </div>
           </div>
         )}
+
+        {/* Admin Sidebar */}
+        <BattleMapAdminSidebar 
+          isOpen={isAdminSidebarOpen}
+          onClose={() => setIsAdminSidebarOpen(false)}
+          isDM={isDM}
+          showIniciativa={showSidebar}
+          onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+          showToolbar={showToolbar}
+          onToggleToolbar={() => setShowToolbar(!showToolbar)}
+          onInvokeToken={() => setIsTokenPickerOpen(true)}
+          onOpenSettings={() => {
+            setIsConfigModalOpen(true);
+            setIsAdminSidebarOpen(false);
+          }}
+        />
+
+        {/* Token Picker Modal */}
+        <BattleMapTokenPickerModal 
+          isOpen={isTokenPickerOpen}
+          onClose={() => setIsTokenPickerOpen(false)}
+          campaignId={campaign?.id || ''}
+          onSummon={(tokens) => {
+            const nextState = { ...remoteTokenPositions };
+            const stage = stageRef.current;
+            let basePos = { x: dimensions.width / 2, y: dimensions.height / 2 };
+            
+            if (stage) {
+              const currentScale = stage.scaleX();
+              basePos = {
+                x: (dimensions.width / 2 - stage.x()) / currentScale,
+                y: (dimensions.height / 2 - stage.y()) / currentScale
+              };
+            }
+
+            tokens.forEach((t, i) => {
+              const pos = { 
+                x: basePos.x + (i * 20), 
+                y: basePos.y + (i * 20),
+                name: t.name,
+                icon: t.icon,
+                color: t.color,
+                type: t.type
+              };
+              const instanceId = `${t.id}_${Math.random().toString(36).substring(2, 7)}`;
+              nextState[instanceId] = pos;
+              handleBroadcastMove(instanceId, pos.x, pos.y, pos);
+            });
+
+            setRemoteTokenPositions(nextState);
+            handleUpdateCurrentSceneState(undefined, nextState);
+            toast.success(`${tokens.length} tokens invocados al mapa`);
+            setIsTokenPickerOpen(false);
+          }}
+        />
 
         {/* Generic Confirm Modal */}
         {confirmModal && (
