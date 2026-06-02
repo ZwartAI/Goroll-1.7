@@ -318,9 +318,9 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
       
       // Throttle state update to avoid heavy useMemo re-calc on every frame
-      if (!lastPanPos.current.lastMeasureTime || Date.now() - lastPanPos.current.lastMeasureTime > 32) {
+      if (Date.now() - lastMeasureTime.current > 32) {
         setRulerEnd(snappedCoords);
-        lastPanPos.current.lastMeasureTime = Date.now();
+        lastMeasureTime.current = Date.now();
       }
     }
   };
