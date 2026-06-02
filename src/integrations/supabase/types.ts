@@ -115,6 +115,8 @@ export type Database = {
       battle_map_drawings_simple: {
         Row: {
           author_character_id: string | null
+          author_color: string | null
+          author_name: string | null
           campaign_id: string
           color: string | null
           created_at: string | null
@@ -125,6 +127,8 @@ export type Database = {
         }
         Insert: {
           author_character_id?: string | null
+          author_color?: string | null
+          author_name?: string | null
           campaign_id: string
           color?: string | null
           created_at?: string | null
@@ -135,6 +139,8 @@ export type Database = {
         }
         Update: {
           author_character_id?: string | null
+          author_color?: string | null
+          author_name?: string | null
           campaign_id?: string
           color?: string | null
           created_at?: string | null
