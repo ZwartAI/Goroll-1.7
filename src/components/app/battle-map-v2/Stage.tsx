@@ -366,7 +366,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     e.stopPropagation();
 
     const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
-    zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor);
+    zoomAtScreenPoint(e.clientX, e.clientY, zoomFactor, true);
   };
 
   // Handle image load to send dimensions
