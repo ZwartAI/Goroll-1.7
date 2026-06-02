@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
+export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
   activeTool: MapTool;
   setActiveTool: (tool: MapTool) => void;
+  measureMode: MeasureMode;
+  setMeasureMode: (mode: MeasureMode) => void;
+  measureSnap: boolean;
+  setMeasureSnap: (snap: boolean) => void;
   isDM: boolean;
   onOpenScenes: () => void;
   onOpenSettings: () => void;
@@ -27,6 +32,10 @@ interface Props {
 export function Toolbar({ 
   activeTool, 
   setActiveTool, 
+  measureMode,
+  setMeasureMode,
+  measureSnap,
+  setMeasureSnap,
   isDM, 
   onOpenScenes, 
   onOpenSettings, 
@@ -43,6 +52,7 @@ export function Toolbar({
   drawings = []
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
+  const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
@@ -85,19 +95,72 @@ export function Toolbar({
             onClick={() => {
               setActiveTool('move');
               setPencilMenuOpen(false);
+              setMeasureMenuOpen(false);
             }}
             icon={<MousePointer2 className="w-5 h-5" />}
             label="Mover"
           />
-          <ToolButton 
-            active={activeTool === 'measure'} 
-            onClick={() => {
-              setActiveTool('measure');
-              setPencilMenuOpen(false);
-            }}
-            icon={<Ruler className="w-5 h-5" />}
-            label="Regla"
-          />
+          
+          <div className="relative group/measure">
+            <ToolButton 
+              active={activeTool === 'measure'} 
+              onClick={() => {
+                if (activeTool !== 'measure') {
+                  setActiveTool('measure');
+                }
+                setMeasureMenuOpen(!measureMenuOpen);
+                setPencilMenuOpen(false);
+              }}
+              icon={<Ruler className="w-5 h-5" />}
+              label="Regla"
+            />
+            
+            <AnimatePresence>
+              {measureMenuOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
+                >
+                  <div className="flex flex-col gap-1">
+                    <ToolButton 
+                      active={measureMode === 'line'} 
+                      onClick={() => setMeasureMode('line')}
+                      icon={<LineChart className="w-4 h-4" />}
+                      label="Línea Recta"
+                      small
+                    />
+                    <ToolButton 
+                      active={measureMode === 'cone'} 
+                      onClick={() => setMeasureMode('cone')}
+                      icon={<Triangle className="w-4 h-4" />}
+                      label="Cono (60°)"
+                      small
+                    />
+                    <ToolButton 
+                      active={measureMode === 'circle'} 
+                      onClick={() => setMeasureMode('circle')}
+                      icon={<Circle className="w-4 h-4" />}
+                      label="Área (Círculo)"
+                      small
+                    />
+                    
+                    <div className="h-px bg-[var(--gold)]/10 my-1" />
+                    
+                    <ToolButton 
+                      active={measureSnap} 
+                      onClick={() => setMeasureSnap(!measureSnap)}
+                      icon={<Magnet className="w-4 h-4" />}
+                      label={measureSnap ? "Ajuste a Rejilla: ON" : "Ajuste a Rejilla: OFF"}
+                      small
+                      className={measureSnap ? "bg-[var(--gold)]/20 border-[var(--gold)]/40" : ""}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           
           <div className="relative group/pencil">
             <ToolButton 
@@ -107,6 +170,7 @@ export function Toolbar({
                   setActiveTool('pencil');
                 }
                 setPencilMenuOpen(!pencilMenuOpen);
+                setMeasureMenuOpen(false);
               }}
               icon={<Pencil className="w-5 h-5" />}
               label="Dibujo"
