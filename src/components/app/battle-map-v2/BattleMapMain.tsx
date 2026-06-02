@@ -196,7 +196,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
-          onClearFog={() => {}}
+          
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
