@@ -64,7 +64,7 @@ export function Toolbar({
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase';
+  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase' || activeTool === 'fogBlock';
 
   // Extract unique authors for DM management
   const authors = React.useMemo(() => {
