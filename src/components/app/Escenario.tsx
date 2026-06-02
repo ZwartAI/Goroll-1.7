@@ -100,7 +100,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <Gift className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
             <span className="font-display text-xs uppercase tracking-[0.2em] text-blue-300 shadow-sm">
-              Sacos Recompensa
+              {t("rewards.title")}
             </span>
             <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
           </button>
