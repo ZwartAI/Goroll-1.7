@@ -691,11 +691,12 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
 
   const displayParticipants = useMemo(() => {
     const list = [...combat.participants];
-    const summonedIdsInScene = Object.keys(remoteTokenPositions);
+    const summonedEntries = Object.entries(remoteTokenPositions);
     
+    // Primero añadimos personajes (jugadores) si están invocados pero no en el combate
     characters.forEach(char => {
       if (list.some(p => p.character_id === char.id)) return;
-      if (summonedIdsInScene.includes(char.id)) {
+      if (remoteTokenPositions[char.id]) {
         list.push({
           id: char.id,
           encounter_id: combat.encounter?.id || 'none',
@@ -710,6 +711,29 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           image_offset_x: (char as any).image_offset_x,
           image_offset_y: (char as any).image_offset_y,
           image_scale: char.image_scale,
+        } as any);
+      }
+    });
+
+    // Luego añadimos otros tokens (Enemigos/NPCs invocados manualmente)
+    summonedEntries.forEach(([id, pos]) => {
+      // Si ya está en la lista (por character_id o por id directo), saltar
+      if (list.some(p => p.id === id || p.character_id === id)) return;
+      
+      // Si el pos tiene metadata (nombre, icon, etc)
+      const metadata = pos as any;
+      if (metadata.name) {
+        list.push({
+          id: id,
+          encounter_id: combat.encounter?.id || 'none',
+          campaign_id: campaign?.id || '',
+          participant_type: metadata.type === 'npc' ? 'npc' : 'enemy',
+          display_name: metadata.name,
+          enemy_icon: metadata.icon,
+          enemy_color: metadata.color,
+          color: metadata.color,
+          initiative: 0,
+          order_index: 1000,
         } as any);
       }
     });
