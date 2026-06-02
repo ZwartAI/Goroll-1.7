@@ -143,30 +143,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
-          onMeasure={(dist, fromId, toId) => {
-            if (!campaignId || !character) return;
-            
-            const fromToken = fromId ? battleMap.tokens.find((t: any) => t.id === fromId) : null;
-            const toToken = toId ? battleMap.tokens.find((t: any) => t.id === toId) : null;
-            
-            const segments: any[] = [
-              { t: 'char', v: character.name, color: character.color || 'var(--gold)', id: character.id },
-              { t: 'text', v: ' ha medido ' },
-              { t: 'text', v: `${dist} ft` }
-            ];
-
-            if (fromToken) {
-              segments.push({ t: 'text', v: ' desde ' });
-              segments.push({ t: 'text', v: fromToken.name || 'Token', color: 'var(--gold)' });
-            }
-
-            if (toToken && toId !== fromId) {
-              segments.push({ t: 'text', v: ' hasta ' });
-              segments.push({ t: 'text', v: toToken.name || 'Token', color: 'var(--gold)' });
-            }
-
-            pushLog(campaignId, segments);
-          }}
         />
 
         {/* Sidebar (Turns/Participants) */}
