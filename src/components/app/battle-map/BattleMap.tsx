@@ -71,10 +71,24 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
   const [isTokenPickerOpen, setIsTokenPickerOpen] = useState(false);
 
-  // Estados de visibilidad de UI (Bar Map)
-  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
-  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
-  const [showToolbar, setShowToolbar] = useState(true);
+  // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
+  const [showSidebar, setShowSidebar] = useState(() => {
+    const saved = localStorage.getItem('battlemap_show_sidebar');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [showToolbar, setShowToolbar] = useState(() => {
+    const saved = localStorage.getItem('battlemap_show_toolbar');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Persistir cambios de visibilidad
+  useEffect(() => {
+    localStorage.setItem('battlemap_show_sidebar', JSON.stringify(showSidebar));
+  }, [showSidebar]);
+
+  useEffect(() => {
+    localStorage.setItem('battlemap_show_toolbar', JSON.stringify(showToolbar));
+  }, [showToolbar]);
 
 
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
@@ -1238,10 +1252,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           isOpen={isAdminSidebarOpen}
           onClose={() => setIsAdminSidebarOpen(false)}
           isDM={isDM}
-          showIniciativa={showSidebar}
-          onToggleIniciativa={() => setShowSidebar(!showSidebar)}
-          showParticipants={showParticipants}
-          onToggleParticipants={() => setShowParticipants(!showParticipants)}
+          showList={showSidebar}
+          onToggleList={() => setShowSidebar(!showSidebar)}
           showToolbar={showToolbar}
           onToggleToolbar={() => setShowToolbar(!showToolbar)}
           onInvokeToken={() => {
@@ -1360,7 +1372,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       )}
 
       {/* New Fixed Player Bottom Bar */}
-      <BattleMapBottomBar onOpenSection={handleOpenNavSection} showSocial={showParticipants} />
+      <BattleMapBottomBar onOpenNavSection={handleOpenNavSection} showSocial={showSidebar} />
     </div>
   );
 };

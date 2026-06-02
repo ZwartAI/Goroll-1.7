@@ -9,10 +9,8 @@ interface Props {
   isDM: boolean;
   
   // Visibility toggles
-  showIniciativa: boolean;
-  onToggleIniciativa: () => void;
-  showParticipants: boolean;
-  onToggleParticipants: () => void;
+  showList: boolean;
+  onToggleList: () => void;
   showToolbar: boolean;
   onToggleToolbar: () => void;
   
@@ -25,10 +23,8 @@ export const BattleMapAdminSidebar: React.FC<Props> = ({
   isOpen,
   onClose,
   isDM,
-  showIniciativa,
-  onToggleIniciativa,
-  showParticipants,
-  onToggleParticipants,
+  showList,
+  onToggleList,
   showToolbar,
   onToggleToolbar,
   onInvokeToken,
@@ -85,19 +81,13 @@ export const BattleMapAdminSidebar: React.FC<Props> = ({
           <h3 className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-bold px-1">Interfaz</h3>
           <div className="space-y-1">
             <VisibilityToggle 
-              label="Lista de Rondas" 
-              isActive={showIniciativa} 
-              onToggle={onToggleIniciativa} 
-              icon={showIniciativa ? <Users size={16} /> : <EyeOff size={16} />}
+              label="Lista Vertical (Rondas/Jugadores)" 
+              isActive={showList} 
+              onToggle={onToggleList} 
+              icon={showList ? <Users size={16} /> : <EyeOff size={16} />}
             />
             <VisibilityToggle 
-              label="Lista de Jugadores" 
-              isActive={showParticipants} 
-              onToggle={onToggleParticipants} 
-              icon={showParticipants ? <UserCircle size={16} /> : <EyeOff size={16} />}
-            />
-            <VisibilityToggle 
-              label="Herramientas" 
+              label="Barra de Herramientas" 
               isActive={showToolbar} 
               onToggle={onToggleToolbar} 
               icon={showToolbar ? <Layout size={16} /> : <EyeOff size={16} />}
