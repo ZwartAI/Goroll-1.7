@@ -497,7 +497,10 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           {(() => {
             // Prioritize current player's tokens to be on top for easier selection
             const sortedTokens = (!isDM && characterId) 
-              ? [...tokens.filter(t => t.character_id !== characterId), ...tokens.filter(t => t.character_id === characterId)]
+              ? [
+                  ...tokens.filter((t: MapToken) => t.character_id !== characterId), 
+                  ...tokens.filter((t: MapToken) => t.character_id === characterId)
+                ]
               : tokens;
               
             return sortedTokens.map((token: MapToken) => (
