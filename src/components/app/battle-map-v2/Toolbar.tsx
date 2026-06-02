@@ -65,7 +65,16 @@ export function Toolbar({
   authorColor,
   drawings = [],
   brushSize,
-  setBrushSize
+  setBrushSize,
+  onCoverAll,
+  onCoverImage,
+  onCoverEdges,
+  fogAnimationReduced,
+  setFogAnimationReduced,
+  showTokensUnderFog,
+  setShowTokensUnderFog,
+  revealAroundTokens,
+  setRevealAroundTokens
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
