@@ -473,7 +473,8 @@ export function DMConditionsCreator({
   }
 
   return (
-    <div className="ornate-card p-4 space-y-3">
+    <div className="space-y-3">
+
       <div className="grid grid-cols-3 gap-1">
         <button onClick={() => setTab("apply")}
           className={`text-[10px] py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
