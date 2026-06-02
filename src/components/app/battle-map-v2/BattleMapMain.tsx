@@ -45,10 +45,24 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
 
-  // Estados de visibilidad de UI (Bar Map)
-  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
-  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
-  const [showToolbar, setShowToolbar] = useState(true);
+  // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
+  const [showSidebar, setShowSidebar] = useState(() => {
+    const saved = localStorage.getItem('battlemap_show_sidebar');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [showToolbar, setShowToolbar] = useState(() => {
+    const saved = localStorage.getItem('battlemap_show_toolbar');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Persistir cambios de visibilidad
+  useEffect(() => {
+    localStorage.setItem('battlemap_show_sidebar', JSON.stringify(showSidebar));
+  }, [showSidebar]);
+
+  useEffect(() => {
+    localStorage.setItem('battlemap_show_toolbar', JSON.stringify(showToolbar));
+  }, [showToolbar]);
 
   const handleResetView = () => {
     if (stageRef.current) {
@@ -152,7 +166,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
-          showParticipants={showParticipants}
+          showParticipants={showSidebar}
         />
 
         {/* Sidebar (Turns/Participants) */}
@@ -161,7 +175,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           battleMap={battleMap}
           isDM={isDM}
           onInitiatePlacement={(token) => setTokenToPlace(token)}
-          showParticipants={showParticipants}
+          showParticipants={showSidebar}
         />
 
         {/* Toolbar (Right) */}
@@ -341,10 +355,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         isOpen={showAdminSidebar}
         onClose={() => setShowAdminSidebar(false)}
         isDM={isDM}
-        showIniciativa={showSidebar}
-        onToggleIniciativa={() => setShowSidebar(!showSidebar)}
-        showParticipants={showParticipants}
-        onToggleParticipants={() => setShowParticipants(!showParticipants)}
+        showList={showSidebar}
+        onToggleList={() => setShowSidebar(!showSidebar)}
         showToolbar={showToolbar}
         onToggleToolbar={() => setShowToolbar(!showToolbar)}
         onInvokeToken={() => {
