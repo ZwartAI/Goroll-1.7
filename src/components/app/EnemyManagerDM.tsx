@@ -66,7 +66,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
   // Only one card has the action strip open at a time.
   const [openActionsId, setOpenActionsId] = useState<string | null>(null);
 
-  if (enemies.length === 0 && pins.length === 0) return null;
+  // Removed early return to allow adding enemies even when list is empty
 
   // Pins grouped by linked enemy.
   const pinsByEnemy = new Map<string, CombatTurnPin[]>();
@@ -106,10 +106,11 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
       </div>
 
       {/* Active Entity Section */}
-      <div className="space-y-3">
-        <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-[var(--gold)]">
-          {activeParticipant ? "ENEMIGOS EN TURNO" : "SIN ENTIDAD EN TURNO"}
-        </h3>
+      {(enemies.length > 0 || pins.length > 0) && (
+        <div className="space-y-3">
+          <h3 className="font-display text-[11px] uppercase tracking-[0.2em] text-[var(--gold)]">
+            {activeParticipant ? "ENEMIGOS EN TURNO" : "SIN ENTIDAD EN TURNO"}
+          </h3>
         {activeParticipant && (
           <ActiveEnemyCombatCard
             p={activeParticipant}
@@ -133,6 +134,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
           />
         )}
       </div>
+      )}
 
       {/* Waiting Entities Section */}
       {waitingEnemies.length > 0 && (
