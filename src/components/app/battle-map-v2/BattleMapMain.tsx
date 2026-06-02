@@ -135,6 +135,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         onBack={onBack} 
         isDM={isDM} 
         campaignName={campaign?.name || ''} 
+        onMenuToggle={() => setShowAdminSidebar(true)}
       />
 
       <div className="flex-1 relative overflow-hidden flex">
