@@ -292,10 +292,9 @@ export function Toolbar({
     </>
   );
 }
-  );
-}
 
 function ToolButton({ 
+
   active, 
   onClick, 
   icon, 
