@@ -67,6 +67,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [isDicePanelOpen, setIsDicePanelOpen] = useState(false);
   const [isFading, setIsFading] = useState(false);
 
+  // Estados de visibilidad de UI (Bar Map)
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showToolbar, setShowToolbar] = useState(true);
+
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   const [activeDiceRolls, setActiveDiceRolls] = useState<any[] | null>(null);
@@ -76,9 +80,6 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [selectedEntityForSheet, setSelectedEntityForSheet] = useState<CombatParticipant | null>(null);
   const [selectedGroupSummary, setSelectedGroupSummary] = useState<CombatTurnGroup | null>(null);
 
-
-
-  
   // FASE 5: Scenes state
   const [scenes, setScenes] = useState<BattleMapScene[]>([]);
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
@@ -796,6 +797,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         onScenesToggle={isDM ? () => setIsScenesPanelOpen(true) : undefined}
         onlineCount={onlineIds.size}
         isDM={isDM}
+        showSidebar={showSidebar}
+        onToggleSidebar={() => setShowSidebar(prev => !prev)}
+        showToolbar={showToolbar}
+        onToggleToolbar={() => setShowToolbar(prev => !prev)}
       />
 
       <main className="flex-1 relative overflow-hidden bg-[#050507]">
@@ -1035,7 +1040,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
           participants={displayParticipants} 
-          isOpen={activePanel === 'participants'} 
+          isOpen={showSidebar && activePanel === 'participants'} 
           onOpenChar={onOpenChar} 
           onClose={() => setActivePanel('none')}
           isDM={isDM}
