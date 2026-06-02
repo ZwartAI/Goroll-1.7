@@ -32,8 +32,8 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
   const [pickerType, setPickerType] = useState<'item' | 'skill' | 'booster' | null>(null);
 
   const handleSave = async () => {
-    if (!name.trim()) return toast.error("El nombre es obligatorio");
-    if (hasCoins && coinsMin > coinsMax) return toast.error("El rango de monedas no es válido");
+    if (!name.trim()) return toast.error(t("errors.requiredName") || "El nombre es obligatorio");
+    if (hasCoins && coinsMin > coinsMax) return toast.error(t("errors.invalidCoinRange") || "El rango de monedas no es válido");
 
     try {
       await saveRewardSack({
@@ -52,7 +52,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
         manual_skill_ids: manualSkillIds,
         manual_booster_ids: manualBoosterIds,
       });
-      toast.success(sack ? "Saco actualizado" : "Saco creado");
+      toast.success(sack ? t("rewards.sackUpdated") : t("rewards.sackCreated"));
       onSaved();
     } catch (e: any) {
       toast.error(e.message);
@@ -65,7 +65,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
         
         <header className="p-4 border-b border-white/10 flex items-center justify-between">
           <h3 className="font-display text-lg text-[var(--gold)] uppercase tracking-widest">
-            {sack ? "Editar Saco" : "Nuevo Saco de Recompensa"}
+            {sack ? t("rewards.editSack") : t("rewards.createSack")}
           </h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-white"><X size={24} /></button>
         </header>
@@ -75,7 +75,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
           {/* General Config */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Nombre del Saco</label>
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("rewards.nameLabel")}</label>
               <input 
                 value={name}
                 onChange={e => setName(e.target.value)}
@@ -84,7 +84,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Tipo de Recompensa</label>
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">{t("rewards.sackType")}</label>
               <div className="flex gap-2">
                 {(['normal', 'special', 'legendary'] as RewardSackType[]).map(t => (
                   <button 
@@ -102,7 +102,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
 
           {/* Possible Content */}
           <div className="space-y-4">
-            <h4 className="font-display text-xs uppercase tracking-widest text-[var(--gold)] border-b border-white/5 pb-1">Contenido Posible</h4>
+            <h4 className="font-display text-xs uppercase tracking-widest text-[var(--gold)] border-b border-white/5 pb-1">{t("rewards.content")}</h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
@@ -111,7 +111,7 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Coins className="text-[var(--gold)] w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Monedas</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">{t("rewards.coins")}</span>
                   </div>
                   <input type="checkbox" checked={hasCoins} onChange={e => setHasCoins(e.target.checked)} className="accent-[var(--gold)]" />
                 </div>
@@ -134,11 +134,11 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sword className="text-blue-400 w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Equipamiento</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">{t("rewards.equipment")}</span>
                   </div>
                   <input type="checkbox" checked={hasItems} onChange={e => setHasItems(e.target.checked)} className="accent-blue-400" />
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-2">Armas, armaduras y accesorios.</p>
+                <p className="text-[9px] text-muted-foreground mt-2">{t("rewards.equipmentHint") || "Armas, armaduras y accesorios."}</p>
               </div>
 
               {/* Boosters */}
@@ -146,11 +146,11 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sparkles className="text-purple-400 w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Potenciadores</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">{t("rewards.boosters")}</span>
                   </div>
                   <input type="checkbox" checked={hasBoosters} onChange={e => setHasBoosters(e.target.checked)} className="accent-purple-400" />
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-2">Boosters de stats y efectos temporales.</p>
+                <p className="text-[9px] text-muted-foreground mt-2">{t("rewards.boostersHint") || "Boosters de stats y efectos temporales."}</p>
               </div>
 
               {/* Especiales */}
@@ -158,11 +158,11 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Wand2 className="text-[var(--rarity-gold)] w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Ítems Únicos</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">{t("rewards.specialItems")}</span>
                   </div>
                   <input type="checkbox" checked={hasSpecialItems} onChange={e => setHasSpecialItems(e.target.checked)} className="accent-[var(--rarity-gold)]" />
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-2">Objetos de misión o legendarios.</p>
+                <p className="text-[9px] text-muted-foreground mt-2">{t("rewards.specialItemsHint") || "Objetos de misión o legendarios."}</p>
               </div>
 
             </div>
@@ -173,8 +173,8 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
              <div className="flex items-center gap-3">
                <Dice5 className="text-[var(--gold)] w-5 h-5" />
                <div>
-                 <p className="text-xs font-bold uppercase tracking-wider">Generación Aleatoria Balanceada</p>
-                 <p className="text-[9px] text-muted-foreground">Toma objetos de la pool según rareza del saco.</p>
+                 <p className="text-xs font-bold uppercase tracking-wider">{t("rewards.randomBalanced")}</p>
+                 <p className="text-[9px] text-muted-foreground">{t("rewards.randomHint")}</p>
                </div>
              </div>
              <input 
@@ -187,26 +187,26 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
 
           {/* Manual Selection */}
           <div className="space-y-3">
-            <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-1">Selección Manual (Garantizados)</h4>
+            <h4 className="font-display text-xs uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-1">{t("rewards.manualSelection")}</h4>
             
             <div className="flex flex-wrap gap-2">
               <button 
                 onClick={() => setPickerType('item')}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-[10px] uppercase font-bold transition-colors border border-white/10"
               >
-                <Plus size={12} /> {manualItemIds.length > 0 ? `${manualItemIds.length} Objetos` : "Añadir Objetos"}
+                <Plus size={12} /> {manualItemIds.length > 0 ? `${manualItemIds.length} ${t("rewards.items") || "Objetos"}` : t("rewards.addItems")}
               </button>
               <button 
                 onClick={() => setPickerType('skill')}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-[10px] uppercase font-bold transition-colors border border-white/10"
               >
-                <Plus size={12} /> {manualSkillIds.length > 0 ? `${manualSkillIds.length} Skills` : "Añadir Skills"}
+                <Plus size={12} /> {manualSkillIds.length > 0 ? `${manualSkillIds.length} Skills` : t("rewards.addSkills")}
               </button>
               <button 
                 onClick={() => setPickerType('booster')}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-[10px] uppercase font-bold transition-colors border border-white/10"
               >
-                <Plus size={12} /> {manualBoosterIds.length > 0 ? `${manualBoosterIds.length} Boosters` : "Añadir Boosters"}
+                <Plus size={12} /> {manualBoosterIds.length > 0 ? `${manualBoosterIds.length} ${t("rewards.boosters")}` : t("rewards.addBoosters")}
               </button>
             </div>
           </div>
@@ -218,14 +218,14 @@ export function RewardSackEditor({ campaignId, sack, onClose, onSaved }: Props) 
             onClick={onClose}
             className="px-6 py-2 text-xs uppercase font-bold tracking-widest text-muted-foreground hover:text-white transition-colors"
            >
-             Cancelar
+             {t("rewards.cancel")}
            </button>
            <button 
             onClick={handleSave}
             className="btn-fantasy flex items-center gap-2 px-10 py-2 bg-[var(--gold)] text-black font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(234,179,8,0.2)]"
             style={{ background: "var(--gradient-gold)" }}
            >
-             <Save size={18} /> {sack ? "Actualizar Saco" : "Guardar Saco"}
+             <Save size={18} /> {sack ? t("rewards.updateSack") : t("rewards.saveSack")}
            </button>
         </footer>
 

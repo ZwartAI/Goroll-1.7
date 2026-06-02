@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useT } from "@/lib/i18n";
 import { type RewardSack, SACK_TYPE_COLORS } from "@/lib/rewards";
 import { X, Gift, Coins, Sword, Sparkles, Wand2, RefreshCw } from "lucide-react";
 import { backdropProps } from "@/lib/modalBackdrop";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function RewardSackSimulator({ sack, onClose }: Props) {
+  const { t } = useT();
   const [result, setResult] = useState<{
     coins: number;
     items: string[];
@@ -50,7 +52,7 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
 
         <div className="space-y-1">
           <h3 className="font-display text-lg uppercase tracking-widest text-white">{sack.name}</h3>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Simulación de Apertura</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{t("rewards.simTitle")}</p>
         </div>
 
         {result && (
@@ -60,7 +62,7 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
                   <div className="flex items-center gap-3">
                     <Coins className="text-[var(--gold)] w-4 h-4" />
-                    <span className="text-xs uppercase font-bold text-muted-foreground">Monedas</span>
+                    <span className="text-xs uppercase font-bold text-muted-foreground">{t("rewards.coins")}</span>
                   </div>
                   <span className="font-display text-[var(--gold)]">💰 {result.coins}</span>
                 </div>
@@ -70,9 +72,9 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
                   <div className="flex items-center gap-3">
                     <Sword className="text-blue-400 w-4 h-4" />
-                    <span className="text-xs uppercase font-bold text-muted-foreground">Objetos</span>
+                    <span className="text-xs uppercase font-bold text-muted-foreground">{t("rewards.equipment")}</span>
                   </div>
-                  <span className="text-xs text-white">{result.items.length} {sack.random_balanced ? "+ Aleatorios" : ""}</span>
+                  <span className="text-xs text-white">{result.items.length} {sack.random_balanced ? `+ ${t("common.random") || "Aleatorios"}` : ""}</span>
                 </div>
               )}
 
@@ -80,9 +82,9 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
                   <div className="flex items-center gap-3">
                     <Sparkles className="text-purple-400 w-4 h-4" />
-                    <span className="text-xs uppercase font-bold text-muted-foreground">Boosters</span>
+                    <span className="text-xs uppercase font-bold text-muted-foreground">{t("rewards.boosters")}</span>
                   </div>
-                  <span className="text-xs text-white">{result.boosters.length} {sack.random_balanced ? "+ Aleatorios" : ""}</span>
+                  <span className="text-xs text-white">{result.boosters.length} {sack.random_balanced ? `+ ${t("common.random") || "Aleatorios"}` : ""}</span>
                 </div>
               )}
 
@@ -90,7 +92,7 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
                   <div className="flex items-center gap-3">
                     <Wand2 className="text-[var(--rarity-gold)] w-4 h-4" />
-                    <span className="text-xs uppercase font-bold text-muted-foreground">Especiales</span>
+                    <span className="text-xs uppercase font-bold text-muted-foreground">{t("rewards.specialItems")}</span>
                   </div>
                   <span className="text-xs text-white">{result.skills.length}</span>
                 </div>
@@ -104,14 +106,14 @@ export function RewardSackSimulator({ sack, onClose }: Props) {
             onClick={simulate}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded bg-white/5 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors border border-white/5"
           >
-            <RefreshCw size={14} /> Re-Simular
+            <RefreshCw size={14} /> {t("rewards.reSimulate")}
           </button>
           <button 
             onClick={onClose}
             className="flex-1 py-3 rounded bg-[var(--gold)] text-black text-[10px] uppercase font-bold tracking-widest transition-opacity hover:opacity-90"
             style={{ background: "var(--gradient-gold)" }}
           >
-            Cerrar
+            {t("common.close")}
           </button>
         </div>
 

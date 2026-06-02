@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useT } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, X, Check } from "lucide-react";
 import { backdropProps } from "@/lib/modalBackdrop";
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function ResourcePickerModal({ title, type, campaignId, selectedIds, onClose, onSelect }: Props) {
+  const { t } = useT();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -83,7 +85,7 @@ export function ResourcePickerModal({ title, type, campaignId, selectedIds, onCl
             <input 
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar..."
+              placeholder={t("common.search")}
               className="w-full bg-black/40 border border-white/10 rounded-md py-2 pl-10 pr-4 text-sm outline-none focus:border-[var(--gold)]"
             />
           </div>
@@ -91,9 +93,9 @@ export function ResourcePickerModal({ title, type, campaignId, selectedIds, onCl
 
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {loading ? (
-            <div className="py-10 text-center animate-pulse text-muted-foreground text-xs">Cargando...</div>
+            <div className="py-10 text-center animate-pulse text-muted-foreground text-xs">{t("common.loading")}</div>
           ) : filtered.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground text-xs">No se encontraron resultados</div>
+            <div className="py-10 text-center text-muted-foreground text-xs">{t("common.noResults") || "No se encontraron resultados"}</div>
           ) : (
             filtered.map(r => {
               const isSelected = tempSelected.includes(r.id);
@@ -123,13 +125,13 @@ export function ResourcePickerModal({ title, type, campaignId, selectedIds, onCl
 
         <footer className="p-4 border-t border-white/10 flex gap-3">
           <button className="flex-1 py-2 rounded bg-white/5 hover:bg-white/10 transition-colors text-xs uppercase font-bold" onClick={onClose}>
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button 
             className="flex-1 py-2 rounded bg-[var(--gold)] text-black hover:opacity-90 transition-opacity text-xs uppercase font-bold"
             onClick={() => onSelect(tempSelected)}
           >
-            Confirmar ({tempSelected.length})
+            {t("common.confirm")} ({tempSelected.length})
           </button>
         </footer>
       </div>

@@ -32,7 +32,7 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
   };
 
   const handleAssign = async () => {
-    if (selectedCharIds.length === 0) return toast.error("Selecciona al menos un aventurero");
+    if (selectedCharIds.length === 0) return toast.error(t("rewards.deliveryError"));
     if (!campaign?.id) return;
 
     setIsAssigning(true);
@@ -77,7 +77,7 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
         { t: 'text', v: ` a: ${targetNames}` }
       ]);
 
-      toast.success(`Recompensas entregadas a ${selectedCharIds.length} aventurero(s)`);
+      toast.success(t("rewards.deliverySuccess", { count: selectedCharIds.length }));
       onClose();
     } catch (e: any) {
       toast.error(e.message);
@@ -93,21 +93,21 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
         <header className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gift size={20} style={{ color: SACK_TYPE_COLORS[sack.type] }} />
-            <h3 className="font-display text-sm uppercase tracking-widest text-white">Entregar: {sack.name}</h3>
+            <h3 className="font-display text-sm uppercase tracking-widest text-white">{t("rewards.deliveryTitle", { name: sack.name })}</h3>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-white"><X size={20} /></button>
         </header>
 
         <div className="p-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Seleccionar Aventureros</span>
-            <span className="text-[8px] text-[var(--gold)] opacity-50 uppercase tracking-tighter">Ellos recibirán el botín en tiempo real</span>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{t("spMgmt.pickPlayers") || "Seleccionar Aventureros"}</span>
+            <span className="text-[8px] text-[var(--gold)] opacity-50 uppercase tracking-tighter">{t("rewards.deliveryHint")}</span>
           </div>
           <button 
             onClick={() => setSelectedCharIds(selectedCharIds.length === players.length ? [] : players.map(p => p.id))}
             className="text-[10px] uppercase tracking-widest text-[var(--gold)] hover:underline bg-white/5 px-3 py-1 rounded-full border border-white/10"
           >
-            {selectedCharIds.length === players.length ? "Ninguno" : "Todos"}
+            {selectedCharIds.length === players.length ? t("rewards.selectNone") : t("rewards.selectAll")}
           </button>
         </div>
 
@@ -152,7 +152,7 @@ export function RewardSackAssigner({ sack, onClose }: Props) {
              ) : (
                <>
                  <Send size={18} />
-                 Entregar a {selectedCharIds.length} Jugador(es)
+                 {t("rewards.deliveryCta", { count: selectedCharIds.length })}
                </>
              )}
            </button>
