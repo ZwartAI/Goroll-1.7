@@ -16,18 +16,14 @@ interface Props {
   offset: { x: number, y: number };
 }
 
-export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTool, gridSize, characterId, scale, offset }: Props) {
+export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTool, gridSize, characterId, authorName, authorColor, scale, offset }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [currentPoints, setCurrentPoints] = useState<number[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const getLocalCoords = (e: React.MouseEvent) => {
+  const getLocalCoords = (e: React.PointerEvent | React.MouseEvent) => {
     if (!svgRef.current) return { x: 0, y: 0 };
     const rect = svgRef.current.getBoundingClientRect();
-    // The SVG is inside the scaled/translated div, but rect.left/top are screen space.
-    // However, in Stage.tsx, we pass scale and offset.
-    // Actually, if the SVG is INSIDE the scaled div, we just need to account for its own relative position.
-    // But since it's absolute inset-0, it matches the scaled div.
     return {
       x: (e.clientX - rect.left) / scale,
       y: (e.clientY - rect.top) / scale
@@ -59,7 +55,9 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
     if (currentPoints.length > 2) {
       onAddDrawing({
         author_character_id: characterId || null,
-        color: '#FFD700',
+        author_name: authorName,
+        author_color: authorColor,
+        color: authorColor || '#FFD700',
         stroke_width: 3,
         points: currentPoints
       });
@@ -76,10 +74,11 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
         activeTool === 'eraser' ? "pointer-events-auto cursor-pointer bg-red-500/5" : 
         "pointer-events-none"
       )}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
     >
       {/* Existing Drawings */}
       {drawings.map((drawing) => (
@@ -109,7 +108,7 @@ export function DrawingLayer({ drawings, onAddDrawing, onRemoveDrawing, activeTo
         <polyline
           points={currentPoints.join(',')}
           fill="none"
-          stroke="#FFD700"
+          stroke={authorColor || "#FFD700"}
           strokeWidth={3}
           strokeLinecap="round"
           strokeLinejoin="round"
