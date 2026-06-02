@@ -11,6 +11,8 @@ import { pushLog } from '@/lib/log';
 
 import { BattleMapHeader } from './BattleMapHeader';
 import { BattleMapSidebar } from './BattleMapSidebar';
+import { BattleMapAdminSidebar } from './BattleMapAdminSidebar';
+import { BattleMapTokenPickerModal } from './BattleMapTokenPickerModal';
 import { BattleMapTurnRail } from './BattleMapTurnRail';
 import { BattleMapStage, type ProjectionType, type ProjectionState } from './BattleMapStage';
 import { BattleMapDiceButton } from './BattleMapDiceButton';
