@@ -255,19 +255,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const handlePointerMove = (e: React.PointerEvent) => {
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    let coords = screenToWorld(e.clientX, e.clientY);
-
-    if (activeTool === 'measure' && measureSnap && activeScene) {
-      const gridSize = activeScene.grid_size;
-      const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
-      const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-      
-      coords = {
-        x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
-        y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
-      };
-    }
-
+    
     if (activePointers.current.size >= 2 && lastPinchDist.current !== null) {
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -282,13 +270,41 @@ export const Stage = forwardRef<StageHandle, Props>(({
       return;
     }
 
-    if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
-      setRulerEnd(coords);
-    } else if (isPanning && activePointers.current.size === 1) {
+    if (isPanning && activePointers.current.size === 1) {
       const dx = (e.clientX - lastPanPos.current.x) / scaleRef.current;
       const dy = (e.clientY - lastPanPos.current.y) / scaleRef.current;
-      setOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      
+      // Update refs for immediate coordinate conversion
+      offsetRef.current = { 
+        x: offsetRef.current.x + dx, 
+        y: offsetRef.current.y + dy 
+      };
+      
+      // Direct DOM update for 60fps performance
+      if (containerRef.current) {
+        containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+      }
+      
       lastPanPos.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
+
+    // Ruler logic - throttle this or it's very expensive
+    if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
+      const coords = screenToWorld(e.clientX, e.clientY);
+      let snappedCoords = coords;
+      
+      if (measureSnap && activeScene) {
+        const gridSize = activeScene.grid_size;
+        const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
+        const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
+        
+        snappedCoords = {
+          x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
+          y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
+        };
+      }
+      setRulerEnd(snappedCoords);
     }
   };
 
