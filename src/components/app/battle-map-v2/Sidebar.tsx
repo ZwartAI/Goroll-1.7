@@ -393,8 +393,29 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
                 )}
               </AnimatePresence>
             </motion.div>
-          );
+            );
         })}
+
+        {activeTab === 'fog' && isDM && (
+          <div className="flex flex-col gap-1.5 pointer-events-auto max-h-[60vh] overflow-y-auto no-scrollbar pb-10">
+            {battleMap.fogStrokes.filter((f: any) => f.fog_type === 'block').map((stroke: any, idx: number) => (
+              <motion.div
+                key={stroke.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-[var(--gold)]/30 bg-black/60 shadow-lg"
+                onClick={() => battleMap.removeFogStroke(stroke.id)}
+              >
+                <div 
+                  className="w-2.5 h-2.5 rounded-full" 
+                  style={{ backgroundColor: stroke.block_color || 'red' }} 
+                />
+                <span className="text-[8px] font-bold text-white/90 uppercase truncate max-w-[80px]">
+                  {stroke.label || `B${idx + 1}`}
+                </span>
+                <Trash2 className="w-2.5 h-2.5 text-red-400" />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
