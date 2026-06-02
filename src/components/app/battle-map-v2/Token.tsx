@@ -15,6 +15,7 @@ interface Props {
   gridOffsetX?: number;
   gridOffsetY?: number;
   isDragging?: boolean;
+  activeTool?: string;
   onMove: (x: number, y: number, isFinal?: boolean) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
@@ -25,6 +26,7 @@ export function Token({
   token, isDM, canMove, gridSize, snapToGrid, 
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
   isDragging: isDraggingProp = false,
+  activeTool,
   onMove, onRemove, onUpdateSize,
   screenToWorld,
   onDragStart,
@@ -43,6 +45,7 @@ export function Token({
   }, [token.x, token.y, localDragging]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (activeTool === 'measure') return; // Let it bubble to Stage for ruler logic
     if (!canMove) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     
