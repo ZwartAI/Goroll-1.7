@@ -46,20 +46,25 @@ export function Toolbar({
   onResetView,
   onClearDrawings,
   onUndoDrawing,
+  onClearFog,
   onOpenDice,
   hasMyToken,
   hasBackground,
   characterId,
   authorName,
   authorColor,
-  drawings = []
+  drawings = [],
+  brushSize,
+  setBrushSize
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
+  const [fogMenuOpen, setFogMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
+  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase';
 
   // Extract unique authors for DM management
   const authors = React.useMemo(() => {
