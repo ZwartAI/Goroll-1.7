@@ -253,6 +253,8 @@ export function BestiaryPickerModal({ campaignId, encounter, dm, onClose }: Prop
               {filtered.map(tpl => {
                 const rk = rarityFromTier(tpl.tier);
                 const isSelected = selected.has(tpl.id);
+                const customImg = getEnemyCustomImage(tpl as any);
+                const hasAsset = !!customImg || !!getEnemyAssetUrl(tpl.icon_key);
                 return (
                   <button
                     key={tpl.id}
@@ -262,8 +264,10 @@ export function BestiaryPickerModal({ campaignId, encounter, dm, onClose }: Prop
                     className={`ornate-card no-hover-grow !p-2 flex items-center gap-2 text-left transition-colors disabled:opacity-50 ${isSelected ? "border-[var(--gold)] bg-[color-mix(in_oklab,var(--gold)_15%,transparent)]" : "hover:border-[var(--gold)]"}`}
                     onClick={() => toggleSelect(tpl.id)}
                   >
-                    <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center bg-card shrink-0"
-                      style={{ borderColor: tpl.color, color: tpl.color }}>★</div>
+                    <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center bg-card shrink-0 relative overflow-hidden"
+                      style={{ borderColor: tpl.color, color: tpl.color }}>
+                      <EnemyIcon name={tpl.icon_key} size={20} fill={hasAsset} customImage={customImg} />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-display truncate" style={{ color: tpl.color }}>{tpl.name}</p>
                       <p className="text-[10px] text-muted-foreground truncate">
