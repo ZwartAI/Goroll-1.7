@@ -195,6 +195,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
           showParticipants={showSidebar}
+          brushSize={brushSize}
+          fogAnimationReduced={fogAnimationReduced}
+          showTokensUnderFog={showTokensUnderFog}
+          revealAroundTokens={revealAroundTokens}
+          onMapLoad={(dims) => setMapDimensions(dims)}
         />
 
         {/* Sidebar (Turns/Participants) */}
