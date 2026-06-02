@@ -154,7 +154,7 @@ export function NpcPickerModal({ campaignId, encounter, dm, onClose }: Props) {
         )}
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto -mx-1 px-1">
+        <div className="flex-1 overflow-y-auto min-h-0 -mx-1 px-1">
           {loading ? (
             <p className="text-xs text-muted-foreground py-6 text-center">{t("common.loading")}</p>
           ) : templates.length === 0 ? (
@@ -162,7 +162,7 @@ export function NpcPickerModal({ campaignId, encounter, dm, onClose }: Props) {
           ) : filtered.length === 0 ? (
             <p className="text-xs text-muted-foreground py-6 text-center">{t("bestiary.noResults")}</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-2">
               {filtered.map(tpl => {
                 const isSelected = selected.has(tpl.id);
                 const customImg = getEnemyCustomImage(tpl as any);
