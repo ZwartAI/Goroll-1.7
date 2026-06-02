@@ -198,9 +198,18 @@ function DM() {
               <Boxes size={14} className="inline mr-1" /> Gestionar Sacos
             </button>
           </div>
-          <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+          <div className="ornate-card p-4 space-y-2">
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Hammer size={16} /> Crear ítems o crear objetos</h3>
+            <p className="text-xs text-muted-foreground">Personaliza equipamiento, consumibles o tesoros para tus jugadores.</p>
+            <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+          </div>
 
-          <DMConditionsCreator campaignId={campaign.id} players={players} />
+          <div className="ornate-card p-4 space-y-2">
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2">✨ Efectos de condición</h3>
+            <p className="text-xs text-muted-foreground">Aplica estados, debilidades o efectos temporales a los participantes.</p>
+            <DMConditionsCreator campaignId={campaign.id} players={players} />
+          </div>
+
           <div className="ornate-card p-4 space-y-2">
             <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("dm.createBoosterTitle")}</h3>
             <p className="text-xs text-muted-foreground">{t("dm.createBoosterHint")}</p>
@@ -649,7 +658,8 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
   const isCoins = category === "monedas";
 
   return (
-    <div className="ornate-card p-4 space-y-3">
+    <div className="space-y-3">
+
       <select className="w-full bg-input border border-border rounded px-2 py-2 text-sm" value={category} onChange={e => setCategory(e.target.value as any)}>
         {ITEM_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {tr(`categories.${c.key}`)}</option>)}
         <option value="monedas">{tr("dm.coins")}</option>
