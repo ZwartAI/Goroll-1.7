@@ -41,6 +41,12 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [measureSnap, setMeasureSnap] = useState(true);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
+  const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+
+  // Estados de visibilidad de UI (Bar Map)
+  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
+  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
+  const [showToolbar, setShowToolbar] = useState(true);
 
   const handleResetView = () => {
     if (stageRef.current) {
