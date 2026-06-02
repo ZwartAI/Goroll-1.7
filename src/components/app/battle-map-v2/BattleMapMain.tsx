@@ -45,32 +45,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
-  const [showFogClearModal, setShowFogClearModal] = useState(false);
-
-  // Fog settings
-  const [fogAnimationReduced, setFogAnimationReduced] = useState(() => {
-    const saved = localStorage.getItem('fog_animation_reduced');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
-  const [showTokensUnderFog, setShowTokensUnderFog] = useState(() => {
-    const saved = localStorage.getItem('show_tokens_under_fog');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [revealAroundTokens, setRevealAroundTokens] = useState(() => {
-    const saved = localStorage.getItem('reveal_around_tokens');
-    return saved !== null ? JSON.parse(saved) : false;
-  });
   const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
-
-  useEffect(() => {
-    localStorage.setItem('fog_animation_reduced', JSON.stringify(fogAnimationReduced));
-  }, [fogAnimationReduced]);
-  useEffect(() => {
-    localStorage.setItem('show_tokens_under_fog', JSON.stringify(showTokensUnderFog));
-  }, [showTokensUnderFog]);
-  useEffect(() => {
-    localStorage.setItem('reveal_around_tokens', JSON.stringify(revealAroundTokens));
-  }, [revealAroundTokens]);
 
 
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
@@ -195,10 +170,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
           showParticipants={showSidebar}
-          brushSize={brushSize}
-          fogAnimationReduced={fogAnimationReduced}
-          showTokensUnderFog={showTokensUnderFog}
-          revealAroundTokens={revealAroundTokens}
           onMapLoad={(dims: any) => setMapDimensions(dims)}
         />
 
@@ -225,7 +196,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
-          onClearFog={() => setShowFogClearModal(true)}
+          
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
@@ -255,15 +226,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           hasBackground={!!battleMap.activeScene?.background_url}
           brushSize={brushSize}
           setBrushSize={setBrushSize}
-          onCoverAll={() => battleMap.coverWholeMap(mapDimensions.width, mapDimensions.height)}
-          onCoverImage={() => battleMap.coverImage(mapDimensions.imgWidth, mapDimensions.imgHeight)}
-          onCoverEdges={() => battleMap.coverEdges(mapDimensions.width, mapDimensions.height, mapDimensions.imgWidth, mapDimensions.imgHeight)}
-          fogAnimationReduced={fogAnimationReduced}
-          setFogAnimationReduced={setFogAnimationReduced}
-          showTokensUnderFog={showTokensUnderFog}
-          setShowTokensUnderFog={setShowTokensUnderFog}
-          revealAroundTokens={revealAroundTokens}
-          setRevealAroundTokens={setRevealAroundTokens}
         />
 
 
@@ -393,38 +355,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
             battleMap={battleMap} 
             onClose={() => setShowSettings(false)} 
           />
-        )}
-        {showFogClearModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-black/90 border border-[var(--gold)]/40 p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4"
-            >
-              <h3 className="text-[var(--gold)] font-display text-lg mb-2">Eliminar Niebla</h3>
-              <p className="text-white/70 text-sm mb-6">
-                ¿Quieres eliminar toda la niebla de guerra de esta escena? Los jugadores podrán ver todo el mapa revelado.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button 
-                  onClick={() => setShowFogClearModal(false)}
-                  className="px-4 py-2 rounded-lg text-white/60 hover:text-white transition-colors text-sm uppercase tracking-wider"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={async () => {
-                    await battleMap.clearFog();
-                    setShowFogClearModal(false);
-                    toast.success("Niebla de guerra eliminada");
-                  }}
-                  className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors text-sm uppercase tracking-wider"
-                >
-                  Eliminar Niebla
-                </button>
-              </div>
-            </motion.div>
-          </div>
         )}
       </AnimatePresence>
 

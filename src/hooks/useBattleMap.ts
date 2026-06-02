@@ -52,20 +52,6 @@ export interface Drawing {
   points: number[];
 }
 
-export interface FogStroke {
-  id: string;
-  campaign_id: string;
-  scene_id: string;
-  fog_type: string;
-  shape: string;
-  color: string | null;
-  opacity: number;
-  brush_size: number;
-  points: { x: number; y: number }[];
-  is_visible: boolean;
-  label?: string | null;
-  block_color?: string | null;
-}
 
 export const isVideoUrl = (url: string | null | undefined) => {
   if (!url) return false;
@@ -78,7 +64,7 @@ export const useBattleMap = (campaignId: string) => {
   const [scenes, setScenes] = useState<SceneConfig[]>([]);
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
-  const [fogStrokes, setFogStrokes] = useState<FogStroke[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
 
   const activeSceneIdRef = useRef<string | null>(null);
@@ -154,24 +140,6 @@ export const useBattleMap = (campaignId: string) => {
     setDrawings(transformedDrawings as unknown as Drawing[]);
   }, []);
 
-  const fetchFog = useCallback(async (sceneId: string) => {
-    const { data, error } = await supabase
-      .from('battle_map_fog_simple')
-      .select('*')
-      .eq('scene_id', sceneId);
-
-    if (error) {
-      console.error('Error fetching fog:', error);
-      return;
-    }
-
-    const transformedFog = (data || []).map(f => ({
-      ...f,
-      points: f.points as { x: number; y: number }[]
-    }));
-
-    setFogStrokes(transformedFog as unknown as FogStroke[]);
-  }, []);
 
   useEffect(() => {
     if (!campaignId) return;
@@ -227,13 +195,11 @@ export const useBattleMap = (campaignId: string) => {
     if (!activeScene?.id) {
       setTokens([]);
       setDrawings([]);
-      setFogStrokes([]);
       return;
     }
 
     fetchTokens(activeScene.id);
     fetchDrawings(activeScene.id);
-    fetchFog(activeScene.id);
 
     const tokensSubscription = supabase
       .channel(`battle_map_tokens_${activeScene.id}`)
@@ -280,28 +246,13 @@ export const useBattleMap = (campaignId: string) => {
       )
       .subscribe();
 
-    const fogSubscription = supabase
-      .channel(`battle_map_fog_${activeScene.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'battle_map_fog_simple',
-          filter: `scene_id=eq.${activeScene.id}`,
-        },
-        () => {
-          if (activeSceneIdRef.current) fetchFog(activeSceneIdRef.current);
-        }
-      )
-      .subscribe();
 
     return () => {
       tokensSubscription.unsubscribe();
       drawingsSubscription.unsubscribe();
-      fogSubscription.unsubscribe();
+      
     };
-  }, [activeScene?.id, fetchTokens, fetchDrawings, fetchFog]);
+  }, [activeScene?.id, fetchTokens, fetchDrawings]);
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
@@ -403,82 +354,12 @@ export const useBattleMap = (campaignId: string) => {
     if (authorDrawings.length > 0) await removeDrawing(authorDrawings[authorDrawings.length - 1].id);
   };
 
-  const addFogStroke = async (stroke: Omit<FogStroke, 'id' | 'campaign_id' | 'scene_id'>) => {
-    if (!activeScene) return;
-    await supabase.from('battle_map_fog_simple').insert([{
-      ...stroke,
-      campaign_id: campaignId,
-      scene_id: activeScene.id,
-      points: stroke.points as any
-    }]);
-    fetchFog(activeScene.id);
-  };
-
-  const removeFogStroke = async (strokeId: string) => {
-    setFogStrokes(prev => prev.filter(f => f.id !== strokeId));
-    await supabase.from('battle_map_fog_simple').delete().eq('id', strokeId);
-  };
-
-  const clearFog = async () => {
-    if (!activeScene) return;
-    await supabase.from('battle_map_fog_simple').delete().match({ scene_id: activeScene.id, campaign_id: campaignId });
-    setFogStrokes([]);
-  };
-
-  const coverWholeMap = async (width: number, height: number, x: number = 0, y: number = 0) => {
-    if (!activeScene) return;
-    await addFogStroke({
-      fog_type: 'block',
-      shape: 'rect',
-      color: null,
-      opacity: 1,
-      brush_size: 0,
-      points: [{ x, y }, { x: width, y: height }],
-      is_visible: true,
-      label: 'Mapa Completo'
-    });
-  };
-
-  const coverImage = async (imgWidth: number, imgHeight: number) => {
-    if (!activeScene) return;
-    await coverWholeMap(imgWidth, imgHeight, activeScene.background_x || 0, activeScene.background_y || 0);
-  };
-
-  const coverEdges = async (width: number, height: number, imgWidth: number, imgHeight: number) => {
-    if (!activeScene) return;
-    const padding = 500;
-    // Top
-    await addFogStroke({
-      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
-      points: [{ x: -padding, y: -padding }, { x: width + padding * 2, y: padding }],
-      is_visible: true, label: 'Borde Superior'
-    });
-    // Bottom
-    await addFogStroke({
-      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
-      points: [{ x: -padding, y: height }, { x: width + padding * 2, y: padding }],
-      is_visible: true, label: 'Borde Inferior'
-    });
-    // Left
-    await addFogStroke({
-      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
-      points: [{ x: -padding, y: 0 }, { x: padding, y: height }],
-      is_visible: true, label: 'Borde Izquierdo'
-    });
-    // Right
-    await addFogStroke({
-      fog_type: 'block', shape: 'rect', color: null, opacity: 1, brush_size: 0,
-      points: [{ x: width, y: 0 }, { x: padding, y: height }],
-      is_visible: true, label: 'Borde Derecho'
-    });
-  };
 
   return {
     activeScene,
     scenes,
     tokens,
     drawings,
-    fogStrokes,
     isLoading,
     updateScene,
     createScene,
@@ -490,12 +371,6 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing,
-    addFogStroke,
-    removeFogStroke,
-    clearFog,
-    coverWholeMap,
-    coverImage,
-    coverEdges
+    undoLastDrawing
   };
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, Cloud, CloudOff } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fogPaint' | 'fogErase' | 'fogBlock';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -20,7 +20,6 @@ interface Props {
   onResetView: () => void;
   onClearDrawings: (options?: { authorId?: string, all?: boolean }) => void;
   onUndoDrawing: () => void;
-  onClearFog: () => void;
   characterId?: string;
   authorName?: string;
   authorColor?: string;
@@ -30,16 +29,6 @@ interface Props {
   drawings?: any[];
   brushSize: number;
   setBrushSize: (size: number) => void;
-  // Fog Phase 3
-  onCoverAll?: () => void;
-  onCoverImage?: () => void;
-  onCoverEdges?: () => void;
-  fogAnimationReduced?: boolean;
-  setFogAnimationReduced?: (v: boolean) => void;
-  showTokensUnderFog?: boolean;
-  setShowTokensUnderFog?: (v: boolean) => void;
-  revealAroundTokens?: boolean;
-  setRevealAroundTokens?: (v: boolean) => void;
 }
 
 export function Toolbar({ 
@@ -56,7 +45,6 @@ export function Toolbar({
   onResetView,
   onClearDrawings,
   onUndoDrawing,
-  onClearFog,
   onOpenDice,
   hasMyToken,
   hasBackground,
@@ -65,27 +53,15 @@ export function Toolbar({
   authorColor,
   drawings = [],
   brushSize,
-  setBrushSize,
-  onCoverAll,
-  onCoverImage,
-  onCoverEdges,
-  fogAnimationReduced,
-  setFogAnimationReduced,
-  showTokensUnderFog,
-  setShowTokensUnderFog,
-  revealAroundTokens,
-  setRevealAroundTokens
+  setBrushSize
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
-  const [fogMenuOpen, setFogMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase' || activeTool === 'fogBlock';
 
-  // Extract unique authors for DM management
   const authors = React.useMemo(() => {
     const authorMap = new Map<string, { id: string, name: string, color: string, count: number }>();
     
@@ -106,12 +82,6 @@ export function Toolbar({
     
     return Array.from(authorMap.values());
   }, [drawings]);
-
-  // Get unique authors from drawings to show in DM clear menu
-  // Since Toolbar doesn't have drawings, we might need to pass them or the list of authors.
-  // For now, let's assume DM can clear "All" or "Mine". 
-  // To clear specific player, we need the list of authors.
-  // Let's modify Props to include drawings or a derived author list.
 
   return (
     <>
@@ -278,234 +248,68 @@ export function Toolbar({
             </AnimatePresence>
           </div>
           
-          {isDM && (
-            <div className="relative group/fog">
-              <ToolButton 
-                active={isFogActive} 
-                onClick={() => {
-                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase' && activeTool !== 'fogBlock') {
-                    setActiveTool('fogPaint');
-                  }
-                  setFogMenuOpen(!fogMenuOpen);
-                  setPencilMenuOpen(false);
-                  setMeasureMenuOpen(false);
-                }}
-                icon={<Cloud className="w-5 h-5" />}
-                label="Niebla"
-              />
-              
-              <AnimatePresence>
-                {fogMenuOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[140px]"
-                  >
-                    <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
-                      <ToolButton 
-                        active={activeTool === 'fogPaint'} 
-                        onClick={() => setActiveTool('fogPaint')}
-                        icon={<Cloud className="w-4 h-4 text-white" />}
-                        label="Pintar Niebla"
-                        small
-                      />
-                      <ToolButton 
-                        active={activeTool === 'fogErase'} 
-                        onClick={() => setActiveTool('fogErase')}
-                        icon={<CloudOff className="w-4 h-4 text-white/60" />}
-                        label="Revelar Mapa"
-                        small
-                      />
-                      <ToolButton 
-                        active={activeTool === 'fogBlock'} 
-                        onClick={() => setActiveTool('fogBlock')}
-                        icon={<Box className="w-4 h-4 text-white/60" />}
-                        label="Bloque de Niebla"
-                        small
-                      />
-                    </div>
-
-                    <div className="px-2 pb-2 flex flex-col gap-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[8px] uppercase tracking-tighter text-white/40">Tamaño: {brushSize}px</span>
-                      </div>
-                      <input 
-                        type="range" 
-                        min="40" 
-                        max="400" 
-                        step="10"
-                        value={brushSize}
-                        onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                        className="w-full accent-[var(--gold)]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1 border-t border-[var(--gold)]/10 pt-2">
-                      <button 
-                        onClick={onCoverAll}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
-                      >
-                        <Layers className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Todo el Mapa</span>
-                      </button>
-                      <button 
-                        onClick={onCoverImage}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
-                      >
-                        <Layers className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Imagen</span>
-                      </button>
-                      <button 
-                        onClick={onCoverEdges}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-white/70 hover:text-white transition-colors text-left"
-                      >
-                        <Layers className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter">Cubrir Bordes</span>
-                      </button>
-                      
-                      <div className="h-px bg-[var(--gold)]/10 my-1" />
-
-                      <button 
-                        onClick={() => setFogAnimationReduced?.(!fogAnimationReduced)}
-                        className={cn(
-                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
-                          fogAnimationReduced ? "bg-[var(--gold)]/20 text-[var(--gold)]" : "hover:bg-[var(--gold)]/10 text-white/70"
-                        )}
-                      >
-                        <span className="text-[9px] uppercase tracking-tighter">Rendimiento (Estática)</span>
-                      </button>
-
-                      <button 
-                        onClick={() => setShowTokensUnderFog?.(!showTokensUnderFog)}
-                        className={cn(
-                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
-                          showTokensUnderFog ? "bg-[var(--gold)]/20 text-[var(--gold)]" : "hover:bg-[var(--gold)]/10 text-white/70"
-                        )}
-                      >
-                        <span className="text-[9px] uppercase tracking-tighter">Ver Tokens bajo Niebla</span>
-                      </button>
-
-                      <button 
-                        onClick={() => setRevealAroundTokens?.(!revealAroundTokens)}
-                        className={cn(
-                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
-                          revealAroundTokens ? "bg-purple-500/20 text-purple-400" : "hover:bg-purple-500/10 text-white/40"
-                        )}
-                      >
-                        <span className="text-[9px] uppercase tracking-tighter">Exp. Revelar x Token</span>
-                      </button>
-
-                      <div className="h-px bg-[var(--gold)]/10 my-1" />
-
-                      <button 
-                        onClick={onClearFog}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-400 transition-colors text-left"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter font-bold">Reset de Niebla</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-
           <ToolButton 
             active={false} 
             onClick={onResetView}
             icon={<Crosshair className="w-5 h-5" />}
             label="Centrar"
-            className="border-white/10"
-          />
-
-          <ToolButton 
-            active={false} 
-            onClick={onOpenDice}
-            icon={<Box className="w-5 h-5" />}
-            label="Dados"
-            className="border-[var(--gold)]/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]"
           />
         </div>
 
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
-          <ToolButton 
-            active={false}
-            onClick={() => {
-              if (hasMyToken) {
-                onInvokeToken();
-              } else {
-                // Create the template for placement
-                onInvokeToken({
-                  character_id: null, // characterId will be filled by parent
-                  name: '', // Will be filled by parent
-                  token_type: 'player'
-                });
-              }
-            }}
-            icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
-            label={hasMyToken ? "Retirar" : "Invocar"}
-            className={hasMyToken ? "border-red-500/30" : "border-green-500/30"}
-          />
-        </div>
-
-        {isDM && (
-          <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
+          {isDM && (
             <ToolButton 
-              active={false}
+              active={false} 
               onClick={onOpenScenes}
               icon={<Layers className="w-5 h-5" />}
               label="Escenas"
             />
-            <ToolButton 
-              active={false}
-              onClick={onOpenSettings}
-              icon={<Settings className="w-5 h-5" />}
-              label="Config"
-            />
-          </div>
-        )}
+          )}
+          <ToolButton 
+            active={false} 
+            onClick={onOpenSettings}
+            icon={<Settings className="w-5 h-5" />}
+            label="Ajustes"
+          />
+        </div>
       </div>
 
-      {/* Confirmation Modals - Moved outside the transformed container to fix mobile centering */}
       <AnimatePresence>
         {showClearModal && (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-black/95 border border-[var(--gold)]/30 p-6 rounded-2xl max-w-sm w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] border-t-[var(--gold)]/50 pointer-events-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-black/90 border border-[var(--gold)]/40 p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4"
             >
-              <h3 className="font-display text-[var(--gold)] text-sm uppercase tracking-widest mb-4">
-                {showClearModal === 'mine' ? '¿Borrar tus dibujos?' : 
-                 showClearModal === 'all' ? '¿Borrar TODOS los dibujos?' : 
-                 `¿Borrar dibujos de ${authors.find(a => a.id === selectedAuthorId)?.name}?`}
-              </h3>
-              
-              <p className="text-white/60 text-xs mb-8">
-                {showClearModal === 'all' ? 
-                  'Esta acción limpiará todos los trazos de la escena actual para todos los jugadores. No se puede deshacer.' : 
-                  'Esta acción eliminará permanentemente los trazos seleccionados en esta escena.'}
+              <h3 className="text-[var(--gold)] font-display text-lg mb-2">Borrar Dibujos</h3>
+              <p className="text-white/70 text-sm mb-6">
+                {showClearModal === 'all' 
+                  ? '¿Quieres eliminar TODOS los dibujos de esta escena?' 
+                  : showClearModal === 'player'
+                  ? `¿Quieres eliminar todos los dibujos de este jugador?`
+                  : '¿Quieres eliminar todos tus dibujos en esta escena?'}
               </p>
-
-              <div className="flex gap-3">
+              <div className="flex gap-3 justify-end">
                 <button 
                   onClick={() => setShowClearModal(null)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-white/40 text-[10px] uppercase tracking-widest hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 rounded-lg text-white/60 hover:text-white transition-colors text-sm uppercase tracking-wider"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={() => {
-                    if (showClearModal === 'mine') onClearDrawings({ authorId: characterId });
-                    else if (showClearModal === 'all') onClearDrawings({ all: true });
-                    else if (showClearModal === 'player') onClearDrawings({ authorId: selectedAuthorId! });
+                    onClearDrawings(
+                      showClearModal === 'all' 
+                        ? { all: true } 
+                        : showClearModal === 'player'
+                        ? { authorId: selectedAuthorId || undefined }
+                        : { authorId: characterId || 'unknown' }
+                    );
                     setShowClearModal(null);
-                    setPencilMenuOpen(false);
                   }}
-                  className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white text-[10px] uppercase tracking-widest font-bold hover:bg-red-600 transition-colors"
+                  className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors text-sm uppercase tracking-wider"
                 >
                   Confirmar
                 </button>
@@ -518,43 +322,33 @@ export function Toolbar({
   );
 }
 
-function ToolButton({ 
-
-  active, 
-  onClick, 
-  icon, 
-  label, 
-  className,
-  small = false
-}: { 
-  active: boolean; 
-  onClick: () => void; 
-  icon: React.ReactNode; 
+interface ToolButtonProps {
+  icon: React.ReactNode;
   label: string;
-  className?: string;
+  active: boolean;
+  onClick: () => void;
   small?: boolean;
-}) {
+  className?: string;
+}
+
+function ToolButton({ icon, label, active, onClick, small, className }: ToolButtonProps) {
   return (
     <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
+      onClick={onClick}
       className={cn(
-        "relative group flex items-center justify-center rounded-lg transition-all duration-300 border border-transparent",
+        "flex items-center justify-center rounded-lg transition-all relative group",
         small ? "w-8 h-8" : "w-10 h-10",
-        active ? "bg-[var(--gold)] text-black border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.4)]" : "text-[var(--gold)]/70 hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/40 hover:text-[var(--gold)]",
+        active 
+          ? "bg-[var(--gold)] text-black shadow-[0_0_15px_rgba(234,179,8,0.3)]" 
+          : "text-white/70 hover:bg-white/10 hover:text-white",
         className
       )}
-      title={label}
     >
       {icon}
-      <span className={cn(
-        "absolute right-full mr-3 px-2 py-1 bg-black/80 border border-[var(--gold)]/30 rounded uppercase tracking-widest text-[var(--gold)] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50",
-        small ? "text-[8px]" : "text-[10px]"
-      )}>
+      
+      <div className="absolute right-full mr-3 px-2 py-1 bg-black/90 text-white text-[10px] uppercase tracking-widest rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-[var(--gold)]/20 shadow-2xl">
         {label}
-      </span>
+      </div>
     </button>
   );
 }
