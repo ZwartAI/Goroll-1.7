@@ -879,8 +879,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             remoteTokenPositions={remoteTokenPositions}
             remoteProjections={remoteProjections}
             onTokenMove={(id: string, x: number, y: number) => {
-              setRemoteTokenPositions(prev => ({ ...prev, [id]: { x, y } }));
-              handleBroadcastMove(id, x, y);
+              const current = remoteTokenPositions[id] || {};
+              const next = { ...current, x, y };
+              setRemoteTokenPositions(prev => ({ ...prev, [id]: next }));
+              handleBroadcastMove(id, x, y, current); // Enviar también la metadata existente
             }}
             onTokenMoveEnd={handleUpdateCurrentSceneState}
             onProjectionUpdate={handleBroadcastProjection}
