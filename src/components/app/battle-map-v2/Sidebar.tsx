@@ -9,9 +9,10 @@ interface Props {
   onOpenChar: (id: string) => void;
   battleMap: any;
   isDM: boolean;
+  onInitiatePlacement: (token: any) => void;
 }
 
-export function Sidebar({ onOpenChar, battleMap, isDM }: Props) {
+export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Props) {
   const { combat, characters } = useGameData();
   const { tokens, addToken, removeToken, activeScene } = battleMap;
   
@@ -118,7 +119,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM }: Props) {
       const isEnemy = p.type === 'enemy';
       const original = p.original;
       
-      addToken({
+      onInitiatePlacement({
         character_id: p.characterId || null,
         name: p.name,
         image_url: p.image_url,
@@ -126,8 +127,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM }: Props) {
         image_scale: isEnemy ? (original.enemy_image_scale || 1) : (original.image_scale || 1),
         image_offset_x: isEnemy ? (original.enemy_image_offset_x ?? 50) : (original.image_offset_x ?? 50),
         image_offset_y: isEnemy ? (original.enemy_image_offset_y ?? 50) : (original.image_offset_y ?? 50),
-        x: 100,
-        y: 100
       });
     }
   };

@@ -11,7 +11,7 @@ interface Props {
   isDM: boolean;
   onOpenScenes: () => void;
   onOpenSettings: () => void;
-  onInvokeToken: () => void;
+  onInvokeToken: (tokenToPlace?: any) => void;
   onResetView: () => void;
   onClearDrawings: () => void;
   onOpenDice: () => void;
@@ -129,7 +129,18 @@ export function Toolbar({
       <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
         <ToolButton 
           active={false}
-          onClick={onInvokeToken}
+          onClick={() => {
+            if (hasMyToken) {
+              onInvokeToken();
+            } else {
+              // Create the template for placement
+              onInvokeToken({
+                character_id: null, // characterId will be filled by parent
+                name: '', // Will be filled by parent
+                token_type: 'player'
+              });
+            }
+          }}
           icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
           label={hasMyToken ? "Retirar" : "Invocar"}
           className={hasMyToken ? "border-red-500/30" : "border-green-500/30"}
