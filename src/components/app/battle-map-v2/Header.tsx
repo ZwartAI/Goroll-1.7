@@ -37,7 +37,10 @@ export function Header({ onBack, isDM, campaignName, onMenuToggle }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-[var(--gold)]">
+        <button 
+          onClick={onMenuToggle}
+          className="p-2 hover:bg-white/10 rounded-full transition-colors text-[var(--gold)]"
+        >
           <Menu className="w-5 h-5" />
         </button>
       </div>
