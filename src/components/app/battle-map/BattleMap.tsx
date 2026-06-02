@@ -1079,8 +1079,17 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         )}
 
 
+        {/* Participants Sidebar Backdrop (Mobile) */}
+        {showSidebar && activePanel === 'participants' && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-[145] sm:hidden transition-all animate-in fade-in duration-300" 
+            onClick={() => setActivePanel('none')}
+          />
+        )}
+
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
+
           participants={displayParticipants} 
           isOpen={showSidebar && activePanel === 'participants'} 
 
