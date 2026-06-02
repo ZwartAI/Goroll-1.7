@@ -32,17 +32,27 @@ export const Stage = forwardRef<StageHandle, Props>(({
 }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   
-  // Refs to avoid stale closures in event listeners
+  // Refs to avoid stale closures and for direct DOM updates during interactions
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   
-  // Keep refs in sync immediately to avoid frame lag in coordinate conversion
-  scaleRef.current = scale;
-  offsetRef.current = offset;
+  // Sync refs with state for component-level knowledge
+  useEffect(() => {
+    scaleRef.current = scale;
+    offsetRef.current = offset;
+    updateTransform();
+  }, [scale, offset]);
+
+  const updateTransform = () => {
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+    }
+  };
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
