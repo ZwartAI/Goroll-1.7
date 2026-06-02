@@ -958,7 +958,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 onDragEnd={() => setDraggingTokenId(null)}
                 className={cn(
                   !isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : "",
-                  isDM && hiddenTokenIds.has(token.id) ? "opacity-40 grayscale" : ""
+                  isDM && showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-40 grayscale" : "",
+                  isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : ""
                 )}
               />
             </div>
