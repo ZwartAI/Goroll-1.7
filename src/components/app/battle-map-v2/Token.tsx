@@ -136,7 +136,8 @@ export function Token({
       className={cn(
         "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto select-none",
         !token.is_visible && "opacity-50 grayscale",
-        (localDragging || isDraggingProp) && "cursor-grabbing z-50"
+        (localDragging || isDraggingProp) && "cursor-grabbing z-50",
+        className
       )}
       style={{ 
         width: gridSize,
