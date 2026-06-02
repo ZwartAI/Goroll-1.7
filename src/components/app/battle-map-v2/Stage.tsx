@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { SceneConfig, MapToken, Drawing } from '@/hooks/useBattleMap';
+import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
@@ -370,10 +370,9 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     return Math.round(cells * 5); // 5ft per cell
   };
 
-  const isVideo = (url: string) => {
-    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
-    return videoExtensions.some(ext => url.toLowerCase().endsWith(ext));
-  };
+  // No longer needed locally since we export it from useBattleMap
+  // but keeping the call compatible
+  const isVideo = isVideoUrl;
 
   return (
     <div 

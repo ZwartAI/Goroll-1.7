@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Plus, Play, Trash2, Copy, Edit2 } from 'lucide-react';
-import { SceneConfig } from '@/hooks/useBattleMap';
+import { SceneConfig, isVideoUrl } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -72,7 +72,11 @@ export function SceneManager({ battleMap, onClose }: Props) {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                     {scene.background_url ? (
-                      <img src={scene.background_url} alt="" className="w-full h-full object-cover" />
+                      isVideoUrl(scene.background_url) ? (
+                        <video src={scene.background_url} className="w-full h-full object-cover" muted />
+                      ) : (
+                        <img src={scene.background_url} alt="" className="w-full h-full object-cover" />
+                      )
                     ) : (
                       <span className="text-xs opacity-20">🗺️</span>
                     )}
