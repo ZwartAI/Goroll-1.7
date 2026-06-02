@@ -3,7 +3,7 @@ import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Tr
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fogPaint' | 'fogErase';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fogPaint' | 'fogErase' | 'fogBlock';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -64,7 +64,7 @@ export function Toolbar({
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase';
+  const isFogActive = activeTool === 'fogPaint' || activeTool === 'fogErase' || activeTool === 'fogBlock';
 
   // Extract unique authors for DM management
   const authors = React.useMemo(() => {
@@ -264,7 +264,7 @@ export function Toolbar({
               <ToolButton 
                 active={isFogActive} 
                 onClick={() => {
-                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase') {
+                  if (activeTool !== 'fogPaint' && activeTool !== 'fogErase' && activeTool !== 'fogBlock') {
                     setActiveTool('fogPaint');
                   }
                   setFogMenuOpen(!fogMenuOpen);
@@ -296,6 +296,13 @@ export function Toolbar({
                         onClick={() => setActiveTool('fogErase')}
                         icon={<CloudOff className="w-4 h-4 text-white/60" />}
                         label="Revelar Mapa"
+                        small
+                      />
+                      <ToolButton 
+                        active={activeTool === 'fogBlock'} 
+                        onClick={() => setActiveTool('fogBlock')}
+                        icon={<Box className="w-4 h-4 text-white/60" />}
+                        label="Bloque de Niebla"
                         small
                       />
                     </div>

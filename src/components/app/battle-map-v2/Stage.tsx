@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { CloudOff, Trash2 } from 'lucide-react';
 import { SceneConfig, MapToken, Drawing, isVideoUrl, FogStroke } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
@@ -59,6 +60,20 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
   // Token dragging state (managed by individual Token components now)
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
+
+  // Fog Block selection and creation state
+  const [selectedFogId, setSelectedFogId] = useState<string | null>(null);
+  const [fogBlockStart, setFogBlockStart] = useState<{ x: number, y: number } | null>(null);
+  const [fogBlockEnd, setFogBlockEnd] = useState<{ x: number, y: number } | null>(null);
+
+  const blockColors = [
+    'rgba(255, 0, 0, 0.4)',    // Rojo
+    'rgba(0, 0, 255, 0.4)',    // Azul
+    'rgba(128, 0, 128, 0.4)',  // Morado
+    'rgba(0, 128, 0, 0.4)',    // Verde
+    'rgba(255, 215, 0, 0.4)',  // Dorado
+    'rgba(0, 255, 255, 0.4)',  // Cyan
+  ];
 
 
   // Helper function to convert screen coordinates to world coordinates
@@ -188,7 +203,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     const target = e.target as HTMLElement;
     const coords = screenToWorld(e.clientX, e.clientY);
 
-    // Prevent panning if we're touching UI element
+    // Prevent interactions if we're touching UI element
     if (target.closest('[data-map-ui="true"]')) {
       return;
     }
@@ -199,7 +214,31 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       currentFogPoints.current = [coords];
       setLocalFogPoints([coords]);
       if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      setSelectedFogId(null);
       return;
+    }
+
+    if (activeTool === 'fogBlock') {
+      if (!isDM) return;
+      
+      // Check if we're clicking an existing block to select it
+      const fogBlockElement = target.closest('[data-fog-id]');
+      if (fogBlockElement) {
+        const id = fogBlockElement.getAttribute('data-fog-id');
+        setSelectedFogId(id);
+        return;
+      }
+
+      setFogBlockStart(coords);
+      setFogBlockEnd(coords);
+      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      setSelectedFogId(null);
+      return;
+    }
+
+    // Unselect fog block if clicking elsewhere
+    if (selectedFogId) {
+      setSelectedFogId(null);
     }
 
     // Check if we're clicking a token
@@ -280,6 +319,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
+    if (activeTool === 'fogBlock' && fogBlockStart) {
+      setFogBlockEnd(coords);
+      return;
+    }
+
     // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
       const gridSize = activeScene.grid_size;
@@ -342,6 +386,33 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
     if (draggingTokenId) {
       setDraggingTokenId(null);
+    }
+
+    if (activeTool === 'fogBlock' && fogBlockStart && fogBlockEnd) {
+      const width = Math.abs(fogBlockEnd.x - fogBlockStart.x);
+      const height = Math.abs(fogBlockEnd.y - fogBlockStart.y);
+      
+      if (width > 10 && height > 10) {
+        const x = Math.min(fogBlockStart.x, fogBlockEnd.x);
+        const y = Math.min(fogBlockStart.y, fogBlockEnd.y);
+        
+        // Randomly assign a color for the DM
+        const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
+        
+        addFogStroke({
+          fog_type: 'block',
+          shape: 'rect',
+          color: '#000000',
+          block_color: randomColor,
+          opacity: 0.85,
+          brush_size: 0,
+          points: [{ x, y }, { x: width, y: height }], // Storing dimensions in second point for simplicity in this schema
+          is_visible: true,
+          label: `Bloque ${fogStrokes.filter((f: FogStroke) => f.fog_type === 'block').length + 1}`
+        });
+      }
+      setFogBlockStart(null);
+      setFogBlockEnd(null);
     }
 
     if (activeTool === 'measure' && isMeasuring.current) {
@@ -413,6 +484,11 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           else tempCtx.lineTo(p.x, p.y);
         });
         tempCtx.stroke();
+      } else if (stroke.fog_type === 'block' && stroke.shape === 'rect' && stroke.points.length >= 2) {
+        const { x, y } = stroke.points[0];
+        const { x: width, y: height } = stroke.points[1];
+        tempCtx.fillStyle = 'black';
+        tempCtx.fillRect(x, y, width, height);
       }
     });
 
@@ -751,6 +827,83 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
             className="absolute inset-0 pointer-events-none"
           />
         </div>
+
+        {/* Fog Blocks DM View */}
+        {isDM && fogStrokes.map((stroke: FogStroke) => {
+          if (stroke.fog_type !== 'block' || stroke.points.length < 2) return null;
+          const { x, y } = stroke.points[0];
+          const { x: width, y: height } = stroke.points[1];
+          const isSelected = selectedFogId === stroke.id;
+          
+          return (
+            <div
+              key={stroke.id}
+              data-fog-id={stroke.id}
+              className={cn(
+                "absolute border-2 transition-all cursor-pointer pointer-events-auto",
+                isSelected ? "border-white shadow-[0_0_15px_rgba(255,255,255,0.5)] z-[42]" : "border-current z-[41]"
+              )}
+              style={{
+                left: x,
+                top: y,
+                width: width,
+                height: height,
+                backgroundColor: stroke.block_color || 'rgba(255,0,0,0.3)',
+                color: stroke.block_color?.replace('0.4', '1') || 'red',
+              }}
+            >
+              <div className="absolute top-1 left-1 bg-black/60 px-1 rounded text-[10px] text-white font-bold select-none pointer-events-none">
+                {stroke.label || 'Bloque'}
+              </div>
+              
+              {isSelected && (
+                <div 
+                  className="absolute -top-12 left-1/2 -translate-x-1/2 flex gap-1 bg-black/90 p-1.5 rounded-lg border border-white/20 shadow-2xl pointer-events-auto"
+                  data-map-ui="true"
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      battleMap.removeFogStroke(stroke.id);
+                      setSelectedFogId(null);
+                      toast.success('Zona revelada');
+                    }}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
+                  >
+                    <CloudOff className="w-3 h-3" />
+                    REVELAR
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      battleMap.removeFogStroke(stroke.id);
+                      setSelectedFogId(null);
+                      toast.success('Bloque eliminado');
+                    }}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold rounded transition-colors whitespace-nowrap"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    ELIMINAR
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Current Fog Block Creation Preview */}
+        {fogBlockStart && fogBlockEnd && (
+          <div
+            className="absolute border-2 border-dashed border-white bg-white/20 pointer-events-none"
+            style={{
+              left: Math.min(fogBlockStart.x, fogBlockEnd.x),
+              top: Math.min(fogBlockStart.y, fogBlockEnd.y),
+              width: Math.abs(fogBlockEnd.x - fogBlockStart.x),
+              height: Math.abs(fogBlockEnd.y - fogBlockStart.y),
+              zIndex: 45
+            }}
+          />
+        )}
 
         {/* Local Drawing Fog Preview */}
         {localFogPoints.length > 0 && (

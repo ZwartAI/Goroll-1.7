@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, UserMinus } from 'lucide-react';
+import { UserPlus, UserMinus, Cloud, Trash2 } from 'lucide-react';
 import { buildOrderedTurns } from '@/lib/combat';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 }
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, showParticipants = true }: Props) {
+  const [activeTab, setActiveTab] = useState<'participants' | 'fog'>('participants');
   const sidebarRef = useRef<HTMLDivElement>(null);
   const { combat, characters } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
@@ -155,8 +156,35 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
   return (
     <>
       {/* Desktop View */}
-      <div className="absolute left-4 top-20 bottom-32 w-48 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
-        {participants.map((p, idx) => (
+      <div className="absolute left-4 top-20 bottom-32 w-52 pointer-events-none z-20 hidden sm:flex flex-col gap-2" data-map-ui="true">
+        {isDM && (
+          <div className="flex gap-1 mb-2 pointer-events-auto">
+            <button
+              onClick={() => setActiveTab('participants')}
+              className={cn(
+                "flex-1 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeTab === 'participants' 
+                  ? "bg-[var(--gold)]/20 border-[var(--gold)] text-[var(--gold)]" 
+                  : "bg-black/40 border-white/10 text-white/40 hover:border-white/30"
+              )}
+            >
+              Participantes
+            </button>
+            <button
+              onClick={() => setActiveTab('fog')}
+              className={cn(
+                "flex-1 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all",
+                activeTab === 'fog' 
+                  ? "bg-[var(--gold)]/20 border-[var(--gold)] text-[var(--gold)]" 
+                  : "bg-black/40 border-white/10 text-white/40 hover:border-white/30"
+              )}
+            >
+              Niebla
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'participants' && participants.map((p, idx) => (
           <motion.div
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -218,6 +246,54 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
             )}
           </motion.div>
         ))}
+
+        {activeTab === 'fog' && isDM && (
+          <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar max-h-full">
+            <h3 className="text-[10px] font-bold text-[var(--gold)]/60 uppercase tracking-widest px-1">Bloques de Niebla</h3>
+            {battleMap.fogStrokes.filter((f: any) => f.fog_type === 'block').length === 0 ? (
+              <p className="text-[9px] text-white/30 px-1 italic">No hay bloques creados</p>
+            ) : (
+              battleMap.fogStrokes.filter((f: any) => f.fog_type === 'block').map((stroke: any, idx: number) => (
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: idx * 0.05 }}
+                  key={stroke.id}
+                  className="pointer-events-auto flex items-center gap-2 p-2 rounded-lg border border-white/10 bg-black/40 group hover:border-white/30 transition-all"
+                >
+                  <div 
+                    className="w-3 h-3 rounded-sm shrink-0 border border-white/20"
+                    style={{ backgroundColor: stroke.block_color || 'red' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-white/80 font-bold truncate">
+                      {stroke.label || `Bloque ${idx + 1}`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      battleMap.removeFogStroke(stroke.id);
+                    }}
+                    className="p-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    title="Revelar Bloque"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </motion.div>
+              ))
+            )}
+            
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <button
+                onClick={() => battleMap.clearFog()}
+                className="w-full flex items-center justify-center gap-2 p-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-500 text-[10px] font-bold uppercase hover:bg-red-500 hover:text-white transition-all pointer-events-auto"
+              >
+                <Trash2 className="w-3 h-3" />
+                Limpiar Toda la Niebla
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile/Compact View */}
@@ -226,7 +302,30 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
         className="absolute left-4 top-20 bottom-32 pointer-events-none z-30 flex flex-col items-start gap-2 sm:hidden overflow-y-auto no-scrollbar pr-40" 
         data-map-ui="true"
       >
-        {participants.map((p, idx) => {
+        {isDM && (
+          <div className="flex gap-1 mb-2 pointer-events-auto">
+            <button
+              onClick={() => setActiveTab('participants')}
+              className={cn(
+                "p-1.5 rounded-full border transition-all",
+                activeTab === 'participants' ? "bg-[var(--gold)] border-[var(--gold)] text-black" : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
+              )}
+            >
+              <UserPlus className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => setActiveTab('fog')}
+              className={cn(
+                "p-1.5 rounded-full border transition-all",
+                activeTab === 'fog' ? "bg-[var(--gold)] border-[var(--gold)] text-black" : "bg-black/60 border-[var(--gold)]/30 text-[var(--gold)]"
+              )}
+            >
+              <Cloud className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'participants' && participants.map((p, idx) => {
           const isExpanded = expandedNameId === p.id;
           return (
             <motion.div
@@ -294,8 +393,29 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
                 )}
               </AnimatePresence>
             </motion.div>
-          );
+            );
         })}
+
+        {activeTab === 'fog' && isDM && (
+          <div className="flex flex-col gap-1.5 pointer-events-auto max-h-[60vh] overflow-y-auto no-scrollbar pb-10">
+            {battleMap.fogStrokes.filter((f: any) => f.fog_type === 'block').map((stroke: any, idx: number) => (
+              <motion.div
+                key={stroke.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-[var(--gold)]/30 bg-black/60 shadow-lg"
+                onClick={() => battleMap.removeFogStroke(stroke.id)}
+              >
+                <div 
+                  className="w-2.5 h-2.5 rounded-full" 
+                  style={{ backgroundColor: stroke.block_color || 'red' }} 
+                />
+                <span className="text-[8px] font-bold text-white/90 uppercase truncate max-w-[80px]">
+                  {stroke.label || `B${idx + 1}`}
+                </span>
+                <Trash2 className="w-2.5 h-2.5 text-red-400" />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

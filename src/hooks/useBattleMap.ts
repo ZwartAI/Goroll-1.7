@@ -63,6 +63,8 @@ export interface FogStroke {
   brush_size: number;
   points: { x: number; y: number }[];
   is_visible: boolean;
+  label?: string | null;
+  block_color?: string | null;
 }
 
 export const isVideoUrl = (url: string | null | undefined) => {
@@ -412,6 +414,11 @@ export const useBattleMap = (campaignId: string) => {
     fetchFog(activeScene.id);
   };
 
+  const removeFogStroke = async (strokeId: string) => {
+    setFogStrokes(prev => prev.filter(f => f.id !== strokeId));
+    await supabase.from('battle_map_fog_simple').delete().eq('id', strokeId);
+  };
+
   const clearFog = async () => {
     if (!activeScene) return;
     await supabase.from('battle_map_fog_simple').delete().match({ scene_id: activeScene.id, campaign_id: campaignId });
@@ -437,6 +444,7 @@ export const useBattleMap = (campaignId: string) => {
     removeDrawing,
     undoLastDrawing,
     addFogStroke,
+    removeFogStroke,
     clearFog
   };
 };
