@@ -556,11 +556,89 @@ export const useBattleMap = (campaignId: string) => {
     await removeDrawing(lastDrawing.id);
   };
 
+  const addFogStroke = async (stroke: Omit<FogStroke, 'id' | 'campaign_id' | 'scene_id'>) => {
+    if (!activeScene) return;
+    
+    const tempId = Math.random().toString(36).substr(2, 9);
+    const newStroke = {
+      ...stroke,
+      id: tempId,
+      campaign_id: campaignId,
+      scene_id: activeScene.id
+    } as FogStroke;
+    
+    setFogStrokes(prev => [...prev, newStroke]);
+
+    const { error } = await supabase
+      .from('battle_map_fog_simple')
+      .insert([{ 
+        ...stroke, 
+        campaign_id: campaignId, 
+        scene_id: activeScene.id,
+        points: stroke.points as any
+      }]);
+
+    if (error) {
+      console.error('Error adding fog stroke:', error);
+      toast.error('Error al guardar la niebla');
+      setFogStrokes(prev => prev.filter(f => f.id !== tempId));
+    }
+  };
+
+  const clearFog = async () => {
+    if (!activeScene) return;
+    
+    setFogStrokes([]);
+
+    const { error } = await supabase
+      .from('battle_map_fog_simple')
+      .delete()
+      .match({ 
+        scene_id: activeScene.id, 
+        campaign_id: campaignId
+      });
+
+    if (error) {
+      console.error('Error clearing fog:', error);
+      toast.error('No se pudo borrar la niebla');
+      fetchFog(activeScene.id);
+    }
+  };
+
+  useEffect(() => {
+    if (!activeScene?.id) return;
+    
+    fetchFog(activeScene.id);
+
+    const fogSubscription = supabase
+      .channel(`battle_map_fog_${activeScene.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'battle_map_fog_simple',
+          filter: `scene_id=eq.${activeScene.id}`,
+        },
+        () => {
+          if (activeSceneIdRef.current) {
+            fetchFog(activeSceneIdRef.current);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      fogSubscription.unsubscribe();
+    };
+  }, [activeScene?.id, fetchFog]);
+
   return {
     activeScene,
     scenes,
     tokens,
     drawings,
+    fogStrokes,
     isLoading,
     updateScene,
     createScene,
@@ -572,6 +650,8 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing
+    undoLastDrawing,
+    addFogStroke,
+    clearFog
   };
 };
