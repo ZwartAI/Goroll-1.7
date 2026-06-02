@@ -76,7 +76,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     };
   }, []);
 
-  const zoomAtScreenPoint = useCallback((screenX: number, screenY: number, zoomFactor: number) => {
+  const zoomAtScreenPoint = useCallback((screenX: number, screenY: number, zoomFactor: number, isFinal: boolean = true) => {
     if (!stageRef.current) return;
     const rect = stageRef.current.getBoundingClientRect();
     
@@ -95,8 +95,19 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const newOffsetX = localX / newScale - worldX;
     const newOffsetY = localY / newScale - worldY;
 
-    setScale(newScale);
-    setOffset({ x: newOffsetX, y: newOffsetY });
+    // Update refs immediately
+    scaleRef.current = newScale;
+    offsetRef.current = { x: newOffsetX, y: newOffsetY };
+
+    // Direct DOM update
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
+    }
+
+    if (isFinal) {
+      setScale(newScale);
+      setOffset({ x: newOffsetX, y: newOffsetY });
+    }
   }, []);
 
   const centerView = useCallback(() => {
