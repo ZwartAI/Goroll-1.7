@@ -751,6 +751,8 @@ export const es = {
     handedItem: "entregó",
     importHint: "📥 Importar potenciadores desde .xlsx o .txt.",
     importXlsx: 'XLSX: hoja "Extra Skills - DND". Fila 1-2 encabezados (ID, Tipo, Rareza, Nombre, Modo de lanzamiento, Distancia, Objetivos, Dados a tirar, Efecto o Condición). Fila 3 en adelante datos.',
+    importItemsXlsx: 'XLSX: Hoja "Items". Encabezados: Nombre, Categoría, Rareza, Ranura (si aplica), Def, HP, Daño, Usos, Descripción.',
+    importItemsHint: "📥 Importar objetos y equipamiento desde .xlsx.",
     importTxt: "TXT: bloques separados por línea en blanco. Cada línea con etiqueta: ID:, Tipo:, Rareza:, Nombre:, Efecto o Condición:...",
     importErrors: "{n} error(es): {detail}",
     importing: "Creando / Actualizando potenciadores…",

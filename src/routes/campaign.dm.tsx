@@ -202,6 +202,7 @@ function DM() {
             <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Hammer size={16} /> Crear ítems o crear objetos</h3>
             <p className="text-xs text-muted-foreground">Personaliza equipamiento, consumibles o tesoros para tus jugadores.</p>
             <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
+            <BulkItemImport campaignId={campaign.id} />
           </div>
 
           <div className="ornate-card p-4 space-y-2">
@@ -883,6 +884,92 @@ function BulkBoosterImport({ campaignId }: { campaignId: string }) {
         </div>
       )}
 
+    </div>
+  );
+}
+
+function BulkItemImport({ campaignId }: { campaignId: string }) {
+  const { t: tr } = useT();
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+
+  async function handleFile(file: File) {
+    setBusy(true);
+    setProgress({ done: 0, total: 0 });
+    try {
+      const { parseItemFile, normalizeName } = await import("@/lib/itemImport");
+      const { rows, errors } = await parseItemFile(file);
+      if (errors.length) toast.error(tr("dm.importErrors", { n: errors.length, detail: errors.slice(0, 2).map(e => `${e.where}: ${e.message}`).join(" · ") }));
+      if (!rows.length) return;
+      setProgress({ done: 0, total: rows.length });
+
+      const { data: existing } = await supabase.from("items")
+        .select("id, name, category")
+        .eq("campaign_id", campaignId)
+        .eq("in_dm_vault", true);
+
+      const byNameAndCat = new Map<string, any>();
+      for (const it of (existing || [])) {
+        byNameAndCat.set(`${normalizeName(it.name)}|${it.category}`, it);
+      }
+
+      let created = 0, updated = 0;
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const match = byNameAndCat.get(`${normalizeName(r.name)}|${r.category}`);
+
+        const payload: any = {
+          campaign_id: campaignId,
+          name: r.name,
+          category: r.category,
+          rarity: r.rarity,
+          slot: r.slot,
+          defense_bonus: r.defense_bonus,
+          hp_bonus: r.hp_bonus,
+          damage_bonus: r.damage_bonus,
+          uses: r.uses,
+          max_uses: r.max_uses,
+          description: r.description,
+          in_dm_vault: true,
+          equipped: false,
+          inventory_slot_type: "normal"
+        };
+
+        if (match) {
+          await supabase.from("items").update(payload).eq("id", match.id);
+          updated++;
+        } else {
+          await supabase.from("items").insert(payload);
+          created++;
+        }
+        setProgress({ done: i + 1, total: rows.length });
+      }
+      toast.success(tr("dm.importDone", { created, updated }) + (errors.length ? tr("dm.importDoneErr", { n: errors.length }) : ""));
+    } catch (e: any) {
+      toast.error(e?.message || tr("dm.importFailed"));
+    } finally { setBusy(false); setProgress({ done: 0, total: 0 }); }
+  }
+
+  const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
+  return (
+    <div className="space-y-1 pt-2 border-t border-border mt-3">
+      <p className="text-[10px] text-muted-foreground">{tr("dm.importItemsHint")}</p>
+      <p className="text-[10px] text-muted-foreground">{tr("dm.importItemsXlsx")}</p>
+      <input type="file" accept=".xlsx,.xls" disabled={busy}
+        onChange={e => { const f = e.target.files?.[0]; if (f) { handleFile(f); e.target.value = ""; } }}
+        className="text-xs text-muted-foreground w-full file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-secondary file:text-foreground file:text-xs" />
+      {busy && (
+        <div className="space-y-1 pt-2">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>{tr("dm.importing")}</span>
+            <span>{progress.total ? tr("dm.importProgress", { done: progress.done, total: progress.total, pct }) : tr("dm.pleaseWait")}</span>
+          </div>
+          <div className="h-2 w-full rounded bg-secondary overflow-hidden border border-border">
+            <div className="h-full transition-all duration-150"
+              style={{ width: `${pct}%`, background: "var(--gradient-gold)" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
