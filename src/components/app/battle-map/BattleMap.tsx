@@ -72,8 +72,10 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
   const [isTokenPickerOpen, setIsTokenPickerOpen] = useState(false);
 
   // Estados de visibilidad de UI (Bar Map)
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(true); // Controla la lista de rondas
+  const [showParticipants, setShowParticipants] = useState(true); // Controla la lista de jugadores
   const [showToolbar, setShowToolbar] = useState(true);
+
 
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
@@ -1066,7 +1068,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
           participants={displayParticipants} 
-          isOpen={showSidebar && activePanel === 'participants'} 
+          isOpen={showParticipants && activePanel === 'participants'} 
+
           onOpenChar={onOpenChar} 
           onClose={() => setActivePanel('none')}
           isDM={isDM}
@@ -1244,6 +1247,8 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           isDM={isDM}
           showIniciativa={showSidebar}
           onToggleIniciativa={() => setShowSidebar(!showSidebar)}
+          showParticipants={showParticipants}
+          onToggleParticipants={() => setShowParticipants(!showParticipants)}
           showToolbar={showToolbar}
           onToggleToolbar={() => setShowToolbar(!showToolbar)}
           onInvokeToken={() => setIsTokenPickerOpen(true)}
@@ -1252,6 +1257,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
             setIsAdminSidebarOpen(false);
           }}
         />
+
 
         {/* Token Picker Modal */}
         <BattleMapTokenPickerModal 
@@ -1358,7 +1364,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       )}
 
       {/* New Fixed Player Bottom Bar */}
-      <BattleMapBottomBar onOpenSection={handleOpenNavSection} />
+      <BattleMapBottomBar onOpenSection={handleOpenNavSection} showSocial={showParticipants} />
     </div>
   );
 };

@@ -24,9 +24,11 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, onClick }) => (
 
 interface Props {
   onOpenSection: (section: string) => void;
+  showSocial?: boolean;
+
 }
 
-export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection }) => {
+export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection, showSocial = true }) => {
   const { t } = useT();
 
   return (
@@ -57,11 +59,14 @@ export const BattleMapBottomBar: React.FC<Props> = ({ onOpenSection }) => {
           label={t('nav.notes') || 'Notas'} 
           onClick={() => onOpenSection('notes')} 
         />
-        <NavItem 
-          icon={Users} 
-          label={t('nav.social') || 'Social'} 
-          onClick={() => onOpenSection('social')} 
-        />
+        {showSocial && (
+          <NavItem 
+            icon={Users} 
+            label={t('nav.social') || 'Social'} 
+            onClick={() => onOpenSection('social')} 
+          />
+        )}
+
       </div>
     </div>
   );
