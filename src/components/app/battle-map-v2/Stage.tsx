@@ -204,6 +204,18 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     if (activeTool === 'measure') {
       isMeasuring.current = true;
       let startCoords = coords;
+      
+      if (measureSnap && activeScene && !tokenId) {
+        const gridSize = activeScene.grid_size;
+        const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
+        const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
+        
+        startCoords = {
+          x: Math.round((startCoords.x - offsetX) / gridSize) * gridSize + offsetX,
+          y: Math.round((startCoords.y - offsetY) / gridSize) * gridSize + offsetY
+        };
+      }
+      
       rulerStartTokenId.current = tokenId || null;
 
       // If we clicked a token, link to its center
