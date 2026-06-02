@@ -193,6 +193,15 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
+    if (activeTool === 'fogPaint' || activeTool === 'fogErase') {
+      if (!isDM) return;
+      isFogging.current = true;
+      currentFogPoints.current = [coords];
+      setLocalFogPoints([coords]);
+      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      return;
+    }
+
     // Check if we're clicking a token
     const tokenElement = target.closest('[data-token-id]');
     const tokenId = tokenElement?.getAttribute('data-token-id');
@@ -202,6 +211,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       setIsPanning(false);
       setDraggingTokenId(null);
       isMeasuring.current = false;
+      isFogging.current = false;
 
       const pointers = Array.from(activePointers.current.values());
       const dist = Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
@@ -261,6 +271,15 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     let coords = screenToWorld(e.clientX, e.clientY);
 
+    if (isFogging.current) {
+      const lastPoint = currentFogPoints.current[currentFogPoints.current.length - 1];
+      if (!lastPoint || Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y) > 5) {
+        currentFogPoints.current.push(coords);
+        setLocalFogPoints([...currentFogPoints.current]);
+      }
+      return;
+    }
+
     // Snap to grid if enabled for measurement
     if (activeTool === 'measure' && measureSnap && activeScene) {
       const gridSize = activeScene.grid_size;
@@ -288,12 +307,6 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       return;
     }
 
-    if (draggingTokenId) {
-      // Logic moved to Token.tsx
-      return;
-    }
-
-
     if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
       setRulerEnd(coords);
     } else if (isPanning && activePointers.current.size === 1) {
@@ -310,11 +323,26 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       lastPinchDist.current = null;
     }
 
+    if (isFogging.current) {
+      isFogging.current = false;
+      if (currentFogPoints.current.length > 0) {
+        addFogStroke({
+          fog_type: activeTool === 'fogPaint' ? 'brush' : 'eraser',
+          shape: 'circle',
+          color: activeTool === 'fogPaint' ? '#000000' : null,
+          opacity: 0.85,
+          brush_size: brushSize,
+          points: currentFogPoints.current,
+          is_visible: true
+        });
+      }
+      currentFogPoints.current = [];
+      setLocalFogPoints([]);
+    }
+
     if (draggingTokenId) {
       setDraggingTokenId(null);
     }
-
-
 
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
