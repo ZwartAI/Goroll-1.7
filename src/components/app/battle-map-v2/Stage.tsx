@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
+import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
+import { SceneConfig, MapToken, Drawing, isVideoUrl, FogStroke } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ interface Props {
   authorColor?: string;
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
+  brushSize?: number;
 }
 
 export interface StageHandle {
