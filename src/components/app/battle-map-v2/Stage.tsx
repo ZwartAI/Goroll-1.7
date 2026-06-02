@@ -21,6 +21,10 @@ interface Props {
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
   brushSize?: number;
+  fogAnimationReduced?: boolean;
+  showTokensUnderFog?: boolean;
+  revealAroundTokens?: boolean;
+  onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
 }
 
 export interface StageHandle {
@@ -28,7 +32,10 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140 }, ref) => {
+export const Stage = forwardRef<StageHandle, Props>(({ 
+  battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure, brushSize = 140,
+  fogAnimationReduced = false, showTokensUnderFog = true, revealAroundTokens = false, onMapLoad
+}, ref) => {
   const { activeScene, tokens, drawings, fogStrokes, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogStroke } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const fogCanvasRef = useRef<HTMLCanvasElement>(null);
