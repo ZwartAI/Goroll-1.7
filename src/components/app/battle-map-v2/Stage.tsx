@@ -573,7 +573,21 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
           />
         )}
 
-        {/* Drawing Layer */}
+        {/* Grid Highlight Layer */}
+        {highlightedCells.map((cell, i) => (
+          <div 
+            key={`${cell.x}-${cell.y}-${i}`}
+            className="absolute pointer-events-none bg-[var(--gold)]/20 border border-[var(--gold)]/30"
+            style={{ 
+              left: cell.x,
+              top: cell.y,
+              width: activeScene.grid_size,
+              height: activeScene.grid_size,
+              zIndex: 1.5
+            }}
+          />
+        ))}
+
         <div style={{ zIndex: 2, position: 'absolute', inset: 0 }} className="pointer-events-none">
           <DrawingLayer 
             drawings={drawings} 
