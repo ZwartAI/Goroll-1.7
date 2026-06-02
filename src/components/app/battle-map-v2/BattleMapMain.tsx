@@ -194,6 +194,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
+          onClearFog={() => setShowFogClearModal(true)}
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
@@ -221,6 +222,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           }}
           hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
         />
 
 
