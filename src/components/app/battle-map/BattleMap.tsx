@@ -1082,7 +1082,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
         {/* Sidebar Turno de Combate */}
         <BattleMapSidebar 
           participants={displayParticipants} 
-          isOpen={showParticipants && activePanel === 'participants'} 
+          isOpen={showSidebar && activePanel === 'participants'} 
 
           onOpenChar={onOpenChar} 
           onClose={() => setActivePanel('none')}
@@ -1372,7 +1372,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       )}
 
       {/* New Fixed Player Bottom Bar */}
-      <BattleMapBottomBar onOpenNavSection={handleOpenNavSection} showSocial={showSidebar} />
+      <BattleMapBottomBar onOpenSection={handleOpenNavSection} showSocial={showSidebar} />
     </div>
   );
 };
