@@ -1364,7 +1364,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
       )}
 
       {/* New Fixed Player Bottom Bar */}
-      <BattleMapBottomBar onOpenSection={handleOpenNavSection} />
+      <BattleMapBottomBar onOpenSection={handleOpenNavSection} showSocial={showParticipants} />
     </div>
   );
 };
