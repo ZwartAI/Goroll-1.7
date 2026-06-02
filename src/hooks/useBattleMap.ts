@@ -506,19 +506,6 @@ export const useBattleMap = (campaignId: string) => {
   const clearDrawings = async (options?: { authorId?: string, all?: boolean }) => {
     if (!activeScene) return;
     
-    let query = supabase
-      .from('battle_map_drawings_simple')
-      .delete()
-      .eq('scene_id', activeScene.id)
-      .eq('campaign_id', campaignId);
-
-    if (options?.authorId) {
-      query = query.eq('author_character_id', options.authorId);
-    } else if (!options?.all) {
-      // Default to "clear all" if no options provided for legacy compatibility, 
-      // but we will use options in new UI
-    }
-
     // Optimistic update
     setDrawings(prev => prev.filter(d => {
       if (options?.all) return false;
@@ -536,6 +523,7 @@ export const useBattleMap = (campaignId: string) => {
       });
 
     if (error) {
+      console.error('Error clearing drawings:', error);
       toast.error('No se pudieron borrar los dibujos');
       fetchDrawings(activeScene.id);
     }
