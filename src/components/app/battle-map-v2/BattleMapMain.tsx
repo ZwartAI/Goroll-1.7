@@ -199,7 +199,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           fogAnimationReduced={fogAnimationReduced}
           showTokensUnderFog={showTokensUnderFog}
           revealAroundTokens={revealAroundTokens}
-          onMapLoad={(dims) => setMapDimensions(dims)}
+          onMapLoad={(dims: any) => setMapDimensions(dims)}
         />
 
         {/* Sidebar (Turns/Participants) */}
