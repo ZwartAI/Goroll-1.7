@@ -166,7 +166,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
-          showParticipants={showParticipants}
+          showParticipants={showSidebar}
         />
 
         {/* Sidebar (Turns/Participants) */}
@@ -175,7 +175,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           battleMap={battleMap}
           isDM={isDM}
           onInitiatePlacement={(token) => setTokenToPlace(token)}
-          showParticipants={showParticipants}
+          showParticipants={showSidebar}
         />
 
         {/* Toolbar (Right) */}
