@@ -56,6 +56,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+  const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
   // Multi-touch / Gesture state
