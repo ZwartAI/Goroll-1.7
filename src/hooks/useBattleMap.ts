@@ -33,6 +33,7 @@ export interface MapToken {
   image_scale?: number;
   image_offset_x?: number;
   image_offset_y?: number;
+  color?: string | null;
   x: number;
   y: number;
   size: number;

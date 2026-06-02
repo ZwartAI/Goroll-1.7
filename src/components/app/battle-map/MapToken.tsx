@@ -45,14 +45,20 @@ export const MapToken: React.FC<Props> = ({
   const [image] = useImage(imageUrl);
 
   
-  const color = participant.enemy_color || participant.color || "var(--gold)";
+  const color = useMemo(() => {
+    if (participant.participant_type === 'enemy') return '#ef4444';
+    if (participant.npc_template_id) return '#ffffff';
+    return participant.color || "var(--gold)";
+  }, [participant]);
+
   const radius = gridSize * 0.44;
 
   // FASE 7: Role-based glow color
   const roleGlowColor = useMemo(() => {
     if (participant.participant_type === 'enemy') return '#ef4444'; // Red for Enemy
-    return '#3b82f6'; // Blue for Players
-  }, [participant.participant_type]);
+    if (participant.npc_template_id) return '#ffffff'; // White for NPCs
+    return participant.color || '#3b82f6'; // Personal color for Players
+  }, [participant]);
   
   const isMyTurn = false; 
 
