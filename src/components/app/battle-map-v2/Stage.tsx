@@ -403,12 +403,12 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     tempCtx.lineCap = 'round';
     tempCtx.lineJoin = 'round';
     
-    fogStrokes.forEach(stroke => {
+    fogStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'brush') {
         tempCtx.beginPath();
         tempCtx.lineWidth = stroke.brush_size;
         tempCtx.strokeStyle = 'black'; // Always black for the mask
-        stroke.points.forEach((p, i) => {
+        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
           if (i === 0) tempCtx.moveTo(p.x, p.y);
           else tempCtx.lineTo(p.x, p.y);
         });
@@ -418,12 +418,12 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
     // 2. Subtract erasers
     tempCtx.globalCompositeOperation = 'destination-out';
-    fogStrokes.forEach(stroke => {
+    fogStrokes.forEach((stroke: FogStroke) => {
       if (stroke.fog_type === 'eraser') {
         tempCtx.beginPath();
         tempCtx.lineWidth = stroke.brush_size;
         tempCtx.strokeStyle = 'white';
-        stroke.points.forEach((p, i) => {
+        stroke.points.forEach((p: {x: number, y: number}, i: number) => {
           if (i === 0) tempCtx.moveTo(p.x, p.y);
           else tempCtx.lineTo(p.x, p.y);
         });
@@ -441,18 +441,6 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     ctx.globalCompositeOperation = 'source-in';
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Optional: Add a subtle texture/noise
-    ctx.globalAlpha = 0.05;
-    for (let i = 0; i < 100; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
   }, [fogStrokes, isDM, activeScene]);
 
   if (!activeScene) {
