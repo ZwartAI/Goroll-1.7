@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useGameData } from '@/lib/useGame';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { UserPlus, UserMinus } from 'lucide-react';
+import { buildOrderedTurns } from '@/lib/combat';
 
 interface Props {
   onOpenChar: (id: string) => void;
@@ -14,36 +15,93 @@ export function Sidebar({ onOpenChar, battleMap, isDM }: Props) {
   const { combat, characters } = useGameData();
   const { tokens, addToken, removeToken, activeScene } = battleMap;
   
+  const blocks = useMemo(() => {
+    if (combat.encounter?.status === 'active') {
+      return buildOrderedTurns(combat.participants, combat.groups, combat.pins || []);
+    }
+    return [];
+  }, [combat.encounter?.status, combat.participants, combat.groups, combat.pins]);
+
   // Use combat participants if active, otherwise just online characters
-  const participants = combat.encounter?.status === 'active' 
-    ? combat.participants.map((p, idx) => {
-        const char = characters.find(c => c.id === p.character_id);
-        const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
-        const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.base_hp ?? 1);
+  const participants = useMemo(() => {
+    if (combat.encounter?.status === 'active') {
+      return blocks.flatMap((block, bIdx) => {
+        const isTurn = combat.encounter?.current_turn_index === bIdx;
         
-        return {
-          id: p.id,
-          characterId: p.character_id,
-          name: p.display_name,
-          color: p.color,
-          image_url: p.image_url,
-          is_turn: combat.encounter?.current_turn_index === idx,
-          hp_percent: (currentHp / maxHp) * 100,
-          type: p.participant_type,
-          original: p
-        };
-      })
-    : characters.filter(c => c.role !== 'dm').map(c => ({
-        id: c.id,
-        characterId: c.id,
-        name: c.name,
-        color: c.color,
-        image_url: c.image_url,
-        is_turn: false,
-        hp_percent: (c.current_hp / (c.base_hp || 1)) * 100,
-        type: 'player',
-        original: c
-      }));
+        if (block.kind === 'solo') {
+          const p = block.participant;
+          const char = characters.find(c => c.id === p.character_id);
+          const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
+          const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.base_hp ?? 1);
+          
+          return [{
+            id: p.id,
+            characterId: p.character_id,
+            name: p.display_name,
+            color: p.color,
+            image_url: p.image_url,
+            is_turn: isTurn,
+            hp_percent: (currentHp / maxHp) * 100,
+            type: p.participant_type,
+            original: p
+          }];
+        }
+        
+        if (block.kind === 'group') {
+          return block.members.map(p => {
+            const char = characters.find(c => c.id === p.character_id);
+            const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
+            const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.base_hp ?? 1);
+            
+            return {
+              id: p.id,
+              characterId: p.character_id,
+              name: p.display_name,
+              color: p.color,
+              image_url: p.image_url,
+              is_turn: isTurn,
+              hp_percent: (currentHp / maxHp) * 100,
+              type: p.participant_type,
+              original: p
+            };
+          });
+        }
+        
+        if (block.kind === 'pin') {
+          const p = block.linked;
+          const char = characters.find(c => c.id === p.character_id);
+          const currentHp = p.participant_type === 'enemy' ? (p.enemy_hp ?? 0) : (char?.current_hp ?? 0);
+          const maxHp = p.participant_type === 'enemy' ? (p.enemy_max_hp ?? 1) : (char?.base_hp ?? 1);
+          
+          return [{
+            id: `pin-${block.pin.id}`,
+            characterId: p.character_id,
+            name: block.pin.label || p.display_name,
+            color: p.color,
+            image_url: p.image_url,
+            is_turn: isTurn,
+            hp_percent: (currentHp / maxHp) * 100,
+            type: p.participant_type,
+            original: p
+          }];
+        }
+        
+        return [];
+      });
+    }
+    
+    return characters.filter(c => c.role !== 'dm').map(c => ({
+      id: c.id,
+      characterId: c.id,
+      name: c.name,
+      color: c.color,
+      image_url: c.image_url,
+      is_turn: false,
+      hp_percent: (c.current_hp / (c.base_hp || 1)) * 100,
+      type: 'player',
+      original: c
+    }));
+  }, [combat.encounter, blocks, characters]);
 
   const handleToggleToken = (p: any) => {
     if (!activeScene) return;
