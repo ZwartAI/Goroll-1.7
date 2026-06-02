@@ -314,6 +314,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
       lastPinchDist.current = null;
     }
 
+    // Sync ref back to state when interaction finishes
+    if (isPanning) {
+      setOffset(offsetRef.current);
+    }
+
     if (activeTool === 'measure' && isMeasuring.current) {
       isMeasuring.current = false;
       
