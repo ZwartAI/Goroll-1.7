@@ -253,8 +253,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
                     initial={{ opacity: 0, scale: 0.9, x: 10 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.9, x: 10 }}
-                    style={{ position: 'fixed', left: '110%', top: 0 }}
-                    className="p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-normal min-w-[140px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
+                    className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-normal min-w-[140px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
                   >
                     <div className="flex flex-col gap-1.5">
                       <p className="font-display text-[var(--gold)] uppercase tracking-wider">{p.name}</p>
