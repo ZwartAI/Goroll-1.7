@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
-  Edit3, Copy, Trash2, FastForward, Sword, Heart, Pin, ChevronDown, X, Plus, BookOpen,
+  Edit3, Copy, Trash2, FastForward, Sword, Heart, Pin, ChevronDown, X, Plus, BookOpen, Users,
 } from "lucide-react";
 import {
   activeBlock,
@@ -35,6 +35,7 @@ import { EnemyDuplicateModal } from "@/components/app/EnemyDuplicateModal";
 import { BestiaryPickerModal } from "@/components/app/BestiaryPickerModal";
 import { useLongPress } from "@/hooks/useLongPress";
 import { ConfirmDialog } from "@/components/app/ConfirmDialog";
+import { NpcPickerModal } from "@/components/app/NpcPickerModal";
 
 type EffectRow = Tables<"combat_temporary_effects">;
 
@@ -56,6 +57,7 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
 
   const [addingEnemy, setAddingEnemy] = useState(false);
   const [pickingTemplate, setPickingTemplate] = useState(false);
+  const [pickingNpc, setPickingNpc] = useState(false);
   const [editing, setEditing] = useState<CombatParticipant | null>(null);
   const [attacking, setAttacking] = useState<CombatParticipant | null>(null);
   const [healing, setHealing] = useState<CombatParticipant | null>(null);
@@ -88,16 +90,23 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
   return (
     <div className="space-y-6">
       {/* Top action buttons */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <button
-          className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
+          className="btn-fantasy text-[10px] sm:text-xs py-2 uppercase tracking-widest font-bold"
           style={{ background: "color-mix(in oklab, var(--loss) 45%, var(--card))", color: "white" }}
           onClick={() => setAddingEnemy(true)}
         >
           <Plus size={14} className="inline mr-1" /> {t("combat.addEnemy")}
         </button>
         <button
-          className="btn-fantasy text-xs py-2 uppercase tracking-widest font-bold"
+          className="btn-fantasy text-[10px] sm:text-xs py-2 uppercase tracking-widest font-bold"
+          style={{ background: "color-mix(in oklab, var(--gold) 45%, var(--card))", color: "white" }}
+          onClick={() => setPickingNpc(true)}
+        >
+          <Users size={14} className="inline mr-1" /> {t("npcs.addFromNpcs")}
+        </button>
+        <button
+          className="btn-fantasy text-[10px] sm:text-xs py-2 uppercase tracking-widest font-bold"
           style={{ background: "color-mix(in oklab, var(--gold) 35%, var(--card))", color: "white" }}
           onClick={() => setPickingTemplate(true)}
         >
@@ -184,6 +193,14 @@ export function EnemyManagerDM({ encounter, participants, groups, pins = [], dm,
           encounter={encounter}
           dm={dm}
           onClose={() => setPickingTemplate(false)}
+        />
+      )}
+      {pickingNpc && campaignId && (
+        <NpcPickerModal
+          campaignId={campaignId}
+          encounter={encounter}
+          dm={dm}
+          onClose={() => setPickingNpc(false)}
         />
       )}
       {editing && (
