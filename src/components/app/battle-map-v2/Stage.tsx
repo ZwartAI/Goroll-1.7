@@ -6,12 +6,14 @@ import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'framer-motion';
 import { toast } from 'sonner';
 
-import { MapTool } from './Toolbar';
+import { MapTool, MeasureMode } from './Toolbar';
 
 interface Props {
   battleMap: any;
   isDM: boolean;
   activeTool: MapTool;
+  measureMode: MeasureMode;
+  measureSnap: boolean;
   characterId?: string;
   authorName?: string;
   authorColor?: string;
@@ -23,7 +25,7 @@ export interface StageHandle {
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
 }
 
-export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, characterId, authorName, authorColor, onMeasure }, ref) => {
+export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   
@@ -237,7 +239,19 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
 
   const handlePointerMove = (e: React.PointerEvent) => {
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const coords = screenToWorld(e.clientX, e.clientY);
+    let coords = screenToWorld(e.clientX, e.clientY);
+
+    // Snap to grid if enabled for measurement
+    if (activeTool === 'measure' && measureSnap && activeScene) {
+      const gridSize = activeScene.grid_size;
+      const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
+      const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
+      
+      coords = {
+        x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
+        y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
+      };
+    }
 
     // Pinch Zoom Handling
     if (activePointers.current.size >= 2 && lastPinchDist.current !== null) {
@@ -498,13 +512,74 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
         {/* Ruler Layer */}
         {rulerStart && rulerEnd && (
           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 50 }}>
-            <line 
-              x1={rulerStart.x} y1={rulerStart.y} 
-              x2={rulerEnd.x} y2={rulerEnd.y} 
-              stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} 
-            />
-            <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
-            <circle cx={rulerEnd.x} cy={rulerEnd.y} r={4 / scale} fill="var(--gold)" />
+            {measureMode === 'line' && (
+              <>
+                <line 
+                  x1={rulerStart.x} y1={rulerStart.y} 
+                  x2={rulerEnd.x} y2={rulerEnd.y} 
+                  stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} 
+                />
+                <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
+                <circle cx={rulerEnd.x} cy={rulerEnd.y} r={4 / scale} fill="var(--gold)" />
+              </>
+            )}
+
+            {measureMode === 'circle' && (
+              <>
+                <circle 
+                  cx={rulerStart.x} cy={rulerStart.y} 
+                  r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} 
+                  fill="var(--gold)" fillOpacity="0.1"
+                  stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+                />
+                <line 
+                  x1={rulerStart.x} y1={rulerStart.y} 
+                  x2={rulerEnd.x} y2={rulerEnd.y} 
+                  stroke="var(--gold)" strokeWidth={1 / scale} opacity="0.5"
+                />
+                <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
+              </>
+            )}
+
+            {measureMode === 'cone' && (() => {
+              const dx = rulerEnd.x - rulerStart.x;
+              const dy = rulerEnd.y - rulerStart.y;
+              const radius = Math.hypot(dx, dy);
+              const angle = Math.atan2(dy, dx);
+              const halfSpread = (30 * Math.PI) / 180; // 30 degrees each side for 60 total
+              
+              const startAngle = angle - halfSpread;
+              const endAngle = angle + halfSpread;
+              
+              const x1 = rulerStart.x + radius * Math.cos(startAngle);
+              const y1 = rulerStart.y + radius * Math.sin(startAngle);
+              const x2 = rulerStart.x + radius * Math.cos(endAngle);
+              const y2 = rulerStart.y + radius * Math.sin(endAngle);
+              
+              const pathData = `
+                M ${rulerStart.x} ${rulerStart.y}
+                L ${x1} ${y1}
+                A ${radius} ${radius} 0 0 1 ${x2} ${y2}
+                Z
+              `;
+              
+              return (
+                <>
+                  <path 
+                    d={pathData}
+                    fill="var(--gold)" fillOpacity="0.1"
+                    stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+                  />
+                  <line 
+                    x1={rulerStart.x} y1={rulerStart.y} 
+                    x2={rulerEnd.x} y2={rulerEnd.y} 
+                    stroke="var(--gold)" strokeWidth={1 / scale} opacity="0.5"
+                  />
+                  <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
+                </>
+              );
+            })()}
+
             <foreignObject 
               x={rulerEnd.x + (10 / scale)} y={rulerEnd.y + (10 / scale)} 
               width={150 / scale} height={60 / scale}
