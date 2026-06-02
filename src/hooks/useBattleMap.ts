@@ -51,6 +51,12 @@ export interface Drawing {
   points: number[];
 }
 
+export const isVideoUrl = (url: string | null | undefined) => {
+  if (!url) return false;
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext));
+};
+
 export const useBattleMap = (campaignId: string) => {
   const [activeScene, setActiveScene] = useState<SceneConfig | null>(null);
   const [scenes, setScenes] = useState<SceneConfig[]>([]);

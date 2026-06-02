@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Grid as GridIcon, MousePointer, Image as ImageIcon, Trash2, Sliders } from 'lucide-react';
+import { X, Upload, Grid as GridIcon, MousePointer, Image as ImageIcon, Trash2, Sliders, Film } from 'lucide-react';
+import { isVideoUrl } from '@/hooks/useBattleMap';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -100,7 +101,15 @@ export function MapSettings({ battleMap, onClose }: Props) {
             <div className="relative aspect-video bg-black/40 border border-white/10 rounded-xl overflow-hidden flex items-center justify-center group">
               {activeScene.background_url ? (
                 <>
-                  <img src={activeScene.background_url} alt="" className="w-full h-full object-cover" />
+                  {isVideoUrl(activeScene.background_url) ? (
+                    <video 
+                      src={activeScene.background_url} 
+                      className="w-full h-full object-cover"
+                      muted loop autoPlay playsInline
+                    />
+                  ) : (
+                    <img src={activeScene.background_url} alt="" className="w-full h-full object-cover" />
+                  )}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <label className="p-2 bg-[var(--gold)] text-black rounded-lg cursor-pointer hover:scale-105 transition-transform">
                       <Upload className="w-5 h-5" />
@@ -117,7 +126,7 @@ export function MapSettings({ battleMap, onClose }: Props) {
               ) : (
                 <label className="flex flex-col items-center gap-2 cursor-pointer hover:text-[var(--gold)] transition-colors">
                   <Upload className="w-8 h-8 opacity-40" />
-                  <span className="text-[10px] uppercase tracking-widest opacity-40">Subir Imagen</span>
+                  <span className="text-[10px] uppercase tracking-widest opacity-40 text-center">Subir Mapa<br/>(Imagen o Video)</span>
                   <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*,video/*" disabled={isUploading} />
                 </label>
               )}
