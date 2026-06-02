@@ -246,25 +246,30 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement }: Pr
                 <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
               )}
               
-              {/* Tooltip for full name if not expanded but is multiple words */}
+              {/* Tooltip for full name/HP if expanded */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="absolute bottom-full left-0 mb-2 p-2 bg-black border border-[var(--gold)]/30 rounded-lg text-white text-[10px] whitespace-normal min-w-[120px] shadow-2xl z-50 pointer-events-none"
+                    initial={{ opacity: 0, scale: 0.9, x: 10 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, x: 10 }}
+                    style={{ position: 'fixed', left: '110%', top: 0 }}
+                    className="p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-normal min-w-[140px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
                   >
-                    <div className="flex flex-col gap-1">
-                      <p className="font-display text-[var(--gold)]">{p.name}</p>
-                      <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="flex flex-col gap-1.5">
+                      <p className="font-display text-[var(--gold)] uppercase tracking-wider">{p.name}</p>
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
                         <div 
                           className={cn(
-                            "h-full",
+                            "h-full transition-all duration-500",
                             p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
                           )}
-                          style={{ width: `${p.hp_percent}%` }}
+                          style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
                         />
+                      </div>
+                      <div className="flex justify-between text-[7px] text-white/40 font-bold uppercase tracking-tighter">
+                        <span>HP</span>
+                        <span>{Math.round(p.hp_percent)}%</span>
                       </div>
                     </div>
                   </motion.div>
