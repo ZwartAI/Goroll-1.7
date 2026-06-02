@@ -3,7 +3,7 @@ import { useBattleMap, MapToken } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
 import { Stage, StageHandle } from './Stage';
-import { Toolbar, MapTool } from './Toolbar';
+import { Toolbar, MapTool, MeasureMode } from './Toolbar';
 import { Sidebar } from './Sidebar';
 import { Log } from './Log';
 import { SceneManager } from './SceneManager';
@@ -37,6 +37,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [activeTool, setActiveTool] = useState<MapTool>('move');
   const [logExpanded, setLogExpanded] = useState(false);
   const [showDicePanel, setShowDicePanel] = useState(false);
+  const [measureMode, setMeasureMode] = useState<MeasureMode>('line');
+  const [measureSnap, setMeasureSnap] = useState(true);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
 
@@ -136,6 +138,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           battleMap={battleMap} 
           isDM={isDM} 
           activeTool={activeTool}
+          measureMode={measureMode}
+          measureSnap={measureSnap}
           characterId={character?.id}
           authorName={character?.name}
           authorColor={character?.color || '#FFD700'}
@@ -177,6 +181,10 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         <Toolbar 
           activeTool={activeTool} 
           setActiveTool={setActiveTool} 
+          measureMode={measureMode}
+          setMeasureMode={setMeasureMode}
+          measureSnap={measureSnap}
+          setMeasureSnap={setMeasureSnap}
           isDM={isDM}
           onOpenScenes={() => setShowScenes(true)}
           onOpenSettings={() => setShowSettings(true)}
