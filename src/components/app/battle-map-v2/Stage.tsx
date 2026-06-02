@@ -933,15 +933,34 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingTokenId === token.id}
                 activeTool={activeTool}
-                onMove={(x: number, y: number, isFinal: boolean = true) => updateTokenPosition(token.id, x, y, isFinal)}
+                onMove={(x: number, y: number, isFinal: boolean = true) => {
+                  updateTokenPosition(token.id, x, y, isFinal);
+                  if (isFinal && isDM && revealAroundTokens) {
+                    // Experimental: Reveal fog around token
+                    const radius = activeScene.grid_size * 2;
+                    const points = [];
+                    // Create a circle of points for the "brush" or just a few points
+                    points.push({ x, y });
+                    addFogStroke({
+                      fog_type: 'eraser',
+                      shape: 'brush',
+                      points: [{ x: x + token.size / 2, y: y + token.size / 2 }],
+                      brush_size: radius * 2,
+                      opacity: 1,
+                      is_visible: true
+                    });
+                  }
+                }}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
                 onDragStart={(id) => setDraggingTokenId(id)}
                 onDragEnd={() => setDraggingTokenId(null)}
+                className={cn(
+                  !isDM && !showTokensUnderFog && hiddenTokenIds.has(token.id) ? "opacity-0 pointer-events-none" : "",
+                  isDM && hiddenTokenIds.has(token.id) ? "opacity-40 grayscale" : ""
+                )}
               />
-
-
             </div>
             ))
           })()}
