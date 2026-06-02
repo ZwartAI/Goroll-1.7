@@ -47,6 +47,32 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
   const [showFogClearModal, setShowFogClearModal] = useState(false);
 
+  // Fog settings
+  const [fogAnimationReduced, setFogAnimationReduced] = useState(() => {
+    const saved = localStorage.getItem('fog_animation_reduced');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  const [showTokensUnderFog, setShowTokensUnderFog] = useState(() => {
+    const saved = localStorage.getItem('show_tokens_under_fog');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [revealAroundTokens, setRevealAroundTokens] = useState(() => {
+    const saved = localStorage.getItem('reveal_around_tokens');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
+
+  useEffect(() => {
+    localStorage.setItem('fog_animation_reduced', JSON.stringify(fogAnimationReduced));
+  }, [fogAnimationReduced]);
+  useEffect(() => {
+    localStorage.setItem('show_tokens_under_fog', JSON.stringify(showTokensUnderFog));
+  }, [showTokensUnderFog]);
+  useEffect(() => {
+    localStorage.setItem('reveal_around_tokens', JSON.stringify(revealAroundTokens));
+  }, [revealAroundTokens]);
+
+
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
   const [showSidebar, setShowSidebar] = useState(() => {
     const saved = localStorage.getItem('battlemap_show_sidebar');
