@@ -3,6 +3,7 @@ import { useBattleMap, MapToken } from '@/hooks/useBattleMap';
 import { useGameData } from '@/lib/useGame';
 import { Header } from './Header';
 import { Stage, StageHandle } from './Stage';
+import { toast } from 'sonner';
 import { Toolbar, MapTool, MeasureMode } from './Toolbar';
 import { Sidebar } from './Sidebar';
 import { Log } from './Log';
