@@ -202,7 +202,7 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
     const target = e.target as HTMLElement;
     const coords = screenToWorld(e.clientX, e.clientY);
 
-    // Prevent panning if we're touching UI element
+    // Prevent interactions if we're touching UI element
     if (target.closest('[data-map-ui="true"]')) {
       return;
     }
@@ -213,7 +213,31 @@ export const Stage = forwardRef<StageHandle, Props>(({ battleMap, isDM, activeTo
       currentFogPoints.current = [coords];
       setLocalFogPoints([coords]);
       if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      setSelectedFogId(null);
       return;
+    }
+
+    if (activeTool === 'fogBlock') {
+      if (!isDM) return;
+      
+      // Check if we're clicking an existing block to select it
+      const fogBlockElement = target.closest('[data-fog-id]');
+      if (fogBlockElement) {
+        const id = fogBlockElement.getAttribute('data-fog-id');
+        setSelectedFogId(id);
+        return;
+      }
+
+      setFogBlockStart(coords);
+      setFogBlockEnd(coords);
+      if (stageRef.current) stageRef.current.setPointerCapture(e.pointerId);
+      setSelectedFogId(null);
+      return;
+    }
+
+    // Unselect fog block if clicking elsewhere
+    if (selectedFogId) {
+      setSelectedFogId(null);
     }
 
     // Check if we're clicking a token
