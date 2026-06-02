@@ -727,13 +727,14 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           id: id,
           encounter_id: combat.encounter?.id || 'none',
           campaign_id: campaign?.id || '',
-          participant_type: metadata.type === 'npc' ? 'npc' : 'enemy',
+          participant_type: 'enemy', // Usamos 'enemy' como base para Konva
           display_name: metadata.name,
           enemy_icon: metadata.icon,
           enemy_color: metadata.color,
           color: metadata.color,
           initiative: 0,
           order_index: 1000,
+          npc_template_id: metadata.type === 'npc' ? id : null // Esto activará el color blanco en MapToken
         } as any);
       }
     });
