@@ -653,7 +653,7 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
-function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id: string; name: string; color: string }; players: Character[] }) {
+function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { campaignId: string; dm: { id: string; name: string; color: string }; players: Character[]; showTriggerButton?: boolean }) {
   const { t: tr } = useT();
   const [name, setName] = useState("");
   const [category, setCategory] = useState<ItemCategory | "monedas">("equipo");
@@ -664,6 +664,7 @@ function CreateItem({ campaignId, dm, players }: { campaignId: string; dm: { id:
   const [coins, setCoins] = useState(10);
   const [description, setDescription] = useState("");
   const [target, setTarget] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
 
   async function create(send: boolean) {
     if (category === "monedas") {
