@@ -1,11 +1,15 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
-import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
+import { SceneConfig, MapToken, Drawing, isVideoUrl, FogElement } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
+import { FogLayer } from './FogLayer';
+import { Stage as KonvaStage, Layer as KonvaLayer, Group, Line as KonvaLine, Circle as KonvaCircle } from 'react-konva';
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { MapTool, MeasureMode } from './Toolbar';
+
 
 interface Props {
   battleMap: any;
@@ -30,7 +34,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
   onMapLoad
 }, ref) => {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
+  const { activeScene, tokens, drawings, fog, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogElement, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -65,6 +69,13 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   // Token dragging state
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
+
+  // Fog drawing state
+  const [isFogging, setIsFogging] = useState(false);
+  const [currentFogPoints, setCurrentFogPoints] = useState<number[]>([]);
+  const [polygonPoints, setPolygonPoints] = useState<number[]>([]);
+  const [mousePos, setMousePos] = useState<{ x: number, y: number } | null>(null);
+
 
   // Helper function to convert screen coordinates to world coordinates
   const screenToWorld = useCallback((clientX: number, clientY: number) => {
@@ -252,7 +263,65 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
+    } else if (activeTool.startsWith('fog-')) {
+      if (target.closest('[data-map-ui="true"]')) return;
+      
+      const isPolygon = activeTool === 'fog-polygon';
+      const isEraser = activeTool === 'fog-eraser';
+
+      if (isEraser) {
+        // Try to find a polygon to delete it entirely
+        const clickedPolygon = fog.find((f: FogElement) => {
+          if (f.type !== 'polygon') return false;
+          // Simple hit test for polygon
+          let inside = false;
+          for (let i = 0, j = f.points.length / 2 - 1; i < f.points.length / 2; j = i++) {
+            const xi = f.points[i * 2], yi = f.points[i * 2 + 1];
+            const xj = f.points[j * 2], yj = f.points[j * 2 + 1];
+            const intersect = ((yi > coords.y) !== (yj > coords.y)) &&
+              (coords.x < (xj - xi) * (coords.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+          }
+          return inside;
+        });
+
+        if (clickedPolygon) {
+          battleMap.removeFogElement(clickedPolygon.id);
+          return;
+        }
+      }
+
+      if (isPolygon) {
+
+        const startX = coords.x;
+        const startY = coords.y;
+
+        // If clicking near the first point, close the polygon
+        if (polygonPoints.length >= 6) { // At least 3 points
+          const dist = Math.hypot(startX - polygonPoints[0], startY - polygonPoints[1]);
+          if (dist < 20 / scaleRef.current) {
+            addFogElement({
+              type: 'polygon',
+              points: polygonPoints,
+              is_eraser: false // For now, polygon only adds fog? The user said "pincel... y también poligonos... y borrar bloque completo".
+              // Let's assume polygons are black fog for now.
+            });
+            setPolygonPoints([]);
+            return;
+          }
+        }
+        
+        setPolygonPoints(prev => [...prev, startX, startY]);
+      } else {
+        // Brush or Eraser
+        setIsFogging(true);
+        setCurrentFogPoints([coords.x, coords.y]);
+        if (stageRef.current) {
+          stageRef.current.setPointerCapture(e.pointerId);
+        }
+      }
     } else if (activeTool === 'move') {
+
       if (tokenId) return;
 
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
@@ -323,7 +392,23 @@ export const Stage = forwardRef<StageHandle, Props>(({
         lastMeasureTime.current = Date.now();
       }
     }
+
+    if (activeTool.startsWith('fog-')) {
+      const coords = screenToWorld(e.clientX, e.clientY);
+      setMousePos(coords);
+
+      if (isFogging && (activeTool === 'fog-brush' || activeTool === 'fog-eraser')) {
+        const lastX = currentFogPoints[currentFogPoints.length - 2];
+        const lastY = currentFogPoints[currentFogPoints.length - 1];
+        const dist = Math.hypot(coords.x - lastX, coords.y - lastY);
+        
+        if (dist > 5) {
+          setCurrentFogPoints(prev => [...prev, coords.x, coords.y]);
+        }
+      }
+    }
   };
+
 
   const handlePointerUp = (e: React.PointerEvent) => {
     const wasPinching = activePointers.current.size >= 2;
@@ -358,7 +443,20 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }, 3000);
     }
     
+    if (isFogging) {
+      setIsFogging(false);
+      if (currentFogPoints.length > 2) {
+        addFogElement({
+          type: 'brush',
+          points: currentFogPoints,
+          is_eraser: activeTool === 'fog-eraser'
+        });
+      }
+      setCurrentFogPoints([]);
+    }
+
     setIsPanning(false);
+
     if (stageRef.current) {
       try {
         stageRef.current.releasePointerCapture(e.pointerId);
@@ -629,7 +727,76 @@ export const Stage = forwardRef<StageHandle, Props>(({
           />
         </div>
 
+        {/* Fog of War Layer */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
+          <KonvaStage width={8000} height={8000}>
+            <KonvaLayer listening={false}>
+              <FogLayer fogElements={fog} opacity={isDM ? 0.5 : 1} />
+            </KonvaLayer>
+          </KonvaStage>
+        </div>
+
+        {/* Current Active Fog Drawing */}
+        {isDM && (
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 110 }}>
+            <KonvaStage width={8000} height={8000}>
+              <KonvaLayer>
+
+                {/* Active Brush */}
+                {isFogging && currentFogPoints.length > 2 && (
+                  <KonvaLine
+                    points={currentFogPoints}
+                    stroke="black"
+                    strokeWidth={40}
+                    lineCap="round"
+                    lineJoin="round"
+                    opacity={0.5}
+                    globalCompositeOperation={activeTool === 'fog-eraser' ? 'destination-out' : 'source-over'}
+                  />
+                )}
+                {/* Active Polygon */}
+                {polygonPoints.length > 0 && (
+                  <Group>
+                    <KonvaLine
+                      points={polygonPoints}
+                      stroke="var(--gold)"
+                      strokeWidth={2 / scale}
+                      dash={[5, 5]}
+                    />
+                    {/* Line to mouse */}
+                    {mousePos && (
+                      <KonvaLine
+                        points={[
+                          polygonPoints[polygonPoints.length - 2], 
+                          polygonPoints[polygonPoints.length - 1],
+                          mousePos.x,
+                          mousePos.y
+                        ]}
+                        stroke="var(--gold)"
+                        strokeWidth={1 / scale}
+                        dash={[2, 2]}
+                        opacity={0.5}
+                      />
+                    )}
+                    {/* Points visualizer */}
+                    {Array.from({ length: polygonPoints.length / 2 }).map((_, i) => (
+                      <KonvaCircle
+                        key={i}
+                        x={polygonPoints[i * 2]}
+                        y={polygonPoints[i * 2 + 1]}
+                        radius={4 / scale}
+                        fill="var(--gold)"
+                      />
+                    ))}
+                  </Group>
+                )}
+              </KonvaLayer>
+            </KonvaStage>
+          </div>
+        )}
+
         <div style={{ zIndex: 10, position: 'absolute', inset: 0 }} className="pointer-events-none">
+
           {(() => {
             const sortedTokens = (!isDM && characterId) 
               ? [
@@ -738,8 +905,21 @@ export const Stage = forwardRef<StageHandle, Props>(({
           </div>
         )}
       </div>
+
+      {/* Loading & Fog reveal prevention */}
+      {isLoading && (
+        <div className="absolute inset-0 z-[200] bg-[#050505] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-[var(--gold)]/20 border-t-[var(--gold)] rounded-full animate-spin" />
+            <span className="text-[var(--gold)] text-[10px] uppercase tracking-[0.2em] animate-pulse">
+              Iniciando Escena...
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
+
 
 Stage.displayName = 'Stage';

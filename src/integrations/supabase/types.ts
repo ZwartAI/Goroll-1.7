@@ -159,6 +159,36 @@ export type Database = {
           },
         ]
       }
+      battle_map_fog_simple: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          is_eraser: boolean
+          points: number[]
+          scene_id: string
+          type: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          is_eraser?: boolean
+          points: number[]
+          scene_id: string
+          type: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          is_eraser?: boolean
+          points?: number[]
+          scene_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       battle_map_scenes: {
         Row: {
           background_brightness: number | null

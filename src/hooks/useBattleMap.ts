@@ -52,6 +52,17 @@ export interface Drawing {
   points: number[];
 }
 
+export interface FogElement {
+  id: string;
+  campaign_id: string;
+  scene_id: string;
+  type: 'brush' | 'polygon';
+  points: number[];
+  is_eraser: boolean;
+  created_at: string;
+}
+
+
 
 export const isVideoUrl = (url: string | null | undefined) => {
   if (!url) return false;
@@ -64,6 +75,8 @@ export const useBattleMap = (campaignId: string) => {
   const [scenes, setScenes] = useState<SceneConfig[]>([]);
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
+  const [fog, setFog] = useState<FogElement[]>([]);
+
   
   const [isLoading, setIsLoading] = useState(true);
 
@@ -140,16 +153,49 @@ export const useBattleMap = (campaignId: string) => {
     setDrawings(transformedDrawings as unknown as Drawing[]);
   }, []);
 
+  const fetchFog = useCallback(async (sceneId: string) => {
+    const { data, error } = await supabase
+      .from('battle_map_fog_simple')
+      .select('*')
+      .eq('scene_id', sceneId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching fog:', error);
+      return;
+    }
+
+    setFog((data || []) as unknown as FogElement[]);
+  }, []);
+
+
 
   useEffect(() => {
     if (!campaignId) return;
 
     const loadData = async () => {
       setIsLoading(true);
-      await fetchActiveScene();
-      await fetchScenes();
+      const { data: sceneData } = await supabase
+        .from('battle_map_scenes_simple')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (sceneData) {
+        setActiveScene(sceneData as unknown as SceneConfig);
+        await Promise.all([
+          fetchScenes(),
+          fetchTokens(sceneData.id),
+          fetchDrawings(sceneData.id),
+          fetchFog(sceneData.id)
+        ]);
+      } else {
+        await fetchScenes();
+      }
       setIsLoading(false);
     };
+
 
     loadData();
 
@@ -195,11 +241,14 @@ export const useBattleMap = (campaignId: string) => {
     if (!activeScene?.id) {
       setTokens([]);
       setDrawings([]);
+      setFog([]);
       return;
     }
 
     fetchTokens(activeScene.id);
     fetchDrawings(activeScene.id);
+    fetchFog(activeScene.id);
+
 
     const tokensSubscription = supabase
       .channel(`battle_map_tokens_${activeScene.id}`)
@@ -246,13 +295,30 @@ export const useBattleMap = (campaignId: string) => {
       )
       .subscribe();
 
+    const fogSubscription = supabase
+      .channel(`battle_map_fog_${activeScene.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'battle_map_fog_simple',
+          filter: `scene_id=eq.${activeScene.id}`,
+        },
+        () => {
+          if (activeSceneIdRef.current) fetchFog(activeSceneIdRef.current);
+        }
+      )
+      .subscribe();
+
 
     return () => {
       tokensSubscription.unsubscribe();
       drawingsSubscription.unsubscribe();
-      
+      fogSubscription.unsubscribe();
     };
-  }, [activeScene?.id, fetchTokens, fetchDrawings]);
+  }, [activeScene?.id, fetchTokens, fetchDrawings, fetchFog]);
+
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
     if (!activeScene) return;
@@ -354,12 +420,45 @@ export const useBattleMap = (campaignId: string) => {
     if (authorDrawings.length > 0) await removeDrawing(authorDrawings[authorDrawings.length - 1].id);
   };
 
+  const addFogElement = async (element: Omit<FogElement, 'id' | 'campaign_id' | 'scene_id' | 'created_at'>) => {
+    if (!activeScene) return;
+    const { data, error } = await supabase.from('battle_map_fog_simple').insert([{
+      ...element,
+      campaign_id: campaignId,
+      scene_id: activeScene.id,
+      points: element.points as any
+    }]).select().single();
+    if (!error && data) fetchFog(activeScene.id);
+  };
+
+  const removeFogElement = async (fogId: string) => {
+    setFog(prev => prev.filter(f => f.id !== fogId));
+    await supabase.from('battle_map_fog_simple').delete().eq('id', fogId);
+  };
+
+  const clearFog = async () => {
+    if (!activeScene) return;
+    await supabase.from('battle_map_fog_simple').delete().match({
+      scene_id: activeScene.id,
+      campaign_id: campaignId
+    });
+    fetchFog(activeScene.id);
+  };
+
+  const undoLastFog = async () => {
+    if (!activeScene || fog.length === 0) return;
+    const last = fog[fog.length - 1];
+    await removeFogElement(last.id);
+  };
+
+
 
   return {
     activeScene,
     scenes,
     tokens,
     drawings,
+    fog,
     isLoading,
     updateScene,
     createScene,
@@ -371,6 +470,11 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing
+    undoLastDrawing,
+    addFogElement,
+    removeFogElement,
+    clearFog,
+    undoLastFog
   };
 };
+
