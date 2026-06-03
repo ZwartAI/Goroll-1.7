@@ -395,10 +395,11 @@ export function ApplyConditionModal({
 }
 
 export function DMConditionsCreator({
-  campaignId, players,
+  campaignId, players, showTriggerButton = true
 }: {
   campaignId: string;
   players: Character[];
+  showTriggerButton?: boolean;
 }) {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [tab, setTab] = useState<"apply" | "new" | "manage">("apply");
