@@ -132,7 +132,7 @@ export function Toolbar({
                       active={measureMode === 'cone'} 
                       onClick={() => setMeasureMode('cone')}
                       icon={<Triangle className="w-4 h-4" />}
-                      label="Cono (60°)"
+                      label="Cono (53°)"
                       small
                     />
                     <ToolButton 
