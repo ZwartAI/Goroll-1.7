@@ -189,74 +189,135 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Gift size={16} /> Sacos de Recompensa</h3>
-            <p className="text-xs text-muted-foreground">Gestiona los botines y tesoros para tus jugadores.</p>
-            <button className="btn-fantasy w-full"
-              style={{ background: "var(--gradient-gold)", color: "black" }}
-              onClick={() => setRewardSacksOpen(true)}>
-              <Boxes size={14} className="inline mr-1" /> Gestionar Sacos
-            </button>
+          <div className="grid grid-cols-2 gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[var(--gold)]/50 transition-all min-h-[140px]"
+              onClick={() => setRewardSacksOpen(true)}
+            >
+              <div className="w-12 h-12 rounded-xl bg-[var(--gold)]/20 border border-[var(--gold)]/30 flex items-center justify-center text-[var(--gold)] shadow-lg group-hover:shadow-[var(--gold)]/20 transition-all">
+                <Gift size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-[var(--gold)]">Bolsas de Recompensa</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Gestionar Botines</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-[var(--gold)] text-black text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Crear
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#3b82f6]/50 transition-all min-h-[140px]"
+              onClick={() => {
+                // This will trigger the creation modal or logic for items
+                const btn = document.querySelector('[data-create-item-btn]') as HTMLButtonElement;
+                if (btn) btn.click();
+              }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-lg group-hover:shadow-blue-500/20 transition-all">
+                <Hammer size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-blue-400">Objetos / Ítems</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Equipo y Tesoros</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-blue-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Crear
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#ec4899]/50 transition-all min-h-[140px]"
+              onClick={() => {
+                const btn = document.querySelector('[data-create-condition-btn]') as HTMLButtonElement;
+                if (btn) btn.click();
+              }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 shadow-lg group-hover:shadow-pink-500/20 transition-all">
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-pink-400">Condiciones</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Estados y Efectos</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-pink-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Crear
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#a855f7]/50 transition-all min-h-[140px]"
+              onClick={() => setCreatingBooster(true)}
+            >
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-lg group-hover:shadow-purple-500/20 transition-all">
+                <Sparkles size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-purple-400">Boosters</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Potenciadores</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-purple-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Crear
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#ef4444]/50 transition-all min-h-[140px]"
+              onClick={() => nav({ to: "/campaign/bestiary" })}
+            >
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400 shadow-lg group-hover:shadow-red-500/20 transition-all">
+                <Skull size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-red-400">Monstruos</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Bestiario</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-red-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Abrir
+              </button>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#10b981]/50 transition-all min-h-[140px]"
+              onClick={() => nav({ to: "/campaign/npcs" })}
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 transition-all">
+                <Users size={24} />
+              </div>
+              <div>
+                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-emerald-400">NPCs</h3>
+                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Personajes</p>
+              </div>
+              <button className="mt-auto px-4 py-1.5 rounded-lg bg-emerald-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Abrir
+              </button>
+            </motion.div>
           </div>
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2"><Hammer size={16} /> Crear ítems o crear objetos</h3>
-            <p className="text-xs text-muted-foreground">Personaliza equipamiento, consumibles o tesoros para tus jugadores.</p>
+
+          {/* Hidden original components to maintain state and functionality */}
+          <div className="hidden">
             <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
-            <BulkItemImport campaignId={campaign.id} />
-          </div>
-
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2">✨ Efectos de condición</h3>
-            <p className="text-xs text-muted-foreground">Aplica estados, debilidades o efectos temporales a los participantes.</p>
             <DMConditionsCreator campaignId={campaign.id} players={players} />
-          </div>
-
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("dm.createBoosterTitle")}</h3>
-            <p className="text-xs text-muted-foreground">{t("dm.createBoosterHint")}</p>
-            <button className="btn-fantasy w-full"
-              style={{ background: "linear-gradient(135deg, var(--rarity-purple), oklch(0.35 0.18 300))", color: "white" }}
-              onClick={() => setCreatingBooster(true)}>
-              <Plus size={14} className="inline" /> {t("dm.newBooster")}
-            </button>
-
-            <BulkBoosterImport campaignId={campaign.id} />
-          </div>
-
-          {players[0] && (
-            <div className="ornate-card p-4 space-y-2">
-              <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("skills.createSkillSectionTitle")}</h3>
-              <p className="text-xs text-muted-foreground">{t("skills.createSkillSectionHint")}</p>
+            {players[0] && (
               <SkillManualCreate
                 campaignId={campaign.id}
                 target={players[0]}
                 dm={dmCtx}
                 players={players}
               />
-            </div>
-          )}
-
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--loss)] flex items-center gap-2"><Skull size={16} /> {t("dm.createEnemyOrMonsterTitle")}</h3>
-            <p className="text-xs text-muted-foreground">{t("dm.createEnemyOrMonsterHint")}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <Link to="/campaign/bestiary" className="btn-fantasy inline-flex items-center justify-center gap-1.5"
-                style={{ background: "linear-gradient(135deg, oklch(0.45 0.18 25), oklch(0.30 0.14 25))", color: "white" }}>
-                <Plus size={14} /> {t("dm.openBestiary")}
-              </Link>
-              <a href="/campaign/bestiary?import=1" className="btn-fantasy inline-flex items-center justify-center gap-1.5">
-                <Upload size={14} /> {t("bestiary.importExcelShort")}
-              </a>
-            </div>
-          </div>
-
-          <div className="ornate-card p-4 space-y-2">
-            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)] flex items-center gap-2">🧝 {t("dm.createNpcTitle")}</h3>
-            <p className="text-xs text-muted-foreground">{t("dm.createNpcHint")}</p>
-            <Link to="/campaign/npcs" className="btn-fantasy w-full inline-flex items-center justify-center gap-1.5"
-              style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}>
-              <Plus size={14} /> {t("dm.openNpcs")}
-            </Link>
+            )}
           </div>
         </div>
       )}
