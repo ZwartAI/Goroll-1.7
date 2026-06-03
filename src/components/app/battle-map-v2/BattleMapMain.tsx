@@ -13,11 +13,17 @@ import { DiceButton } from './DiceButton';
 import { DicePanel, DieSelection } from './DicePanel';
 import { useT } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Gift, BookOpen, Users, HeartPulse, X } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
 import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
 import { BattleMapAdminSidebar } from '../battle-map/BattleMapAdminSidebar';
+import { CreationGridModal } from '../CreationGridModal';
+import { RewardSackManager } from '../reward-sacks/RewardSackManager';
+import { MonsterEditor } from '../MonsterEditor';
+import { NpcEditorModal } from '../NpcEditorModal';
+import { ConditionsPanel } from '../ConditionsPanel';
+import { backdropProps } from '@/lib/modalBackdrop';
 
 
 interface Props {
@@ -45,6 +51,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+  const [showCreationGrid, setShowCreationGrid] = useState(false);
+  const [showRewardSacks, setShowRewardSacks] = useState(false);
+  const [isCreatingMonster, setIsCreatingMonster] = useState(false);
+  const [isCreatingNpc, setIsCreatingNpc] = useState(false);
+  const [isManagingConditions, setIsManagingConditions] = useState(false);
   const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
 
 
@@ -389,7 +400,98 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           setShowSettings(true);
           setShowAdminSidebar(false);
         }}
+        onOpenCreationGrid={() => {
+          setShowCreationGrid(true);
+          setShowAdminSidebar(false);
+        }}
       />
+
+      <AnimatePresence>
+        {showCreationGrid && (
+          <CreationGridModal
+            isOpen={showCreationGrid}
+            onClose={() => setShowCreationGrid(false)}
+            items={[
+              {
+                id: 'reward-sack',
+                label: 'Bolsas de Recompensa',
+                icon: <Gift />,
+                color: 'var(--gold)',
+                description: 'Gestiona los tesoros y recompensas para tus jugadores.',
+                action: () => { setShowRewardSacks(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'monster',
+                label: 'Monstruos / Enemigos',
+                icon: <BookOpen />,
+                color: '#ef4444',
+                description: 'Diseña nuevas criaturas para tu bestiario.',
+                action: () => { setIsCreatingMonster(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'npc',
+                label: 'Personajes (NPC)',
+                icon: <Users />,
+                color: '#3b82f6',
+                description: 'Crea personajes con estadísticas propias.',
+                action: () => { setIsCreatingNpc(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'condition',
+                label: 'Efectos de Condición',
+                icon: <HeartPulse />,
+                color: '#ec4899',
+                description: 'Gestiona estados y efectos.',
+                action: () => { setIsManagingConditions(true); setShowCreationGrid(false); }
+              }
+            ]}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showRewardSacks && campaignId && (
+          <RewardSackManager 
+            campaignId={campaignId} 
+            onClose={() => setShowRewardSacks(false)} 
+          />
+        )}
+
+        {isCreatingMonster && character && (
+          <MonsterEditor
+            campaignId={campaignId}
+            dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+            onClose={() => setIsCreatingMonster(false)}
+            onSaved={() => setIsCreatingMonster(false)}
+          />
+        )}
+
+        {isCreatingNpc && character && (
+          <NpcEditorModal
+            campaignId={campaignId}
+            dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+            onClose={() => setIsCreatingNpc(false)}
+            onSaved={() => setIsCreatingNpc(false)}
+          />
+        )}
+
+        {isManagingConditions && character && (
+          <div className="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4" {...backdropProps(() => setIsManagingConditions(false))}>
+            <div className="ornate-card max-w-md w-full p-2 bg-[#0d0d0d]" onClick={e => e.stopPropagation()}>
+               <div className="flex justify-end p-2">
+                 <button onClick={() => setIsManagingConditions(false)} className="text-muted-foreground hover:text-white transition-colors">
+                   <X size={20} />
+                 </button>
+               </div>
+               <ConditionsPanel 
+                 character={character as any} 
+                 campaignId={campaignId}
+                 viewerIsDm={true}
+               />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

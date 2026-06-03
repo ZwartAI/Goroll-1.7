@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
-import { Plus, Boxes, Copy, Trash2, Play, Search, Gift, X, Send } from "lucide-react";
+import { Plus, Boxes, Copy, Trash2, Play, Search, Gift, X, Send, Sparkles, UserPlus, BookOpen, ScrollText, HeartPulse, Users } from "lucide-react";
 import { 
   type RewardSack, 
   fetchRewardSacks, 
@@ -13,6 +13,11 @@ import { RewardSackEditor } from "./RewardSackEditor";
 import { RewardSackSimulator } from "./RewardSackSimulator";
 import { RewardSackAssigner } from "./RewardSackAssigner";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { CreationGridModal } from "../CreationGridModal";
+import { MonsterEditor } from "../MonsterEditor";
+import { NpcEditorModal } from "../NpcEditorModal";
+import { ConditionsPanel } from "../ConditionsPanel";
+import { useGameData } from "@/lib/useGame";
 
 
 interface Props {
@@ -28,8 +33,13 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [assigningSack, setAssigningSack] = useState<RewardSack | null>(null);
   const [simulatingSack, setSimulatingSack] = useState<RewardSack | null>(null);
+  const [showCreationGrid, setShowCreationGrid] = useState(false);
+  const [isCreatingMonster, setIsCreatingMonster] = useState(false);
+  const [isCreatingNpc, setIsCreatingNpc] = useState(false);
+  const [isManagingConditions, setIsManagingConditions] = useState(false);
 
   const [search, setSearch] = useState("");
+  const { character } = useGameData();
 
   const reload = async () => {
     setLoading(true);
@@ -102,6 +112,12 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
                 className="w-full bg-black/40 border border-white/10 rounded-md py-2 pl-10 pr-4 text-sm focus:border-[var(--gold)] outline-none transition-colors"
               />
             </div>
+            <button 
+              onClick={() => setShowCreationGrid(true)}
+              className="btn-fantasy flex items-center gap-2 px-6 py-2 bg-purple-600/20 border-purple-500/50 text-purple-300 font-bold uppercase tracking-widest hover:bg-purple-600/30 transition-all"
+            >
+              <Plus size={18} /> Centro de Creación
+            </button>
             <button 
               onClick={() => setIsCreating(true)}
               className="btn-fantasy flex items-center gap-2 px-6 py-2 bg-[var(--gold)] text-black font-bold uppercase tracking-widest"
@@ -225,6 +241,82 @@ export function RewardSackManager({ campaignId, onClose }: Props) {
             sack={assigningSack} 
             onClose={() => setAssigningSack(null)} 
           />
+        )}
+
+        {showCreationGrid && (
+          <CreationGridModal
+            isOpen={showCreationGrid}
+            onClose={() => setShowCreationGrid(false)}
+            items={[
+              {
+                id: 'reward-sack',
+                label: 'Bolsa de Recompensa',
+                icon: <Gift />,
+                color: 'var(--gold)',
+                description: 'Crea una nueva bolsa de tesoros y recompensas para tus jugadores.',
+                action: () => { setIsCreating(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'monster',
+                label: 'Monstruo / Enemigo',
+                icon: <BookOpen />,
+                color: '#ef4444',
+                description: 'Diseña una nueva criatura para tu bestiario y úsala en combates.',
+                action: () => { setIsCreatingMonster(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'npc',
+                label: 'Personaje (NPC)',
+                icon: <Users />,
+                color: '#3b82f6',
+                description: 'Crea un personaje no jugador con estadísticas y trasfondo propios.',
+                action: () => { setIsCreatingNpc(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'condition',
+                label: 'Efecto de Condición',
+                icon: <HeartPulse />,
+                color: '#ec4899',
+                description: 'Gestiona los estados y efectos que afectan a los personajes.',
+                action: () => { setIsManagingConditions(true); setShowCreationGrid(false); }
+              }
+            ]}
+          />
+        )}
+
+        {isCreatingMonster && character && (
+          <MonsterEditor
+            campaignId={campaignId}
+            dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+            onClose={() => setIsCreatingMonster(false)}
+            onSaved={() => setIsCreatingMonster(false)}
+          />
+        )}
+
+        {isCreatingNpc && character && (
+          <NpcEditorModal
+            campaignId={campaignId}
+            dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+            onClose={() => setIsCreatingNpc(false)}
+            onSaved={() => setIsCreatingNpc(false)}
+          />
+        )}
+
+        {isManagingConditions && character && (
+          <div className="fixed inset-0 z-[120] bg-black/85 flex items-center justify-center p-4" {...backdropProps(() => setIsManagingConditions(false))}>
+            <div className="ornate-card max-w-md w-full p-2 bg-[#0d0d0d]" onClick={e => e.stopPropagation()}>
+               <div className="flex justify-end p-2">
+                 <button onClick={() => setIsManagingConditions(false)} className="text-muted-foreground hover:text-white transition-colors">
+                   <X size={20} />
+                 </button>
+               </div>
+               <ConditionsPanel 
+                 character={character as any} 
+                 campaignId={campaignId}
+                 viewerIsDm={true}
+               />
+            </div>
+          </div>
         )}
 
       </div>
