@@ -704,13 +704,21 @@ export const Stage = forwardRef<StageHandle, Props>(({
           />
         </div>
 
-        <FogLayer fogElements={fog} />
+        {/* Fog of War Layer */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
+          <KonvaStage width={8000} height={8000}>
+            <KonvaLayer listening={false}>
+              <FogLayer fogElements={fog} opacity={isDM ? 0.5 : 1} />
+            </KonvaLayer>
+          </KonvaStage>
+        </div>
 
         {/* Current Active Fog Drawing */}
         {isDM && (
           <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 110 }}>
             <KonvaStage width={8000} height={8000}>
               <KonvaLayer>
+
                 {/* Active Brush */}
                 {isFogging && currentFogPoints.length > 2 && (
                   <KonvaLine
