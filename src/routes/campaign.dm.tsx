@@ -721,9 +721,8 @@ function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { cam
 
   const isCoins = category === "monedas";
 
-  return (
+  const formContent = (
     <div className="space-y-3">
-
       <select className="w-full bg-input border border-border rounded px-2 py-2 text-sm" value={category} onChange={e => setCategory(e.target.value as any)}>
         {ITEM_CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.icon} {tr(`categories.${c.key}`)}</option>)}
         <option value="monedas">{tr("dm.coins")}</option>
@@ -776,11 +775,45 @@ function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { cam
         {players.map(p => <option key={p.id} value={p.id}>{tr("dm.sendTo", { name: p.name })}</option>)}
       </select>
       <div className="grid grid-cols-2 gap-2">
-        {!isCoins && <button className="btn-fantasy" onClick={() => create(false)}><Plus size={14} className="inline"/> {tr("dm.vault")}</button>}
-        <button className={`btn-fantasy ${isCoins ? "col-span-2" : ""}`} style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} disabled={!target} onClick={() => create(true)}><Send size={14} className="inline"/> {tr("dm.send")}</button>
+        {!isCoins && <button className="btn-fantasy" onClick={() => { create(false); if (showTriggerButton === false) setIsOpen(false); }}><Plus size={14} className="inline"/> {tr("dm.vault")}</button>}
+        <button className={`btn-fantasy ${isCoins ? "col-span-2" : ""}`} style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} disabled={!target} onClick={() => { create(true); if (showTriggerButton === false) setIsOpen(false); }}><Send size={14} className="inline"/> {tr("dm.send")}</button>
       </div>
-
     </div>
+  );
+
+  return (
+    <>
+      <button 
+        data-create-item-btn
+        className={showTriggerButton ? "btn-fantasy w-full" : "hidden"}
+        onClick={() => setIsOpen(true)}
+      >
+        <Plus size={14} className="inline" /> {tr("dm.newItem")}
+      </button>
+
+      {showTriggerButton ? formContent : (
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-[210] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsOpen(false))}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4" 
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">Crear Ítem u Objeto</h3>
+                  <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-white"><X size={18} /></button>
+                </div>
+                {formContent}
+                <button className="text-xs text-muted-foreground underline w-full pt-2" onClick={() => setIsOpen(false)}>Cerrar</button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
+    </>
   );
 }
 
