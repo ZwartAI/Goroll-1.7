@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { toastSaved } from "@/lib/saved";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import type { Character } from "@/lib/game";
 import { useT } from "@/lib/i18n";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { motion, AnimatePresence } from "framer-motion";
 
 type CatalogRow = {
   id: string;
