@@ -32,6 +32,7 @@ interface Props {
   onClearFog?: () => void;
   onUndoFog?: () => void;
   fogElements?: any[];
+  showToolbar?: boolean;
 }
 
 
@@ -60,7 +61,8 @@ export function Toolbar({
   setBrushSize,
   onClearFog,
   onUndoFog,
-  fogElements = []
+  fogElements = [],
+  showToolbar = true
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
@@ -96,7 +98,10 @@ export function Toolbar({
 
   return (
     <>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30" data-map-ui="true">
+      <div className={cn(
+        "absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 transition-all duration-300",
+        !showToolbar && "translate-x-[150%] opacity-0 pointer-events-none"
+      )} data-map-ui="true">
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           <ToolButton 
             active={activeTool === 'move'} 
