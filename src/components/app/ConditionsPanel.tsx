@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { pushLog } from "@/lib/log";
 import { toastSaved } from "@/lib/saved";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import type { Character } from "@/lib/game";
 import { useT } from "@/lib/i18n";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { motion, AnimatePresence } from "framer-motion";
 
 type CatalogRow = {
   id: string;
@@ -395,10 +396,11 @@ export function ApplyConditionModal({
 }
 
 export function DMConditionsCreator({
-  campaignId, players,
+  campaignId, players, showTriggerButton = true
 }: {
   campaignId: string;
   players: Character[];
+  showTriggerButton?: boolean;
 }) {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [tab, setTab] = useState<"apply" | "new" | "manage">("apply");
@@ -411,6 +413,7 @@ export function DMConditionsCreator({
   const [damage, setDamage] = useState(0);
   const [targets, setTargets] = useState<string[]>([]);
   const { t } = useT();
+  const [isOpen, setIsOpen] = useState(false);
 
   async function loadCat() {
     const { data } = await (supabase as any).from("condition_effects_catalog")
@@ -472,20 +475,19 @@ export function DMConditionsCreator({
     setTargets(t => t.includes(id) ? t.filter(x => x !== id) : [...t, id]);
   }
 
-  return (
+  const content = (
     <div className="space-y-3">
-
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-3 gap-1 bg-card border border-border rounded-md p-1">
         <button onClick={() => setTab("apply")}
-          className={`text-[10px] py-1.5 rounded font-display ${tab === "apply" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          className={`text-[10px] py-1.5 rounded-sm font-display uppercase tracking-wider transition-all ${tab === "apply" ? "bg-[var(--gold)] text-black shadow-sm" : "text-muted-foreground hover:bg-white/5"}`}>
           {t("conditions.creatorApply")}
         </button>
         <button onClick={() => setTab("new")}
-          className={`text-[10px] py-1.5 rounded font-display ${tab === "new" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          className={`text-[10px] py-1.5 rounded-sm font-display uppercase tracking-wider transition-all ${tab === "new" ? "bg-[var(--gold)] text-black shadow-sm" : "text-muted-foreground hover:bg-white/5"}`}>
           {t("conditions.creatorCreate")}
         </button>
         <button onClick={() => setTab("manage")}
-          className={`text-[10px] py-1.5 rounded font-display ${tab === "manage" ? "bg-[var(--gold)] text-black" : "bg-card border border-border"}`}>
+          className={`text-[10px] py-1.5 rounded-sm font-display uppercase tracking-wider transition-all ${tab === "manage" ? "bg-[var(--gold)] text-black shadow-sm" : "text-muted-foreground hover:bg-white/5"}`}>
           {t("conditions.creatorManage")}
         </button>
       </div>
@@ -499,31 +501,36 @@ export function DMConditionsCreator({
             ))}
           </select>
           <div className="grid grid-cols-2 gap-2">
-            <label className="flex items-center justify-between text-sm">{t("conditions.turns")}
-              <input type="number" min={0} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
+            <label className="flex items-center justify-between text-sm px-2 py-1.5 bg-input border border-border rounded">
+              <span className="text-[10px] uppercase tracking-widest">{t("conditions.turns")}</span>
+              <input type="number" min={0} className="w-12 bg-transparent text-right outline-none"
                 value={turns} onChange={e => setTurns(Math.max(0, +e.target.value))}
                 title={t("turnControl.infinite")} placeholder="∞" />
             </label>
             {picked?.is_damage && (
-              <label className="flex items-center justify-between text-sm">{t("conditions.damagePerTurn")}
-                <input type="number" min={0} className="w-16 bg-input border border-border rounded px-2 py-1 text-right"
+              <label className="flex items-center justify-between text-sm px-2 py-1.5 bg-input border border-border rounded">
+                <span className="text-[10px] uppercase tracking-widest">{t("conditions.damagePerTurn")}</span>
+                <input type="number" min={0} className="w-12 bg-transparent text-right outline-none"
                   value={damage} onChange={e => setDamage(Math.max(0, +e.target.value))} />
               </label>
             )}
           </div>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">{t("conditions.applyTo")}</p>
-          <div className="space-y-1 max-h-48 overflow-y-auto">
-            {players.map(p => (
-              <label key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1 text-xs">
-                <input type="checkbox" checked={targets.includes(p.id)} onChange={() => toggleTarget(p.id)} />
-                <span style={{ color: p.color }} className="font-display">{p.name}</span>
-              </label>
-            ))}
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-2">{t("conditions.applyTo")}</p>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+            {players.map(p => {
+              const on = targets.includes(p.id);
+              return (
+                <label key={p.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all cursor-pointer ${on ? "bg-[var(--gold)]/20 border-[var(--gold)]/50" : "bg-white/5 border-white/5 hover:border-white/10"}`}>
+                  <input type="checkbox" className="hidden" checked={on} onChange={() => toggleTarget(p.id)} />
+                  <span style={{ color: p.color }} className="font-display text-[10px] uppercase tracking-wider">{p.name}</span>
+                </label>
+              );
+            })}
             {!players.length && <p className="text-xs text-muted-foreground">{t("conditions.noPlayers")}</p>}
           </div>
-          <button className="btn-fantasy w-full" disabled={!targets.length}
+          <button className="btn-fantasy w-full mt-2" disabled={!targets.length}
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
-            onClick={applyToTargets}>{t("conditions.apply")}</button>
+            onClick={() => { applyToTargets(); if (showTriggerButton === false) setIsOpen(false); }}>{t("conditions.apply")}</button>
         </>
       )}
 
@@ -536,12 +543,13 @@ export function DMConditionsCreator({
               placeholder={t("conditions.effectName")} value={label} onChange={e => setLabel(e.target.value)} />
           </div>
           <label className="flex items-center justify-between text-sm">
-            <span>{t("conditions.reduceHpQ")}</span>
+            <span className="text-[10px] uppercase tracking-widest">{t("conditions.reduceHpQ")}</span>
             <input type="checkbox" checked={isDamage} onChange={e => setIsDamage(e.target.checked)} />
           </label>
           {isDamage && (
-            <label className="flex items-center justify-between text-sm">{t("conditions.damageDefault")}
-              <input type="number" min={0} className="w-20 bg-input border border-border rounded px-2 py-1 text-right"
+            <label className="flex items-center justify-between text-sm px-2 py-1.5 bg-input border border-border rounded">
+              <span className="text-[10px] uppercase tracking-widest">{t("conditions.damageDefault")}</span>
+              <input type="number" min={0} className="w-16 bg-transparent text-right outline-none"
                 value={damageDefault} onChange={e => setDamageDefault(Math.max(0, +e.target.value))} />
             </label>
           )}
@@ -553,7 +561,7 @@ export function DMConditionsCreator({
         <div className="space-y-1 max-h-72 overflow-y-auto">
           {catalog.length === 0 && <p className="text-xs text-muted-foreground">{t("conditions.noEffects")}</p>}
           {catalog.map(c => (
-            <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5 text-xs">
+            <div key={c.id} className="flex items-center gap-2 bg-secondary/40 rounded px-2 py-1.5 text-xs border border-white/5">
               <span>{c.icon}</span>
               <span className="flex-1 truncate">{getCatalogLabel(c, t)}{c.is_damage ? ` 🩸${c.damage_default}` : ""}</span>
               {c.campaign_id ? (
@@ -570,5 +578,46 @@ export function DMConditionsCreator({
         </div>
       )}
     </div>
+  );
+
+  return (
+    <>
+      <button 
+        data-create-condition-btn
+        className="hidden" 
+        onClick={() => setIsOpen(true)}
+      />
+
+      {showTriggerButton ? (
+        <div className="ornate-card p-4 space-y-4 bg-black/40 border border-white/10">
+          <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+            <Sparkles size={16} className="text-[var(--gold)]" />
+            <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">Efectos de Condición</h3>
+          </div>
+          {content}
+        </div>
+      ) : (
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-[210] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" {...backdropProps(() => setIsOpen(false))}>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="ornate-card w-full max-w-sm bg-[#0a0a0c] p-6 space-y-4 border border-[var(--gold)]/30 shadow-2xl" 
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <h3 className="font-display text-sm uppercase tracking-widest text-[var(--gold)]">Gestionar Condiciones</h3>
+                  <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-white"><X size={18} /></button>
+                </div>
+                {content}
+                <button className="text-xs text-muted-foreground underline w-full pt-2" onClick={() => setIsOpen(false)}>Cerrar</button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
+    </>
   );
 }
