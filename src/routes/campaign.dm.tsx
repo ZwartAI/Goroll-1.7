@@ -679,50 +679,78 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear" }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children: React.ReactNode, actionLabel?: string }) {
   const isActive = activeId === id;
   return (
-    <div className="flex flex-col gap-2">
+    <>
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        className={`group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all min-h-[140px] ${isActive ? 'ring-2 ring-[var(--gold)] bg-white/10' : 'bg-white/5 border-white/10'}`}
+        className={`group ornate-card p-2 sm:p-3 flex flex-col items-center justify-between text-center gap-2 cursor-pointer transition-all min-h-[150px] ${isActive ? 'ring-2 ring-[var(--gold)] bg-white/10' : 'bg-white/5 border-white/10'}`}
         onClick={() => onSelect(isActive ? null : id)}
       >
-        <div 
-          className="w-12 h-12 rounded-xl border flex items-center justify-center shadow-lg transition-all"
-          style={{ 
-            backgroundColor: `${color}20`, 
+        <div
+          className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg border flex items-center justify-center shadow-lg transition-all shrink-0"
+          style={{
+            backgroundColor: `${color}20`,
             borderColor: `${color}40`,
             color: color
           }}
         >
-          <Icon size={24} />
+          <Icon size={18} />
         </div>
-        <div>
-          <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-white/90">{title}</h3>
-          <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">{subtitle}</p>
+        <div className="flex-1 flex flex-col justify-center min-w-0 w-full">
+          <h3 className="font-display text-[9px] sm:text-[10px] uppercase tracking-wider text-white leading-tight break-words">{title}</h3>
+          <p className="text-[7px] sm:text-[8px] text-muted-foreground mt-0.5 uppercase tracking-tight line-clamp-2">{subtitle}</p>
         </div>
-        <button 
-          className="mt-auto px-4 py-1.5 rounded-lg text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all"
+        <button
+          className="w-full px-2 py-1 rounded-md text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-widest shadow hover:brightness-110 active:scale-95 transition-all"
           style={{ backgroundColor: color }}
+          onClick={(e) => { e.stopPropagation(); onSelect(isActive ? null : id); }}
         >
-          {isActive ? "Cerrar" : actionLabel}
+          {actionLabel}
         </button>
       </motion.div>
-      
+
       <AnimatePresence>
         {isActive && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+          <div
+            className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+            onClick={() => onSelect(null)}
           >
-            <div className="p-4 bg-white/5 border border-white/10 rounded-xl mt-1 shadow-inner">
-              {children}
-            </div>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="ornate-card bg-[#0d0d0d] border border-white/15 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#0d0d0d] z-10">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-9 h-9 rounded-lg border flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${color}20`, borderColor: `${color}40`, color }}
+                  >
+                    <Icon size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-sm uppercase tracking-widest text-white truncate">{title}</h3>
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest truncate">{subtitle}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onSelect(null)}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-white hover:bg-white/10 transition-all shrink-0"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4">
+                {children}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
 
