@@ -672,10 +672,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 <line 
                   x1={rulerStart.x} y1={rulerStart.y} 
                   x2={rulerEnd.x} y2={rulerEnd.y} 
-                  stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} 
+                  stroke={authorColor || "var(--gold)"} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} 
                 />
-                <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill="var(--gold)" />
-                <circle cx={rulerEnd.x} cy={rulerEnd.y} r={4 / scale} fill="var(--gold)" />
+                <circle cx={rulerStart.x} cy={rulerStart.y} r={4 / scale} fill={authorColor || "var(--gold)"} />
+                <circle cx={rulerEnd.x} cy={rulerEnd.y} r={4 / scale} fill={authorColor || "var(--gold)"} />
               </>
             )}
             
@@ -683,25 +683,34 @@ export const Stage = forwardRef<StageHandle, Props>(({
               <circle 
                 cx={rulerStart.x} cy={rulerStart.y} 
                 r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) + (activeScene.grid_enabled ? activeScene.grid_size / 2 : 0)}
-                fill="var(--gold)" fillOpacity={0.1}
-                stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+                fill={authorColor || "var(--gold)"} fillOpacity={0.1}
+                stroke={authorColor || "var(--gold)"} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
               />
             )}
 
-            {measureMode === 'cone' && (
-              <path 
-                d={`
-                  M ${rulerStart.x} ${rulerStart.y}
-                  L ${rulerEnd.x} ${rulerEnd.y}
-                  A ${Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} ${Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)} 0 0 1 
-                  ${rulerStart.x + Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) * Math.cos(Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) - Math.PI / 3)}
-                  ${rulerStart.y + Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) * Math.sin(Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) - Math.PI / 3)}
-                  Z
-                `}
-                fill="var(--gold)" fillOpacity={0.1}
-                stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
-              />
-            )}
+            {measureMode === 'cone' && (() => {
+              const dx = rulerEnd.x - rulerStart.x;
+              const dy = rulerEnd.y - rulerStart.y;
+              const angle = Math.atan2(dy, dx);
+              const radius = Math.hypot(dx, dy);
+              const effectiveRadius = activeScene.grid_enabled ? radius + (activeScene.grid_size / 2) : radius;
+              
+              // Standard D&D 5e cone spread: atan(0.5) is half angle for width = length
+              const halfSpread = Math.atan(0.5);
+              
+              const x1 = rulerStart.x + effectiveRadius * Math.cos(angle - halfSpread);
+              const y1 = rulerStart.y + effectiveRadius * Math.sin(angle - halfSpread);
+              const x2 = rulerStart.x + effectiveRadius * Math.cos(angle + halfSpread);
+              const y2 = rulerStart.y + effectiveRadius * Math.sin(angle + halfSpread);
+              
+              return (
+                <path 
+                  d={`M ${rulerStart.x} ${rulerStart.y} L ${x1} ${y1} A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${x2} ${y2} Z`}
+                  fill={authorColor || "var(--gold)"} fillOpacity={0.1}
+                  stroke={authorColor || "var(--gold)"} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+                />
+              );
+            })()}
           </svg>
         )}
 
