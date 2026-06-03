@@ -882,13 +882,14 @@ function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { cam
 
   return (
     <>
-      <button 
-        data-create-item-btn
-        className={showTriggerButton ? "btn-fantasy w-full" : "hidden"}
-        onClick={() => setIsOpen(true)}
-      >
-        <Plus size={14} className="inline" /> {tr("dm.newItem")}
-      </button>
+      {showTriggerButton ? null : (
+        <button
+          data-create-item-btn
+          className="hidden"
+          onClick={() => setIsOpen(true)}
+        />
+      )}
+
 
       {showTriggerButton ? formContent : (
         <AnimatePresence>
