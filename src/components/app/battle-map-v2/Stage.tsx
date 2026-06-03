@@ -425,8 +425,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const dy = rulerEnd.y - rulerStart.y;
     const radius = Math.hypot(dx, dy);
     
-    // For circle mode, expand radius to distal limit of the tile
-    const effectiveRadius = (measureMode === 'circle' && activeScene.grid_enabled) 
+    // For circle and cone mode, expand radius to distal limit of the tile
+    const effectiveRadius = (activeScene.grid_enabled && (measureMode === 'circle' || measureMode === 'cone')) 
       ? radius + (gridSize / 2) 
       : radius;
     
@@ -445,7 +445,9 @@ export const Stage = forwardRef<StageHandle, Props>(({
     
     const cells: {x: number, y: number}[] = [];
     const angle = Math.atan2(dy, dx);
-    const halfSpread = (30 * Math.PI) / 180;
+    // Standard D&D 5e cone: width is equal to length.
+    // This is roughly 53.13 degrees total (2 * atan(0.5)), so half-spread is atan(0.5)
+    const halfSpread = Math.atan(0.5);
     
     const maxSearch = 40;
     const colCount = Math.min(endCol - startCol, maxSearch);
@@ -475,7 +477,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
             if (measureMode === 'circle') {
               inside = distToStart <= effectiveRadius;
             } else if (measureMode === 'cone') {
-              if (distToStart <= radius) {
+              if (distToStart <= effectiveRadius) {
                 let pAngle = Math.atan2(py - rulerStart.y, px - rulerStart.x);
                 let diff = pAngle - angle;
                 while (diff < -Math.PI) diff += Math.PI * 2;
@@ -599,13 +601,15 @@ export const Stage = forwardRef<StageHandle, Props>(({
         {highlightedCells.map((cell, i) => (
           <div 
             key={`${cell.x}-${cell.y}-${i}`}
-            className="absolute pointer-events-none bg-[var(--gold)]/20 border border-[var(--gold)]/30"
+            className="absolute pointer-events-none"
             style={{ 
               left: cell.x,
               top: cell.y,
               width: activeScene.grid_size,
               height: activeScene.grid_size,
-              zIndex: 1.5
+              zIndex: 1.5,
+              backgroundColor: `${authorColor || 'var(--gold)'}33`, // 20% opacity in hex (33)
+              border: `1px solid ${authorColor || 'var(--gold)'}4D` // 30% opacity in hex (4D)
             }}
           />
         ))}
@@ -703,12 +707,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border border-[var(--gold)]/50 rounded-lg px-2 py-1 text-[var(--gold)] text-xs font-bold shadow-2xl z-[60]"
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60]"
             style={{ 
               left: rulerEnd.x + 10,
               top: rulerEnd.y + 10,
               transform: `scale(${1/scale})`,
-              transformOrigin: 'top left'
+              transformOrigin: 'top left',
+              color: authorColor || 'var(--gold)',
+              borderColor: `${authorColor || 'var(--gold)'}80`
             }}
           >
             {calculateDistance()} ft
