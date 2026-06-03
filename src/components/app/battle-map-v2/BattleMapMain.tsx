@@ -199,7 +199,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           setMeasureMode={setMeasureMode}
           measureSnap={measureSnap}
           setMeasureSnap={setMeasureSnap}
-          isDM={isDM}
+          isDM={isDM} 
           onOpenScenes={() => setShowScenes(true)}
           onOpenSettings={() => setShowSettings(true)}
           onResetView={handleResetView}
@@ -208,7 +208,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onClearFog={handleClearFog}
           onUndoFog={handleUndoFog}
           fogElements={battleMap.fog}
-
+          showToolbar={showToolbar}
           
           characterId={character?.id}
           authorName={character?.name}
