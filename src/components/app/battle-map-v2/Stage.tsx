@@ -704,11 +704,19 @@ export const Stage = forwardRef<StageHandle, Props>(({
               const y2 = rulerStart.y + effectiveRadius * Math.sin(angle + halfSpread);
               
               return (
-                <path 
-                  d={`M ${rulerStart.x} ${rulerStart.y} L ${x1} ${y1} A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${x2} ${y2} Z`}
-                  fill={authorColor || "var(--gold)"} fillOpacity={0.1}
-                  stroke={authorColor || "var(--gold)"} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
-                />
+                <g>
+                  <path 
+                    d={`M ${rulerStart.x} ${rulerStart.y} L ${x1} ${y1} A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${x2} ${y2} Z`}
+                    fill={authorColor || "var(--gold)"} fillOpacity={0.1}
+                    stroke={authorColor || "var(--gold)"} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
+                  />
+                  <line 
+                    x1={rulerStart.x} y1={rulerStart.y} 
+                    x2={rulerEnd.x} y2={rulerEnd.y} 
+                    stroke={authorColor || "var(--gold)"} strokeWidth={1 / scale} strokeDasharray={`${3 / scale},${3 / scale}`}
+                    opacity={0.3}
+                  />
+                </g>
               );
             })()}
           </svg>
