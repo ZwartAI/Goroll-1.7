@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, Cloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -282,7 +282,7 @@ export function Toolbar({
                   setPencilMenuOpen(false);
                   setMeasureMenuOpen(false);
                 }}
-                icon={<Box className="w-5 h-5 text-gray-400" />}
+                icon={<Cloud className="w-5 h-5 text-gray-400" />}
                 label="Niebla de Guerra"
                 className={isFogActive ? "bg-gray-800 text-white" : ""}
               />
