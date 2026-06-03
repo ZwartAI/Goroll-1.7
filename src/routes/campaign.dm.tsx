@@ -201,19 +201,8 @@ function DM() {
               subtitle={t("dm.create.rewardSackSubtitle")}
               icon={Gift}
               color="var(--gold)"
-            >
-              <div className="space-y-4">
-                <button
-                  onClick={() => setRewardSacksOpen(true)}
-                  className="btn-fantasy w-full bg-[var(--gold)] text-black py-3"
-                >
-                  <Plus size={18} className="inline mr-2" /> {t("dm.create.openRewardSacks")}
-                </button>
-                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  {t("dm.create.rewardSackDesc")}
-                </p>
-              </div>
-            </CreationCategoryCard>
+              onAction={() => setRewardSacksOpen(true)}
+            />
 
             <CreationCategoryCard
               id="items"
