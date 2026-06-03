@@ -303,8 +303,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
             addFogElement({
               type: 'polygon',
               points: polygonPoints,
-              is_eraser: false // For now, polygon only adds fog? The user said "pincel... y también poligonos... y borrar bloque completo".
-              // Let's assume polygons are black fog for now.
+              is_eraser: activeTool === 'fog-eraser'
             });
             setPolygonPoints([]);
             return;
