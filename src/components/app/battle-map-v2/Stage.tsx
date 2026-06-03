@@ -303,7 +303,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
             addFogElement({
               type: 'polygon',
               points: polygonPoints,
-              is_eraser: activeTool === 'fog-eraser'
+              is_eraser: activeTool === 'fog-polygon-eraser'
             });
             setPolygonPoints([]);
             return;
