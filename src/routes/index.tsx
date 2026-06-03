@@ -69,6 +69,8 @@ function Home() {
   const [myChars, setMyChars] = useState<Character[]>([]);
   const [myCharItems, setMyCharItems] = useState<Record<string, Item[]>>({});
   const [newCharName, setNewCharName] = useState("");
+  const loginFn = useServerFn(attemptLogin);
+  const getMyCampaignsFn = useServerFn(getMyCampaigns);
 
   useEffect(() => {
     const u = getStoredUser();
@@ -118,8 +120,6 @@ function Home() {
     return () => { cancelled = true; (supabase as any).removeChannel(ch); };
   }, [step, user, campaign, role]);
 
-  const loginFn = useServerFn(attemptLogin);
-  const getMyCampaignsFn = useServerFn(getMyCampaigns);
   async function login() {
     if (busy) return;
     const uname = username.trim();
