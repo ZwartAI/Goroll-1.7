@@ -77,7 +77,7 @@ export function CreationGridModal({ isOpen, onClose, items }: Props) {
                     style={{ backgroundColor: `${item.color}22`, border: `1px solid ${item.color}44` }}
                   >
                     <div style={{ color: item.color }}>
-                      {React.cloneElement(item.icon as React.ReactElement, { size: 28 })}
+                      {item.icon}
                     </div>
                   </div>
                   
