@@ -425,9 +425,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const dy = rulerEnd.y - rulerStart.y;
     const radius = Math.hypot(dx, dy);
     
+    // For circle mode, expand radius to distal limit of the tile
+    const effectiveRadius = (measureMode === 'circle' && activeScene.grid_enabled) 
+      ? radius + (gridSize / 2) 
+      : radius;
+    
     if (radius < 2) return [];
 
-    const searchRadius = radius + gridSize;
+    const searchRadius = effectiveRadius + gridSize;
     const minX = rulerStart.x - searchRadius;
     const maxX = rulerStart.x + searchRadius;
     const minY = rulerStart.y - searchRadius;
@@ -468,7 +473,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
             const distToStart = Math.hypot(px - rulerStart.x, py - rulerStart.y);
 
             if (measureMode === 'circle') {
-              inside = distToStart <= radius;
+              inside = distToStart <= effectiveRadius;
             } else if (measureMode === 'cone') {
               if (distToStart <= radius) {
                 let pAngle = Math.atan2(py - rulerStart.y, px - rulerStart.x);
@@ -673,7 +678,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
             {measureMode === 'circle' && (
               <circle 
                 cx={rulerStart.x} cy={rulerStart.y} 
-                r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y)}
+                r={Math.hypot(rulerEnd.x - rulerStart.x, rulerEnd.y - rulerStart.y) + (activeScene.grid_enabled ? activeScene.grid_size / 2 : 0)}
                 fill="var(--gold)" fillOpacity={0.1}
                 stroke="var(--gold)" strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`}
               />
