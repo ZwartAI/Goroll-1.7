@@ -42,6 +42,7 @@ function DM() {
 
   const nav = useNavigate();
   const [tab, setTab] = useState<"log" | "create" | "vault" | "boosters" | "skills" | "escenario">("log");
+  const [activeCreationCategory, setActiveCreationCategory] = useState<string | null>(null);
   const [rewardSacksOpen, setRewardSacksOpen] = useState(false);
   const [selItem, setSelItem] = useState<Item | null>(null);
   const [editItem, setEditItem] = useState<Item | null>(null);
