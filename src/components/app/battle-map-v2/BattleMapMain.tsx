@@ -524,16 +524,11 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
                  <SkillsManager 
                    campaignId={campaignId}
                    dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
-                   players={battleMap.participants.filter((p: any) => p.participant_type === 'player').map((p: any) => ({
-                     id: p.character_id,
-                     name: p.display_name,
-                     color: p.color,
-                     image_url: p.image_url,
-                     current_hp: p.hp || 0,
-                     base_hp: p.max_hp || 1,
-                     skill_points: p.skill_points || 0
+                   players={characters.filter((c: any) => c.role === 'player').map((c: any) => ({
+                     ...c,
+                     skill_points: (c as any).skill_points || 0
                    }))}
-                   onlineIds={new Set()} // No tenemos acceso fácil a onlineIds aquí sin más hooks
+                   onlineIds={onlineIds}
                  />
                </div>
             </div>
