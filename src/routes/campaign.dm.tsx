@@ -676,15 +676,19 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
-function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear" }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children: React.ReactNode, actionLabel?: string }) {
+function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void }) {
   const isActive = activeId === id;
+  const handleActivate = () => {
+    if (onAction) { onAction(); return; }
+    onSelect(isActive ? null : id);
+  };
   return (
     <>
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className={`group ornate-card p-2 sm:p-3 flex flex-col items-center justify-between text-center gap-2 cursor-pointer transition-all min-h-[150px] ${isActive ? 'ring-2 ring-[var(--gold)] bg-white/10' : 'bg-white/5 border-white/10'}`}
-        onClick={() => onSelect(isActive ? null : id)}
+        onClick={handleActivate}
       >
         <div
           className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg border flex items-center justify-center shadow-lg transition-all shrink-0"
