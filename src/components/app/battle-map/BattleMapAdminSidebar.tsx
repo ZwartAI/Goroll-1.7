@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, UserPlus, Eye, EyeOff, Settings, Shield, Users, Layout, UserCircle } from 'lucide-react';
+import { X, UserPlus, Eye, EyeOff, Settings, Shield, Users, Layout, UserCircle, PlusSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useT } from '@/lib/i18n';
 
@@ -17,6 +17,7 @@ interface Props {
   // Actions
   onInvokeToken: () => void;
   onOpenSettings: () => void;
+  onOpenCreationGrid?: () => void;
 }
 
 export const BattleMapAdminSidebar: React.FC<Props> = ({
@@ -28,7 +29,8 @@ export const BattleMapAdminSidebar: React.FC<Props> = ({
   showToolbar,
   onToggleToolbar,
   onInvokeToken,
-  onOpenSettings
+  onOpenSettings,
+  onOpenCreationGrid
 }) => {
   const { t } = useT();
 
@@ -62,6 +64,14 @@ export const BattleMapAdminSidebar: React.FC<Props> = ({
               >
                 <UserPlus size={18} />
                 <span className="text-xs font-display uppercase tracking-widest">Invocar Token</span>
+              </Button>
+
+              <Button 
+                onClick={onOpenCreationGrid}
+                className="w-full justify-start gap-3 bg-purple-500/10 hover:bg-purple-500/20 border-white/10 text-purple-400 h-12 rounded-xl"
+              >
+                <PlusSquare size={18} />
+                <span className="text-xs font-display uppercase tracking-widest">Centro de Creación</span>
               </Button>
               
               <Button 
