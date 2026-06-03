@@ -54,6 +54,7 @@ function DM() {
   const [selBooster, setSelBooster] = useState<Booster | null>(null);
   const [editBooster, setEditBooster] = useState<Booster | null>(null);
   const [creatingBooster, setCreatingBooster] = useState(false);
+  const [creatingSkill, setCreatingSkill] = useState(false);
   const [boosterSel, setBoosterSel] = useState<Set<string>>(new Set());
   const [boosterSelectMode, setBoosterSelectMode] = useState(false);
   const [vaultTopic, setVaultTopic] = useState<"all" | "equip" | "objects">("all");
