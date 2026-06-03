@@ -314,7 +314,14 @@ export function Toolbar({
                         active={activeTool === 'fog-eraser'} 
                         onClick={() => setActiveTool('fog-eraser')}
                         icon={<Eraser className="w-4 h-4" />}
-                        label="Borrador Niebla"
+                        label="Pincel Borrador Niebla"
+                        small
+                      />
+                      <ToolButton 
+                        active={activeTool === 'fog-polygon-eraser'} 
+                        onClick={() => setActiveTool('fog-polygon-eraser')}
+                        icon={<Triangle className="w-4 h-4 text-red-400" />}
+                        label="Polígono Borrador Niebla"
                         small
                       />
                     </div>
