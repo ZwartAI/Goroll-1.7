@@ -269,7 +269,30 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const isPolygon = activeTool === 'fog-polygon';
       const isEraser = activeTool === 'fog-eraser';
 
+      if (isEraser) {
+        // Try to find a polygon to delete it entirely
+        const clickedPolygon = fog.find((f: FogElement) => {
+          if (f.type !== 'polygon') return false;
+          // Simple hit test for polygon
+          let inside = false;
+          for (let i = 0, j = f.points.length / 2 - 1; i < f.points.length / 2; j = i++) {
+            const xi = f.points[i * 2], yi = f.points[i * 2 + 1];
+            const xj = f.points[j * 2], yj = f.points[j * 2 + 1];
+            const intersect = ((yi > coords.y) !== (yj > coords.y)) &&
+              (coords.x < (xj - xi) * (coords.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+          }
+          return inside;
+        });
+
+        if (clickedPolygon) {
+          battleMap.removeFogElement(clickedPolygon.id);
+          return;
+        }
+      }
+
       if (isPolygon) {
+
         const startX = coords.x;
         const startY = coords.y;
 
