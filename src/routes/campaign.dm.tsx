@@ -236,19 +236,8 @@ function DM() {
               subtitle={t("dm.create.boostersSubtitle")}
               icon={Sparkles}
               color="#a855f7"
-            >
-              <div className="space-y-4">
-                <button
-                  onClick={() => setCreatingBooster(true)}
-                  className="btn-fantasy w-full bg-purple-500 text-white py-3"
-                >
-                  <Plus size={18} className="inline mr-2" /> {t("dm.create.newBooster")}
-                </button>
-                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  {t("dm.create.boosterDesc")}
-                </p>
-              </div>
-            </CreationCategoryCard>
+              onAction={() => setCreatingBooster(true)}
+            />
 
             <CreationCategoryCard
               id="monsters"
