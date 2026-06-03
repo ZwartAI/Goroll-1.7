@@ -3,7 +3,7 @@ import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Tr
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fog-brush' | 'fog-polygon' | 'fog-eraser';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fog-brush' | 'fog-polygon' | 'fog-eraser' | 'fog-polygon-eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -72,7 +72,7 @@ export function Toolbar({
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fog-brush' || activeTool === 'fog-polygon' || activeTool === 'fog-eraser';
+  const isFogActive = activeTool === 'fog-brush' || activeTool === 'fog-polygon' || activeTool === 'fog-eraser' || activeTool === 'fog-polygon-eraser';
 
 
   const authors = React.useMemo(() => {
@@ -314,7 +314,14 @@ export function Toolbar({
                         active={activeTool === 'fog-eraser'} 
                         onClick={() => setActiveTool('fog-eraser')}
                         icon={<Eraser className="w-4 h-4" />}
-                        label="Borrador Niebla"
+                        label="Pincel Borrador Niebla"
+                        small
+                      />
+                      <ToolButton 
+                        active={activeTool === 'fog-polygon-eraser'} 
+                        onClick={() => setActiveTool('fog-polygon-eraser')}
+                        icon={<Triangle className="w-4 h-4 text-red-400" />}
+                        label="Polígono Borrador Niebla"
                         small
                       />
                     </div>
