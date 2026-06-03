@@ -175,10 +175,27 @@ export const useBattleMap = (campaignId: string) => {
 
     const loadData = async () => {
       setIsLoading(true);
-      await fetchActiveScene();
-      await fetchScenes();
+      const { data: sceneData } = await supabase
+        .from('battle_map_scenes_simple')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (sceneData) {
+        setActiveScene(sceneData as unknown as SceneConfig);
+        await Promise.all([
+          fetchScenes(),
+          fetchTokens(sceneData.id),
+          fetchDrawings(sceneData.id),
+          fetchFog(sceneData.id)
+        ]);
+      } else {
+        await fetchScenes();
+      }
       setIsLoading(false);
     };
+
 
     loadData();
 
