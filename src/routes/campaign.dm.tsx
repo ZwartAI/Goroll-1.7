@@ -614,6 +614,28 @@ function DM() {
           onClose={() => setRewardSacksOpen(false)} 
         />
       )}
+      {creatingSkill && players[0] && (
+        <div className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" {...backdropProps(() => setCreatingSkill(false))}>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ornate-card bg-[#0d0d0d] border border-white/15 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 sticky top-0 bg-[#0d0d0d] z-10">
+              <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("skills.createManualTitle")}</h3>
+              <button onClick={() => setCreatingSkill(false)} className="p-2 rounded-lg text-muted-foreground hover:text-white hover:bg-white/10" aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-3">
+              <SkillManualCreate
+                campaignId={campaign.id}
+                target={players[0]}
+                dm={dmCtx}
+                players={players}
+                hideToggle
+                onDone={() => setCreatingSkill(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </PageFrame>
   );
