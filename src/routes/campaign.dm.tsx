@@ -191,127 +191,143 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[var(--gold)]/50 transition-all min-h-[140px]"
-              onClick={() => setRewardSacksOpen(true)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CreationCategoryCard
+              id="reward-sack"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="Bolsas de Recompensa"
+              subtitle="Gestionar Botines"
+              icon={Gift}
+              color="var(--gold)"
             >
-              <div className="w-12 h-12 rounded-xl bg-[var(--gold)]/20 border border-[var(--gold)]/30 flex items-center justify-center text-[var(--gold)] shadow-lg group-hover:shadow-[var(--gold)]/20 transition-all">
-                <Gift size={24} />
+              <div className="space-y-4">
+                <button 
+                  onClick={() => setRewardSacksOpen(true)}
+                  className="btn-fantasy w-full bg-[var(--gold)] text-black py-3"
+                >
+                  <Plus size={18} className="inline mr-2" /> Abrir Gestor de Botines
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
+                  Configura recompensas aleatorias para tus jugadores
+                </p>
               </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-[var(--gold)]">Bolsas de Recompensa</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Gestionar Botines</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-[var(--gold)] text-black text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Crear
-              </button>
-            </motion.div>
+            </CreationCategoryCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#3b82f6]/50 transition-all min-h-[140px]"
-              onClick={() => {
-                // This will trigger the creation modal or logic for items
-                const btn = document.querySelector('[data-create-item-btn]') as HTMLButtonElement;
-                if (btn) btn.click();
-              }}
+            <CreationCategoryCard
+              id="items"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="Objetos / Ítems"
+              subtitle="Equipo y Tesoros"
+              icon={Hammer}
+              color="#3b82f6"
             >
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-lg group-hover:shadow-blue-500/20 transition-all">
-                <Hammer size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-blue-400">Objetos / Ítems</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Equipo y Tesoros</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-blue-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Crear
-              </button>
-            </motion.div>
+              <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} showTriggerButton={true} />
+            </CreationCategoryCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#ec4899]/50 transition-all min-h-[140px]"
-              onClick={() => {
-                const btn = document.querySelector('[data-create-condition-btn]') as HTMLButtonElement;
-                if (btn) btn.click();
-              }}
+            <CreationCategoryCard
+              id="conditions"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="Condiciones"
+              subtitle="Estados y Efectos"
+              icon={Sparkles}
+              color="#ec4899"
             >
-              <div className="w-12 h-12 rounded-xl bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-pink-400 shadow-lg group-hover:shadow-pink-500/20 transition-all">
-                <Sparkles size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-pink-400">Condiciones</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Estados y Efectos</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-pink-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Crear
-              </button>
-            </motion.div>
+              <DMConditionsCreator campaignId={campaign.id} players={players} showTriggerButton={true} />
+            </CreationCategoryCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#a855f7]/50 transition-all min-h-[140px]"
-              onClick={() => setCreatingBooster(true)}
+            <CreationCategoryCard
+              id="boosters"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="Boosters"
+              subtitle="Potenciadores"
+              icon={Sparkles}
+              color="#a855f7"
             >
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-lg group-hover:shadow-purple-500/20 transition-all">
-                <Sparkles size={24} />
+              <div className="space-y-4">
+                <button 
+                  onClick={() => setCreatingBooster(true)}
+                  className="btn-fantasy w-full bg-purple-500 text-white py-3"
+                >
+                  <Plus size={18} className="inline mr-2" /> Nuevo Booster
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
+                  Crea cartas de potenciadores temporales
+                </p>
               </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-purple-400">Boosters</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Potenciadores</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-purple-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Crear
-              </button>
-            </motion.div>
+            </CreationCategoryCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#ef4444]/50 transition-all min-h-[140px]"
-              onClick={() => nav({ to: "/campaign/bestiary" })}
+            <CreationCategoryCard
+              id="monsters"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="Monstruos"
+              subtitle="Bestiario"
+              icon={Skull}
+              color="#ef4444"
+              actionLabel="Abrir"
             >
-              <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400 shadow-lg group-hover:shadow-red-500/20 transition-all">
-                <Skull size={24} />
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => nav({ to: "/campaign/bestiary" })}
+                  className="btn-fantasy bg-red-500/20 text-red-400 py-3"
+                >
+                  <Search size={16} className="inline mr-2" /> Ver Bestiario
+                </button>
+                <button 
+                  onClick={() => {
+                    const btn = document.querySelector('[data-open-monster-editor]') as HTMLButtonElement;
+                    if (btn) btn.click();
+                  }}
+                  className="btn-fantasy bg-red-600 text-white py-3"
+                >
+                  <Plus size={16} className="inline mr-2" /> Nuevo Monstruo
+                </button>
               </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-red-400">Monstruos</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Bestiario</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-red-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Abrir
-              </button>
-            </motion.div>
+            </CreationCategoryCard>
 
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer bg-white/5 border-white/10 hover:border-[#10b981]/50 transition-all min-h-[140px]"
-              onClick={() => nav({ to: "/campaign/npcs" })}
+            <CreationCategoryCard
+              id="npcs"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title="NPCs"
+              subtitle="Personajes"
+              icon={Users}
+              color="#10b981"
+              actionLabel="Abrir"
             >
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg group-hover:shadow-emerald-500/20 transition-all">
-                <Users size={24} />
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => nav({ to: "/campaign/npcs" })}
+                  className="btn-fantasy bg-emerald-500/20 text-emerald-400 py-3"
+                >
+                  <Users size={16} className="inline mr-2" /> Ver NPCs
+                </button>
+                <button 
+                  onClick={() => {
+                    const btn = document.querySelector('[data-open-npc-editor]') as HTMLButtonElement;
+                    if (btn) btn.click();
+                  }}
+                  className="btn-fantasy bg-emerald-600 text-white py-3"
+                >
+                  <Plus size={16} className="inline mr-2" /> Nuevo NPC
+                </button>
               </div>
-              <div>
-                <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-emerald-400">NPCs</h3>
-                <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">Personajes</p>
-              </div>
-              <button className="mt-auto px-4 py-1.5 rounded-lg bg-emerald-500 text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                Abrir
-              </button>
-            </motion.div>
+            </CreationCategoryCard>
           </div>
 
-          {/* Hidden original components to maintain state and functionality */}
+          {/* Trigger buttons for modals that need to stay outside the grid but reachable */}
           <div className="hidden">
-            <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} showTriggerButton={false} />
-            <DMConditionsCreator campaignId={campaign.id} players={players} showTriggerButton={false} />
+            <button data-open-monster-editor onClick={() => setImageViewerCharId('monster-new')} />
+            <button data-open-npc-editor onClick={() => setImageViewerCharId('npc-new')} />
+          </div>
+
+          {/* Inline creation for Skills (since they are already complex) */}
+          <div className="mt-8 border-t border-white/10 pt-8">
+            <h3 className="font-display text-sm uppercase tracking-[0.2em] text-[var(--gold)] mb-4 px-2">Creación de Habilidades</h3>
             {players[0] && (
               <SkillManualCreate
                 campaignId={campaign.id}
