@@ -732,7 +732,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
           <KonvaStage width={8000} height={8000}>
             <KonvaLayer listening={false}>
               {/* Permanent Fog Elements */}
-              <FogLayer fogElements={fog} opacity={isDM ? 0.5 : 1} />
+              <FogLayer fogElements={fog} opacity={isDM ? 0.4 : 1} />
 
               {/* Active Brush (while drawing) */}
               {isDM && isFogging && currentFogPoints.length > 2 && (
@@ -742,7 +742,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
                   strokeWidth={80}
                   lineCap="round"
                   lineJoin="round"
-                  opacity={0.5}
+                  opacity={0.4}
                   globalCompositeOperation={activeTool === 'fog-eraser' ? 'destination-out' : 'source-over'}
                 />
               )}
