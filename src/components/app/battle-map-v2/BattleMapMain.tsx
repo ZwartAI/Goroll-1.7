@@ -13,7 +13,7 @@ import { DiceButton } from './DiceButton';
 import { DicePanel, DieSelection } from './DicePanel';
 import { useT } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight, Gift, BookOpen, Users, HeartPulse, X } from 'lucide-react';
+import { ChevronRight, Gift, BookOpen, Users, HeartPulse, X, ScrollText, Sparkles, Box } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
 import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
@@ -23,6 +23,8 @@ import { RewardSackManager } from '../reward-sacks/RewardSackManager';
 import { MonsterEditor } from '../MonsterEditor';
 import { NpcEditorModal } from '../NpcEditorModal';
 import { ConditionsPanel } from '../ConditionsPanel';
+import { SkillsManager } from '../SkillsManager';
+import { ItemEditor } from '../ItemEditor';
 import { backdropProps } from '@/lib/modalBackdrop';
 
 
@@ -34,7 +36,7 @@ interface Props {
 }
 
 export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar }: Props) {
-  const { campaign, character } = useGameData();
+  const { campaign, character, characters, onlineIds } = useGameData();
   const campaignId = campaign?.id || '';
   const isDM = character?.role === 'dm';
   const { t } = useT();
@@ -56,6 +58,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [isCreatingMonster, setIsCreatingMonster] = useState(false);
   const [isCreatingNpc, setIsCreatingNpc] = useState(false);
   const [isManagingConditions, setIsManagingConditions] = useState(false);
+  const [isManagingSkills, setIsManagingSkills] = useState(false);
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
 
 
@@ -421,6 +425,22 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
                 action: () => { setShowRewardSacks(true); setShowCreationGrid(false); }
               },
               {
+                id: 'item',
+                label: 'Crear Item',
+                icon: <Box />,
+                color: '#f59e0b',
+                description: 'Crea nuevo equipamiento, consumibles u objetos clave.',
+                action: () => { setIsCreatingItem(true); setShowCreationGrid(false); }
+              },
+              {
+                id: 'skill',
+                label: 'Habilidades (Skills)',
+                icon: <Sparkles />,
+                color: '#a855f7',
+                description: 'Asigna y gestiona las habilidades de tus jugadores.',
+                action: () => { setIsManagingSkills(true); setShowCreationGrid(false); }
+              },
+              {
                 id: 'monster',
                 label: 'Monstruos / Enemigos',
                 icon: <BookOpen />,
@@ -489,6 +509,50 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
                  viewerIsDm={true}
                />
             </div>
+          </div>
+        )}
+
+        {isManagingSkills && character && (
+          <div className="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4 overflow-y-auto" {...backdropProps(() => setIsManagingSkills(false))}>
+            <div className="ornate-card max-w-4xl w-full p-6 bg-[#0a0a0c]/95 border border-[var(--gold)]/30" onClick={e => e.stopPropagation()}>
+               <div className="flex justify-end mb-4">
+                 <button onClick={() => setIsManagingSkills(false)} className="text-muted-foreground hover:text-white transition-colors">
+                   <X size={20} />
+                 </button>
+               </div>
+               <div className="max-h-[75vh] overflow-y-auto custom-scrollbar">
+                 <SkillsManager 
+                   campaignId={campaignId}
+                   dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+                   players={characters.filter((c: any) => c.role === 'player').map((c: any) => ({
+                     ...c,
+                     skill_points: (c as any).skill_points || 0
+                   }))}
+                   onlineIds={onlineIds}
+                 />
+               </div>
+            </div>
+          </div>
+        )}
+
+        {isCreatingItem && character && (
+          <div className="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4" {...backdropProps(() => setIsCreatingItem(false))}>
+            <ItemEditor 
+              campaignId={campaignId}
+              dm={{ id: character.id, name: character.name, color: character.color || 'var(--gold)' }}
+              onClose={() => setIsCreatingItem(false)}
+              item={{
+                id: crypto.randomUUID(),
+                name: 'Nuevo Item',
+                category: 'objeto',
+                slot: 'objeto',
+                rarity: 'white',
+                equipped: false,
+                owner_character_id: null,
+                campaign_id: campaignId,
+                created_at: new Date().toISOString()
+              } as any}
+            />
           </div>
         )}
       </AnimatePresence>
