@@ -707,14 +707,14 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
         <button
           className="w-full px-2 py-1 rounded-md text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-widest shadow hover:brightness-110 active:scale-95 transition-all"
           style={{ backgroundColor: color }}
-          onClick={(e) => { e.stopPropagation(); onSelect(isActive ? null : id); }}
+          onClick={(e) => { e.stopPropagation(); handleActivate(); }}
         >
           {actionLabel}
         </button>
       </motion.div>
 
       <AnimatePresence>
-        {isActive && (
+        {isActive && !onAction && (
           <div
             className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
             onClick={() => onSelect(null)}
