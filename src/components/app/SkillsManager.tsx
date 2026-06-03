@@ -629,11 +629,11 @@ function ImportSection({ campaignId, target, dm, existingCount, onDone }: {
   );
 }
 
-export function ManualCreate({ campaignId, target, dm, players, onDone }: {
-  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; players: Character[]; onDone?: () => void;
+export function ManualCreate({ campaignId, target, dm, players, onDone, hideToggle = false }: {
+  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; players: Character[]; onDone?: () => void; hideToggle?: boolean;
 }) {
   const { t } = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(hideToggle);
 
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState<Rarity>("white");
