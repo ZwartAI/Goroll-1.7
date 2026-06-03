@@ -422,13 +422,33 @@ export const useBattleMap = (campaignId: string) => {
 
   const addFogElement = async (element: Omit<FogElement, 'id' | 'campaign_id' | 'scene_id' | 'created_at'>) => {
     if (!activeScene) return;
+    
+    const tempId = Math.random().toString(36).substring(7);
+    const newElement: FogElement = {
+      ...element,
+      id: tempId,
+      campaign_id: campaignId,
+      scene_id: activeScene.id,
+      created_at: new Date().toISOString()
+    };
+    
+    // Optimistic update
+    setFog(prev => [...prev, newElement]);
+
     const { data, error } = await supabase.from('battle_map_fog_simple').insert([{
       ...element,
       campaign_id: campaignId,
       scene_id: activeScene.id,
       points: element.points as any
     }]).select().single();
-    if (!error && data) fetchFog(activeScene.id);
+    
+    if (error) {
+      toast.error('Error al guardar niebla');
+      setFog(prev => prev.filter(f => f.id !== tempId));
+    } else if (data) {
+      // Replace temp with real data
+      setFog(prev => prev.map(f => f.id === tempId ? (data as unknown as FogElement) : f));
+    }
   };
 
   const removeFogElement = async (fogId: string) => {
