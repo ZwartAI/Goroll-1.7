@@ -305,16 +305,8 @@ function DM() {
               subtitle={t("dm.create.skillsSubtitle")}
               icon={Wand2}
               color="#0ea5e9"
-            >
-              {players[0] && (
-                <SkillManualCreate
-                  campaignId={campaign.id}
-                  target={players[0]}
-                  dm={dmCtx}
-                  players={players}
-                />
-              )}
-            </CreationCategoryCard>
+              onAction={() => players[0] && setCreatingSkill(true)}
+            />
           </div>
 
           {/* Trigger buttons for modals that need to stay outside the grid but reachable */}
