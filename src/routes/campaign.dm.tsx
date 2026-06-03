@@ -191,25 +191,25 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <CreationCategoryCard
               id="reward-sack"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="Bolsas de Recompensa"
-              subtitle="Gestionar Botines"
+              title={t("dm.create.rewardSackTitle", "Bolsas de Recompensa")}
+              subtitle={t("dm.create.rewardSackSubtitle", "Gestionar Botines")}
               icon={Gift}
               color="var(--gold)"
             >
               <div className="space-y-4">
-                <button 
+                <button
                   onClick={() => setRewardSacksOpen(true)}
                   className="btn-fantasy w-full bg-[var(--gold)] text-black py-3"
                 >
-                  <Plus size={18} className="inline mr-2" /> Abrir Gestor de Botines
+                  <Plus size={18} className="inline mr-2" /> {t("dm.create.openRewardSacks", "Abrir Gestor de Botines")}
                 </button>
                 <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  Configura recompensas aleatorias para tus jugadores
+                  {t("dm.create.rewardSackDesc", "Configura recompensas aleatorias para tus jugadores")}
                 </p>
               </div>
             </CreationCategoryCard>
@@ -218,8 +218,8 @@ function DM() {
               id="items"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="Objetos / Ítems"
-              subtitle="Equipo y Tesoros"
+              title={t("dm.create.itemsTitle", "Objetos / Ítems")}
+              subtitle={t("dm.create.itemsSubtitle", "Equipo y Tesoros")}
               icon={Hammer}
               color="#3b82f6"
             >
@@ -230,8 +230,8 @@ function DM() {
               id="conditions"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="Condiciones"
-              subtitle="Estados y Efectos"
+              title={t("dm.create.conditionsTitle", "Condiciones")}
+              subtitle={t("dm.create.conditionsSubtitle", "Estados y Efectos")}
               icon={Sparkles}
               color="#ec4899"
             >
@@ -242,20 +242,20 @@ function DM() {
               id="boosters"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="Boosters"
-              subtitle="Potenciadores"
+              title={t("dm.create.boostersTitle", "Boosters")}
+              subtitle={t("dm.create.boostersSubtitle", "Potenciadores")}
               icon={Sparkles}
               color="#a855f7"
             >
               <div className="space-y-4">
-                <button 
+                <button
                   onClick={() => setCreatingBooster(true)}
                   className="btn-fantasy w-full bg-purple-500 text-white py-3"
                 >
-                  <Plus size={18} className="inline mr-2" /> Nuevo Booster
+                  <Plus size={18} className="inline mr-2" /> {t("dm.create.newBooster", "Nuevo Booster")}
                 </button>
                 <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  Crea cartas de potenciadores temporales
+                  {t("dm.create.boosterDesc", "Crea cartas de potenciadores temporales")}
                 </p>
               </div>
             </CreationCategoryCard>
@@ -264,27 +264,27 @@ function DM() {
               id="monsters"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="Monstruos"
-              subtitle="Bestiario"
+              title={t("dm.create.monstersTitle", "Monstruos")}
+              subtitle={t("dm.create.monstersSubtitle", "Bestiario")}
               icon={Skull}
               color="#ef4444"
-              actionLabel="Abrir"
+              actionLabel={t("dm.create.open", "Abrir")}
             >
               <div className="grid grid-cols-2 gap-2">
-                <button 
+                <button
                   onClick={() => nav({ to: "/campaign/bestiary" })}
                   className="btn-fantasy bg-red-500/20 text-red-400 py-3"
                 >
-                  <Search size={16} className="inline mr-2" /> Ver Bestiario
+                  <Search size={16} className="inline mr-2" /> {t("dm.create.viewBestiary", "Ver Bestiario")}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     const btn = document.querySelector('[data-open-monster-editor]') as HTMLButtonElement;
                     if (btn) btn.click();
                   }}
                   className="btn-fantasy bg-red-600 text-white py-3"
                 >
-                  <Plus size={16} className="inline mr-2" /> Nuevo Monstruo
+                  <Plus size={16} className="inline mr-2" /> {t("dm.create.newMonster", "Nuevo Monstruo")}
                 </button>
               </div>
             </CreationCategoryCard>
@@ -293,29 +293,48 @@ function DM() {
               id="npcs"
               activeId={activeCreationCategory}
               onSelect={setActiveCreationCategory}
-              title="NPCs"
-              subtitle="Personajes"
+              title={t("dm.create.npcsTitle", "NPCs")}
+              subtitle={t("dm.create.npcsSubtitle", "Personajes")}
               icon={Users}
               color="#10b981"
-              actionLabel="Abrir"
+              actionLabel={t("dm.create.open", "Abrir")}
             >
               <div className="grid grid-cols-2 gap-2">
-                <button 
+                <button
                   onClick={() => nav({ to: "/campaign/npcs" })}
                   className="btn-fantasy bg-emerald-500/20 text-emerald-400 py-3"
                 >
-                  <Users size={16} className="inline mr-2" /> Ver NPCs
+                  <Users size={16} className="inline mr-2" /> {t("dm.create.viewNpcs", "Ver NPCs")}
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     const btn = document.querySelector('[data-open-npc-editor]') as HTMLButtonElement;
                     if (btn) btn.click();
                   }}
                   className="btn-fantasy bg-emerald-600 text-white py-3"
                 >
-                  <Plus size={16} className="inline mr-2" /> Nuevo NPC
+                  <Plus size={16} className="inline mr-2" /> {t("dm.create.newNpc", "Nuevo NPC")}
                 </button>
               </div>
+            </CreationCategoryCard>
+
+            <CreationCategoryCard
+              id="skills"
+              activeId={activeCreationCategory}
+              onSelect={setActiveCreationCategory}
+              title={t("dm.create.skillsTitle", "Habilidades")}
+              subtitle={t("dm.create.skillsSubtitle", "Creación de Skills")}
+              icon={Wand2}
+              color="#0ea5e9"
+            >
+              {players[0] && (
+                <SkillManualCreate
+                  campaignId={campaign.id}
+                  target={players[0]}
+                  dm={dmCtx}
+                  players={players}
+                />
+              )}
             </CreationCategoryCard>
           </div>
 
@@ -323,19 +342,6 @@ function DM() {
           <div className="hidden">
             <button data-open-monster-editor onClick={() => setImageViewerCharId('monster-new')} />
             <button data-open-npc-editor onClick={() => setImageViewerCharId('npc-new')} />
-          </div>
-
-          {/* Inline creation for Skills (since they are already complex) */}
-          <div className="mt-8 border-t border-white/10 pt-8">
-            <h3 className="font-display text-sm uppercase tracking-[0.2em] text-[var(--gold)] mb-4 px-2">Creación de Habilidades</h3>
-            {players[0] && (
-              <SkillManualCreate
-                campaignId={campaign.id}
-                target={players[0]}
-                dm={dmCtx}
-                players={players}
-              />
-            )}
           </div>
         </div>
       )}
