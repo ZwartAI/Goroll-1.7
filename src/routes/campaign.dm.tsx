@@ -54,6 +54,7 @@ function DM() {
   const [selBooster, setSelBooster] = useState<Booster | null>(null);
   const [editBooster, setEditBooster] = useState<Booster | null>(null);
   const [creatingBooster, setCreatingBooster] = useState(false);
+  const [creatingSkill, setCreatingSkill] = useState(false);
   const [boosterSel, setBoosterSel] = useState<Set<string>>(new Set());
   const [boosterSelectMode, setBoosterSelectMode] = useState(false);
   const [vaultTopic, setVaultTopic] = useState<"all" | "equip" | "objects">("all");
@@ -200,19 +201,8 @@ function DM() {
               subtitle={t("dm.create.rewardSackSubtitle")}
               icon={Gift}
               color="var(--gold)"
-            >
-              <div className="space-y-4">
-                <button
-                  onClick={() => setRewardSacksOpen(true)}
-                  className="btn-fantasy w-full bg-[var(--gold)] text-black py-3"
-                >
-                  <Plus size={18} className="inline mr-2" /> {t("dm.create.openRewardSacks")}
-                </button>
-                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  {t("dm.create.rewardSackDesc")}
-                </p>
-              </div>
-            </CreationCategoryCard>
+              onAction={() => setRewardSacksOpen(true)}
+            />
 
             <CreationCategoryCard
               id="items"
@@ -246,19 +236,8 @@ function DM() {
               subtitle={t("dm.create.boostersSubtitle")}
               icon={Sparkles}
               color="#a855f7"
-            >
-              <div className="space-y-4">
-                <button
-                  onClick={() => setCreatingBooster(true)}
-                  className="btn-fantasy w-full bg-purple-500 text-white py-3"
-                >
-                  <Plus size={18} className="inline mr-2" /> {t("dm.create.newBooster")}
-                </button>
-                <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
-                  {t("dm.create.boosterDesc")}
-                </p>
-              </div>
-            </CreationCategoryCard>
+              onAction={() => setCreatingBooster(true)}
+            />
 
             <CreationCategoryCard
               id="monsters"
@@ -326,16 +305,8 @@ function DM() {
               subtitle={t("dm.create.skillsSubtitle")}
               icon={Wand2}
               color="#0ea5e9"
-            >
-              {players[0] && (
-                <SkillManualCreate
-                  campaignId={campaign.id}
-                  target={players[0]}
-                  dm={dmCtx}
-                  players={players}
-                />
-              )}
-            </CreationCategoryCard>
+              onAction={() => players[0] && setCreatingSkill(true)}
+            />
           </div>
 
           {/* Trigger buttons for modals that need to stay outside the grid but reachable */}
@@ -643,6 +614,28 @@ function DM() {
           onClose={() => setRewardSacksOpen(false)} 
         />
       )}
+      {creatingSkill && players[0] && (
+        <div className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" {...backdropProps(() => setCreatingSkill(false))}>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar ornate-card bg-[#0d0d0d] border border-white/15 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3 border-b border-white/10 sticky top-0 bg-[#0d0d0d] z-10">
+              <h3 className="font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)]">{t("skills.createManualTitle")}</h3>
+              <button onClick={() => setCreatingSkill(false)} className="p-2 rounded-lg text-muted-foreground hover:text-white hover:bg-white/10" aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-3">
+              <SkillManualCreate
+                campaignId={campaign.id}
+                target={players[0]}
+                dm={dmCtx}
+                players={players}
+                hideToggle
+                onDone={() => setCreatingSkill(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </PageFrame>
   );
@@ -676,15 +669,19 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
-function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear" }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children: React.ReactNode, actionLabel?: string }) {
+function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void }) {
   const isActive = activeId === id;
+  const handleActivate = () => {
+    if (onAction) { onAction(); return; }
+    onSelect(isActive ? null : id);
+  };
   return (
     <>
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className={`group ornate-card p-2 sm:p-3 flex flex-col items-center justify-between text-center gap-2 cursor-pointer transition-all min-h-[150px] ${isActive ? 'ring-2 ring-[var(--gold)] bg-white/10' : 'bg-white/5 border-white/10'}`}
-        onClick={() => onSelect(isActive ? null : id)}
+        onClick={handleActivate}
       >
         <div
           className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg border flex items-center justify-center shadow-lg transition-all shrink-0"
@@ -703,14 +700,14 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
         <button
           className="w-full px-2 py-1 rounded-md text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-widest shadow hover:brightness-110 active:scale-95 transition-all"
           style={{ backgroundColor: color }}
-          onClick={(e) => { e.stopPropagation(); onSelect(isActive ? null : id); }}
+          onClick={(e) => { e.stopPropagation(); handleActivate(); }}
         >
           {actionLabel}
         </button>
       </motion.div>
 
       <AnimatePresence>
-        {isActive && (
+        {isActive && !onAction && (
           <div
             className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
             onClick={() => onSelect(null)}

@@ -629,11 +629,11 @@ function ImportSection({ campaignId, target, dm, existingCount, onDone }: {
   );
 }
 
-export function ManualCreate({ campaignId, target, dm, players, onDone }: {
-  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; players: Character[]; onDone?: () => void;
+export function ManualCreate({ campaignId, target, dm, players, onDone, hideToggle = false }: {
+  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; players: Character[]; onDone?: () => void; hideToggle?: boolean;
 }) {
   const { t } = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(hideToggle);
 
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState<Rarity>("white");
@@ -768,10 +768,12 @@ export function ManualCreate({ campaignId, target, dm, players, onDone }: {
 
   return (
     <div className="ornate-card p-3 space-y-2" style={{ borderColor: "color-mix(in oklab, var(--gold) 55%, var(--rarity-purple))" }}>
-      <button onClick={() => setOpen(!open)} className="w-full font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)] flex items-center justify-between">
-        <span className="flex items-center gap-1"><Plus size={14} /> {t("skills.createManualTitle")}</span>
-        <span className="text-xs text-muted-foreground">{open ? "−" : "+"}</span>
-      </button>
+      {!hideToggle && (
+        <button onClick={() => setOpen(!open)} className="w-full font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)] flex items-center justify-between">
+          <span className="flex items-center gap-1"><Plus size={14} /> {t("skills.createManualTitle")}</span>
+          <span className="text-xs text-muted-foreground">{open ? "−" : "+"}</span>
+        </button>
+      )}
 
       {open && (
         <div className="space-y-4">
