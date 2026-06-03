@@ -3,7 +3,7 @@ import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Tr
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fog-brush' | 'fog-polygon' | 'fog-eraser';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fog-brush' | 'fog-polygon' | 'fog-eraser' | 'fog-polygon-eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
