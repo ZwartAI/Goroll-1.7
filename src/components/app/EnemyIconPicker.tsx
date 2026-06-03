@@ -50,6 +50,19 @@ export type EnemyCustomImage = {
   scale?: number;
 };
 
+function getFramedImageStyle(customImage?: EnemyCustomImage | null) {
+  const ox = customImage?.offsetX ?? 50;
+  const oy = customImage?.offsetY ?? 50;
+  const sc = customImage?.scale ?? 1;
+
+  return {
+    objectFit: "contain" as const,
+    objectPosition: "center",
+    transform: `translate(${ox - 50}%, ${oy - 50}%) scale(${sc})`,
+    transformOrigin: "center",
+  };
+}
+
 /**
  * Extract the custom-image framing from a record. Works for both bestiary
  * templates (`image_url`, `image_offset_x`, …) and combat participants
@@ -81,17 +94,14 @@ export function EnemyIcon({
 }) {
   // Custom uploaded image takes precedence over assets / lucide icons.
   if (customImage?.url) {
-    const ox = customImage.offsetX ?? 50;
-    const oy = customImage.offsetY ?? 50;
-    const sc = customImage.scale ?? 1;
-    const tx = `translate(${ox - 50}%, ${oy - 50}%) scale(${sc})`;
+    const framedStyle = getFramedImageStyle(customImage);
     if (fill) {
       return (
         <img
           src={customImage.url}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center", transform: tx, transformOrigin: "center" }}
+          className="absolute inset-0 w-full h-full"
+          style={framedStyle}
         />
       );
     }
@@ -104,8 +114,7 @@ export function EnemyIcon({
           alt=""
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "center",
-            transform: tx, transformOrigin: "center",
+            ...framedStyle,
           }}
         />
       </span>
@@ -114,18 +123,18 @@ export function EnemyIcon({
 
   const asset = getEnemyAssetUrl(name);
   if (asset) {
-    const ox = customImage?.offsetX ?? 50;
-    const oy = customImage?.offsetY ?? 50;
-    const sc = (customImage?.scale ?? 1) * assetScale;
-    const tx = `translate(${ox - 50}%, ${oy - 50}%) scale(${sc})`;
+    const framedStyle = {
+      ...getFramedImageStyle(customImage),
+      transform: `translate(${(customImage?.offsetX ?? 50) - 50}%, ${(customImage?.offsetY ?? 50) - 50}%) scale(${(customImage?.scale ?? 1) * assetScale})`,
+    };
 
     if (fill) {
       return (
         <img
           src={asset}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center", transform: tx, transformOrigin: "center" }}
+          className="absolute inset-0 w-full h-full"
+          style={framedStyle}
         />
       );
     }
@@ -138,8 +147,7 @@ export function EnemyIcon({
           alt=""
           style={{
             position: "absolute", inset: 0, width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "center",
-            transform: tx, transformOrigin: "center",
+            ...framedStyle,
           }}
         />
       </span>
