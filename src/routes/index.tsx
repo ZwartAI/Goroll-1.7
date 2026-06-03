@@ -18,6 +18,7 @@ import { useT } from "@/lib/i18n";
 import goRollLogo from "@/assets/go-roll-logo.png";
 import loginFrame from "@/assets/login-frame.png";
 import { preloadCharacterSheetAssets } from "@/lib/preloadCharacterSheetAssets";
+import { getMyCampaigns } from "@/lib/campaigns.functions";
 
 
 export const Route = createFileRoute("/")({
@@ -78,14 +79,14 @@ function Home() {
   useEffect(() => {
     if (step !== "campaign" || !user) return;
     (async () => {
-      const { data: mem } = await (supabase as any).from("campaign_members")
-        .select("campaign_id").eq("user_id", user.id);
-      const ids = (mem || []).map((m: any) => m.campaign_id);
-      if (!ids.length) { setCampaigns([]); return; }
-      const { data } = await supabase.from("campaigns").select("*").in("id", ids).order("created_at", { ascending: false });
-      setCampaigns((data || []) as Campaign[]);
+      try {
+        const res = await getMyCampaignsFn({ data: { userId: user.id } });
+        setCampaigns((res.campaigns || []) as Campaign[]);
+      } catch {
+        setCampaigns([]);
+      }
     })();
-  }, [step, user]);
+  }, [step, user, getMyCampaignsFn]);
 
   // Load my characters + their equipped items when entering character step (player)
   useEffect(() => {
@@ -118,6 +119,7 @@ function Home() {
   }, [step, user, campaign, role]);
 
   const loginFn = useServerFn(attemptLogin);
+  const getMyCampaignsFn = useServerFn(getMyCampaigns);
   async function login() {
     if (busy) return;
     const uname = username.trim();
