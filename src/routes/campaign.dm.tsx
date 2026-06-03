@@ -670,6 +670,57 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
+function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear" }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children: React.ReactNode, actionLabel?: string }) {
+  const isActive = activeId === id;
+  return (
+    <div className="flex flex-col gap-2">
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className={`group ornate-card p-4 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-all min-h-[140px] ${isActive ? 'ring-2 ring-[var(--gold)] bg-white/10' : 'bg-white/5 border-white/10'}`}
+        onClick={() => onSelect(isActive ? null : id)}
+      >
+        <div 
+          className="w-12 h-12 rounded-xl border flex items-center justify-center shadow-lg transition-all"
+          style={{ 
+            backgroundColor: `${color}20`, 
+            borderColor: `${color}40`,
+            color: color
+          }}
+        >
+          <Icon size={24} />
+        </div>
+        <div>
+          <h3 className="font-display text-[10px] uppercase tracking-widest text-white group-hover:text-white/90">{title}</h3>
+          <p className="text-[8px] text-muted-foreground mt-1 uppercase tracking-tighter">{subtitle}</p>
+        </div>
+        <button 
+          className="mt-auto px-4 py-1.5 rounded-lg text-white text-[9px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all"
+          style={{ backgroundColor: color }}
+        >
+          {isActive ? "Cerrar" : actionLabel}
+        </button>
+      </motion.div>
+      
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 bg-white/5 border border-white/10 rounded-xl mt-1 shadow-inner">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+
 function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { campaignId: string; dm: { id: string; name: string; color: string }; players: Character[]; showTriggerButton?: boolean }) {
   const { t: tr } = useT();
   const [name, setName] = useState("");
