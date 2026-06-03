@@ -247,11 +247,13 @@ const KonvaFramedImage: React.FC<{
   const imgAspect = image.width / image.height;
   let drawW = size;
   let drawH = size;
-  
+
   if (imgAspect > 1) {
-    drawW = size * imgAspect;
-  } else {
+    drawW = size;
     drawH = size / imgAspect;
+  } else {
+    drawW = size * imgAspect;
+    drawH = size;
   }
 
   const finalW = drawW * scale;
