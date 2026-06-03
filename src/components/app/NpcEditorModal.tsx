@@ -209,10 +209,15 @@ export function NpcEditorModal({ campaignId, dm, editing, onClose, onSaved }: Pr
             </div>
           </div>
           <Field label={t("combat.icon")}><EnemyIconPicker value={icon} onChange={setIcon} /></Field>
-          <Field label={t("bestiary.customImage")}>
+          {/* NOTE: do NOT wrap the image editor in <Field> (which renders a <label>).
+              Any click on a label-wrapped block forwards the click to the first
+              form control inside it — that's the hidden file input — so clicking
+              sliders, the preview, or releasing a drag would open the file picker. */}
+          <div className="block space-y-1">
+            <span className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">{t("bestiary.customImage")}</span>
             <EnemyImageEditor value={image} onChange={setImage}
               fallbackUrl={getEnemyAssetUrl(icon)} storageKey={`npc/${campaignId}`} />
-          </Field>
+          </div>
           <Field label={t("combat.color")}><EnemyColorPicker value={color} onChange={setColor} /></Field>
         </Section>
 
