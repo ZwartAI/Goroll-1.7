@@ -412,6 +412,7 @@ export function DMConditionsCreator({
   const [damage, setDamage] = useState(0);
   const [targets, setTargets] = useState<string[]>([]);
   const { t } = useT();
+  const [isOpen, setIsOpen] = useState(false);
 
   async function loadCat() {
     const { data } = await (supabase as any).from("condition_effects_catalog")
