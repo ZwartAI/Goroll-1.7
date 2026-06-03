@@ -183,17 +183,6 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
               <p className="text-[10px] font-display uppercase tracking-wider truncate" style={{ color: p.color || 'var(--gold)' }}>
                 {p.name}
               </p>
-              <div className="h-1.5 w-full bg-black/40 rounded-full mt-1 relative z-50">
-                <div 
-                  className={cn(
-                    "h-full rounded-full transition-all duration-500",
-                    p.hp_percent > 50 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : 
-                    p.hp_percent > 20 ? "bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]" : 
-                    "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                  )}
-                  style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
-                />
-              </div>
             </div>
 
             {isDM && (
@@ -264,31 +253,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
               )}
               
               <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, x: 10 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, x: 10 }}
-                    className="absolute left-[calc(100%+8px)] top-0 p-2 bg-black border border-[var(--gold)]/50 rounded-lg text-white text-[10px] whitespace-nowrap min-w-[140px] max-w-[200px] shadow-[0_0_20px_rgba(0,0,0,0.8)] z-[100] pointer-events-none"
-                  >
-                    <div className="flex flex-col gap-1.5 w-full">
-                      <p className="font-display text-[var(--gold)] uppercase tracking-wider truncate w-full" title={p.name}>{p.name}</p>
-                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden border border-white/5 shrink-0">
-                        <div 
-                          className={cn(
-                            "h-full transition-all duration-500",
-                            p.hp_percent > 50 ? "bg-green-500" : p.hp_percent > 20 ? "bg-yellow-500" : "bg-red-500"
-                          )}
-                          style={{ width: `${Math.max(0, Math.min(100, p.hp_percent))}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[7px] text-white/40 font-bold uppercase tracking-tighter shrink-0">
-                        <span>HP</span>
-                        <span>{Math.round(p.hp_percent)}%</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
+                {/* Float card removed as per requirements - only expanding name is kept */}
               </AnimatePresence>
             </motion.div>
           );
