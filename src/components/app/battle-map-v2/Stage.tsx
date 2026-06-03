@@ -3,7 +3,8 @@ import { SceneConfig, MapToken, Drawing, isVideoUrl, FogElement } from '@/hooks/
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
 import { FogLayer } from './FogLayer';
-import { Stage as KonvaStage, Layer as KonvaLayer, Line as KonvaLine, Circle as KonvaCircle } from 'react-konva';
+import { Stage as KonvaStage, Layer as KonvaLayer, Group, Line as KonvaLine, Circle as KonvaCircle } from 'react-konva';
+
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
