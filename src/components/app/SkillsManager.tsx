@@ -768,10 +768,12 @@ export function ManualCreate({ campaignId, target, dm, players, onDone, hideTogg
 
   return (
     <div className="ornate-card p-3 space-y-2" style={{ borderColor: "color-mix(in oklab, var(--gold) 55%, var(--rarity-purple))" }}>
-      <button onClick={() => setOpen(!open)} className="w-full font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)] flex items-center justify-between">
-        <span className="flex items-center gap-1"><Plus size={14} /> {t("skills.createManualTitle")}</span>
-        <span className="text-xs text-muted-foreground">{open ? "−" : "+"}</span>
-      </button>
+      {!hideToggle && (
+        <button onClick={() => setOpen(!open)} className="w-full font-display text-sm uppercase tracking-widest text-[var(--rarity-purple)] flex items-center justify-between">
+          <span className="flex items-center gap-1"><Plus size={14} /> {t("skills.createManualTitle")}</span>
+          <span className="text-xs text-muted-foreground">{open ? "−" : "+"}</span>
+        </button>
+      )}
 
       {open && (
         <div className="space-y-4">
