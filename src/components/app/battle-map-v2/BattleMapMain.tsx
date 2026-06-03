@@ -36,7 +36,7 @@ interface Props {
 }
 
 export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar }: Props) {
-  const { campaign, character } = useGameData();
+  const { campaign, character, characters, onlineIds } = useGameData();
   const campaignId = campaign?.id || '';
   const isDM = character?.role === 'dm';
   const { t } = useT();
