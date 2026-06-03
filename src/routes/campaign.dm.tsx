@@ -309,8 +309,8 @@ function DM() {
 
           {/* Hidden original components to maintain state and functionality */}
           <div className="hidden">
-            <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} />
-            <DMConditionsCreator campaignId={campaign.id} players={players} />
+            <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} showTriggerButton={false} />
+            <DMConditionsCreator campaignId={campaign.id} players={players} showTriggerButton={false} />
             {players[0] && (
               <SkillManualCreate
                 campaignId={campaign.id}
