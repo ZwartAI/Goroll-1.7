@@ -83,7 +83,16 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
     }
   }, [battleMap, character?.id]);
 
+  const handleClearFog = useCallback(async () => {
+    await battleMap.clearFog();
+  }, [battleMap]);
+
+  const handleUndoFog = useCallback(async () => {
+    await battleMap.undoLastFog();
+  }, [battleMap]);
+
   useEffect(() => {
+
     if (isDM && !battleMap.isLoading && battleMap.scenes.length === 0) {
       battleMap.createScene('Mapa Principal');
     }
@@ -196,6 +205,10 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
+          onClearFog={handleClearFog}
+          onUndoFog={handleUndoFog}
+          fogElements={battleMap.fog}
+
           
           characterId={character?.id}
           authorName={character?.name}
