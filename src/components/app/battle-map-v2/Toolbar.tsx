@@ -72,7 +72,7 @@ export function Toolbar({
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fog-brush' || activeTool === 'fog-polygon' || activeTool === 'fog-eraser';
+  const isFogActive = activeTool === 'fog-brush' || activeTool === 'fog-polygon' || activeTool === 'fog-eraser' || activeTool === 'fog-polygon-eraser';
 
 
   const authors = React.useMemo(() => {
