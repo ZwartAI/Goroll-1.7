@@ -266,8 +266,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
     } else if (activeTool.startsWith('fog-')) {
       if (target.closest('[data-map-ui="true"]')) return;
       
-      const isPolygon = activeTool === 'fog-polygon';
-      const isEraser = activeTool === 'fog-eraser';
+      const isPolygon = activeTool === 'fog-polygon' || activeTool === 'fog-polygon-eraser';
+      const isEraser = activeTool === 'fog-eraser' || activeTool === 'fog-polygon-eraser';
 
       if (isEraser) {
         // Try to find a polygon to delete it entirely
