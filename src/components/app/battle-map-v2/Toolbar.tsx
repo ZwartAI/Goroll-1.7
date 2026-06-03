@@ -393,18 +393,20 @@ export function Toolbar({
                 </button>
                 <button 
                   onClick={() => {
-                    onClearDrawings(
-                      showClearModal === 'all' 
-                        ? { all: true } 
-                        : showClearModal === 'player'
-                        ? { authorId: selectedAuthorId || undefined }
-                        : showClearModal === 'fog'
-                        ? null // Handled below
-                        : { authorId: characterId || 'unknown' }
-                    );
-                    if (showClearModal === 'fog') onClearFog?.();
+                    if (showClearModal === 'fog') {
+                      onClearFog?.();
+                    } else {
+                      onClearDrawings(
+                        showClearModal === 'all' 
+                          ? { all: true } 
+                          : showClearModal === 'player'
+                          ? { authorId: selectedAuthorId || undefined }
+                          : { authorId: characterId || 'unknown' }
+                      );
+                    }
                     setShowClearModal(null);
                   }}
+
 
                   className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-colors text-sm uppercase tracking-wider"
                 >
