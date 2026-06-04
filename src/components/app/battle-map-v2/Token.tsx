@@ -16,6 +16,8 @@ interface Props {
   gridOffsetY?: number;
   isDragging?: boolean;
   activeTool?: string;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
   onMove: (x: number, y: number, isFinal?: boolean) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
@@ -28,6 +30,8 @@ export const Token = memo(function Token({
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
   isDragging: isDraggingProp = false,
   activeTool,
+  isSelected = false,
+  onToggleSelect,
   onMove, onRemove, onUpdateSize,
   screenToWorld,
   onDragStart,
@@ -38,6 +42,8 @@ export const Token = memo(function Token({
   const [localDragging, setLocalDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [visualPos, setVisualPos] = useState({ x: token.x, y: token.y });
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const movedRef = useRef(false);
 
   // Keep visual position in sync with token prop when not dragging
   useEffect(() => {
@@ -56,6 +62,9 @@ export const Token = memo(function Token({
 
     e.preventDefault();
     e.stopPropagation();
+
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    movedRef.current = false;
 
     const worldCoords = screenToWorld(e.clientX, e.clientY);
     setDragOffset({
@@ -83,6 +92,14 @@ export const Token = memo(function Token({
     e.preventDefault();
     e.stopPropagation();
 
+    if (pointerStartRef.current) {
+      const dx = e.clientX - pointerStartRef.current.x;
+      const dy = e.clientY - pointerStartRef.current.y;
+      if (!movedRef.current && Math.hypot(dx, dy) > 5) {
+        movedRef.current = true;
+      }
+    }
+
     const worldCoords = screenToWorld(e.clientX, e.clientY);
     const newX = worldCoords.x - dragOffset.x;
     const newY = worldCoords.y - dragOffset.y;
@@ -97,6 +114,18 @@ export const Token = memo(function Token({
 
     e.preventDefault();
     e.stopPropagation();
+
+    // Multi-move: a tap (no significant movement) toggles selection instead of moving
+    if (activeTool === 'multi-move' && !movedRef.current) {
+      setLocalDragging(false);
+      pointerStartRef.current = null;
+      // Reset to original position
+      setVisualPos({ x: token.x, y: token.y });
+      onToggleSelect?.(token.id);
+      onDragEnd?.();
+      try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
 
     let finalX = visualPos.x;
     let finalY = visualPos.y;
@@ -122,6 +151,8 @@ export const Token = memo(function Token({
     }
 
     setLocalDragging(false);
+    pointerStartRef.current = null;
+    movedRef.current = false;
     onMove(finalX, finalY, true);
     onDragEnd?.();
 
@@ -162,6 +193,13 @@ export const Token = memo(function Token({
         touchAction: 'none'
       }}
     >
+      {/* Multi-select ring */}
+      {isSelected && (
+        <div
+          className="absolute -inset-1.5 rounded-full pointer-events-none border-2 border-[var(--gold)] animate-pulse"
+          style={{ boxShadow: '0 0 18px rgba(234,179,8,0.55)' }}
+        />
+      )}
       <div 
         className={cn(
           "relative w-full h-full rounded-full border-2 bg-black/60 overflow-hidden shadow-xl transition-all pointer-events-none",

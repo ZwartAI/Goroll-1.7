@@ -21,16 +21,18 @@ interface Props {
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
   onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
+  onSelectionChange?: (count: number) => void;
 }
 
 export interface StageHandle {
   centerView: () => void;
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
+  clearMultiSelection: () => void;
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
-  onMapLoad
+  onMapLoad, onSelectionChange
 }, ref) => {
   const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
@@ -58,6 +60,33 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+
+  // Multi-move selection (DM only)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const multiDragOrigins = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const multiDragLeaderId = useRef<string | null>(null);
+
+  // Clear selection when leaving multi-move mode
+  useEffect(() => {
+    if (activeTool !== 'multi-move' && selectedIds.size > 0) {
+      setSelectedIds(new Set());
+    }
+  }, [activeTool]);
+
+  // Notify parent of selection size changes
+  useEffect(() => {
+    onSelectionChange?.(selectedIds.size);
+  }, [selectedIds, onSelectionChange]);
+
+  const toggleSelectToken = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
@@ -180,7 +209,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   useImperativeHandle(ref, () => ({
     centerView,
-    screenToWorld
+    screenToWorld,
+    clearMultiSelection: () => setSelectedIds(new Set()),
   }));
 
   // Persistence: Save view position
@@ -297,7 +327,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'move') {
+    } else if (activeTool === 'move' || activeTool === 'multi-move') {
 
       if (tokenId) return;
 
@@ -567,7 +597,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     <div 
       className={cn(
         "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
-        activeTool === 'move' ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
+        (activeTool === 'move' || activeTool === 'multi-move') ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
       )}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
@@ -701,18 +731,58 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingTokenId === token.id}
                 activeTool={activeTool}
+                isSelected={selectedIds.has(token.id)}
+                onToggleSelect={(id) => toggleSelectToken(id)}
                 onMove={(x: number, y: number, isFinal: boolean = true) => {
+                  // Group-move when this token is the multi-drag leader
+                  if (activeTool === 'multi-move' && multiDragLeaderId.current === token.id) {
+                    const leaderOrigin = multiDragOrigins.current.get(token.id);
+                    if (leaderOrigin) {
+                      const dx = x - leaderOrigin.x;
+                      const dy = y - leaderOrigin.y;
+                      multiDragOrigins.current.forEach((origin, id) => {
+                        if (id === token.id) return;
+                        updateTokenPosition(id, origin.x + dx, origin.y + dy, isFinal);
+                      });
+                    }
+                    if (isFinal) {
+                      multiDragOrigins.current.clear();
+                      multiDragLeaderId.current = null;
+                    }
+                  }
                   updateTokenPosition(token.id, x, y, isFinal);
                 }}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
-                onDragStart={(id) => setDraggingTokenId(id)}
+                onDragStart={(id) => {
+                  setDraggingTokenId(id);
+                  if (activeTool === 'multi-move') {
+                    // Auto-add the leader to selection
+                    setSelectedIds(prev => {
+                      if (prev.has(id)) return prev;
+                      const next = new Set(prev);
+                      next.add(id);
+                      return next;
+                    });
+                    // Snapshot origins of all selected tokens (plus leader)
+                    const origins = new Map<string, { x: number; y: number }>();
+                    const ids = new Set(selectedIds);
+                    ids.add(id);
+                    ids.forEach(tid => {
+                      const tk = tokens.find((t: MapToken) => t.id === tid);
+                      if (tk) origins.set(tid, { x: tk.x, y: tk.y });
+                    });
+                    multiDragOrigins.current = origins;
+                    multiDragLeaderId.current = id;
+                  }
+                }}
                 onDragEnd={() => setDraggingTokenId(null)}
               />
             </div>
             ))
           })()}
+
         </div>
 
         {rulerStart && rulerEnd && (

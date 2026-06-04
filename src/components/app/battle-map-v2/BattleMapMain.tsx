@@ -64,6 +64,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [isManagingSkills, setIsManagingSkills] = useState(false);
   const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
+  const [selectedTokensCount, setSelectedTokensCount] = useState(0);
 
 
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
@@ -190,7 +191,10 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           authorColor={character?.color || '#FFD700'}
           showParticipants={showSidebar}
           onMapLoad={(dims: any) => setMapDimensions(dims)}
+          onSelectionChange={setSelectedTokensCount}
         />
+
+
 
         {/* Sidebar (Turns/Participants) */}
         <Sidebar 
@@ -244,6 +248,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           }}
           hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
+          selectedTokensCount={selectedTokensCount}
+          onClearSelection={() => stageRef.current?.clearMultiSelection()}
         />
 
 

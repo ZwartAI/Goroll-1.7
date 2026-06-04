@@ -288,6 +288,13 @@ export const es = {
       clearAll: "Descartar todos",
       remaining: "{n} restantes",
     },
+    tools: {
+      move: "Mover",
+      multiMove: "Mover varios",
+      multiMoveHint: "Toca tokens para seleccionarlos. Arrastra uno seleccionado para moverlos todos.",
+      selected: "{n} seleccionados",
+      clearSelection: "Limpiar selección",
+    },
   },
 
   profile: {
