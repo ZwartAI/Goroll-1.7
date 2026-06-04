@@ -272,6 +272,22 @@ export const es = {
     grid: "Cuadrícula (Grid)",
     exit: "Salir",
     saveToScene: "Guardar en Escena",
+    summon: {
+      title: "Invocar Tokens",
+      subtitle: "Elige una fuente",
+      bestiary: "Bestiario",
+      players: "Jugadores",
+      npcs: "NPCs",
+      back: "Volver",
+      search: "Buscar...",
+      empty: "No hay entradas disponibles.",
+      summonSelected: "Invocar ({n})",
+      trayTitle: "Arrastra al mapa",
+      traySubtitle: "Arrastra cada token para colocarlo",
+      cancel: "Cancelar",
+      clearAll: "Descartar todos",
+      remaining: "{n} restantes",
+    },
   },
 
   profile: {

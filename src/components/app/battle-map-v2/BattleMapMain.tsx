@@ -26,6 +26,8 @@ import { ConditionsPanel } from '../ConditionsPanel';
 import { SkillsManager } from '../SkillsManager';
 import { ItemEditor } from '../ItemEditor';
 import { backdropProps } from '@/lib/modalBackdrop';
+import { TokenSummonModal } from './TokenSummonModal';
+import { TokenSummonTray, QueuedToken } from './TokenSummonTray';
 
 
 interface Props {
@@ -51,6 +53,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [measureSnap, setMeasureSnap] = useState(true);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
+  const [showSummonModal, setShowSummonModal] = useState(false);
+  const [summonQueue, setSummonQueue] = useState<QueuedToken[]>([]);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
   const [showCreationGrid, setShowCreationGrid] = useState(false);
   const [showRewardSacks, setShowRewardSacks] = useState(false);
@@ -381,10 +385,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         showToolbar={showToolbar}
         onToggleToolbar={() => setShowToolbar(!showToolbar)}
         onInvokeToken={() => {
-          // Implementación para abrir selector de tokens si fuera necesario
-          // Por ahora solo cerramos para indicar que recibió el click
           setShowAdminSidebar(false);
-          toast.info("Función de invocar en desarrollo para v2");
+          setShowSummonModal(true);
         }}
         onOpenSettings={() => {
           setShowSettings(true);
@@ -395,6 +397,36 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           setShowAdminSidebar(false);
         }}
       />
+
+      {/* Token Summon Modal (DM/Co-DM) */}
+      <AnimatePresence>
+        {showSummonModal && isDM && (
+          <TokenSummonModal
+            campaignId={campaignId}
+            onClose={() => setShowSummonModal(false)}
+            onConfirm={(tokens) => {
+              setSummonQueue(prev => [
+                ...prev,
+                ...tokens.map((tk) => ({ ...tk, __queueId: Math.random().toString(36).slice(2) }))
+              ]);
+              setShowSummonModal(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Token Summon Tray (drag onto map) */}
+      <TokenSummonTray
+        queue={summonQueue}
+        setQueue={setSummonQueue}
+        stageRef={stageRef}
+        gridSize={battleMap.activeScene?.grid_size || 70}
+        snapToGrid={!!battleMap.activeScene?.snap_to_grid}
+        gridOffsetX={battleMap.activeScene?.grid_offset_x || 0}
+        gridOffsetY={battleMap.activeScene?.grid_offset_y || 0}
+        onPlace={(tk) => battleMap.addToken(tk)}
+      />
+
 
       <AnimatePresence>
         {showCreationGrid && (
