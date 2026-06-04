@@ -23,6 +23,7 @@ import { SkillsManager, ManualCreate as SkillManualCreate } from "@/components/a
 import { Escenario } from "@/components/app/Escenario";
 import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
+import logNavImg from "@/assets/nav/Log.png.asset.json";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
