@@ -723,18 +723,58 @@ export const Stage = forwardRef<StageHandle, Props>(({
                 gridOffsetY={activeScene.grid_offset_y}
                 isDragging={draggingTokenId === token.id}
                 activeTool={activeTool}
+                isSelected={selectedIds.has(token.id)}
+                onToggleSelect={(id) => toggleSelectToken(id)}
                 onMove={(x: number, y: number, isFinal: boolean = true) => {
+                  // Group-move when this token is the multi-drag leader
+                  if (activeTool === 'multi-move' && multiDragLeaderId.current === token.id) {
+                    const leaderOrigin = multiDragOrigins.current.get(token.id);
+                    if (leaderOrigin) {
+                      const dx = x - leaderOrigin.x;
+                      const dy = y - leaderOrigin.y;
+                      multiDragOrigins.current.forEach((origin, id) => {
+                        if (id === token.id) return;
+                        updateTokenPosition(id, origin.x + dx, origin.y + dy, isFinal);
+                      });
+                    }
+                    if (isFinal) {
+                      multiDragOrigins.current.clear();
+                      multiDragLeaderId.current = null;
+                    }
+                  }
                   updateTokenPosition(token.id, x, y, isFinal);
                 }}
                 onUpdateSize={(size: number) => updateTokenSize(token.id, size)}
                 onRemove={() => battleMap.removeToken(token.id)}
                 screenToWorld={screenToWorld}
-                onDragStart={(id) => setDraggingTokenId(id)}
+                onDragStart={(id) => {
+                  setDraggingTokenId(id);
+                  if (activeTool === 'multi-move') {
+                    // Auto-add the leader to selection
+                    setSelectedIds(prev => {
+                      if (prev.has(id)) return prev;
+                      const next = new Set(prev);
+                      next.add(id);
+                      return next;
+                    });
+                    // Snapshot origins of all selected tokens (plus leader)
+                    const origins = new Map<string, { x: number; y: number }>();
+                    const ids = new Set(selectedIds);
+                    ids.add(id);
+                    ids.forEach(tid => {
+                      const tk = tokens.find((t: MapToken) => t.id === tid);
+                      if (tk) origins.set(tid, { x: tk.x, y: tk.y });
+                    });
+                    multiDragOrigins.current = origins;
+                    multiDragLeaderId.current = id;
+                  }
+                }}
                 onDragEnd={() => setDraggingTokenId(null)}
               />
             </div>
             ))
           })()}
+
         </div>
 
         {rulerStart && rulerEnd && (
