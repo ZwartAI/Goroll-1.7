@@ -53,6 +53,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [measureSnap, setMeasureSnap] = useState(true);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
+  const [showSummonModal, setShowSummonModal] = useState(false);
+  const [summonQueue, setSummonQueue] = useState<QueuedToken[]>([]);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
   const [showCreationGrid, setShowCreationGrid] = useState(false);
   const [showRewardSacks, setShowRewardSacks] = useState(false);
