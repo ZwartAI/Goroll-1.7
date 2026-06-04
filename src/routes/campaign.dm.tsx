@@ -736,6 +736,7 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
           {actionLabel}
         </button>
       </motion.div>
+      )}
 
       <AnimatePresence>
         {isActive && !onAction && (
