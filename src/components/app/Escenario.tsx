@@ -50,7 +50,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   const [openOffline, setOpenOffline] = useState(false);
   const [showBattleMap, setShowBattleMap] = useState(false);
   const { t } = useT();
-  const { combat, character, campaign } = useGameData();
+  const { combat, character } = useGameData();
   const isDM = character?.role === "dm";
   const combatActive = combat.encounter?.status === "active";
 
@@ -88,23 +88,7 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
             <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
           </button>
         )}
-
-
-        {isDM && (
-          <button
-            onClick={() => setShowRewardSacks(true)}
-            className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-blue-500/40 hover:border-blue-400 hover:bg-blue-500/10 transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.1)] active:scale-95"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Gift className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
-            <span className="font-display text-xs uppercase tracking-[0.2em] text-blue-300 shadow-sm">
-              {t("rewards.title")}
-            </span>
-            <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-          </button>
-        )}
       </div>
-
 
       <div className="ornate-card p-3 mb-4">
         <div className="flex items-center justify-center mb-2">
@@ -209,15 +193,6 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
           )}
         </Suspense>
       )}
-
-
-      {showRewardSacks && campaign && (
-        <RewardSackManager 
-          campaignId={campaign.id} 
-          onClose={() => setShowRewardSacks(false)} 
-        />
-      )}
-
     </>
   );
 }
