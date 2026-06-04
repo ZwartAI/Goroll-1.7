@@ -24,6 +24,11 @@ import { Escenario } from "@/components/app/Escenario";
 import { CharacterImageViewer } from "@/components/app/CharacterImageViewer";
 import { CombatDMPanel } from "@/components/app/CombatDMPanel";
 import logNavImg from "@/assets/nav/Log.png.asset.json";
+import createNavImg from "@/assets/nav/Create.png.asset.json";
+import vaultNavImg from "@/assets/nav/Vault.png.asset.json";
+import boostNavImg from "@/assets/nav/Boost.png.asset.json";
+import skillsNavImg from "@/assets/nav/Skills.png.asset.json";
+import sceneNavImg from "@/assets/nav/Scene.png.asset.json";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
@@ -128,11 +133,11 @@ function DM() {
       <div className="grid grid-cols-6 gap-1 mb-4">
         {([
           ["log", t("dm.tabLog"), ScrollText, "oklch(0.72 0.10 95)", logNavImg.url],
-          ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)", null],
-          ["vault", t("dm.tabVault"), Boxes, "oklch(0.65 0.09 60)", null],
-          ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)", null],
-          ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)", null],
-          ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)", null],
+          ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)", createNavImg.url],
+          ["vault", t("dm.tabVault"), Boxes, "oklch(0.65 0.09 60)", vaultNavImg.url],
+          ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)", boostNavImg.url],
+          ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)", skillsNavImg.url],
+          ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)", sceneNavImg.url],
         ] as const).map(([k, l, Icon, color, img]) => (
           <button
             key={k}
