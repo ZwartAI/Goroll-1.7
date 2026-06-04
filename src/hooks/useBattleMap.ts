@@ -210,13 +210,11 @@ export const useBattleMap = (campaignId: string) => {
     if (!activeScene?.id) {
       setTokens([]);
       setDrawings([]);
-      setFog([]);
       return;
     }
 
     fetchTokens(activeScene.id);
     fetchDrawings(activeScene.id);
-    fetchFog(activeScene.id);
 
 
     const tokensSubscription = supabase
@@ -264,29 +262,12 @@ export const useBattleMap = (campaignId: string) => {
       )
       .subscribe();
 
-    const fogSubscription = supabase
-      .channel(`battle_map_fog_${activeScene.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'battle_map_fog_simple',
-          filter: `scene_id=eq.${activeScene.id}`,
-        },
-        () => {
-          if (activeSceneIdRef.current) fetchFog(activeSceneIdRef.current);
-        }
-      )
-      .subscribe();
-
 
     return () => {
       tokensSubscription.unsubscribe();
       drawingsSubscription.unsubscribe();
-      fogSubscription.unsubscribe();
     };
-  }, [activeScene?.id, fetchTokens, fetchDrawings, fetchFog]);
+  }, [activeScene?.id, fetchTokens, fetchDrawings]);
 
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
@@ -389,57 +370,6 @@ export const useBattleMap = (campaignId: string) => {
     if (authorDrawings.length > 0) await removeDrawing(authorDrawings[authorDrawings.length - 1].id);
   };
 
-  const addFogElement = async (element: Omit<FogElement, 'id' | 'campaign_id' | 'scene_id' | 'created_at'>) => {
-    if (!activeScene) return;
-    
-    const tempId = Math.random().toString(36).substring(7);
-    const newElement: FogElement = {
-      ...element,
-      id: tempId,
-      campaign_id: campaignId,
-      scene_id: activeScene.id,
-      created_at: new Date().toISOString()
-    };
-    
-    // Optimistic update
-    setFog(prev => [...prev, newElement]);
-
-    const { data, error } = await supabase.from('battle_map_fog_simple').insert([{
-      ...element,
-      campaign_id: campaignId,
-      scene_id: activeScene.id,
-      points: element.points as any
-    }]).select().single();
-    
-    if (error) {
-      toast.error('Error al guardar niebla');
-      setFog(prev => prev.filter(f => f.id !== tempId));
-    } else if (data) {
-      // Replace temp with real data
-      setFog(prev => prev.map(f => f.id === tempId ? (data as unknown as FogElement) : f));
-    }
-  };
-
-  const removeFogElement = async (fogId: string) => {
-    setFog(prev => prev.filter(f => f.id !== fogId));
-    await supabase.from('battle_map_fog_simple').delete().eq('id', fogId);
-  };
-
-  const clearFog = async () => {
-    if (!activeScene) return;
-    await supabase.from('battle_map_fog_simple').delete().match({
-      scene_id: activeScene.id,
-      campaign_id: campaignId
-    });
-    fetchFog(activeScene.id);
-  };
-
-  const undoLastFog = async () => {
-    if (!activeScene || fog.length === 0) return;
-    const last = fog[fog.length - 1];
-    await removeFogElement(last.id);
-  };
-
 
 
   return {
@@ -447,7 +377,6 @@ export const useBattleMap = (campaignId: string) => {
     scenes,
     tokens,
     drawings,
-    fog,
     isLoading,
     updateScene,
     createScene,
@@ -459,11 +388,7 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing,
-    addFogElement,
-    removeFogElement,
-    clearFog,
-    undoLastFog
+    undoLastDrawing
   };
 };
 
