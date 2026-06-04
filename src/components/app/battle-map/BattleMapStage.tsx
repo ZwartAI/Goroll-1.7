@@ -711,8 +711,8 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
                 width={videoRef.current && videoRef.current.videoWidth > 0 ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 40} 
                 height={videoRef.current && videoRef.current.videoHeight > 0 ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 40} 
                 opacity={config.backgroundOpacity} 
-                filters={[Konva.Filters.Brighten]}
-                brightness={config.backgroundBrightness - 1}
+                filters={IS_MOBILE ? undefined : [Konva.Filters.Brighten]}
+                brightness={IS_MOBILE ? 0 : config.backgroundBrightness - 1}
                 listening={false}
               />
             ) : bgImage ? (
