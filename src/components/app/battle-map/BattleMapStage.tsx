@@ -185,10 +185,11 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
         setTimeout(() => {
           if (!imageRef.current) return;
           const brightnessDelta = (config.backgroundBrightness ?? 1) - 1;
-          // Only cache when the brightness filter actually changes pixels.
-          // Caching large images on mobile blows past the canvas size limit
-          // and produces white-block render glitches.
-          if (Math.abs(brightnessDelta) < 0.01) {
+          // Skip caching on mobile entirely: even at reduced pixelRatio,
+          // multi-megapixel maps overflow the canvas budget and render
+          // as white tiles. Without cache the brightness filter is a no-op,
+          // which is an acceptable tradeoff to keep the map usable.
+          if (IS_MOBILE || Math.abs(brightnessDelta) < 0.01) {
             imageRef.current.clearCache();
           } else {
             const maxDim = Math.max(bgImage?.width || 0, bgImage?.height || 0);
@@ -202,6 +203,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
           imageRef.current.getLayer()?.batchDraw();
         }, 300);
       }
+
 
     } else if (status === 'failed' || (!config.backgroundUrl)) {
       const stageWidth = width;
