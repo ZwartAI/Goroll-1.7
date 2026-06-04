@@ -430,15 +430,15 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const img = new Image();
       img.onload = () => {
         onMapLoad({
-          width: 8000,
-          height: 8000,
+          width: mapDims.width,
+          height: mapDims.height,
           imgWidth: img.width,
           imgHeight: img.height
         });
       };
       img.src = activeScene.background_url;
     }
-  }, [activeScene?.background_url, onMapLoad]);
+  }, [activeScene?.background_url, onMapLoad, mapDims.width, mapDims.height]);
 
 
   if (!activeScene) {
