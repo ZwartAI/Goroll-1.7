@@ -1,4 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+
 
 export type ListRowAction = {
   key: string;
@@ -22,18 +24,45 @@ export function ListRowActionsMenu({
   onClose: () => void;
   actions: ListRowAction[];
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; placement: "top" | "bottom" } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const compute = () => {
+      const anchor = anchorRef.current?.parentElement;
+      if (!anchor) return;
+      const r = anchor.getBoundingClientRect();
+      const menuH = menuRef.current?.offsetHeight ?? 0;
+      const menuW = menuRef.current?.offsetWidth ?? 160;
+      const spaceBelow = window.innerHeight - r.bottom;
+      const placement: "top" | "bottom" = spaceBelow < menuH + 12 && r.top > menuH + 12 ? "top" : "bottom";
+      const top = placement === "bottom" ? r.bottom + 4 : r.top - menuH - 4;
+      const left = Math.max(8, Math.min(window.innerWidth - menuW - 8, r.right - menuW));
+      setPos({ top, left, placement });
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    window.addEventListener("scroll", compute, true);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", compute, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onDocPointer = (e: PointerEvent) => {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) onClose();
+      if (!menuRef.current) return;
+      const target = e.target as Node;
+      if (menuRef.current.contains(target)) return;
+      if (anchorRef.current?.parentElement?.contains(target)) return;
+      onClose();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    // Defer one tick so the click that opened the menu doesn't close it.
     const id = window.setTimeout(() => {
       document.addEventListener("pointerdown", onDocPointer, true);
     }, 0);
@@ -45,29 +74,38 @@ export function ListRowActionsMenu({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open) return <span ref={anchorRef} className="hidden" />;
   return (
-    <div
-      ref={ref}
-      role="menu"
-      className="absolute right-0 top-full mt-1 z-50 min-w-[10rem] rounded-md border border-border bg-card shadow-lg p-1"
-    >
-      {actions.map((a) => (
-        <button
-          key={a.key}
-          role="menuitem"
-          onClick={() => {
-            onClose();
-            a.onSelect();
-          }}
-          className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center gap-2 hover:bg-muted/60 ${
-            a.danger ? "text-[var(--loss)]" : ""
-          }`}
-        >
-          {a.icon}
-          <span className="truncate">{a.label}</span>
-        </button>
-      ))}
-    </div>
+    <>
+      <span ref={anchorRef} className="hidden" />
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            style={{ position: "fixed", top: pos?.top ?? -9999, left: pos?.left ?? -9999, visibility: pos ? "visible" : "hidden" }}
+            className="z-[100] min-w-[10rem] rounded-md border border-border bg-card shadow-lg p-1"
+          >
+            {actions.map((a) => (
+              <button
+                key={a.key}
+                role="menuitem"
+                onClick={() => {
+                  onClose();
+                  a.onSelect();
+                }}
+                className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center gap-2 hover:bg-muted/60 ${
+                  a.danger ? "text-[var(--loss)]" : ""
+                }`}
+              >
+                {a.icon}
+                <span className="truncate">{a.label}</span>
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
+
