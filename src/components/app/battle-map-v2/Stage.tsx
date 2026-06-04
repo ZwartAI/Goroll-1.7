@@ -589,7 +589,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     <div 
       className={cn(
         "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
-        activeTool === 'move' ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
+        (activeTool === 'move' || activeTool === 'multi-move') ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
       )}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
