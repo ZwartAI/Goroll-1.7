@@ -15,7 +15,7 @@ interface Props {
 
 export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, showParticipants = true }: Props) {
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const { combat, characters } = useGameData();
+  const { combat, characters, onlineIds } = useGameData();
   const { tokens, removeToken, activeScene } = battleMap;
   const [expandedNameId, setExpandedNameId] = useState<string | null>(null);
 
@@ -103,7 +103,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
       });
     }
     
-    return characters.filter(c => c.role !== 'dm').map(c => ({
+    return characters.filter(c => c.role !== 'dm' && onlineIds.has(c.id)).map(c => ({
       id: c.id,
       characterId: c.id,
       name: c.name,
@@ -114,7 +114,7 @@ export function Sidebar({ onOpenChar, battleMap, isDM, onInitiatePlacement, show
       type: 'player',
       original: c
     }));
-  }, [combat.encounter, blocks, characters]);
+  }, [combat.encounter, blocks, characters, onlineIds]);
 
   const handleToggleToken = (p: any) => {
     if (!activeScene) return;
