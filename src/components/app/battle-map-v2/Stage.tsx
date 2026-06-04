@@ -61,6 +61,49 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
+  // Dynamic map dimensions: auto-fit to background image + 5 cells of padding on each side.
+  // Falls back to a compact 30×30 grid when no background is set.
+  const [mapDims, setMapDims] = useState<{ width: number; height: number }>(() => ({
+    width: (activeScene?.grid_size || 70) * 30,
+    height: (activeScene?.grid_size || 70) * 30,
+  }));
+
+  useEffect(() => {
+    if (!activeScene) return;
+    const grid = activeScene.grid_size || 70;
+    const padding = grid * 10; // 5 cells each side
+    const fallback = grid * 30;
+
+    if (!activeScene.background_url) {
+      setMapDims({ width: fallback, height: fallback });
+      return;
+    }
+
+    if (isVideoUrl(activeScene.background_url)) {
+      const vid = document.createElement('video');
+      vid.preload = 'metadata';
+      vid.onloadedmetadata = () => {
+        const scale = activeScene.background_scale || 1;
+        setMapDims({
+          width: Math.max(fallback, Math.round(vid.videoWidth * scale + padding)),
+          height: Math.max(fallback, Math.round(vid.videoHeight * scale + padding)),
+        });
+      };
+      vid.src = activeScene.background_url;
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const scale = activeScene.background_scale || 1;
+      setMapDims({
+        width: Math.max(fallback, Math.round(img.width * scale + padding)),
+        height: Math.max(fallback, Math.round(img.height * scale + padding)),
+      });
+    };
+    img.src = activeScene.background_url;
+  }, [activeScene?.background_url, activeScene?.background_scale, activeScene?.grid_size]);
+
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
   const lastPinchDist = useRef<number | null>(null);
