@@ -116,56 +116,62 @@ function NpcsPage() {
         <p className="text-center text-xs text-muted-foreground py-8">{t("npcs.empty")}</p>
       )}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="flex flex-col gap-1">
         {filtered.map(tpl => {
           const customImg = getEnemyCustomImage(tpl as any);
           const hasAsset = !!customImg || !!getEnemyAssetUrl(tpl.icon_key);
+          const actions: ListRowAction[] = [
+            { key: "view", label: t("npcs.viewSheet"), icon: <Eye size={12} />, onSelect: () => setViewing(tpl) },
+            { key: "edit", label: t("common.edit"), icon: <Edit3 size={12} />, onSelect: () => setEditing(tpl) },
+            {
+              key: "duplicate",
+              label: t("npcs.duplicate"),
+              icon: <Copy size={12} />,
+              onSelect: async () => {
+                const r = await duplicateNpcTemplate(tpl, dmCtx);
+                if (!r.ok) toast.error(t("npcs.saveError"));
+                else toast.success(t("npcs.duplicated"));
+              },
+            },
+            ...(combat.encounter && combat.encounter.status !== "ended"
+              ? [{ key: "combat", label: t("npcs.addToCombat"), icon: <Swords size={12} />, onSelect: () => setSpawning(tpl) }]
+              : []),
+            { key: "delete", label: t("npcs.delete"), icon: <Trash2 size={12} />, onSelect: () => setDeleting(tpl), danger: true },
+          ];
           return (
-            <article key={tpl.id} className="ornate-card p-2 space-y-1.5"
-              style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}>
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="w-8 h-8 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 relative"
-                  style={{ borderColor: tpl.color, color: tpl.color }}>
-                  <EnemyIcon name={tpl.icon_key} size={18} fill={hasAsset} customImage={customImg} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-display truncate text-xs" style={{ color: tpl.color }}>{tpl.name}</p>
-                  <p className="text-[9px] text-muted-foreground truncate">
-                    {t(`npcs.type_${tpl.npc_type}`)} · {t(`npcs.disp_${tpl.disposition}`)}
-                  </p>
-                </div>
+            <article
+              key={tpl.id}
+              className="ornate-card px-2 py-1.5 flex items-center gap-2"
+              style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}
+            >
+              <div
+                className="w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0"
+                style={{ borderColor: tpl.color, color: tpl.color }}
+              >
+                <EnemyIcon name={tpl.icon_key} size={22} fill={hasAsset} customImage={customImg} />
               </div>
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <button className="btn-fantasy w-full text-[10px] py-1 flex items-center justify-center gap-1">
-                    <MoreHorizontal size={10} /> {t("common.manage")}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-44">
-                  <DropdownMenuItem onClick={() => setViewing(tpl)} className="text-xs gap-2 cursor-pointer">
-                    <Eye size={12} /> {t("npcs.viewSheet")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setEditing(tpl)} className="text-xs gap-2 cursor-pointer">
-                    <Edit3 size={12} /> {t("common.edit")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => {
-                    const r = await duplicateNpcTemplate(tpl, dmCtx);
-                    if (!r.ok) toast.error(t("npcs.saveError"));
-                    else toast.success(t("npcs.duplicated"));
-                  }} className="text-xs gap-2 cursor-pointer">
-                    <Copy size={12} /> {t("npcs.duplicate")}
-                  </DropdownMenuItem>
-                  {combat.encounter && combat.encounter.status !== "ended" && (
-                    <DropdownMenuItem onClick={() => setSpawning(tpl)} className="text-xs gap-2 cursor-pointer">
-                      <Swords size={12} /> {t("npcs.addToCombat")}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => setDeleting(tpl)} className="text-xs gap-2 cursor-pointer text-[var(--loss)]">
-                    <Trash2 size={12} /> {t("npcs.delete")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex-1 min-w-0">
+                <p className="font-display truncate text-sm" style={{ color: tpl.color }}>{tpl.name}</p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {t(`npcs.type_${tpl.npc_type}`)} · {t(`npcs.disp_${tpl.disposition}`)} · {t("common.hp")} {tpl.max_hp}
+                  {tpl.biome ? ` · ${tpl.biome}` : ""}
+                </p>
+              </div>
+              <div className="relative shrink-0">
+                <button
+                  className="btn-fantasy text-[10px] py-1 px-2 flex items-center gap-1"
+                  onClick={() => setManageId(manageId === tpl.id ? null : tpl.id)}
+                  aria-haspopup="menu"
+                  aria-expanded={manageId === tpl.id}
+                >
+                  <MoreHorizontal size={11} /> {t("common.manage")}
+                </button>
+                <ListRowActionsMenu
+                  open={manageId === tpl.id}
+                  onClose={() => setManageId(null)}
+                  actions={actions}
+                />
+              </div>
             </article>
           );
         })}
