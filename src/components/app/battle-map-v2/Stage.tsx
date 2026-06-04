@@ -73,6 +73,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
     }
   }, [activeTool]);
 
+  // Notify parent of selection size changes
+  useEffect(() => {
+    onSelectionChange?.(selectedIds.size);
+  }, [selectedIds, onSelectionChange]);
+
   const toggleSelectToken = useCallback((id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
