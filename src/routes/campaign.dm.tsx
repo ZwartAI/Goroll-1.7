@@ -212,7 +212,7 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
             <CreationCategoryCard
               id="reward-sack"
               activeId={activeCreationCategory}
