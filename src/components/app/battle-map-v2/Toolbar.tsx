@@ -122,17 +122,71 @@ export function Toolbar({
         !showToolbar && "translate-x-[150%] opacity-0 pointer-events-none"
       )} data-map-ui="true">
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
-          <ToolButton 
-            active={activeTool === 'move'} 
-            onClick={() => {
-              setActiveTool('move');
-              setPencilMenuOpen(false);
-              setMeasureMenuOpen(false);
-            }}
+          <div className="relative">
+            <div
+              onPointerDown={startMoveLongPress}
+              onPointerUp={cancelMoveLongPress}
+              onPointerLeave={cancelMoveLongPress}
+              onPointerCancel={cancelMoveLongPress}
+              onContextMenu={(e) => { e.preventDefault(); if (isDM) setMoveMenuOpen(true); }}
+            >
+              <ToolButton
+                active={isMoveActive}
+                onClick={handleMoveClick}
+                icon={<MousePointer2 className="w-5 h-5" />}
+                label={t('battleMap.tools.move')}
+              />
+            </div>
 
-            icon={<MousePointer2 className="w-5 h-5" />}
-            label="Mover"
-          />
+            {/* Selected count badge */}
+            {activeTool === 'multi-move' && selectedTokensCount > 0 && (
+              <div className="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--gold)] text-black text-[9px] font-bold flex items-center justify-center shadow-lg pointer-events-none">
+                {selectedTokensCount}
+              </div>
+            )}
+
+            {/* Long-press / right-click flyout (horizontal, to the LEFT) */}
+            <AnimatePresence>
+              {moveMenuOpen && isDM && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="absolute right-full mr-3 top-0 flex items-center gap-2 p-2 bg-black/85 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl"
+                >
+                  <ToolButton
+                    active={activeTool === 'multi-move'}
+                    onClick={() => {
+                      setActiveTool('multi-move');
+                      setMoveMenuOpen(false);
+                      setPencilMenuOpen(false);
+                      setMeasureMenuOpen(false);
+                    }}
+                    icon={<MousePointerSquareDashed className="w-5 h-5" />}
+                    label={t('battleMap.tools.multiMove')}
+                  />
+                  {activeTool === 'multi-move' && selectedTokensCount > 0 && (
+                    <button
+                      onClick={() => { onClearSelection?.(); }}
+                      className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                      title={t('battleMap.tools.clearSelection')}
+                    >
+                      <X className="w-3 h-3" />
+                      {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setMoveMenuOpen(false)}
+                    className="text-white/40 hover:text-white p-1"
+                    aria-label="close"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           
           <div className="relative group/measure">
             <ToolButton 
