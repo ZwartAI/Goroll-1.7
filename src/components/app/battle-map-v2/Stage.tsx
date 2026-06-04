@@ -163,8 +163,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
     // Find my token
     const myToken = tokens.find((t: MapToken) => t.character_id === characterId);
     
-    let targetX = 4000;
-    let targetY = 4000;
+    let targetX = mapDims.width / 2;
+    let targetY = mapDims.height / 2;
     
     if (myToken) {
       targetX = myToken.x + (myToken.size / 2);
@@ -176,7 +176,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     
     setOffset({ x: newOffsetX, y: newOffsetY });
     toast.success(myToken ? 'Centrado en tu ficha' : 'Vista centrada');
-  }, [tokens, characterId, activeScene]);
+  }, [tokens, characterId, activeScene, mapDims]);
 
   useImperativeHandle(ref, () => ({
     centerView,
