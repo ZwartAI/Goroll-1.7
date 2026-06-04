@@ -233,6 +233,7 @@ function DM() {
               subtitle={t("dm.create.itemsSubtitle")}
               icon={Hammer}
               color="#3b82f6"
+              image={createImgItems.url}
             >
               <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} showTriggerButton={true} />
             </CreationCategoryCard>
