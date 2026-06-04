@@ -204,7 +204,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   useImperativeHandle(ref, () => ({
     centerView,
-    screenToWorld
+    screenToWorld,
+    clearMultiSelection: () => setSelectedIds(new Set()),
   }));
 
   // Persistence: Save view position
