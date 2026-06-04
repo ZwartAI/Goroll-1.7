@@ -3,7 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords } from "lucide-react";
+import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -114,51 +120,56 @@ function NpcsPage() {
         <p className="text-center text-xs text-muted-foreground py-8">{t("npcs.empty")}</p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {filtered.map(tpl => {
           const customImg = getEnemyCustomImage(tpl as any);
           const hasAsset = !!customImg || !!getEnemyAssetUrl(tpl.icon_key);
           return (
-            <article key={tpl.id} className="ornate-card p-3 space-y-2"
+            <article key={tpl.id} className="ornate-card p-2 space-y-1.5"
               style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <div
-                  className="w-14 h-14 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 relative"
+                  className="w-8 h-8 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0 relative"
                   style={{ borderColor: tpl.color, color: tpl.color }}>
-                  <EnemyIcon name={tpl.icon_key} size={28} fill={hasAsset} customImage={customImg} />
+                  <EnemyIcon name={tpl.icon_key} size={18} fill={hasAsset} customImage={customImg} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-display truncate" style={{ color: tpl.color }}>{tpl.name}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">
+                  <p className="font-display truncate text-xs" style={{ color: tpl.color }}>{tpl.name}</p>
+                  <p className="text-[9px] text-muted-foreground truncate">
                     {t(`npcs.type_${tpl.npc_type}`)} · {t(`npcs.disp_${tpl.disposition}`)}
                   </p>
-                  {tpl.biome && (
-                    <p className="text-[10px] text-muted-foreground truncate">{tpl.biome}</p>
-                  )}
                 </div>
               </div>
-              <div className="grid grid-cols-3 text-center text-[10px] text-muted-foreground">
-                <span>HP {tpl.max_hp}</span>
-                <span>DEF {tpl.defense}</span>
-                <span>{tpl.speed}</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1">
-                <IconBtn icon={<Eye size={12} />} title={t("npcs.viewSheet")} onClick={() => setViewing(tpl)} />
-                <IconBtn icon={<Edit3 size={12} />} title={t("common.edit")} onClick={() => setEditing(tpl)} />
-                <IconBtn icon={<Copy size={12} />} title={t("npcs.duplicate")} onClick={async () => {
-                  const r = await duplicateNpcTemplate(tpl, dmCtx);
-                  if (!r.ok) toast.error(t("npcs.saveError"));
-                  else toast.success(t("npcs.duplicated"));
-                }} />
-                <IconBtn icon={<Trash2 size={12} />} danger title={t("npcs.delete")} onClick={() => setDeleting(tpl)} />
-              </div>
-              {combat.encounter && combat.encounter.status !== "ended" && (
-                <button className="btn-fantasy w-full text-[11px]"
-                  style={{ background: "var(--gold)", color: "oklch(0.15 0.03 25)" }}
-                  onClick={() => setSpawning(tpl)}>
-                  <Swords size={12} className="inline mr-1" /> {t("npcs.addToCombat")}
-                </button>
-              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="btn-fantasy w-full text-[10px] py-1 flex items-center justify-center gap-1">
+                    <MoreHorizontal size={10} /> {t("common.manage")}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-44">
+                  <DropdownMenuItem onClick={() => setViewing(tpl)} className="text-xs gap-2 cursor-pointer">
+                    <Eye size={12} /> {t("npcs.viewSheet")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEditing(tpl)} className="text-xs gap-2 cursor-pointer">
+                    <Edit3 size={12} /> {t("common.edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={async () => {
+                    const r = await duplicateNpcTemplate(tpl, dmCtx);
+                    if (!r.ok) toast.error(t("npcs.saveError"));
+                    else toast.success(t("npcs.duplicated"));
+                  }} className="text-xs gap-2 cursor-pointer">
+                    <Copy size={12} /> {t("npcs.duplicate")}
+                  </DropdownMenuItem>
+                  {combat.encounter && combat.encounter.status !== "ended" && (
+                    <DropdownMenuItem onClick={() => setSpawning(tpl)} className="text-xs gap-2 cursor-pointer">
+                      <Swords size={12} /> {t("npcs.addToCombat")}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => setDeleting(tpl)} className="text-xs gap-2 cursor-pointer text-[var(--loss)]">
+                    <Trash2 size={12} /> {t("npcs.delete")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </article>
           );
         })}
@@ -229,14 +240,3 @@ function Chip({ active, label, onClick }: { active: boolean; label: string; onCl
   );
 }
 
-function IconBtn({ icon, onClick, title, danger }: {
-  icon: React.ReactNode; onClick: () => void; title: string; danger?: boolean;
-}) {
-  return (
-    <button title={title} onClick={onClick}
-      className="btn-fantasy text-[10px] py-1 flex items-center justify-center"
-      style={danger ? { background: "color-mix(in oklab, var(--loss) 35%, var(--card))" } : undefined}>
-      {icon}
-    </button>
-  );
-}
