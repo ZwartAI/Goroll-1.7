@@ -483,7 +483,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
           setRulerStart(null);
           setRulerEnd(null);
         }
-      }, 3000);
+      }, 6000);
     }
     
     setIsPanning(false);
