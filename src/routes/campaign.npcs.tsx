@@ -4,12 +4,7 @@ import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
 import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ListRowActionsMenu, type ListRowAction } from "@/components/app/ListRowActionsMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
