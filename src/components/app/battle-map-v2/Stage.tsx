@@ -635,67 +635,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
           />
         </div>
 
-        {/* Fog of War Layer */}
-        {/* Fog of War Layer & Active Drawing */}
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
-          <KonvaStage width={8000} height={8000}>
-            <KonvaLayer listening={false}>
-              {/* Permanent Fog Elements */}
-              <FogLayer fogElements={fog} opacity={isDM ? 0.4 : 1} />
-
-              {/* Active Brush (while drawing) */}
-              {isDM && isFogging && currentFogPoints.length > 2 && (
-                <KonvaLine
-                  points={currentFogPoints}
-                  stroke="black"
-                  strokeWidth={80}
-                  lineCap="round"
-                  lineJoin="round"
-                  opacity={0.4}
-                  globalCompositeOperation={activeTool === 'fog-eraser' ? 'destination-out' : 'source-over'}
-                />
-              )}
-
-              {/* Active Polygon (while drawing) */}
-              {isDM && polygonPoints.length > 0 && (
-                <Group>
-                  <KonvaLine
-                    points={polygonPoints}
-                    stroke="var(--gold)"
-                    strokeWidth={2 / scale}
-                    dash={[5, 5]}
-                  />
-                  {/* Line to mouse */}
-                  {mousePos && (
-                    <KonvaLine
-                      points={[
-                        polygonPoints[polygonPoints.length - 2], 
-                        polygonPoints[polygonPoints.length - 1],
-                        mousePos.x,
-                        mousePos.y
-                      ]}
-                      stroke="var(--gold)"
-                      strokeWidth={1 / scale}
-                      dash={[2, 2]}
-                      opacity={0.5}
-                    />
-                  )}
-                  {/* Points visualizer */}
-                  {Array.from({ length: polygonPoints.length / 2 }).map((_, i) => (
-                    <KonvaCircle
-                      key={i}
-                      x={polygonPoints[i * 2]}
-                      y={polygonPoints[i * 2 + 1]}
-                      radius={4 / scale}
-                      fill="var(--gold)"
-                    />
-                  ))}
-                </Group>
-              )}
-            </KonvaLayer>
-          </KonvaStage>
-        </div>
-
         <div style={{ zIndex: 10, position: 'absolute', inset: 0 }} className="pointer-events-none">
 
           {(() => {
