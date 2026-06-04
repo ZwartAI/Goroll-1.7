@@ -61,6 +61,49 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
+  // Dynamic map dimensions: auto-fit to background image + 5 cells of padding on each side.
+  // Falls back to a compact 30×30 grid when no background is set.
+  const [mapDims, setMapDims] = useState<{ width: number; height: number }>(() => ({
+    width: (activeScene?.grid_size || 70) * 30,
+    height: (activeScene?.grid_size || 70) * 30,
+  }));
+
+  useEffect(() => {
+    if (!activeScene) return;
+    const grid = activeScene.grid_size || 70;
+    const padding = grid * 10; // 5 cells each side
+    const fallback = grid * 30;
+
+    if (!activeScene.background_url) {
+      setMapDims({ width: fallback, height: fallback });
+      return;
+    }
+
+    if (isVideoUrl(activeScene.background_url)) {
+      const vid = document.createElement('video');
+      vid.preload = 'metadata';
+      vid.onloadedmetadata = () => {
+        const scale = activeScene.background_scale || 1;
+        setMapDims({
+          width: Math.max(fallback, Math.round(vid.videoWidth * scale + padding)),
+          height: Math.max(fallback, Math.round(vid.videoHeight * scale + padding)),
+        });
+      };
+      vid.src = activeScene.background_url;
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const scale = activeScene.background_scale || 1;
+      setMapDims({
+        width: Math.max(fallback, Math.round(img.width * scale + padding)),
+        height: Math.max(fallback, Math.round(img.height * scale + padding)),
+      });
+    };
+    img.src = activeScene.background_url;
+  }, [activeScene?.background_url, activeScene?.background_scale, activeScene?.grid_size]);
+
   // Multi-touch / Gesture state
   const activePointers = useRef(new Map<number, { x: number, y: number }>());
   const lastPinchDist = useRef<number | null>(null);
@@ -120,8 +163,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
     // Find my token
     const myToken = tokens.find((t: MapToken) => t.character_id === characterId);
     
-    let targetX = 4000;
-    let targetY = 4000;
+    let targetX = mapDims.width / 2;
+    let targetY = mapDims.height / 2;
     
     if (myToken) {
       targetX = myToken.x + (myToken.size / 2);
@@ -133,7 +176,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     
     setOffset({ x: newOffsetX, y: newOffsetY });
     toast.success(myToken ? 'Centrado en tu ficha' : 'Vista centrada');
-  }, [tokens, characterId, activeScene]);
+  }, [tokens, characterId, activeScene, mapDims]);
 
   useImperativeHandle(ref, () => ({
     centerView,
@@ -169,10 +212,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const rect = stageRef.current.getBoundingClientRect();
     setScale(1);
     setOffset({ 
-      x: (rect.width / 2) - 4000, 
-      y: (rect.height / 2) - 4000
+      x: (rect.width / 2) - mapDims.width / 2, 
+      y: (rect.height / 2) - mapDims.height / 2
     });
-  }, [activeScene?.id]);
+  }, [activeScene?.id, mapDims.width, mapDims.height]);
 
   // Prevent default browser behavior on mobile
   useEffect(() => {
@@ -387,15 +430,15 @@ export const Stage = forwardRef<StageHandle, Props>(({
       const img = new Image();
       img.onload = () => {
         onMapLoad({
-          width: 8000,
-          height: 8000,
+          width: mapDims.width,
+          height: mapDims.height,
           imgWidth: img.width,
           imgHeight: img.height
         });
       };
       img.src = activeScene.background_url;
     }
-  }, [activeScene?.background_url, onMapLoad]);
+  }, [activeScene?.background_url, onMapLoad, mapDims.width, mapDims.height]);
 
 
   if (!activeScene) {
@@ -540,8 +583,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
         data-map-background="true"
         style={{ 
           transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
-          width: '8000px',
-          height: '8000px',
+          width: `${mapDims.width}px`,
+          height: `${mapDims.height}px`,
           willChange: 'transform'
         }}
       >
