@@ -66,6 +66,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const multiDragOrigins = useRef<Map<string, { x: number; y: number }>>(new Map());
   const multiDragLeaderId = useRef<string | null>(null);
 
+  // Marquee (drag-rectangle) selection for multi-move
+  const [marquee, setMarquee] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const marqueeActive = useRef(false);
+
+
   // Clear selection when leaving multi-move mode
   useEffect(() => {
     if (activeTool !== 'multi-move' && selectedIds.size > 0) {
@@ -327,7 +332,18 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'move' || activeTool === 'multi-move') {
+    } else if (activeTool === 'multi-move') {
+      if (tokenId) return;
+
+      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
+        // Start marquee selection rectangle in world coordinates
+        marqueeActive.current = true;
+        setMarquee({ x1: coords.x, y1: coords.y, x2: coords.x, y2: coords.y });
+        if (stageRef.current) {
+          stageRef.current.setPointerCapture(e.pointerId);
+        }
+      }
+    } else if (activeTool === 'move') {
 
       if (tokenId) return;
 
@@ -339,6 +355,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
         }
       }
     }
+
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -377,8 +394,16 @@ export const Stage = forwardRef<StageHandle, Props>(({
       return;
     }
 
+    // Marquee selection update
+    if (marqueeActive.current && marquee) {
+      const coords = screenToWorld(e.clientX, e.clientY);
+      setMarquee({ x1: marquee.x1, y1: marquee.y1, x2: coords.x, y2: coords.y });
+      return;
+    }
+
     // Ruler logic - throttle this or it's very expensive
     if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
+
       const coords = screenToWorld(e.clientX, e.clientY);
       let snappedCoords = coords;
       
@@ -410,6 +435,31 @@ export const Stage = forwardRef<StageHandle, Props>(({
     if (activePointers.current.size < 2) {
       lastPinchDist.current = null;
     }
+
+    // Finalize marquee selection
+    if (marqueeActive.current && marquee) {
+      const minX = Math.min(marquee.x1, marquee.x2);
+      const maxX = Math.max(marquee.x1, marquee.x2);
+      const minY = Math.min(marquee.y1, marquee.y2);
+      const maxY = Math.max(marquee.y1, marquee.y2);
+      const dragged = Math.hypot(marquee.x2 - marquee.x1, marquee.y2 - marquee.y1);
+
+      if (dragged > 4) {
+        const additive = e.shiftKey || e.ctrlKey || e.metaKey;
+        const hit = new Set<string>(additive ? selectedIds : []);
+        tokens.forEach((t: MapToken) => {
+          const cx = t.x + t.size / 2;
+          const cy = t.y + t.size / 2;
+          if (cx >= minX && cx <= maxX && cy >= minY && cy <= maxY) {
+            hit.add(t.id);
+          }
+        });
+        setSelectedIds(hit);
+      }
+      marqueeActive.current = false;
+      setMarquee(null);
+    }
+
 
     // Sync ref back to state when interaction finishes
     if (isPanning || (wasPinching && activePointers.current.size < 2)) {
@@ -857,7 +907,23 @@ export const Stage = forwardRef<StageHandle, Props>(({
             {calculateDistance()} ft
           </div>
         )}
+
+        {marquee && (
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: Math.min(marquee.x1, marquee.x2),
+              top: Math.min(marquee.y1, marquee.y2),
+              width: Math.abs(marquee.x2 - marquee.x1),
+              height: Math.abs(marquee.y2 - marquee.y1),
+              border: `${2 / scale}px dashed var(--gold)`,
+              backgroundColor: 'rgba(234,179,8,0.12)',
+              zIndex: 55,
+            }}
+          />
+        )}
       </div>
+
 
       {/* Loading overlay */}
       {isLoading && (
