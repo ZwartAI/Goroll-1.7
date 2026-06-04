@@ -746,7 +746,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
         )}
       </div>
 
-      {/* Loading & Fog reveal prevention */}
+      {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-[200] bg-[#050505] flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
