@@ -32,7 +32,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
   onMapLoad
 }, ref) => {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
+  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -253,62 +253,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
-      }
-    } else if (activeTool.startsWith('fog-')) {
-      if (target.closest('[data-map-ui="true"]')) return;
-      
-      const isPolygon = activeTool === 'fog-polygon' || activeTool === 'fog-polygon-eraser';
-      const isEraser = activeTool === 'fog-eraser' || activeTool === 'fog-polygon-eraser';
-
-      if (isEraser) {
-        // Try to find a polygon to delete it entirely
-        const clickedPolygon = fog.find((f: FogElement) => {
-          if (f.type !== 'polygon') return false;
-          // Simple hit test for polygon
-          let inside = false;
-          for (let i = 0, j = f.points.length / 2 - 1; i < f.points.length / 2; j = i++) {
-            const xi = f.points[i * 2], yi = f.points[i * 2 + 1];
-            const xj = f.points[j * 2], yj = f.points[j * 2 + 1];
-            const intersect = ((yi > coords.y) !== (yj > coords.y)) &&
-              (coords.x < (xj - xi) * (coords.y - yi) / (yj - yi) + xi);
-            if (intersect) inside = !inside;
-          }
-          return inside;
-        });
-
-        if (clickedPolygon) {
-          battleMap.removeFogElement(clickedPolygon.id);
-          return;
-        }
-      }
-
-      if (isPolygon) {
-
-        const startX = coords.x;
-        const startY = coords.y;
-
-        // If clicking near the first point, close the polygon
-        if (polygonPoints.length >= 6) { // At least 3 points
-          const dist = Math.hypot(startX - polygonPoints[0], startY - polygonPoints[1]);
-          if (dist < 20 / scaleRef.current) {
-            addFogElement({
-              type: 'polygon',
-              points: polygonPoints,
-              is_eraser: activeTool === 'fog-polygon-eraser'
-            });
-            setPolygonPoints([]);
-            return;
-          }
-        }
-        
-        setPolygonPoints(prev => [...prev, startX, startY]);
-      } else {
-        // Brush or Eraser
-        setIsFogging(true);
-        setCurrentFogPoints([coords.x, coords.y]);
-        if (stageRef.current) {
-          stageRef.current.setPointerCapture(e.pointerId);
-        }
       }
     } else if (activeTool === 'move') {
 
