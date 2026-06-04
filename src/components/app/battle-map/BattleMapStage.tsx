@@ -10,15 +10,41 @@ import useImage from 'use-image';
 import { toast } from 'sonner';
 
 // Mobile fix: cap Konva's pixelRatio to avoid exceeding the browser's
-// max canvas size (~4096px on Android Chrome). Without this, large
-// background images cached via Konva render as white tiles on phones.
-if (typeof window !== 'undefined') {
-  const isCoarse = window.matchMedia?.('(pointer: coarse)').matches;
-  const isNarrow = window.innerWidth < 900;
-  if (isCoarse || isNarrow) {
-    Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
-  }
+// max canvas size (~4096px on Android Chrome / iOS Safari). Without this,
+// large background images cached via Konva render as white tiles or
+// throw "Failed to execute 'getImageData'" on phones.
+const IS_MOBILE = typeof window !== 'undefined' && (
+  (window.matchMedia?.('(pointer: coarse)').matches ?? false) ||
+  (typeof window.innerWidth === 'number' && window.innerWidth < 900)
+);
+if (typeof window !== 'undefined' && IS_MOBILE) {
+  Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1);
 }
+
+/**
+ * On Supabase Storage public URLs, swap to the image render endpoint so
+ * mobile devices fetch a downscaled variant (avoids OOM / white-tile
+ * glitches caused by 4K+ source images).
+ */
+function optimizeBgUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (!IS_MOBILE) return url;
+  try {
+    if (url.includes('/storage/v1/object/public/')) {
+      const u = new URL(url);
+      u.pathname = u.pathname.replace(
+        '/storage/v1/object/public/',
+        '/storage/v1/render/image/public/'
+      );
+      u.searchParams.set('width', '1600');
+      u.searchParams.set('quality', '70');
+      u.searchParams.set('resize', 'contain');
+      return u.toString();
+    }
+  } catch {}
+  return url;
+}
+
 
 
 
@@ -89,7 +115,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? optimizeBgUrl(config.backgroundUrl) : '', 'anonymous');
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
@@ -159,10 +185,11 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
         setTimeout(() => {
           if (!imageRef.current) return;
           const brightnessDelta = (config.backgroundBrightness ?? 1) - 1;
-          // Only cache when the brightness filter actually changes pixels.
-          // Caching large images on mobile blows past the canvas size limit
-          // and produces white-block render glitches.
-          if (Math.abs(brightnessDelta) < 0.01) {
+          // Skip caching on mobile entirely: even at reduced pixelRatio,
+          // multi-megapixel maps overflow the canvas budget and render
+          // as white tiles. Without cache the brightness filter is a no-op,
+          // which is an acceptable tradeoff to keep the map usable.
+          if (IS_MOBILE || Math.abs(brightnessDelta) < 0.01) {
             imageRef.current.clearCache();
           } else {
             const maxDim = Math.max(bgImage?.width || 0, bgImage?.height || 0);
@@ -176,6 +203,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
           imageRef.current.getLayer()?.batchDraw();
         }, 300);
       }
+
 
     } else if (status === 'failed' || (!config.backgroundUrl)) {
       const stageWidth = width;
@@ -683,8 +711,8 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
                 width={videoRef.current && videoRef.current.videoWidth > 0 ? videoRef.current.videoWidth * (config.backgroundScale || 1) : gridSize * 40} 
                 height={videoRef.current && videoRef.current.videoHeight > 0 ? videoRef.current.videoHeight * (config.backgroundScale || 1) : gridSize * 40} 
                 opacity={config.backgroundOpacity} 
-                filters={[Konva.Filters.Brighten]}
-                brightness={config.backgroundBrightness - 1}
+                filters={IS_MOBILE ? undefined : [Konva.Filters.Brighten]}
+                brightness={IS_MOBILE ? 0 : config.backgroundBrightness - 1}
                 listening={false}
               />
             ) : bgImage ? (
@@ -695,11 +723,12 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
                 width={bgImage.width * (config.backgroundScale || 1)} 
                 height={bgImage.height * (config.backgroundScale || 1)} 
                 opacity={config.backgroundOpacity} 
-                filters={[Konva.Filters.Brighten]}
-                brightness={config.backgroundBrightness - 1}
+                filters={IS_MOBILE ? undefined : [Konva.Filters.Brighten]}
+                brightness={IS_MOBILE ? 0 : config.backgroundBrightness - 1}
                 listening={false}
               />
             ) : null
+
           )}
 
           <Group id="grid-group" listening={false} name="grid-layer">
