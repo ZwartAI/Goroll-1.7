@@ -92,6 +92,14 @@ export const Token = memo(function Token({
     e.preventDefault();
     e.stopPropagation();
 
+    if (pointerStartRef.current) {
+      const dx = e.clientX - pointerStartRef.current.x;
+      const dy = e.clientY - pointerStartRef.current.y;
+      if (!movedRef.current && Math.hypot(dx, dy) > 5) {
+        movedRef.current = true;
+      }
+    }
+
     const worldCoords = screenToWorld(e.clientX, e.clientY);
     const newX = worldCoords.x - dragOffset.x;
     const newY = worldCoords.y - dragOffset.y;
@@ -106,6 +114,18 @@ export const Token = memo(function Token({
 
     e.preventDefault();
     e.stopPropagation();
+
+    // Multi-move: a tap (no significant movement) toggles selection instead of moving
+    if (activeTool === 'multi-move' && !movedRef.current) {
+      setLocalDragging(false);
+      pointerStartRef.current = null;
+      // Reset to original position
+      setVisualPos({ x: token.x, y: token.y });
+      onToggleSelect?.(token.id);
+      onDragEnd?.();
+      try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
 
     let finalX = visualPos.x;
     let finalY = visualPos.y;
@@ -131,6 +151,8 @@ export const Token = memo(function Token({
     }
 
     setLocalDragging(false);
+    pointerStartRef.current = null;
+    movedRef.current = false;
     onMove(finalX, finalY, true);
     onDragEnd?.();
 
