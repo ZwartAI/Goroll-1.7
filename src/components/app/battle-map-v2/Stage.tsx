@@ -394,8 +394,16 @@ export const Stage = forwardRef<StageHandle, Props>(({
       return;
     }
 
+    // Marquee selection update
+    if (marqueeActive.current && marquee) {
+      const coords = screenToWorld(e.clientX, e.clientY);
+      setMarquee({ x1: marquee.x1, y1: marquee.y1, x2: coords.x, y2: coords.y });
+      return;
+    }
+
     // Ruler logic - throttle this or it's very expensive
     if (activeTool === 'measure' && isMeasuring.current && rulerStart) {
+
       const coords = screenToWorld(e.clientX, e.clientY);
       let snappedCoords = coords;
       
