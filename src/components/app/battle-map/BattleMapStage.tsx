@@ -10,15 +10,41 @@ import useImage from 'use-image';
 import { toast } from 'sonner';
 
 // Mobile fix: cap Konva's pixelRatio to avoid exceeding the browser's
-// max canvas size (~4096px on Android Chrome). Without this, large
-// background images cached via Konva render as white tiles on phones.
-if (typeof window !== 'undefined') {
-  const isCoarse = window.matchMedia?.('(pointer: coarse)').matches;
-  const isNarrow = window.innerWidth < 900;
-  if (isCoarse || isNarrow) {
-    Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
-  }
+// max canvas size (~4096px on Android Chrome / iOS Safari). Without this,
+// large background images cached via Konva render as white tiles or
+// throw "Failed to execute 'getImageData'" on phones.
+const IS_MOBILE = typeof window !== 'undefined' && (
+  (window.matchMedia?.('(pointer: coarse)').matches ?? false) ||
+  (typeof window.innerWidth === 'number' && window.innerWidth < 900)
+);
+if (typeof window !== 'undefined' && IS_MOBILE) {
+  Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1);
 }
+
+/**
+ * On Supabase Storage public URLs, swap to the image render endpoint so
+ * mobile devices fetch a downscaled variant (avoids OOM / white-tile
+ * glitches caused by 4K+ source images).
+ */
+function optimizeBgUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (!IS_MOBILE) return url;
+  try {
+    if (url.includes('/storage/v1/object/public/')) {
+      const u = new URL(url);
+      u.pathname = u.pathname.replace(
+        '/storage/v1/object/public/',
+        '/storage/v1/render/image/public/'
+      );
+      u.searchParams.set('width', '1600');
+      u.searchParams.set('quality', '70');
+      u.searchParams.set('resize', 'contain');
+      return u.toString();
+    }
+  } catch {}
+  return url;
+}
+
 
 
 
