@@ -156,7 +156,7 @@ function Bestiary() {
               style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}
             >
               <div
-                className="w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0"
+                className="relative w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0"
                 style={{ borderColor: tpl.color, color: tpl.color }}
               >
                 <EnemyIcon name={tpl.icon_key} size={22} fill={hasAsset} customImage={customImg} />
