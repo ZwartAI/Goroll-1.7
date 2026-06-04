@@ -327,20 +327,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
     }
 
-    if (activeTool.startsWith('fog-')) {
-      const coords = screenToWorld(e.clientX, e.clientY);
-      setMousePos(coords);
-
-      if (isFogging && (activeTool === 'fog-brush' || activeTool === 'fog-eraser')) {
-        const lastX = currentFogPoints[currentFogPoints.length - 2];
-        const lastY = currentFogPoints[currentFogPoints.length - 1];
-        const dist = Math.hypot(coords.x - lastX, coords.y - lastY);
-        
-        if (dist > 5) {
-          setCurrentFogPoints(prev => [...prev, coords.x, coords.y]);
-        }
-      }
-    }
   };
 
 
@@ -377,18 +363,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }, 3000);
     }
     
-    if (isFogging) {
-      setIsFogging(false);
-      if (currentFogPoints.length > 2) {
-        addFogElement({
-          type: 'brush',
-          points: currentFogPoints,
-          is_eraser: activeTool === 'fog-eraser'
-        });
-      }
-      setCurrentFogPoints([]);
-    }
-
     setIsPanning(false);
 
     if (stageRef.current) {
