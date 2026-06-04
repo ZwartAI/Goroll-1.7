@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useT } from '@/lib/i18n';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
+export type MapTool = 'move' | 'multi-move' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
