@@ -270,6 +270,22 @@ export const en: Dict = {
     grid: "Grid",
     exit: "Exit",
     saveToScene: "Save to Scene",
+    summon: {
+      title: "Summon Tokens",
+      subtitle: "Choose a source",
+      bestiary: "Bestiary",
+      players: "Players",
+      npcs: "NPCs",
+      back: "Back",
+      search: "Search...",
+      empty: "No entries available.",
+      summonSelected: "Summon ({n})",
+      trayTitle: "Drag onto the map",
+      traySubtitle: "Drag each token to position it",
+      cancel: "Cancel",
+      clearAll: "Discard all",
+      remaining: "{n} remaining",
+    },
   },
 
   profile: {
