@@ -907,7 +907,23 @@ export const Stage = forwardRef<StageHandle, Props>(({
             {calculateDistance()} ft
           </div>
         )}
+
+        {marquee && (
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: Math.min(marquee.x1, marquee.x2),
+              top: Math.min(marquee.y1, marquee.y2),
+              width: Math.abs(marquee.x2 - marquee.x1),
+              height: Math.abs(marquee.y2 - marquee.y1),
+              border: `${2 / scale}px dashed var(--gold)`,
+              backgroundColor: 'rgba(234,179,8,0.12)',
+              zIndex: 55,
+            }}
+          />
+        )}
       </div>
+
 
       {/* Loading overlay */}
       {isLoading && (
