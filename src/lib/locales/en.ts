@@ -34,6 +34,7 @@ export const en: Dict = {
     exit: "Exit",
     settings: "Settings",
     manage: "Manage",
+    hp: "HP",
     language: "Language",
     theme: "Theme",
     about: "About",
