@@ -385,10 +385,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
         showToolbar={showToolbar}
         onToggleToolbar={() => setShowToolbar(!showToolbar)}
         onInvokeToken={() => {
-          // Implementación para abrir selector de tokens si fuera necesario
-          // Por ahora solo cerramos para indicar que recibió el click
           setShowAdminSidebar(false);
-          toast.info("Función de invocar en desarrollo para v2");
+          setShowSummonModal(true);
         }}
         onOpenSettings={() => {
           setShowSettings(true);
