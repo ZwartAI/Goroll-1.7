@@ -193,6 +193,13 @@ export const Token = memo(function Token({
         touchAction: 'none'
       }}
     >
+      {/* Multi-select ring */}
+      {isSelected && (
+        <div
+          className="absolute -inset-1.5 rounded-full pointer-events-none border-2 border-[var(--gold)] animate-pulse"
+          style={{ boxShadow: '0 0 18px rgba(234,179,8,0.55)' }}
+        />
+      )}
       <div 
         className={cn(
           "relative w-full h-full rounded-full border-2 bg-black/60 overflow-hidden shadow-xl transition-all pointer-events-none",
