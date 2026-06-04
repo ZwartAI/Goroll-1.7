@@ -21,11 +21,13 @@ interface Props {
   onMeasure?: (distance: number, fromToken?: string, toToken?: string) => void;
   showParticipants?: boolean;
   onMapLoad?: (dims: { width: number, height: number, imgWidth: number, imgHeight: number }) => void;
+  onSelectionChange?: (count: number) => void;
 }
 
 export interface StageHandle {
   centerView: () => void;
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
+  clearMultiSelection: () => void;
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
