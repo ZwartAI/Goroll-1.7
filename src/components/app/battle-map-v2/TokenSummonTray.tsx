@@ -12,7 +12,7 @@ export interface QueuedToken extends Partial<MapToken> {
 interface Props {
   queue: QueuedToken[];
   setQueue: React.Dispatch<React.SetStateAction<QueuedToken[]>>;
-  stageRef: React.RefObject<StageHandle>;
+  stageRef: React.RefObject<StageHandle | null>;
   gridSize: number;
   snapToGrid: boolean;
   gridOffsetX: number;
