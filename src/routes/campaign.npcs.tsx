@@ -240,14 +240,3 @@ function Chip({ active, label, onClick }: { active: boolean; label: string; onCl
   );
 }
 
-function IconBtn({ icon, onClick, title, danger }: {
-  icon: React.ReactNode; onClick: () => void; title: string; danger?: boolean;
-}) {
-  return (
-    <button title={title} onClick={onClick}
-      className="btn-fantasy text-[10px] py-1 flex items-center justify-center"
-      style={danger ? { background: "color-mix(in oklab, var(--loss) 35%, var(--card))" } : undefined}>
-      {icon}
-    </button>
-  );
-}
