@@ -583,8 +583,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
         data-map-background="true"
         style={{ 
           transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
-          width: '8000px',
-          height: '8000px',
+          width: `${mapDims.width}px`,
+          height: `${mapDims.height}px`,
           willChange: 'transform'
         }}
       >
