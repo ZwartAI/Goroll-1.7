@@ -221,6 +221,7 @@ function DM() {
               subtitle={t("dm.create.rewardSackSubtitle")}
               icon={Gift}
               color="var(--gold)"
+              image={createImgRewardSacks.url}
               onAction={() => setRewardSacksOpen(true)}
             />
 
