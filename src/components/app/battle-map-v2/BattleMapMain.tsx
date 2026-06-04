@@ -64,6 +64,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [isManagingSkills, setIsManagingSkills] = useState(false);
   const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [mapDimensions, setMapDimensions] = useState({ width: 8000, height: 8000, imgWidth: 4000, imgHeight: 4000 });
+  const [selectedTokensCount, setSelectedTokensCount] = useState(0);
 
 
   // Estados de visibilidad de UI (Bar Map) - Persistidos localmente
