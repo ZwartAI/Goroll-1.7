@@ -138,21 +138,6 @@ export const useBattleMap = (campaignId: string) => {
     setDrawings(transformedDrawings as unknown as Drawing[]);
   }, []);
 
-  const fetchFog = useCallback(async (sceneId: string) => {
-    const { data, error } = await supabase
-      .from('battle_map_fog_simple')
-      .select('*')
-      .eq('scene_id', sceneId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching fog:', error);
-      return;
-    }
-
-    setFog((data || []) as unknown as FogElement[]);
-  }, []);
-
 
 
   useEffect(() => {
@@ -172,8 +157,7 @@ export const useBattleMap = (campaignId: string) => {
         await Promise.all([
           fetchScenes(),
           fetchTokens(sceneData.id),
-          fetchDrawings(sceneData.id),
-          fetchFog(sceneData.id)
+          fetchDrawings(sceneData.id)
         ]);
       } else {
         await fetchScenes();
