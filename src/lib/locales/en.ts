@@ -33,6 +33,7 @@ export const en: Dict = {
     play: "Play",
     exit: "Exit",
     settings: "Settings",
+    manage: "Manage",
     language: "Language",
     theme: "Theme",
     about: "About",

@@ -35,6 +35,7 @@ export const es = {
     play: "Jugar",
     exit: "Salir",
     settings: "Ajustes",
+    manage: "Gestionar",
     language: "Idioma",
     theme: "Tema",
     about: "Acerca de",
