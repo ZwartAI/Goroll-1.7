@@ -259,6 +259,7 @@ function DM() {
               subtitle={t("dm.create.boostersSubtitle")}
               icon={Sparkles}
               color="#a855f7"
+              image={createImgBoosters.url}
               onAction={() => setCreatingBooster(true)}
             />
 
