@@ -55,15 +55,43 @@ export function Toolbar({
   authorName,
   authorColor,
   drawings = [],
-  showToolbar = true
+  showToolbar = true,
+  selectedTokensCount = 0,
+  onClearSelection,
 }: Props) {
+  const { t } = useT();
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
+  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
+  const isMoveActive = activeTool === 'move' || activeTool === 'multi-move';
+
+  // Long-press detection for the Move button
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
+  const startMoveLongPress = () => {
+    if (!isDM) return;
+    longPressFired.current = false;
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      setMoveMenuOpen(true);
+    }, 450);
+  };
+  const cancelMoveLongPress = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  };
+  const handleMoveClick = () => {
+    if (longPressFired.current) { longPressFired.current = false; return; }
+    setActiveTool('move');
+    setMoveMenuOpen(false);
+    setPencilMenuOpen(false);
+    setMeasureMenuOpen(false);
+  };
 
 
   const authors = React.useMemo(() => {
