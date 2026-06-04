@@ -42,6 +42,8 @@ export const Token = memo(function Token({
   const [localDragging, setLocalDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [visualPos, setVisualPos] = useState({ x: token.x, y: token.y });
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const movedRef = useRef(false);
 
   // Keep visual position in sync with token prop when not dragging
   useEffect(() => {
@@ -60,6 +62,9 @@ export const Token = memo(function Token({
 
     e.preventDefault();
     e.stopPropagation();
+
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    movedRef.current = false;
 
     const worldCoords = screenToWorld(e.clientX, e.clientY);
     setDragOffset({
