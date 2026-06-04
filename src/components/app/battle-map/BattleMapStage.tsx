@@ -723,11 +723,12 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
                 width={bgImage.width * (config.backgroundScale || 1)} 
                 height={bgImage.height * (config.backgroundScale || 1)} 
                 opacity={config.backgroundOpacity} 
-                filters={[Konva.Filters.Brighten]}
-                brightness={config.backgroundBrightness - 1}
+                filters={IS_MOBILE ? undefined : [Konva.Filters.Brighten]}
+                brightness={IS_MOBILE ? 0 : config.backgroundBrightness - 1}
                 listening={false}
               />
             ) : null
+
           )}
 
           <Group id="grid-group" listening={false} name="grid-layer">
