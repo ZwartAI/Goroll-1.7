@@ -36,6 +36,7 @@ export const es = {
     exit: "Salir",
     settings: "Ajustes",
     manage: "Gestionar",
+    hp: "Vida",
     language: "Idioma",
     theme: "Tema",
     about: "Acerca de",
