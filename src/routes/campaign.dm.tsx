@@ -331,6 +331,7 @@ function DM() {
               subtitle={t("dm.create.skillsSubtitle")}
               icon={Wand2}
               color="#0ea5e9"
+              image={createImgSkills.url}
               onAction={() => players[0] && setCreatingSkill(true)}
             />
           </div>
