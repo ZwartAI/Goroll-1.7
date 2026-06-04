@@ -191,7 +191,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           authorColor={character?.color || '#FFD700'}
           showParticipants={showSidebar}
           onMapLoad={(dims: any) => setMapDimensions(dims)}
-        />
+          onSelectionChange={setSelectedTokensCount}
 
         {/* Sidebar (Turns/Participants) */}
         <Sidebar 
