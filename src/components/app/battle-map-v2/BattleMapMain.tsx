@@ -192,6 +192,9 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           showParticipants={showSidebar}
           onMapLoad={(dims: any) => setMapDimensions(dims)}
           onSelectionChange={setSelectedTokensCount}
+        />
+
+
 
         {/* Sidebar (Turns/Participants) */}
         <Sidebar 
