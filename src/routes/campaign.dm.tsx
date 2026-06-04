@@ -246,6 +246,7 @@ function DM() {
               subtitle={t("dm.create.conditionsSubtitle")}
               icon={Sparkles}
               color="#ec4899"
+              image={createImgConditions.url}
             >
               <DMConditionsCreator campaignId={campaign.id} players={players} showTriggerButton={true} />
             </CreationCategoryCard>
