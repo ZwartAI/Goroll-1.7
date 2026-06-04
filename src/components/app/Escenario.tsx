@@ -10,8 +10,7 @@ import { useGameData } from "@/lib/useGame";
 import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { HpShieldBar } from "@/components/app/HpShieldBar";
 import { backdropProps } from "@/lib/modalBackdrop";
-import { Map as MapIcon, Gift, Boxes } from "lucide-react";
-import { RewardSackManager } from "@/components/app/reward-sacks/RewardSackManager";
+import { Map as MapIcon } from "lucide-react";
 
 
 // FASE 1: Lazy loading del BattleMap
@@ -50,7 +49,6 @@ type Props = {
 export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenChar, onOpenItem, onOpenBooster, onOpenImage, dmCharacterIds, nameOverrides, showLog = true, speakingIds, hideCombatTab }: Props) {
   const [openOffline, setOpenOffline] = useState(false);
   const [showBattleMap, setShowBattleMap] = useState(false);
-  const [showRewardSacks, setShowRewardSacks] = useState(false);
   const { t } = useT();
   const { combat, character, campaign } = useGameData();
   const isDM = character?.role === "dm";
