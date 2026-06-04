@@ -123,9 +123,8 @@ function Bestiary() {
       </div>
 
 
-      {filtered.length === 0 && (
-        <p className="text-center text-xs text-muted-foreground py-8">{t("bestiary.empty")}</p>
-      )}
+
+
 
       <EntityCodex
         emptyLabel={t("bestiary.empty")}
