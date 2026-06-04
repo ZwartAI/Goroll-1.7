@@ -9,6 +9,18 @@ import { type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChal
 import useImage from 'use-image';
 import { toast } from 'sonner';
 
+// Mobile fix: cap Konva's pixelRatio to avoid exceeding the browser's
+// max canvas size (~4096px on Android Chrome). Without this, large
+// background images cached via Konva render as white tiles on phones.
+if (typeof window !== 'undefined') {
+  const isCoarse = window.matchMedia?.('(pointer: coarse)').matches;
+  const isNarrow = window.innerWidth < 900;
+  if (isCoarse || isNarrow) {
+    Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+  }
+}
+
+
 
 interface Props {
   width: number;
