@@ -301,6 +301,7 @@ function DM() {
               subtitle={t("dm.create.npcsSubtitle")}
               icon={Users}
               color="#10b981"
+              image={createImgNpcs.url}
               actionLabel={t("dm.create.open")}
             >
               <div className="grid grid-cols-2 gap-2">
