@@ -49,7 +49,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
   const [showDicePanel, setShowDicePanel] = useState(false);
   const [measureMode, setMeasureMode] = useState<MeasureMode>('line');
   const [measureSnap, setMeasureSnap] = useState(true);
-  const [brushSize, setBrushSize] = useState(140);
   const stageRef = useRef<StageHandle>(null);
   const [tokenToPlace, setTokenToPlace] = useState<Partial<MapToken> | null>(null);
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
@@ -97,14 +96,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
       await battleMap.undoLastDrawing(character.id);
     }
   }, [battleMap, character?.id]);
-
-  const handleClearFog = useCallback(async () => {
-    await battleMap.clearFog();
-  }, [battleMap]);
-
-  const handleUndoFog = useCallback(async () => {
-    await battleMap.undoLastFog();
-  }, [battleMap]);
 
   useEffect(() => {
 
@@ -220,9 +211,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           onResetView={handleResetView}
           onClearDrawings={handleClearDrawings}
           onUndoDrawing={handleUndoDrawing}
-          onClearFog={handleClearFog}
-          onUndoFog={handleUndoFog}
-          fogElements={battleMap.fog}
           showToolbar={showToolbar}
           
           characterId={character?.id}
@@ -252,8 +240,6 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           }}
           hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
         />
 
 

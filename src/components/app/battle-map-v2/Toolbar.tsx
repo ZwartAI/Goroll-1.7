@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, Cloud } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser' | 'fog-brush' | 'fog-polygon' | 'fog-eraser' | 'fog-polygon-eraser';
+export type MapTool = 'move' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -27,11 +27,6 @@ interface Props {
   hasMyToken: boolean;
   hasBackground: boolean;
   drawings?: any[];
-  brushSize: number;
-  setBrushSize: (size: number) => void;
-  onClearFog?: () => void;
-  onUndoFog?: () => void;
-  fogElements?: any[];
   showToolbar?: boolean;
 }
 
@@ -57,22 +52,15 @@ export function Toolbar({
   authorName,
   authorColor,
   drawings = [],
-  brushSize,
-  setBrushSize,
-  onClearFog,
-  onUndoFog,
-  fogElements = [],
   showToolbar = true
 }: Props) {
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
-  const [fogMenuOpen, setFogMenuOpen] = useState(false);
-  const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | 'fog' | null>(null);
+  const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isFogActive = activeTool === 'fog-brush' || activeTool === 'fog-polygon' || activeTool === 'fog-eraser' || activeTool === 'fog-polygon-eraser';
 
 
   const authors = React.useMemo(() => {
@@ -109,7 +97,6 @@ export function Toolbar({
               setActiveTool('move');
               setPencilMenuOpen(false);
               setMeasureMenuOpen(false);
-              setFogMenuOpen(false);
             }}
 
             icon={<MousePointer2 className="w-5 h-5" />}
@@ -125,7 +112,6 @@ export function Toolbar({
                 }
                 setMeasureMenuOpen(!measureMenuOpen);
                 setPencilMenuOpen(false);
-                setFogMenuOpen(false);
               }}
 
               icon={<Ruler className="w-5 h-5" />}
@@ -188,7 +174,6 @@ export function Toolbar({
                 }
                 setPencilMenuOpen(!pencilMenuOpen);
                 setMeasureMenuOpen(false);
-                setFogMenuOpen(false);
               }}
 
               icon={<Pencil className="w-5 h-5" />}
@@ -270,85 +255,6 @@ export function Toolbar({
             </AnimatePresence>
           </div>
           
-          {isDM && (
-            <div className="relative group/fog">
-              <ToolButton 
-                active={isFogActive} 
-                onClick={() => {
-                  if (!isFogActive) {
-                    setActiveTool('fog-brush');
-                  }
-                  setFogMenuOpen(!fogMenuOpen);
-                  setPencilMenuOpen(false);
-                  setMeasureMenuOpen(false);
-                }}
-                icon={<Cloud className="w-5 h-5 text-gray-400" />}
-                label="Niebla de Guerra"
-                className={isFogActive ? "bg-gray-800 text-white" : ""}
-              />
-              
-              <AnimatePresence>
-                {fogMenuOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
-                  >
-                    <div className="flex flex-col gap-1 mb-2 border-b border-[var(--gold)]/10 pb-2">
-                      <ToolButton 
-                        active={activeTool === 'fog-brush'} 
-                        onClick={() => setActiveTool('fog-brush')}
-                        icon={<Pencil className="w-4 h-4" />}
-                        label="Pincel Niebla"
-                        small
-                      />
-                      <ToolButton 
-                        active={activeTool === 'fog-polygon'} 
-                        onClick={() => setActiveTool('fog-polygon')}
-                        icon={<Triangle className="w-4 h-4" />}
-                        label="Polígono Niebla"
-                        small
-                      />
-                      <ToolButton 
-                        active={activeTool === 'fog-eraser'} 
-                        onClick={() => setActiveTool('fog-eraser')}
-                        icon={<Eraser className="w-4 h-4" />}
-                        label="Pincel Borrador Niebla"
-                        small
-                      />
-                      <ToolButton 
-                        active={activeTool === 'fog-polygon-eraser'} 
-                        onClick={() => setActiveTool('fog-polygon-eraser')}
-                        icon={<Triangle className="w-4 h-4 text-red-400" />}
-                        label="Polígono Borrador Niebla"
-                        small
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <button 
-                        onClick={onUndoFog}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--gold)]/10 text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors text-left"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 opacity-60" />
-                        <span className="text-[9px] uppercase tracking-tighter">Deshacer</span>
-                      </button>
-
-                      <button 
-                        onClick={() => setShowClearModal('fog')}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-red-500/20 text-red-500 transition-colors text-left mt-1 border border-red-500/10"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span className="text-[9px] uppercase tracking-tighter font-bold">Limpiar Niebla</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-          
           <ToolButton 
 
             active={false} 
@@ -391,8 +297,6 @@ export function Toolbar({
                   ? '¿Quieres eliminar TODOS los dibujos de esta escena?' 
                   : showClearModal === 'player'
                   ? `¿Quieres eliminar todos los dibujos de este jugador?`
-                  : showClearModal === 'fog'
-                  ? '¿Quieres ELIMINAR TODA la niebla de guerra de esta escena?'
                   : '¿Quieres eliminar todos tus dibujos en esta escena?'}
 
               </p>
@@ -405,17 +309,13 @@ export function Toolbar({
                 </button>
                 <button 
                   onClick={() => {
-                    if (showClearModal === 'fog') {
-                      onClearFog?.();
-                    } else {
-                      onClearDrawings(
-                        showClearModal === 'all' 
-                          ? { all: true } 
-                          : showClearModal === 'player'
-                          ? { authorId: selectedAuthorId || undefined }
-                          : { authorId: characterId || 'unknown' }
-                      );
-                    }
+                    onClearDrawings(
+                      showClearModal === 'all' 
+                        ? { all: true } 
+                        : showClearModal === 'player'
+                        ? { authorId: selectedAuthorId || undefined }
+                        : { authorId: characterId || 'unknown' }
+                    );
                     setShowClearModal(null);
                   }}
 
