@@ -127,10 +127,11 @@ function Bestiary() {
         <p className="text-center text-xs text-muted-foreground py-8">{t("bestiary.empty")}</p>
       )}
 
-      <div className="flex flex-col gap-1">
-        {filtered.map(tpl => {
+      <EntityCodex
+        emptyLabel={t("bestiary.empty")}
+        entries={filtered.map<CodexEntry>(tpl => {
           const customImg = getEnemyCustomImage(tpl);
-          const hasAsset = !!customImg || !!getEnemyAssetUrl(tpl.icon_key);
+          const hasAsset = !!getEnemyAssetUrl(tpl.icon_key);
           const actions: ListRowAction[] = [
             { key: "view", label: t("bestiary.viewSheet"), icon: <Eye size={12} />, onSelect: () => setViewing(tpl) },
             { key: "edit", label: t("common.edit"), icon: <Edit3 size={12} />, onSelect: () => setEditing(tpl) },
@@ -149,48 +150,25 @@ function Bestiary() {
               : []),
             { key: "delete", label: t("bestiary.delete"), icon: <Trash2 size={12} />, onSelect: () => setDeleting(tpl), danger: true },
           ];
-          return (
-            <article
-              key={tpl.id}
-              className="ornate-card px-2 py-1.5 flex items-center gap-2"
-              style={{ borderColor: `color-mix(in oklab, ${tpl.color} 55%, transparent)` }}
-            >
-              <div
-                className="relative w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center bg-card shrink-0"
-                style={{ borderColor: tpl.color, color: tpl.color }}
-              >
-                <EnemyIcon name={tpl.icon_key} size={22} fill={hasAsset} customImage={customImg} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <p className="font-display truncate text-sm" style={{ color: tpl.color }}>{tpl.name}</p>
-                  {tpl.tier === "elite" && <Star size={11} className="text-purple-400 shrink-0" />}
-                  {(tpl.tier === "boss" || tpl.tier === "god") && <Crown size={11} className="text-red-400 shrink-0" />}
-                </div>
-                <p className="text-[10px] text-muted-foreground truncate">
-                  {t(`bestiary.tier_${tpl.tier}`)} · {t(`bestiary.role_${tpl.role}`)} · {t("common.hp")} {tpl.max_hp}
-                  {tpl.biome ? ` · ${tpl.biome}` : ""}
-                </p>
-              </div>
-              <div className="relative shrink-0">
-                <button
-                  className="btn-fantasy text-[10px] py-1 px-2 flex items-center gap-1"
-                  onClick={() => setManageId(manageId === tpl.id ? null : tpl.id)}
-                  aria-haspopup="menu"
-                  aria-expanded={manageId === tpl.id}
-                >
-                  <MoreHorizontal size={11} /> {t("common.manage")}
-                </button>
-                <ListRowActionsMenu
-                  open={manageId === tpl.id}
-                  onClose={() => setManageId(null)}
-                  actions={actions}
-                />
-              </div>
-            </article>
-          );
+          return {
+            id: tpl.id,
+            name: tpl.name,
+            color: tpl.color,
+            iconKey: tpl.icon_key,
+            customImage: customImg,
+            hasAsset,
+            badges: (
+              <>
+                {tpl.tier === "elite" && <Star size={11} className="text-purple-400 shrink-0" />}
+                {(tpl.tier === "boss" || tpl.tier === "god") && <Crown size={11} className="text-red-400 shrink-0" />}
+              </>
+            ),
+            subline: `${t(`bestiary.tier_${tpl.tier}`)} · ${t(`bestiary.role_${tpl.role}`)}${tpl.biome ? ` · ${tpl.biome}` : ""}`,
+            actions,
+          };
         })}
-      </div>
+      />
+
 
       {creating && (
         <MonsterEditor campaignId={campaign.id} dm={dmCtx} onClose={() => setCreating(false)}
