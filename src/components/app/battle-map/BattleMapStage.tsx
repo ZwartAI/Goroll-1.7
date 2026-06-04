@@ -9,6 +9,18 @@ import { type ChalkTool, type ChalkColor, type ChalkSize } from './BattleMapChal
 import useImage from 'use-image';
 import { toast } from 'sonner';
 
+// Mobile fix: cap Konva's pixelRatio to avoid exceeding the browser's
+// max canvas size (~4096px on Android Chrome). Without this, large
+// background images cached via Konva render as white tiles on phones.
+if (typeof window !== 'undefined') {
+  const isCoarse = window.matchMedia?.('(pointer: coarse)').matches;
+  const isNarrow = window.innerWidth < 900;
+  if (isCoarse || isNarrow) {
+    Konva.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+  }
+}
+
+
 
 interface Props {
   width: number;
@@ -145,12 +157,26 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
       
       if (config.backgroundType === 'image') {
         setTimeout(() => {
-          if (imageRef.current) {
-            imageRef.current.cache();
-            imageRef.current.getLayer()?.batchDraw();
+          if (!imageRef.current) return;
+          const brightnessDelta = (config.backgroundBrightness ?? 1) - 1;
+          // Only cache when the brightness filter actually changes pixels.
+          // Caching large images on mobile blows past the canvas size limit
+          // and produces white-block render glitches.
+          if (Math.abs(brightnessDelta) < 0.01) {
+            imageRef.current.clearCache();
+          } else {
+            const maxDim = Math.max(bgImage?.width || 0, bgImage?.height || 0);
+            const safePR = maxDim > 3000 ? 0.5 : maxDim > 1500 ? 0.75 : 1;
+            try {
+              imageRef.current.cache({ pixelRatio: safePR });
+            } catch {
+              imageRef.current.clearCache();
+            }
           }
+          imageRef.current.getLayer()?.batchDraw();
         }, 300);
       }
+
     } else if (status === 'failed' || (!config.backgroundUrl)) {
       const stageWidth = width;
       const stageHeight = height;
