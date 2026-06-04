@@ -29,6 +29,13 @@ import vaultNavImg from "@/assets/nav/Vault.png.asset.json";
 import boostNavImg from "@/assets/nav/Boost.png.asset.json";
 import skillsNavImg from "@/assets/nav/Skills.png.asset.json";
 import sceneNavImg from "@/assets/nav/Scene.png.asset.json";
+import createImgRewardSacks from "@/assets/create/Reward_sacks.png.asset.json";
+import createImgItems from "@/assets/create/Items.png.asset.json";
+import createImgConditions from "@/assets/create/Conditions.png.asset.json";
+import createImgBoosters from "@/assets/create/Boosters.png.asset.json";
+import createImgMonsters from "@/assets/create/Monsters.png.asset.json";
+import createImgNpcs from "@/assets/create/NPCs.png.asset.json";
+import createImgSkills from "@/assets/create/Skills.png.asset.json";
 import { MicSettingsModal } from "@/components/app/MicSettingsModal";
 import { HeaderMenu, MailboxInlineModal, useStandardHeaderItems } from "@/components/app/HeaderMenu";
 import { AppSettingsModal } from "@/components/app/AppSettingsModal";
@@ -205,7 +212,7 @@ function DM() {
 
       {tab === "create" && (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
             <CreationCategoryCard
               id="reward-sack"
               activeId={activeCreationCategory}
@@ -214,6 +221,7 @@ function DM() {
               subtitle={t("dm.create.rewardSackSubtitle")}
               icon={Gift}
               color="var(--gold)"
+              image={createImgRewardSacks.url}
               onAction={() => setRewardSacksOpen(true)}
             />
 
@@ -225,6 +233,7 @@ function DM() {
               subtitle={t("dm.create.itemsSubtitle")}
               icon={Hammer}
               color="#3b82f6"
+              image={createImgItems.url}
             >
               <CreateItem campaignId={campaign.id} dm={dmCtx} players={players} showTriggerButton={true} />
             </CreationCategoryCard>
@@ -237,6 +246,7 @@ function DM() {
               subtitle={t("dm.create.conditionsSubtitle")}
               icon={Sparkles}
               color="#ec4899"
+              image={createImgConditions.url}
             >
               <DMConditionsCreator campaignId={campaign.id} players={players} showTriggerButton={true} />
             </CreationCategoryCard>
@@ -249,6 +259,7 @@ function DM() {
               subtitle={t("dm.create.boostersSubtitle")}
               icon={Sparkles}
               color="#a855f7"
+              image={createImgBoosters.url}
               onAction={() => setCreatingBooster(true)}
             />
 
@@ -260,6 +271,7 @@ function DM() {
               subtitle={t("dm.create.monstersSubtitle")}
               icon={Skull}
               color="#ef4444"
+              image={createImgMonsters.url}
               actionLabel={t("dm.create.open")}
             >
               <div className="grid grid-cols-2 gap-2">
@@ -289,6 +301,7 @@ function DM() {
               subtitle={t("dm.create.npcsSubtitle")}
               icon={Users}
               color="#10b981"
+              image={createImgNpcs.url}
               actionLabel={t("dm.create.open")}
             >
               <div className="grid grid-cols-2 gap-2">
@@ -318,6 +331,7 @@ function DM() {
               subtitle={t("dm.create.skillsSubtitle")}
               icon={Wand2}
               color="#0ea5e9"
+              image={createImgSkills.url}
               onAction={() => players[0] && setCreatingSkill(true)}
             />
           </div>
@@ -682,7 +696,7 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
-function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void }) {
+function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction, image }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void, image?: string }) {
   const isActive = activeId === id;
   const handleActivate = () => {
     if (onAction) { onAction(); return; }
@@ -690,6 +704,17 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
   };
   return (
     <>
+      {image ? (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleActivate}
+          aria-label={title}
+          className={`block w-full p-0 bg-transparent border-0 transition-all ${isActive ? 'drop-shadow-[0_0_10px_var(--gold)] scale-[1.02]' : 'opacity-95 hover:opacity-100'}`}
+        >
+          <img src={image} alt={title} className="block w-full h-auto object-contain" draggable={false} />
+        </motion.button>
+      ) : (
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
@@ -718,6 +743,7 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
           {actionLabel}
         </button>
       </motion.div>
+      )}
 
       <AnimatePresence>
         {isActive && !onAction && (
