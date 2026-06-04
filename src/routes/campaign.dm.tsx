@@ -126,20 +126,27 @@ function DM() {
 
       <div className="grid grid-cols-6 gap-1 mb-4">
         {([
-          ["log", t("dm.tabLog"), ScrollText, "oklch(0.72 0.10 95)"],
-          ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)"],
-          ["vault", t("dm.tabVault"), Boxes, "oklch(0.65 0.09 60)"],
-          ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)"],
-          ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)"],
-          ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)"],
-        ] as const).map(([k, l, Icon, color]) => (
+          ["log", t("dm.tabLog"), ScrollText, "oklch(0.72 0.10 95)", logNavImg.url],
+          ["create", t("dm.tabCreate"), Hammer, "oklch(0.70 0.10 40)", null],
+          ["vault", t("dm.tabVault"), Boxes, "oklch(0.65 0.09 60)", null],
+          ["boosters", t("dm.tabBoosters"), Sparkles, "oklch(0.70 0.11 305)", null],
+          ["skills", t("skills.title"), Wand2, "oklch(0.70 0.10 220)", null],
+          ["escenario", t("dm.tabScene"), Theater, "oklch(0.68 0.10 160)", null],
+        ] as const).map(([k, l, Icon, color, img]) => (
           <button
             key={k}
             onClick={() => setTab(k as any)}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-md font-display transition-colors ${tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border"}`}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-md font-display transition-colors ${img ? (tab===k ? "ring-2 ring-[var(--gold)]" : "opacity-80 hover:opacity-100") : (tab===k?"bg-[var(--gold)] text-black":"bg-card text-foreground border border-border")}`}
+            aria-label={l}
           >
-            <Icon size={26} strokeWidth={1.75} color={tab===k ? undefined : color} />
-            <span className="text-[9px] leading-tight uppercase tracking-wide truncate max-w-full">{l}</span>
+            {img ? (
+              <img src={img} alt={l} className="w-full h-auto max-h-14 object-contain" draggable={false} />
+            ) : (
+              <>
+                <Icon size={26} strokeWidth={1.75} color={tab===k ? undefined : color} />
+                <span className="text-[9px] leading-tight uppercase tracking-wide truncate max-w-full">{l}</span>
+              </>
+            )}
           </button>
         ))}
 
