@@ -248,6 +248,8 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           }}
           hasMyToken={character && battleMap.activeScene ? battleMap.tokens.some((t: any) => t.character_id === character.id && t.scene_id === battleMap.activeScene?.id) : false}
           hasBackground={!!battleMap.activeScene?.background_url}
+          selectedTokensCount={selectedTokensCount}
+          onClearSelection={() => stageRef.current?.clearMultiSelection()}
         />
 
 
