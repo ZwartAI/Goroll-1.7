@@ -212,10 +212,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
     const rect = stageRef.current.getBoundingClientRect();
     setScale(1);
     setOffset({ 
-      x: (rect.width / 2) - 4000, 
-      y: (rect.height / 2) - 4000
+      x: (rect.width / 2) - mapDims.width / 2, 
+      y: (rect.height / 2) - mapDims.height / 2
     });
-  }, [activeScene?.id]);
+  }, [activeScene?.id, mapDims.width, mapDims.height]);
 
   // Prevent default browser behavior on mobile
   useEffect(() => {
