@@ -332,7 +332,18 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'move' || activeTool === 'multi-move') {
+    } else if (activeTool === 'multi-move') {
+      if (tokenId) return;
+
+      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
+        // Start marquee selection rectangle in world coordinates
+        marqueeActive.current = true;
+        setMarquee({ x1: coords.x, y1: coords.y, x2: coords.x, y2: coords.y });
+        if (stageRef.current) {
+          stageRef.current.setPointerCapture(e.pointerId);
+        }
+      }
+    } else if (activeTool === 'move') {
 
       if (tokenId) return;
 
@@ -344,6 +355,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
         }
       }
     }
+
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
