@@ -689,7 +689,7 @@ async function undoLog(l: LogRow, campaignId: string, dm: { id: string; name: st
 }
 
 
-function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void }) {
+function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: Icon, color, children, actionLabel = "Crear", onAction, image }: { id: string, activeId: string | null, onSelect: (id: string | null) => void, title: string, subtitle: string, icon: any, color: string, children?: React.ReactNode, actionLabel?: string, onAction?: () => void, image?: string }) {
   const isActive = activeId === id;
   const handleActivate = () => {
     if (onAction) { onAction(); return; }
@@ -697,6 +697,17 @@ function CreationCategoryCard({ id, activeId, onSelect, title, subtitle, icon: I
   };
   return (
     <>
+      {image ? (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleActivate}
+          aria-label={title}
+          className={`block w-full p-0 bg-transparent border-0 transition-all ${isActive ? 'drop-shadow-[0_0_10px_var(--gold)] scale-[1.02]' : 'opacity-95 hover:opacity-100'}`}
+        >
+          <img src={image} alt={title} className="block w-full h-auto object-contain" draggable={false} />
+        </motion.button>
+      ) : (
       <motion.div
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
