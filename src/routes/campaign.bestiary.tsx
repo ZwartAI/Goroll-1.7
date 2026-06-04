@@ -168,7 +168,7 @@ function Bestiary() {
                   {(tpl.tier === "boss" || tpl.tier === "god") && <Crown size={11} className="text-red-400 shrink-0" />}
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
-                  {t(`bestiary.tier_${tpl.tier}`)} · {t(`bestiary.role_${tpl.role}`)} · {t("combat.hp")} {tpl.max_hp}
+                  {t(`bestiary.tier_${tpl.tier}`)} · {t(`bestiary.role_${tpl.role}`)} · {t("common.hp")} {tpl.max_hp}
                   {tpl.biome ? ` · ${tpl.biome}` : ""}
                 </p>
               </div>
