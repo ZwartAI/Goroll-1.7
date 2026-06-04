@@ -271,6 +271,7 @@ function DM() {
               subtitle={t("dm.create.monstersSubtitle")}
               icon={Skull}
               color="#ef4444"
+              image={createImgMonsters.url}
               actionLabel={t("dm.create.open")}
             >
               <div className="grid grid-cols-2 gap-2">
