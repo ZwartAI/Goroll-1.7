@@ -1,9 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
-import { SceneConfig, MapToken, Drawing, isVideoUrl, FogElement } from '@/hooks/useBattleMap';
+import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
-import { FogLayer } from './FogLayer';
-import { Stage as KonvaStage, Layer as KonvaLayer, Group, Line as KonvaLine, Circle as KonvaCircle } from 'react-konva';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -34,7 +32,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
   onMapLoad
 }, ref) => {
-  const { activeScene, tokens, drawings, fog, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addFogElement, isLoading } = battleMap;
+  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -69,13 +67,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   // Token dragging state
   const [draggingTokenId, setDraggingTokenId] = useState<string | null>(null);
-
-  // Fog drawing state
-  const [isFogging, setIsFogging] = useState(false);
-  const [currentFogPoints, setCurrentFogPoints] = useState<number[]>([]);
-  const [polygonPoints, setPolygonPoints] = useState<number[]>([]);
-  const [mousePos, setMousePos] = useState<{ x: number, y: number } | null>(null);
-
 
   // Helper function to convert screen coordinates to world coordinates
   const screenToWorld = useCallback((clientX: number, clientY: number) => {
