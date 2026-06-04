@@ -140,7 +140,7 @@ function NpcsPage() {
                   </p>
                 </div>
               </div>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button className="btn-fantasy w-full text-[10px] py-1 flex items-center justify-center gap-1">
                     <MoreHorizontal size={10} /> {t("common.manage")}
