@@ -16,6 +16,8 @@ interface Props {
   gridOffsetY?: number;
   isDragging?: boolean;
   activeTool?: string;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
   onMove: (x: number, y: number, isFinal?: boolean) => void;
   onRemove: () => void;
   onUpdateSize?: (size: number) => void;
@@ -28,6 +30,8 @@ export const Token = memo(function Token({
   scale = 1, gridOffsetX = 0, gridOffsetY = 0,
   isDragging: isDraggingProp = false,
   activeTool,
+  isSelected = false,
+  onToggleSelect,
   onMove, onRemove, onUpdateSize,
   screenToWorld,
   onDragStart,
