@@ -29,6 +29,8 @@ interface Props {
   hasBackground: boolean;
   drawings?: any[];
   showToolbar?: boolean;
+  selectedTokensCount?: number;
+  onClearSelection?: () => void;
 }
 
 
