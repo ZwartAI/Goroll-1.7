@@ -319,7 +319,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'move') {
+    } else if (activeTool === 'move' || activeTool === 'multi-move') {
 
       if (tokenId) return;
 
