@@ -436,6 +436,31 @@ export const Stage = forwardRef<StageHandle, Props>(({
       lastPinchDist.current = null;
     }
 
+    // Finalize marquee selection
+    if (marqueeActive.current && marquee) {
+      const minX = Math.min(marquee.x1, marquee.x2);
+      const maxX = Math.max(marquee.x1, marquee.x2);
+      const minY = Math.min(marquee.y1, marquee.y2);
+      const maxY = Math.max(marquee.y1, marquee.y2);
+      const dragged = Math.hypot(marquee.x2 - marquee.x1, marquee.y2 - marquee.y1);
+
+      if (dragged > 4) {
+        const additive = e.shiftKey || e.ctrlKey || e.metaKey;
+        const hit = new Set<string>(additive ? selectedIds : []);
+        tokens.forEach((t: MapToken) => {
+          const cx = t.x + t.size / 2;
+          const cy = t.y + t.size / 2;
+          if (cx >= minX && cx <= maxX && cy >= minY && cy <= maxY) {
+            hit.add(t.id);
+          }
+        });
+        setSelectedIds(hit);
+      }
+      marqueeActive.current = false;
+      setMarquee(null);
+    }
+
+
     // Sync ref back to state when interaction finishes
     if (isPanning || (wasPinching && activePointers.current.size < 2)) {
       setOffset(offsetRef.current);
