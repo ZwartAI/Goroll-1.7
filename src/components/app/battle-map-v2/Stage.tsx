@@ -58,6 +58,28 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
+
+  // Multi-move selection (DM only)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const multiDragOrigins = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const multiDragLeaderId = useRef<string | null>(null);
+
+  // Clear selection when leaving multi-move mode
+  useEffect(() => {
+    if (activeTool !== 'multi-move' && selectedIds.size > 0) {
+      setSelectedIds(new Set());
+    }
+  }, [activeTool]);
+
+  const toggleSelectToken = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   const lastMeasureTime = useRef(0);
   const bgMediaRef = useRef<HTMLImageElement | HTMLVideoElement | null>(null);
 
