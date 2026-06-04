@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords, MoreHorizontal } from "lucide-react";
-import { ListRowActionsMenu, type ListRowAction } from "@/components/app/ListRowActionsMenu";
+import { ChevronLeft, Plus, Search, Eye, Edit3, Copy, Trash2, Swords } from "lucide-react";
+import { type ListRowAction } from "@/components/app/ListRowActionsMenu";
+import { EntityCodex, type CodexEntry } from "@/components/app/EntityCodex";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
