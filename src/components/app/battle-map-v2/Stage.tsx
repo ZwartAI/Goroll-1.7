@@ -66,6 +66,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const multiDragOrigins = useRef<Map<string, { x: number; y: number }>>(new Map());
   const multiDragLeaderId = useRef<string | null>(null);
 
+  // Marquee (drag-rectangle) selection for multi-move
+  const [marquee, setMarquee] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const marqueeActive = useRef(false);
+
+
   // Clear selection when leaving multi-move mode
   useEffect(() => {
     if (activeTool !== 'multi-move' && selectedIds.size > 0) {
