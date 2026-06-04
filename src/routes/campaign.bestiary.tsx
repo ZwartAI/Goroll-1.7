@@ -39,6 +39,7 @@ function Bestiary() {
   const [deleting, setDeleting] = useState<EnemyTemplate | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [manageId, setManageId] = useState<string | null>(null);
 
   const isDM = character?.role === "dm";
 
