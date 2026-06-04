@@ -115,7 +115,7 @@ export const BattleMapStage = React.memo(React.forwardRef<Konva.Stage, Props>((p
   const layerRef = useRef<Konva.Layer>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? config.backgroundUrl : '', 'anonymous');
+  const [bgImage, status] = useImage(config.backgroundType === 'image' && config.backgroundUrl ? optimizeBgUrl(config.backgroundUrl) : '', 'anonymous');
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [_, setVideoTick] = useState(0);
   const [projection, setProjection] = useState<ProjectionState | null>(null);
