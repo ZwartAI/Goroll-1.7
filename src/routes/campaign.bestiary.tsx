@@ -156,7 +156,7 @@ function Bestiary() {
                   {(tpl.tier === "boss" || tpl.tier === "god") && <span title={t(`bestiary.tier_${tpl.tier}`)}><Crown size={10} className="text-red-400" /></span>}
                 </div>
               </div>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button className="btn-fantasy w-full text-[10px] py-1 flex items-center justify-center gap-1">
                     <MoreHorizontal size={10} /> {t("common.manage")}
