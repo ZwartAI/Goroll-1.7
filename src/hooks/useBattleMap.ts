@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { debounce } from 'lodash';
 
 export interface SceneConfig {
   id: string;
@@ -52,18 +50,6 @@ export interface Drawing {
   points: number[];
 }
 
-export interface FogElement {
-  id: string;
-  campaign_id: string;
-  scene_id: string;
-  type: 'brush' | 'polygon';
-  points: number[];
-  is_eraser: boolean;
-  created_at: string;
-}
-
-
-
 export const isVideoUrl = (url: string | null | undefined) => {
   if (!url) return false;
   const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
@@ -75,7 +61,6 @@ export const useBattleMap = (campaignId: string) => {
   const [scenes, setScenes] = useState<SceneConfig[]>([]);
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
-  const [fog, setFog] = useState<FogElement[]>([]);
 
   
   const [isLoading, setIsLoading] = useState(true);
