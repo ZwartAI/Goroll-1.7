@@ -39,7 +39,7 @@ function NpcsPage() {
   const [spawning, setSpawning] = useState<NpcTemplate | null>(null);
   const [deleting, setDeleting] = useState<NpcTemplate | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [manageId, setManageId] = useState<string | null>(null);
+  
 
   const isDM = character?.role === "dm";
 
