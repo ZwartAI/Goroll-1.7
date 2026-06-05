@@ -295,6 +295,7 @@ export const es = {
       selected: "{n} seleccionados",
       clearSelection: "Limpiar selección",
       clearMeasurements: "Borrar mediciones",
+      eraseMarkers: "Borrar Marcas",
     },
   },
 
