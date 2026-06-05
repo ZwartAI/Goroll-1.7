@@ -49,6 +49,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const { activeScene, tokens, drawings, measurements = [], updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addMeasurement, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const bgContainerRef = useRef<HTMLDivElement>(null);
+
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
