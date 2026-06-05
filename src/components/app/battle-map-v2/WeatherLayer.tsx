@@ -21,14 +21,15 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 // Stable seeded counts per effect+intensity
 const COUNTS: Record<Exclude<WeatherEffect, 'none'>, Record<WeatherIntensity, number>> = {
-  sunny:     { low: 3,  medium: 5,  high: 7 },
-  rain:      { low: 60, medium: 90, high: 130 },
-  storm:     { low: 60, medium: 100, high: 140 },
-  radiation: { low: 20, medium: 35, high: 55 },
-  volcanic:  { low: 20, medium: 45, high: 70 },
-  night:     { low: 15, medium: 30, high: 45 },
-  snow:      { low: 35, medium: 70, high: 110 },
+  sunny:     { low: 2,  medium: 4,  high: 6 },
+  rain:      { low: 30, medium: 50, high: 75 },
+  storm:     { low: 30, medium: 55, high: 80 },
+  radiation: { low: 10, medium: 18, high: 28 },
+  volcanic:  { low: 10, medium: 22, high: 35 },
+  night:     { low: 10, medium: 18, high: 28 },
+  snow:      { low: 20, medium: 38, high: 60 },
 };
+
 
 export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
   const particles = useMemo(() => {
