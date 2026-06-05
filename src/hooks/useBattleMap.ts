@@ -76,6 +76,7 @@ export const useBattleMap = (campaignId: string) => {
   const [scenes, setScenes] = useState<SceneConfig[]>([]);
   const [tokens, setTokens] = useState<MapToken[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
+  const [measurements, setMeasurements] = useState<Measurement[]>([]);
 
   
   const [isLoading, setIsLoading] = useState(true);
