@@ -8,6 +8,17 @@ import { toast } from 'sonner';
 
 import { MapTool, MeasureMode } from './Toolbar';
 
+import cursorOpenAsset from '@/assets/cursors/cursor_open.png.asset.json';
+import cursorClosedAsset from '@/assets/cursors/cursor_closed.png.asset.json';
+import cursorEyeAsset from '@/assets/cursors/cursor_eye.png.asset.json';
+
+// Custom rune-engraved cursors for the battle map.
+// Hotspots are tuned so the fingertip / eye-center sits where the user expects.
+const CURSOR_OPEN = `url("${cursorOpenAsset.url}") 6 4, grab`;
+const CURSOR_CLOSED = `url("${cursorClosedAsset.url}") 12 8, grabbing`;
+const CURSOR_EYE = `url("${cursorEyeAsset.url}") 16 16, crosshair`;
+
+
 
 interface Props {
   battleMap: any;
