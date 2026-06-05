@@ -313,18 +313,22 @@ export const Stage = forwardRef<StageHandle, Props>(({
     if (activeTool === 'measure') {
       isMeasuring.current = true;
       let startCoords = coords;
-      
-      if (measureSnap && activeScene && !tokenId) {
+
+      // Always snap the start point to the nearest cell center for line measurements
+      // when the grid is enabled — users expect the ruler to begin from cell centers,
+      // not from wherever the cursor pixel happens to land.
+      const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
+      if (shouldSnap && !tokenId) {
         const gridSize = activeScene.grid_size;
         const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
         const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-        
+
         startCoords = {
           x: Math.round((startCoords.x - offsetX) / gridSize) * gridSize + offsetX,
           y: Math.round((startCoords.y - offsetY) / gridSize) * gridSize + offsetY
         };
       }
-      
+
       rulerStartTokenId.current = tokenId || null;
 
       if (tokenId) {
@@ -339,7 +343,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       setRulerStart(startCoords);
       setRulerEnd(startCoords);
-      
+
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
