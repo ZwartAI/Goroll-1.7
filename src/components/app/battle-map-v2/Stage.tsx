@@ -67,10 +67,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
   }, [scale, offset]);
 
   const updateTransform = () => {
-    if (containerRef.current) {
-      containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
-    }
+    const t = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+    if (containerRef.current) containerRef.current.style.transform = t;
+    if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
   };
+
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
