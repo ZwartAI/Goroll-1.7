@@ -423,16 +423,18 @@ export const Stage = forwardRef<StageHandle, Props>(({
       let snappedCoords = coords;
 
       // Snap end to cell centers when grid is enabled (always for line mode
-      // so the distance is reported in whole 5-ft increments).
+      // so the distance is reported in whole 5-ft increments). When the ruler
+      // started on a token, snap RELATIVE to the start so the delta is still
+      // a whole number of cells even if the token isn't on a cell center.
       const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
       if (shouldSnap) {
         const gridSize = activeScene.grid_size;
-        const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
-        const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
+        const refX = rulerStart.x;
+        const refY = rulerStart.y;
 
         snappedCoords = {
-          x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
-          y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
+          x: Math.round((coords.x - refX) / gridSize) * gridSize + refX,
+          y: Math.round((coords.y - refY) / gridSize) * gridSize + refY
         };
       }
 
@@ -566,9 +568,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const highlightedCells = React.useMemo(() => {
     if (!rulerStart || !rulerEnd || !activeScene || !activeScene.grid_enabled) return [];
-    // Plain distance ('line') doesn't need per-cell highlights — they cause grid flicker
-    // as cells appear/disappear step by step. Only AOE shapes (circle/cone) highlight cells.
-    if (measureMode === 'line') return [];
+    // (line mode now always snaps the end to whole-cell increments, so the
+    // highlighted trajectory is stable and no longer flickers.)
 
     
     const gridSize = activeScene.grid_size;
