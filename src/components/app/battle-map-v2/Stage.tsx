@@ -937,7 +937,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
+            className="absolute pointer-events-none bg-black/90 border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
             style={{ 
               left: rulerEnd.x,
               // Lift the label well above the eye cursor (~40 screen px) so the
