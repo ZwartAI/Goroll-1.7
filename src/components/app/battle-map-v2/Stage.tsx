@@ -346,8 +346,15 @@ export const Stage = forwardRef<StageHandle, Props>(({
     } else if (activeTool === 'multi-move') {
       if (tokenId) return;
 
-      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
-        // Start marquee selection rectangle in world coordinates
+      // Background sibling has pointer-events:none, so empty-space clicks land on
+      // the stage root. Treat the stage root or any background-tagged element as
+      // a valid marquee origin.
+      const isBackground =
+        target === stageRef.current ||
+        target.classList.contains('stage-bg') ||
+        !!target.closest('[data-map-background="true"]');
+
+      if (isBackground) {
         marqueeActive.current = true;
         setMarquee({ x1: coords.x, y1: coords.y, x2: coords.x, y2: coords.y });
         if (stageRef.current) {
@@ -358,7 +365,12 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       if (tokenId) return;
 
-      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
+      const isBackground =
+        target === stageRef.current ||
+        target.classList.contains('stage-bg') ||
+        !!target.closest('[data-map-background="true"]');
+
+      if (isBackground) {
         setIsPanning(true);
         lastPanPos.current = { x: e.clientX, y: e.clientY };
         if (stageRef.current) {
