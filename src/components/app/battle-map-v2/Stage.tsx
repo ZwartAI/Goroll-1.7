@@ -922,12 +922,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60]"
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
             style={{ 
-              left: rulerEnd.x + 10,
-              top: rulerEnd.y + 10,
-              transform: `scale(${1/scale})`,
-              transformOrigin: 'top left',
+              left: rulerEnd.x,
+              // Lift the label well above the eye cursor (~40 screen px) so the
+              // distance is always readable above the pointer regardless of zoom.
+              top: rulerEnd.y - 40 / scale,
+              transform: `translate(-50%, -100%) scale(${1/scale})`,
+              transformOrigin: 'bottom center',
               color: authorColor || 'var(--gold)',
               borderColor: `${authorColor || 'var(--gold)'}80`
             }}
