@@ -559,6 +559,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const highlightedCells = React.useMemo(() => {
     if (!rulerStart || !rulerEnd || !activeScene || !activeScene.grid_enabled) return [];
+    // Plain distance ('line') doesn't need per-cell highlights — they cause grid flicker
+    // as cells appear/disappear step by step. Only AOE shapes (circle/cone) highlight cells.
+    if (measureMode === 'line') return [];
+
     
     const gridSize = activeScene.grid_size;
     const dx = rulerEnd.x - rulerStart.x;
