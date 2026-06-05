@@ -313,18 +313,22 @@ export const Stage = forwardRef<StageHandle, Props>(({
     if (activeTool === 'measure') {
       isMeasuring.current = true;
       let startCoords = coords;
-      
-      if (measureSnap && activeScene && !tokenId) {
+
+      // Always snap the start point to the nearest cell center for line measurements
+      // when the grid is enabled — users expect the ruler to begin from cell centers,
+      // not from wherever the cursor pixel happens to land.
+      const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
+      if (shouldSnap && !tokenId) {
         const gridSize = activeScene.grid_size;
         const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
         const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-        
+
         startCoords = {
           x: Math.round((startCoords.x - offsetX) / gridSize) * gridSize + offsetX,
           y: Math.round((startCoords.y - offsetY) / gridSize) * gridSize + offsetY
         };
       }
-      
+
       rulerStartTokenId.current = tokenId || null;
 
       if (tokenId) {
@@ -339,7 +343,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       setRulerStart(startCoords);
       setRulerEnd(startCoords);
-      
+
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
@@ -417,18 +421,21 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       const coords = screenToWorld(e.clientX, e.clientY);
       let snappedCoords = coords;
-      
-      if (measureSnap && activeScene) {
+
+      // Snap end to cell centers when grid is enabled (always for line mode
+      // so the distance is reported in whole 5-ft increments).
+      const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
+      if (shouldSnap) {
         const gridSize = activeScene.grid_size;
         const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
         const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-        
+
         snappedCoords = {
           x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
           y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
         };
       }
-      
+
       // Throttle state update to avoid heavy useMemo re-calc on every frame
       if (Date.now() - lastMeasureTime.current > 32) {
         setRulerEnd(snappedCoords);
@@ -915,12 +922,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60]"
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
             style={{ 
-              left: rulerEnd.x + 10,
-              top: rulerEnd.y + 10,
-              transform: `scale(${1/scale})`,
-              transformOrigin: 'top left',
+              left: rulerEnd.x,
+              // Lift the label well above the eye cursor (~40 screen px) so the
+              // distance is always readable above the pointer regardless of zoom.
+              top: rulerEnd.y - 40 / scale,
+              transform: `translate(-50%, -100%) scale(${1/scale})`,
+              transformOrigin: 'bottom center',
               color: authorColor || 'var(--gold)',
               borderColor: `${authorColor || 'var(--gold)'}80`
             }}
