@@ -688,10 +688,11 @@
   animation-iteration-count: infinite;
 }
 @keyframes snowFall {
-  0%   { transform: translate3d(0, -15vh, 0); opacity: 0; }
+  0%   { transform: translate3d(0, -15%, 0); opacity: 0; }
   10%  { opacity: 0.9; }
-  100% { transform: translate3d(8vw, 115vh, 0); opacity: 0; }
+  100% { transform: translate3d(8%, 115%, 0); opacity: 0; }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .battle-weather *,
