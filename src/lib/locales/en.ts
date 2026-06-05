@@ -293,6 +293,7 @@ export const en: Dict = {
       selected: "{n} selected",
       clearSelection: "Clear selection",
       clearMeasurements: "Clear measurements",
+      eraseMarkers: "Erase Markers",
     },
   },
 
