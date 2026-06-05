@@ -645,8 +645,9 @@
 @keyframes emberRise {
   0%   { transform: translate3d(0, 0, 0) scale(0.5); opacity: 0; }
   15%  { opacity: 0.95; }
-  100% { transform: translate3d(-6vw, -130vh, 0) scale(1.1); opacity: 0; }
+  100% { transform: translate3d(-6%, -130%, 0) scale(1.1); opacity: 0; }
 }
+
 
 /* NIGHT */
 .battle-weather--night .battle-weather__filter {
