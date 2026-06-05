@@ -218,6 +218,17 @@ export function Toolbar({
                   exit={{ opacity: 0, x: 20 }}
                   className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/80 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[120px]"
                 >
+                  {hasMeasurements && (
+                    <button
+                      onClick={() => onClearMeasurements?.()}
+                      className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/40 border border-red-500/40 text-red-300 hover:text-red-100 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] uppercase tracking-tight font-semibold">
+                        {t('battleMap.tools.eraseMarkers')}
+                      </span>
+                    </button>
+                  )}
                   <div className="flex flex-col gap-1">
                     <ToolButton 
                       active={measureMode === 'line'} 
