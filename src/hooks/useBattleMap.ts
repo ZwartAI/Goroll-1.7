@@ -154,6 +154,15 @@ export const useBattleMap = (campaignId: string) => {
     setDrawings(transformedDrawings as unknown as Drawing[]);
   }, []);
 
+  const fetchMeasurements = useCallback(async (sceneId: string) => {
+    const { data, error } = await supabase
+      .from('battle_map_measurements_simple' as any)
+      .select('*')
+      .eq('scene_id', sceneId);
+    if (error) { console.error('Error fetching measurements:', error); return; }
+    setMeasurements((data || []) as unknown as Measurement[]);
+  }, []);
+
 
 
   useEffect(() => {
