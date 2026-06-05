@@ -431,10 +431,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
 
       // Throttle state update to avoid heavy useMemo re-calc on every frame
-      if (Date.now() - lastMeasureTime.current > 32) {
+      if (Date.now() - lastMeasureTime.current > 60) {
         setRulerEnd(snappedCoords);
         lastMeasureTime.current = Date.now();
       }
+
     }
 
   };
