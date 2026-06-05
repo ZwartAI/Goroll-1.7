@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, f
 import { SceneConfig, MapToken, Drawing, isVideoUrl } from '@/hooks/useBattleMap';
 import { Token } from './Token';
 import { DrawingLayer } from './DrawingLayer';
+import { WeatherLayer } from './WeatherLayer';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
