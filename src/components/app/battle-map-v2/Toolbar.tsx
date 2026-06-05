@@ -33,6 +33,10 @@ interface Props {
   onClearSelection?: () => void;
   hasMeasurements?: boolean;
   onClearMeasurements?: () => void;
+  weatherEffect?: string;
+  weatherIntensity?: string;
+  onChangeWeather?: (effect: string, intensity: string) => void;
+  canChangeWeather?: boolean;
 }
 
 
