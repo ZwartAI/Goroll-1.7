@@ -949,6 +949,70 @@ export const Stage = forwardRef<StageHandle, Props>(({
           </div>
         )}
 
+        {/* Persistent measurements — shared across all players, never auto-expire */}
+        {measurements.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 49 }}>
+            {measurements.map((m: any) => {
+              const color = m.author_color || 'var(--gold)';
+              if (m.mode === 'line') {
+                return (
+                  <g key={m.id}>
+                    <line x1={m.start_x} y1={m.start_y} x2={m.end_x} y2={m.end_y}
+                      stroke={color} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} />
+                    <circle cx={m.start_x} cy={m.start_y} r={4 / scale} fill={color} />
+                    <circle cx={m.end_x} cy={m.end_y} r={4 / scale} fill={color} />
+                  </g>
+                );
+              }
+              if (m.mode === 'circle') {
+                const r = Math.hypot(m.end_x - m.start_x, m.end_y - m.start_y) + (activeScene.grid_enabled ? activeScene.grid_size / 2 : 0);
+                return (
+                  <circle key={m.id} cx={m.start_x} cy={m.start_y} r={r}
+                    fill={color} fillOpacity={0.1}
+                    stroke={color} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} />
+                );
+              }
+              if (m.mode === 'cone') {
+                const dx = m.end_x - m.start_x;
+                const dy = m.end_y - m.start_y;
+                const angle = Math.atan2(dy, dx);
+                const radius = Math.hypot(dx, dy);
+                const effectiveRadius = activeScene.grid_enabled ? radius + (activeScene.grid_size / 2) : radius;
+                const halfSpread = Math.atan(0.5);
+                const x1 = m.start_x + effectiveRadius * Math.cos(angle - halfSpread);
+                const y1 = m.start_y + effectiveRadius * Math.sin(angle - halfSpread);
+                const x2 = m.start_x + effectiveRadius * Math.cos(angle + halfSpread);
+                const y2 = m.start_y + effectiveRadius * Math.sin(angle + halfSpread);
+                return (
+                  <g key={m.id}>
+                    <path d={`M ${m.start_x} ${m.start_y} L ${x1} ${y1} A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${x2} ${y2} Z`}
+                      fill={color} fillOpacity={0.1}
+                      stroke={color} strokeWidth={2 / scale} strokeDasharray={`${5 / scale},${5 / scale}`} />
+                  </g>
+                );
+              }
+              return null;
+            })}
+          </svg>
+        )}
+
+        {measurements.map((m: any) => (
+          <div
+            key={`label-${m.id}`}
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[59] whitespace-nowrap"
+            style={{
+              left: m.end_x,
+              top: m.end_y - 40 / scale,
+              transform: `translate(-50%, -100%) scale(${1/scale})`,
+              transformOrigin: 'bottom center',
+              color: m.author_color || 'var(--gold)',
+              borderColor: `${m.author_color || 'var(--gold)'}80`,
+            }}
+          >
+            {m.distance} ft
+          </div>
+        ))}
+
         {marquee && (
           <div
             className="absolute pointer-events-none"
