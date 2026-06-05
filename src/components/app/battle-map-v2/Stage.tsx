@@ -695,28 +695,28 @@ export const Stage = forwardRef<StageHandle, Props>(({
       ref={stageRef}
     >
 
-      <div 
-        ref={containerRef}
+      {/* Background-only transformed sibling (z below weather) */}
+      <div
+        ref={bgContainerRef}
         className="absolute inset-0 origin-top-left stage-bg"
         data-map-background="true"
-        style={{ 
+        style={{
           transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
           width: `${mapDims.width}px`,
           height: `${mapDims.height}px`,
-          willChange: 'transform'
+          willChange: 'transform',
+          zIndex: 0,
+          pointerEvents: 'none'
         }}
       >
         {activeScene.background_url && (
-          <div 
+          <div
             className="absolute inset-0 pointer-events-none"
             data-map-background="true"
-            style={{ 
-              opacity: activeScene.background_opacity,
-              zIndex: 0
-            }}
+            style={{ opacity: activeScene.background_opacity }}
           >
-            <div 
-              style={{ 
+            <div
+              style={{
                 transformOrigin: 'center center',
                 transform: `translate(${activeScene.background_x}%, ${activeScene.background_y}%) scale(${activeScene.background_scale})`,
                 width: '100%',
@@ -727,19 +727,19 @@ export const Stage = forwardRef<StageHandle, Props>(({
               }}
             >
               {isVideo(activeScene.background_url) ? (
-                <video 
+                <video
                   ref={(el) => { if (el) bgMediaRef.current = el; }}
-                  src={activeScene.background_url} 
+                  src={activeScene.background_url}
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar video')}
                 />
               ) : (
-                <img 
+                <img
                   ref={(el) => { if (el) bgMediaRef.current = el; }}
-                  src={activeScene.background_url} 
-                  alt="" 
+                  src={activeScene.background_url}
+                  alt=""
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar imagen')}
@@ -748,14 +748,33 @@ export const Stage = forwardRef<StageHandle, Props>(({
             </div>
           </div>
         )}
+      </div>
 
-        {/* Weather visual layer — sits above background image but below grid/tokens/drawings */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0.5, pointerEvents: 'none' }}>
-          <WeatherLayer
-            effect={(activeScene?.weather_effect as any) || 'none'}
-            intensity={(activeScene?.weather_intensity as any) || 'medium'}
-          />
-        </div>
+      {/* Weather — screen-space layer between background and grid/tokens/UI */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ zIndex: 1 }}
+      >
+        <WeatherLayer
+          effect={(activeScene?.weather_effect as any) || 'none'}
+          intensity={(activeScene?.weather_intensity as any) || 'medium'}
+        />
+      </div>
+
+      {/* Content transformed sibling (grid, drawings, tokens) — above weather */}
+      <div
+        ref={containerRef}
+        className="absolute inset-0 origin-top-left"
+        style={{
+          transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
+          width: `${mapDims.width}px`,
+          height: `${mapDims.height}px`,
+          willChange: 'transform',
+          zIndex: 2
+        }}
+      >
+
+
 
 
 
