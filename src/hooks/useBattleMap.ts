@@ -18,6 +18,8 @@ export interface SceneConfig {
   grid_offset_x: number;
   grid_offset_y: number;
   snap_to_grid: boolean;
+  weather_effect?: 'none' | 'sunny' | 'rain' | 'storm' | 'radiation' | 'volcanic' | 'night' | 'snow';
+  weather_intensity?: 'low' | 'medium' | 'high';
 }
 
 export interface MapToken {

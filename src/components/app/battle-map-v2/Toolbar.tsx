@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X, Cloud, Sun, CloudRain, CloudLightning, Radiation, Flame, Moon, Snowflake, CloudOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
@@ -33,6 +33,10 @@ interface Props {
   onClearSelection?: () => void;
   hasMeasurements?: boolean;
   onClearMeasurements?: () => void;
+  weatherEffect?: string;
+  weatherIntensity?: string;
+  onChangeWeather?: (effect: string, intensity: string) => void;
+  canChangeWeather?: boolean;
 }
 
 
@@ -62,11 +66,16 @@ export function Toolbar({
   onClearSelection,
   hasMeasurements = false,
   onClearMeasurements,
+  weatherEffect = 'none',
+  weatherIntensity = 'medium',
+  onChangeWeather,
+  canChangeWeather = false,
 }: Props) {
   const { t } = useT();
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
+  const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
@@ -363,9 +372,95 @@ export function Toolbar({
             active={false} 
             onClick={onResetView}
             icon={<Crosshair className="w-5 h-5" />}
-            label="Centrar"
+            label={t('battleMap.tools.center') || 'Centrar'}
           />
+
+          {/* Weather tool */}
+          <div className="relative">
+            <ToolButton
+              active={weatherEffect !== 'none'}
+              onClick={() => {
+                if (!canChangeWeather && weatherEffect === 'none') return;
+                setWeatherMenuOpen(v => !v);
+                setMeasureMenuOpen(false);
+                setPencilMenuOpen(false);
+                setMoveMenuOpen(false);
+              }}
+              icon={<WeatherIcon effect={weatherEffect} />}
+              label={t('battleMap.weather.title') || 'Clima'}
+            />
+            <AnimatePresence>
+              {weatherMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/85 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[180px]"
+                >
+                  <div className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 px-1 pb-1 border-b border-[var(--gold)]/15">
+                    {t('battleMap.weather.title') || 'Clima'}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {([
+                      { id: 'none',      icon: <CloudOff className="w-4 h-4" />,        label: t('battleMap.weather.none') || 'Ninguno' },
+                      { id: 'sunny',     icon: <Sun className="w-4 h-4" />,             label: t('battleMap.weather.sunny') || 'Soleado' },
+                      { id: 'rain',      icon: <CloudRain className="w-4 h-4" />,       label: t('battleMap.weather.rain') || 'Lluvioso' },
+                      { id: 'storm',     icon: <CloudLightning className="w-4 h-4" />,  label: t('battleMap.weather.storm') || 'Tormenta' },
+                      { id: 'radiation', icon: <Radiation className="w-4 h-4" />,       label: t('battleMap.weather.radiation') || 'Radiación' },
+                      { id: 'volcanic',  icon: <Flame className="w-4 h-4" />,           label: t('battleMap.weather.volcanic') || 'Glow Volcánico' },
+                      { id: 'night',     icon: <Moon className="w-4 h-4" />,            label: t('battleMap.weather.night') || 'Nocturno' },
+                      { id: 'snow',      icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.id}
+                        disabled={!canChangeWeather}
+                        onClick={() => {
+                          onChangeWeather?.(opt.id, weatherIntensity);
+                          setWeatherMenuOpen(false);
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
+                          weatherEffect === opt.id
+                            ? "bg-[var(--gold)]/20 text-[var(--gold)]"
+                            : "text-white/70 hover:bg-white/5 hover:text-white",
+                          !canChangeWeather && "opacity-60 cursor-not-allowed"
+                        )}
+                      >
+                        {opt.icon}
+                        <span className="text-[10px] uppercase tracking-tight flex-1">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {canChangeWeather && weatherEffect !== 'none' && (
+                    <>
+                      <div className="h-px bg-[var(--gold)]/15 my-1" />
+                      <div className="text-[9px] uppercase tracking-widest text-white/50 px-1">
+                        {t('battleMap.weather.intensity') || 'Intensidad'}
+                      </div>
+                      <div className="flex gap-1">
+                        {(['low','medium','high'] as const).map(int => (
+                          <button
+                            key={int}
+                            onClick={() => onChangeWeather?.(weatherEffect, int)}
+                            className={cn(
+                              "flex-1 px-2 py-1 rounded text-[9px] uppercase tracking-tight transition-colors",
+                              weatherIntensity === int
+                                ? "bg-[var(--gold)]/25 text-[var(--gold)] border border-[var(--gold)]/40"
+                                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-transparent"
+                            )}
+                          >
+                            {t(`battleMap.weather.${int}`) || int}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
+
 
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           {isDM && (
@@ -465,4 +560,17 @@ function ToolButton({ icon, label, active, onClick, small, className }: ToolButt
       </div>
     </button>
   );
+}
+
+function WeatherIcon({ effect }: { effect: string }) {
+  switch (effect) {
+    case 'sunny':     return <Sun className="w-5 h-5" />;
+    case 'rain':      return <CloudRain className="w-5 h-5" />;
+    case 'storm':     return <CloudLightning className="w-5 h-5" />;
+    case 'radiation': return <Radiation className="w-5 h-5" />;
+    case 'volcanic':  return <Flame className="w-5 h-5" />;
+    case 'night':     return <Moon className="w-5 h-5" />;
+    case 'snow':      return <Snowflake className="w-5 h-5" />;
+    default:          return <Cloud className="w-5 h-5" />;
+  }
 }
