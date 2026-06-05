@@ -219,7 +219,7 @@ export const Token = memo(function Token({
             src={token.image_url} 
             alt={token.name || 'Token'} 
             draggable="false"
-            className="w-full h-full object-cover select-none pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
             style={{ 
               transform: `translate(${(token.image_offset_x ?? 50) - 50}%, ${(token.image_offset_y ?? 50) - 50}%) scale(${token.image_scale || 1})`,
               transformOrigin: 'center center'
