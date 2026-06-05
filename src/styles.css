@@ -616,8 +616,9 @@
 @keyframes radiationFloat {
   0%   { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
   20%  { opacity: 0.85; }
-  100% { transform: translate3d(8%, -130%, 0) scale(1.2); opacity: 0; }
+  100% { transform: translate3d(8vw, -130vh, 0) scale(1.2); opacity: 0; }
 }
+
 
 
 
