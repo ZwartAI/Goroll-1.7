@@ -491,19 +491,29 @@ export const Stage = forwardRef<StageHandle, Props>(({
       isMeasuring.current = false;
       
       const distance = calculateDistance();
-      if (distance > 0) {
+      if (distance > 0 && rulerStart && rulerEnd) {
         const target = e.target as HTMLElement;
         const endTokenElement = target.closest('[data-token-id]');
         const endTokenId = endTokenElement?.getAttribute('data-token-id') || undefined;
         onMeasure?.(distance, rulerStartTokenId.current || undefined, endTokenId);
+
+        // Persist measurement so all players see it and it doesn't auto-expire.
+        addMeasurement?.({
+          author_character_id: characterId || null,
+          author_name: authorName || null,
+          author_color: authorColor || null,
+          mode: measureMode,
+          start_x: rulerStart.x,
+          start_y: rulerStart.y,
+          end_x: rulerEnd.x,
+          end_y: rulerEnd.y,
+          distance,
+        });
       }
 
-      setTimeout(() => {
-        if (!isMeasuring.current) {
-          setRulerStart(null);
-          setRulerEnd(null);
-        }
-      }, 6000);
+      // Clear the live ruler immediately — persisted copy takes over.
+      setRulerStart(null);
+      setRulerEnd(null);
     }
     
     setIsPanning(false);
