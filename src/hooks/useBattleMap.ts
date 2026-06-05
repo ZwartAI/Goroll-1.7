@@ -50,6 +50,21 @@ export interface Drawing {
   points: number[];
 }
 
+export interface Measurement {
+  id: string;
+  campaign_id: string;
+  scene_id: string;
+  author_character_id: string | null;
+  author_name?: string | null;
+  author_color?: string | null;
+  mode: 'line' | 'cone' | 'circle';
+  start_x: number;
+  start_y: number;
+  end_x: number;
+  end_y: number;
+  distance: number;
+}
+
 export const isVideoUrl = (url: string | null | undefined) => {
   if (!url) return false;
   const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
