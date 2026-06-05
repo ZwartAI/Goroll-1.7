@@ -366,6 +366,13 @@ export function Toolbar({
               )}
             </AnimatePresence>
           </div>
+
+          <ToolButton
+            active={false}
+            onClick={onOpenDice}
+            icon={<Box className="w-5 h-5" />}
+            label={t('battleMap.tools.dice') || 'Dados'}
+          />
           
           <ToolButton 
 
