@@ -45,7 +45,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
   battleMap, isDM, activeTool, measureMode, measureSnap, characterId, authorName, authorColor, onMeasure,
   onMapLoad, onSelectionChange
 }, ref) => {
-  const { activeScene, tokens, drawings, updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, isLoading } = battleMap;
+  const { activeScene, tokens, drawings, measurements = [], updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addMeasurement, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
