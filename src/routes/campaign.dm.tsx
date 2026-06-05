@@ -909,9 +909,10 @@ function CreateItem({ campaignId, dm, players, showTriggerButton = true }: { cam
       )}
       <div className="gem-divider"/>
       <select className="w-full bg-input border border-border rounded px-2 py-2 text-sm" value={target} onChange={e => setTarget(e.target.value)}>
-        <option value="">{isCoins ? tr("dm.pickPlayer") : tr("dm.keepVault")}</option>
+        <option value="">{tr("dm.pickPlayer")}</option>
         {players.map(p => <option key={p.id} value={p.id}>{tr("dm.sendTo", { name: p.name })}</option>)}
       </select>
+
       <div className="grid grid-cols-2 gap-2">
         {!isCoins && <button className="btn-fantasy" onClick={() => { create(false); if (showTriggerButton === false) setIsOpen(false); }}><Plus size={14} className="inline"/> {tr("dm.vault")}</button>}
         <button className={`btn-fantasy ${isCoins ? "col-span-2" : ""}`} style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }} disabled={!target} onClick={() => { create(true); if (showTriggerButton === false) setIsOpen(false); }}><Send size={14} className="inline"/> {tr("dm.send")}</button>
