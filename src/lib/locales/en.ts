@@ -292,6 +292,7 @@ export const en: Dict = {
       multiMoveHint: "Tap tokens to select them. Drag a selected one to move all together.",
       selected: "{n} selected",
       clearSelection: "Clear selection",
+      clearMeasurements: "Clear measurements",
     },
   },
 
