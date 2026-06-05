@@ -582,6 +582,9 @@
   animation: stormFlash 6.5s infinite;
   pointer-events: none;
 }
+.battle-weather--layer-particles.battle-weather--storm::after {
+  display: none;
+}
 @keyframes stormFlash {
   0%, 88%, 100% { opacity: 0; }
   89% { opacity: 0.65; }

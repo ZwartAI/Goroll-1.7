@@ -79,7 +79,7 @@ export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Pr
   if (effect === 'none' || !particles) return null;
 
   return (
-    <div className={`battle-weather battle-weather--${effect} battle-weather--${intensity}`} aria-hidden>
+    <div className={`battle-weather battle-weather--${effect} battle-weather--${intensity} battle-weather--layer-${layer}`} aria-hidden>
       {(layer === 'all' || layer === 'filter') && <div className="battle-weather__filter" />}
       {(layer === 'all' || layer === 'particles') && (effect === 'rain' || effect === 'storm') && particles.map((p: any) => (
         <div
