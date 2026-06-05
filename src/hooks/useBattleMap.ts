@@ -424,6 +424,51 @@ export const useBattleMap = (campaignId: string) => {
     if (authorDrawings.length > 0) await removeDrawing(authorDrawings[authorDrawings.length - 1].id);
   };
 
+  const addMeasurement = async (m: Omit<Measurement, 'id' | 'campaign_id' | 'scene_id'>) => {
+    if (!activeScene) return;
+    const tempId = `tmp-${Math.random().toString(36).slice(2)}`;
+    const optimistic: Measurement = {
+      ...m,
+      id: tempId,
+      campaign_id: campaignId,
+      scene_id: activeScene.id,
+    };
+    setMeasurements(prev => [...prev, optimistic]);
+    const { data, error } = await supabase
+      .from('battle_map_measurements_simple' as any)
+      .insert([{ ...m, campaign_id: campaignId, scene_id: activeScene.id }])
+      .select()
+      .single();
+    if (error || !data) {
+      setMeasurements(prev => prev.filter(x => x.id !== tempId));
+      return;
+    }
+    setMeasurements(prev => prev.map(x => x.id === tempId ? (data as unknown as Measurement) : x));
+  };
+
+  const removeMeasurement = async (id: string) => {
+    setMeasurements(prev => prev.filter(x => x.id !== id));
+    await supabase.from('battle_map_measurements_simple' as any).delete().eq('id', id);
+  };
+
+  const clearMeasurements = async (options?: { authorId?: string; all?: boolean }) => {
+    if (!activeScene) return;
+    if (options?.all) {
+      setMeasurements(prev => prev.filter(x => x.scene_id !== activeScene.id));
+      await supabase.from('battle_map_measurements_simple' as any).delete().match({
+        scene_id: activeScene.id,
+        campaign_id: campaignId,
+      });
+    } else if (options?.authorId) {
+      setMeasurements(prev => prev.filter(x => !(x.scene_id === activeScene.id && x.author_character_id === options.authorId)));
+      await supabase.from('battle_map_measurements_simple' as any).delete().match({
+        scene_id: activeScene.id,
+        campaign_id: campaignId,
+        author_character_id: options.authorId,
+      });
+    }
+  };
+
 
 
   return {
@@ -431,6 +476,7 @@ export const useBattleMap = (campaignId: string) => {
     scenes,
     tokens,
     drawings,
+    measurements,
     isLoading,
     updateScene,
     createScene,
@@ -442,7 +488,10 @@ export const useBattleMap = (campaignId: string) => {
     addDrawing,
     clearDrawings,
     removeDrawing,
-    undoLastDrawing
+    undoLastDrawing,
+    addMeasurement,
+    removeMeasurement,
+    clearMeasurements,
   };
 };
 
