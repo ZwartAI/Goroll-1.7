@@ -294,6 +294,7 @@ export const es = {
       multiMoveHint: "Toca tokens para seleccionarlos. Arrastra uno seleccionado para moverlos todos.",
       selected: "{n} seleccionados",
       clearSelection: "Limpiar selección",
+      clearMeasurements: "Borrar mediciones",
     },
   },
 

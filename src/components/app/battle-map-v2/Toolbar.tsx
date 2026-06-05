@@ -31,6 +31,8 @@ interface Props {
   showToolbar?: boolean;
   selectedTokensCount?: number;
   onClearSelection?: () => void;
+  hasMeasurements?: boolean;
+  onClearMeasurements?: () => void;
 }
 
 
@@ -58,6 +60,8 @@ export function Toolbar({
   showToolbar = true,
   selectedTokensCount = 0,
   onClearSelection,
+  hasMeasurements = false,
+  onClearMeasurements,
 }: Props) {
   const { t } = useT();
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
@@ -121,6 +125,22 @@ export function Toolbar({
         "absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 transition-all duration-300",
         !showToolbar && "translate-x-[150%] opacity-0 pointer-events-none"
       )} data-map-ui="true">
+        {/* Red X — clears persistent measurement projections from the map */}
+        <AnimatePresence>
+          {hasMeasurements && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              onClick={() => onClearMeasurements?.()}
+              title={t('battleMap.tools.clearMeasurements') || 'Borrar mediciones'}
+              className="self-center w-10 h-10 rounded-full bg-red-600/90 hover:bg-red-500 text-white shadow-[0_0_18px_rgba(239,68,68,0.55)] border border-red-300/40 flex items-center justify-center transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
           <div className="relative">
             <div

@@ -189,6 +189,62 @@ export type Database = {
         }
         Relationships: []
       }
+      battle_map_measurements_simple: {
+        Row: {
+          author_character_id: string | null
+          author_color: string | null
+          author_name: string | null
+          campaign_id: string
+          created_at: string
+          distance: number
+          end_x: number
+          end_y: number
+          id: string
+          mode: string
+          scene_id: string | null
+          start_x: number
+          start_y: number
+        }
+        Insert: {
+          author_character_id?: string | null
+          author_color?: string | null
+          author_name?: string | null
+          campaign_id: string
+          created_at?: string
+          distance?: number
+          end_x: number
+          end_y: number
+          id?: string
+          mode?: string
+          scene_id?: string | null
+          start_x: number
+          start_y: number
+        }
+        Update: {
+          author_character_id?: string | null
+          author_color?: string | null
+          author_name?: string | null
+          campaign_id?: string
+          created_at?: string
+          distance?: number
+          end_x?: number
+          end_y?: number
+          id?: string
+          mode?: string
+          scene_id?: string | null
+          start_x?: number
+          start_y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_map_measurements_simple_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "battle_map_scenes_simple"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       battle_map_scenes: {
         Row: {
           background_brightness: number | null

@@ -250,6 +250,13 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           hasBackground={!!battleMap.activeScene?.background_url}
           selectedTokensCount={selectedTokensCount}
           onClearSelection={() => stageRef.current?.clearMultiSelection()}
+          hasMeasurements={(battleMap.measurements?.length || 0) > 0 && (
+            isDM ? true : (battleMap.measurements || []).some((m: any) => m.author_character_id === character?.id)
+          )}
+          onClearMeasurements={() => {
+            if (isDM) battleMap.clearMeasurements?.({ all: true });
+            else if (character?.id) battleMap.clearMeasurements?.({ authorId: character.id });
+          }}
         />
 
 
