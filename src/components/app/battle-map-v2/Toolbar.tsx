@@ -463,25 +463,24 @@ export function Toolbar({
 
 
         <div className="flex flex-col gap-2 p-2 bg-black/60 backdrop-blur-md border border-[var(--gold)]/30 rounded-xl shadow-2xl" data-map-ui="true">
-          {!isDM && (
-            <ToolButton
-              active={false}
-              onClick={() => {
-                if (hasMyToken) {
-                  onInvokeToken();
-                } else {
-                  onInvokeToken({
-                    character_id: null,
-                    name: '',
-                    token_type: 'player',
-                  });
-                }
-              }}
-              icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
-              label={hasMyToken ? (t('battleMap.tools.withdraw') || 'Retirar') : (t('battleMap.tools.invoke') || 'Invocar')}
-              className={hasMyToken ? "border border-red-500/30" : "border border-green-500/30"}
-            />
-          )}
+          <ToolButton
+            active={false}
+            onClick={() => {
+              if (hasMyToken) {
+                onInvokeToken();
+              } else {
+                onInvokeToken({
+                  character_id: null,
+                  name: '',
+                  token_type: isDM ? 'enemy' : 'player',
+                });
+              }
+            }}
+            icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
+            label={hasMyToken ? (t('battleMap.tools.withdraw') || 'Retirar') : (t('battleMap.tools.invoke') || 'Invocar')}
+            className={hasMyToken ? "border border-red-500/30" : "border border-green-500/30"}
+          />
+
           {isDM && (
             <ToolButton 
               active={false} 
