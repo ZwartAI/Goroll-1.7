@@ -564,10 +564,11 @@
   animation-iteration-count: infinite;
 }
 @keyframes weatherRainFall {
-  0%   { transform: translate3d(0, -20%, 0) rotate(10deg); opacity: 0; }
+  0%   { transform: translate3d(0, -20vh, 0) rotate(10deg); opacity: 0; }
   8%   { opacity: 0.7; }
-  100% { transform: translate3d(-18%, 125%, 0) rotate(10deg); opacity: 0; }
+  100% { transform: translate3d(-18vw, 125vh, 0) rotate(10deg); opacity: 0; }
 }
+
 
 
 /* STORM */
