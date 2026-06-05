@@ -314,11 +314,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
       isMeasuring.current = true;
       let startCoords = coords;
 
-      // Always snap the start point to the nearest cell center for line measurements
-      // when the grid is enabled — users expect the ruler to begin from cell centers,
-      // not from wherever the cursor pixel happens to land.
+      rulerStartTokenId.current = tokenId || null;
+
+      // Always snap the start point to the nearest grid cell center when the grid
+      // is enabled — regardless of whether the press started on a token. The token
+      // is only used to remember the origin for downstream effects, not to bias
+      // the measurement, so distances stay grid-accurate.
       const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
-      if (shouldSnap && !tokenId) {
+      if (shouldSnap) {
         const gridSize = activeScene.grid_size;
         const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
         const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
@@ -327,18 +330,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
           x: Math.round((startCoords.x - offsetX) / gridSize) * gridSize + offsetX,
           y: Math.round((startCoords.y - offsetY) / gridSize) * gridSize + offsetY
         };
-      }
-
-      rulerStartTokenId.current = tokenId || null;
-
-      if (tokenId) {
-        const token = tokens.find((t: MapToken) => t.id === tokenId);
-        if (token) {
-          startCoords = {
-            x: token.x + (token.size / 2),
-            y: token.y + (token.size / 2)
-          };
-        }
       }
 
       setRulerStart(startCoords);
