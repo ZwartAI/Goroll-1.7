@@ -336,6 +336,8 @@ export type Database = {
           name: string
           snap_to_grid: boolean | null
           updated_at: string | null
+          weather_effect: string
+          weather_intensity: string
         }
         Insert: {
           background_opacity?: number | null
@@ -356,6 +358,8 @@ export type Database = {
           name?: string
           snap_to_grid?: boolean | null
           updated_at?: string | null
+          weather_effect?: string
+          weather_intensity?: string
         }
         Update: {
           background_opacity?: number | null
@@ -376,6 +380,8 @@ export type Database = {
           name?: string
           snap_to_grid?: boolean | null
           updated_at?: string | null
+          weather_effect?: string
+          weather_intensity?: string
         }
         Relationships: []
       }
