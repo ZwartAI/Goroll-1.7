@@ -619,8 +619,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
         const cellY = row * gridSize + (activeScene.grid_offset_y || 0);
         
         let pointsInside = 0;
-        const samples = 4;
-        const threshold = 10;
+        const samples = 3;
+        const threshold = 5; // out of 9
         
         for (let sx = 0; sx < samples; sx++) {
           for (let sy = 0; sy < samples; sy++) {
@@ -665,7 +665,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
     }
     return cells;
-  }, [rulerStart, rulerEnd, measureMode, activeScene]);
+  }, [rulerStart, rulerEnd, measureMode, activeScene?.grid_enabled, activeScene?.grid_size, activeScene?.grid_offset_x, activeScene?.grid_offset_y]);
+
 
   const isVideo = isVideoUrl;
 
