@@ -514,8 +514,8 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 25;
 }
+
 .battle-weather * { pointer-events: none; }
 .battle-weather__filter { position: absolute; inset: 0; pointer-events: none; }
 
