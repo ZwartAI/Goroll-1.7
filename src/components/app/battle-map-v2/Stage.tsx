@@ -194,10 +194,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
     scaleRef.current = newScale;
     offsetRef.current = { x: newOffsetX, y: newOffsetY };
 
-    // Direct DOM update
-    if (containerRef.current) {
-      containerRef.current.style.transform = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
-    }
+    // Direct DOM update (both transformed siblings)
+    const t = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
+    if (containerRef.current) containerRef.current.style.transform = t;
+    if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
+
 
     if (isFinal) {
       setScale(newScale);
