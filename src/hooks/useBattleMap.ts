@@ -235,11 +235,13 @@ export const useBattleMap = (campaignId: string) => {
     if (!activeScene?.id) {
       setTokens([]);
       setDrawings([]);
+      setMeasurements([]);
       return;
     }
 
     fetchTokens(activeScene.id);
     fetchDrawings(activeScene.id);
+    fetchMeasurements(activeScene.id);
 
 
     const tokensSubscription = supabase
@@ -287,12 +289,39 @@ export const useBattleMap = (campaignId: string) => {
       )
       .subscribe();
 
+    const measurementsSubscription = supabase
+      .channel(`battle_map_measurements_${activeScene.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'battle_map_measurements_simple',
+          filter: `scene_id=eq.${activeScene.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const m = payload.new as Measurement;
+            if (m.scene_id !== activeSceneIdRef.current) return;
+            setMeasurements(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+          } else if (payload.eventType === 'DELETE') {
+            const old = payload.old as { id: string };
+            setMeasurements(prev => prev.filter(x => x.id !== old.id));
+          } else if (payload.eventType === 'UPDATE') {
+            const m = payload.new as Measurement;
+            setMeasurements(prev => prev.map(x => x.id === m.id ? m : x));
+          }
+        }
+      )
+      .subscribe();
+
 
     return () => {
       tokensSubscription.unsubscribe();
       drawingsSubscription.unsubscribe();
+      measurementsSubscription.unsubscribe();
     };
-  }, [activeScene?.id, fetchTokens, fetchDrawings]);
+  }, [activeScene?.id, fetchTokens, fetchDrawings, fetchMeasurements]);
 
 
   const updateScene = async (updates: Partial<SceneConfig>) => {
