@@ -396,10 +396,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
         y: offsetRef.current.y + dy 
       };
       
-      // Direct DOM update for 60fps performance
-      if (containerRef.current) {
-        containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
-      }
+      // Direct DOM update for 60fps performance (sync both transformed siblings)
+      const t = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+      if (containerRef.current) containerRef.current.style.transform = t;
+      if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
+
       
       lastPanPos.current = { x: e.clientX, y: e.clientY };
       return;
