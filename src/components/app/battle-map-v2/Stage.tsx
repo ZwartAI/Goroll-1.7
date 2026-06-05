@@ -658,12 +658,17 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const isVideo = isVideoUrl;
 
+  const isActiveGrab = isPanning || !!draggingTokenId;
+  const stageCursor = activeTool === 'measure'
+    ? CURSOR_EYE
+    : isActiveGrab
+      ? CURSOR_CLOSED
+      : CURSOR_OPEN;
+
   return (
     <div 
-      className={cn(
-        "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
-        (activeTool === 'move' || activeTool === 'multi-move') ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
-      )}
+      className="flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none"
+      style={{ cursor: stageCursor }}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -672,6 +677,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       onPointerLeave={handlePointerUp}
       ref={stageRef}
     >
+
       <div 
         ref={containerRef}
         className="absolute inset-0 origin-top-left stage-bg"
