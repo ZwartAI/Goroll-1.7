@@ -66,11 +66,16 @@ export function Toolbar({
   onClearSelection,
   hasMeasurements = false,
   onClearMeasurements,
+  weatherEffect = 'none',
+  weatherIntensity = 'medium',
+  onChangeWeather,
+  canChangeWeather = false,
 }: Props) {
   const { t } = useT();
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
   const [measureMenuOpen, setMeasureMenuOpen] = useState(false);
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
+  const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
