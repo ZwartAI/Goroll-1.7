@@ -49,8 +49,6 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const { activeScene, tokens, drawings, measurements = [], updateTokenPosition, updateTokenSize, addDrawing, removeDrawing, addMeasurement, isLoading } = battleMap;
   const stageRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const bgContainerRef = useRef<HTMLDivElement>(null);
-
   
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -67,11 +65,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
   }, [scale, offset]);
 
   const updateTransform = () => {
-    const t = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
-    if (containerRef.current) containerRef.current.style.transform = t;
-    if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+    }
   };
-
 
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPos = useRef({ x: 0, y: 0 });
@@ -194,11 +191,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
     scaleRef.current = newScale;
     offsetRef.current = { x: newOffsetX, y: newOffsetY };
 
-    // Direct DOM update (both transformed siblings)
-    const t = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
-    if (containerRef.current) containerRef.current.style.transform = t;
-    if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
-
+    // Direct DOM update
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translate3d(${newOffsetX * newScale}px, ${newOffsetY * newScale}px, 0) scale(${newScale})`;
+    }
 
     if (isFinal) {
       setScale(newScale);
@@ -346,15 +342,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
     } else if (activeTool === 'multi-move') {
       if (tokenId) return;
 
-      // Background sibling has pointer-events:none, so empty-space clicks land on
-      // the stage root. Treat the stage root or any background-tagged element as
-      // a valid marquee origin.
-      const isBackground =
-        target === stageRef.current ||
-        target.classList.contains('stage-bg') ||
-        !!target.closest('[data-map-background="true"]');
-
-      if (isBackground) {
+      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
+        // Start marquee selection rectangle in world coordinates
         marqueeActive.current = true;
         setMarquee({ x1: coords.x, y1: coords.y, x2: coords.x, y2: coords.y });
         if (stageRef.current) {
@@ -365,12 +354,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       if (tokenId) return;
 
-      const isBackground =
-        target === stageRef.current ||
-        target.classList.contains('stage-bg') ||
-        !!target.closest('[data-map-background="true"]');
-
-      if (isBackground) {
+      if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
         setIsPanning(true);
         lastPanPos.current = { x: e.clientX, y: e.clientY };
         if (stageRef.current) {
@@ -408,11 +392,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
         y: offsetRef.current.y + dy 
       };
       
-      // Direct DOM update for 60fps performance (sync both transformed siblings)
-      const t = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
-      if (containerRef.current) containerRef.current.style.transform = t;
-      if (bgContainerRef.current) bgContainerRef.current.style.transform = t;
-
+      // Direct DOM update for 60fps performance
+      if (containerRef.current) {
+        containerRef.current.style.transform = `translate3d(${offsetRef.current.x * scaleRef.current}px, ${offsetRef.current.y * scaleRef.current}px, 0) scale(${scaleRef.current})`;
+      }
       
       lastPanPos.current = { x: e.clientX, y: e.clientY };
       return;
@@ -448,11 +431,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
 
       // Throttle state update to avoid heavy useMemo re-calc on every frame
-      if (Date.now() - lastMeasureTime.current > 60) {
+      if (Date.now() - lastMeasureTime.current > 32) {
         setRulerEnd(snappedCoords);
         lastMeasureTime.current = Date.now();
       }
-
     }
 
   };
@@ -636,8 +618,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
         const cellY = row * gridSize + (activeScene.grid_offset_y || 0);
         
         let pointsInside = 0;
-        const samples = 3;
-        const threshold = 5; // out of 9
+        const samples = 4;
+        const threshold = 10;
         
         for (let sx = 0; sx < samples; sx++) {
           for (let sy = 0; sy < samples; sy++) {
@@ -682,8 +664,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
     }
     return cells;
-  }, [rulerStart, rulerEnd, measureMode, activeScene?.grid_enabled, activeScene?.grid_size, activeScene?.grid_offset_x, activeScene?.grid_offset_y]);
-
+  }, [rulerStart, rulerEnd, measureMode, activeScene]);
 
   const isVideo = isVideoUrl;
 
@@ -707,28 +688,28 @@ export const Stage = forwardRef<StageHandle, Props>(({
       ref={stageRef}
     >
 
-      {/* Background-only transformed sibling (z below weather) */}
-      <div
-        ref={bgContainerRef}
+      <div 
+        ref={containerRef}
         className="absolute inset-0 origin-top-left stage-bg"
         data-map-background="true"
-        style={{
+        style={{ 
           transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
           width: `${mapDims.width}px`,
           height: `${mapDims.height}px`,
-          willChange: 'transform',
-          zIndex: 0,
-          pointerEvents: 'none'
+          willChange: 'transform'
         }}
       >
         {activeScene.background_url && (
-          <div
+          <div 
             className="absolute inset-0 pointer-events-none"
             data-map-background="true"
-            style={{ opacity: activeScene.background_opacity }}
+            style={{ 
+              opacity: activeScene.background_opacity,
+              zIndex: 0
+            }}
           >
-            <div
-              style={{
+            <div 
+              style={{ 
                 transformOrigin: 'center center',
                 transform: `translate(${activeScene.background_x}%, ${activeScene.background_y}%) scale(${activeScene.background_scale})`,
                 width: '100%',
@@ -739,19 +720,19 @@ export const Stage = forwardRef<StageHandle, Props>(({
               }}
             >
               {isVideo(activeScene.background_url) ? (
-                <video
+                <video 
                   ref={(el) => { if (el) bgMediaRef.current = el; }}
-                  src={activeScene.background_url}
+                  src={activeScene.background_url} 
                   autoPlay loop muted playsInline
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar video')}
                 />
               ) : (
-                <img
+                <img 
                   ref={(el) => { if (el) bgMediaRef.current = el; }}
-                  src={activeScene.background_url}
-                  alt=""
+                  src={activeScene.background_url} 
+                  alt="" 
                   className="max-w-none max-h-none shadow-2xl"
                   style={{ width: 'auto', height: 'auto' }}
                   onError={() => toast.error('Error al cargar imagen')}
@@ -760,33 +741,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
             </div>
           </div>
         )}
-      </div>
 
-      {/* Weather — screen-space layer between background and grid/tokens/UI */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 1 }}
-      >
-        <WeatherLayer
-          effect={(activeScene?.weather_effect as any) || 'none'}
-          intensity={(activeScene?.weather_intensity as any) || 'medium'}
-        />
-      </div>
-
-      {/* Content transformed sibling (grid, drawings, tokens) — above weather */}
-      <div
-        ref={containerRef}
-        className="absolute inset-0 origin-top-left"
-        style={{
-          transform: `translate3d(${offset.x * scale}px, ${offset.y * scale}px, 0) scale(${scale})`,
-          width: `${mapDims.width}px`,
-          height: `${mapDims.height}px`,
-          willChange: 'transform',
-          zIndex: 2
-        }}
-      >
-
-
+        {/* Weather visual layer — sits above background image but below grid/tokens/drawings */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0.5, pointerEvents: 'none' }}>
+          <WeatherLayer
+            effect={(activeScene?.weather_effect as any) || 'none'}
+            intensity={(activeScene?.weather_intensity as any) || 'medium'}
+          />
+        </div>
 
 
 
@@ -973,7 +935,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/90 border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
+            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
             style={{ 
               left: rulerEnd.x,
               // Lift the label well above the eye cursor (~40 screen px) so the
