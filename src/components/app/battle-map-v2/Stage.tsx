@@ -431,10 +431,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
 
       // Throttle state update to avoid heavy useMemo re-calc on every frame
-      if (Date.now() - lastMeasureTime.current > 32) {
+      if (Date.now() - lastMeasureTime.current > 60) {
         setRulerEnd(snappedCoords);
         lastMeasureTime.current = Date.now();
       }
+
     }
 
   };
@@ -618,8 +619,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
         const cellY = row * gridSize + (activeScene.grid_offset_y || 0);
         
         let pointsInside = 0;
-        const samples = 4;
-        const threshold = 10;
+        const samples = 3;
+        const threshold = 5; // out of 9
         
         for (let sx = 0; sx < samples; sx++) {
           for (let sy = 0; sy < samples; sy++) {
@@ -664,7 +665,8 @@ export const Stage = forwardRef<StageHandle, Props>(({
       }
     }
     return cells;
-  }, [rulerStart, rulerEnd, measureMode, activeScene]);
+  }, [rulerStart, rulerEnd, measureMode, activeScene?.grid_enabled, activeScene?.grid_size, activeScene?.grid_offset_x, activeScene?.grid_offset_y]);
+
 
   const isVideo = isVideoUrl;
 
@@ -935,7 +937,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
         {rulerEnd && (
           <div 
-            className="absolute pointer-events-none bg-black/80 backdrop-blur-md border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
+            className="absolute pointer-events-none bg-black/90 border rounded-lg px-2 py-1 text-xs font-bold shadow-2xl z-[60] whitespace-nowrap"
             style={{ 
               left: rulerEnd.x,
               // Lift the label well above the eye cursor (~40 screen px) so the

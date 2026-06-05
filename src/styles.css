@@ -598,15 +598,14 @@
   animation: radiationPulse 4s ease-in-out infinite;
 }
 @keyframes radiationPulse {
-  0%, 100% { opacity: 0.55; filter: hue-rotate(0deg); }
-  50% { opacity: 0.85; filter: hue-rotate(12deg); }
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.85; }
 }
 .weather-radiation-particle {
   position: absolute;
   bottom: -10%;
   border-radius: 999px;
-  background: rgba(180, 255, 60, 0.75);
-  box-shadow: 0 0 10px rgba(150, 255, 40, 0.8);
+  background: rgba(180, 255, 60, 0.8);
   will-change: transform, opacity;
   animation-name: radiationFloat;
   animation-timing-function: linear;
@@ -617,6 +616,7 @@
   20%  { opacity: 0.85; }
   100% { transform: translate3d(8vw, -130vh, 0) scale(1.2); opacity: 0; }
 }
+
 
 /* VOLCANIC */
 .battle-weather--volcanic .battle-weather__filter {
@@ -633,8 +633,8 @@
   position: absolute;
   bottom: -10%;
   border-radius: 999px;
-  background: rgba(255, 130, 32, 0.9);
-  box-shadow: 0 0 12px rgba(255, 90, 0, 0.9);
+  background: rgba(255, 130, 32, 0.95);
+
   will-change: transform, opacity;
   animation-name: emberRise;
   animation-timing-function: linear;
@@ -677,8 +677,8 @@
   position: absolute;
   top: -10%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.95);
+
   will-change: transform, opacity;
   animation-name: snowFall;
   animation-timing-function: linear;
