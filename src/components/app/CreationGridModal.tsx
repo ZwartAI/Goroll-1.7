@@ -21,8 +21,18 @@ interface Props {
 
 export function CreationGridModal({ isOpen, onClose, items }: Props) {
   const { t } = useT();
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleItemClick = (item: CreationItem) => {
+    if (animatingId) return;
+    setAnimatingId(item.id);
+    setTimeout(() => {
+      item.action();
+      setAnimatingId(null);
+    }, 350);
+  };
 
   return (
     <div 
@@ -57,53 +67,71 @@ export function CreationGridModal({ isOpen, onClose, items }: Props) {
         {/* Grid Content */}
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ scale: 1.02, translateY: -4 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative flex flex-col p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-[var(--gold)]/50 transition-all cursor-pointer overflow-hidden"
-                onClick={item.action}
-              >
-                {/* Decorative background glow */}
-                <div 
-                  className="absolute -right-4 -top-4 w-24 h-24 blur-3xl opacity-10 group-hover:opacity-20 transition-opacity"
-                  style={{ backgroundColor: item.color }}
-                />
-
-                <div className="flex items-start gap-4">
+            {items.map((item) => {
+              const isAnimating = animatingId === item.id;
+              return (
+                <motion.div
+                  key={item.id}
+                  animate={isAnimating ? {
+                    scale: 1.08,
+                    boxShadow: `0 0 50px ${item.color}88, 0 0 100px ${item.color}44`,
+                  } : {
+                    scale: 1,
+                    boxShadow: '0 0 0px transparent',
+                  }}
+                  whileHover={isAnimating ? undefined : { scale: 1.02, translateY: -4 }}
+                  whileTap={isAnimating ? undefined : { scale: 0.98 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="group relative flex flex-col p-5 rounded-2xl cursor-pointer overflow-hidden border"
+                  style={{
+                    backgroundColor: isAnimating ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+                    borderColor: isAnimating ? item.color : 'rgba(255,255,255,0.1)',
+                  }}
+                  onClick={() => handleItemClick(item)}
+                >
+                  {/* Decorative background glow */}
                   <div 
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-all"
-                    style={{ backgroundColor: `${item.color}22`, border: `1px solid ${item.color}44` }}
-                  >
-                    <div style={{ color: item.color }}>
-                      {item.icon}
+                    className={`absolute -right-4 -top-4 w-24 h-24 blur-3xl transition-opacity ${isAnimating ? 'opacity-50' : 'opacity-10 group-hover:opacity-20'}`}
+                    style={{ backgroundColor: item.color }}
+                  />
+
+                  <div className="flex items-start gap-4">
+                    <div 
+                      className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-all"
+                      style={{ 
+                        backgroundColor: isAnimating ? `${item.color}55` : `${item.color}22`, 
+                        border: `1px solid ${isAnimating ? `${item.color}aa` : `${item.color}44`}`
+                      }}
+                    >
+                      <div style={{ color: item.color }}>
+                        {item.icon}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-display text-sm uppercase tracking-wider transition-colors truncate ${isAnimating ? 'text-[var(--gold)]' : 'text-white group-hover:text-[var(--gold)]'}`}>
+                        {item.label}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
+                        {item.description}
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-display text-sm uppercase tracking-wider text-white group-hover:text-[var(--gold)] transition-colors truncate">
-                      {item.label}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground group-hover:text-white transition-colors">
-                    Herramienta DM
-                  </span>
-                  <button 
-                    className="px-4 py-1.5 rounded-lg bg-[var(--gold)] text-black text-[10px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all"
-                    style={{ background: item.color === 'var(--gold)' ? 'var(--gradient-gold)' : `linear-gradient(180deg, ${item.color}, color-mix(in oklab, ${item.color} 80%, black))` }}
-                  >
-                    Crear
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                    <span className={`text-[9px] uppercase tracking-widest transition-colors ${isAnimating ? 'text-white' : 'text-muted-foreground group-hover:text-white'}`}>
+                      Herramienta DM
+                    </span>
+                    <button 
+                      className="px-4 py-1.5 rounded-lg bg-[var(--gold)] text-black text-[10px] font-bold uppercase tracking-widest shadow-lg hover:brightness-110 transition-all"
+                      style={{ background: item.color === 'var(--gold)' ? 'var(--gradient-gold)' : `linear-gradient(180deg, ${item.color}, color-mix(in oklab, ${item.color} 80%, black))` }}
+                    >
+                      Crear
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 
