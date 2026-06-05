@@ -8,6 +8,17 @@ import { toast } from 'sonner';
 
 import { MapTool, MeasureMode } from './Toolbar';
 
+import cursorOpenAsset from '@/assets/cursors/cursor_open.png.asset.json';
+import cursorClosedAsset from '@/assets/cursors/cursor_closed.png.asset.json';
+import cursorEyeAsset from '@/assets/cursors/cursor_eye.png.asset.json';
+
+// Custom rune-engraved cursors for the battle map.
+// Hotspots are tuned so the fingertip / eye-center sits where the user expects.
+const CURSOR_OPEN = `url("${cursorOpenAsset.url}") 6 4, grab`;
+const CURSOR_CLOSED = `url("${cursorClosedAsset.url}") 12 8, grabbing`;
+const CURSOR_EYE = `url("${cursorEyeAsset.url}") 16 16, crosshair`;
+
+
 
 interface Props {
   battleMap: any;
@@ -548,6 +559,10 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const highlightedCells = React.useMemo(() => {
     if (!rulerStart || !rulerEnd || !activeScene || !activeScene.grid_enabled) return [];
+    // Plain distance ('line') doesn't need per-cell highlights — they cause grid flicker
+    // as cells appear/disappear step by step. Only AOE shapes (circle/cone) highlight cells.
+    if (measureMode === 'line') return [];
+
     
     const gridSize = activeScene.grid_size;
     const dx = rulerEnd.x - rulerStart.x;
@@ -643,12 +658,17 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
   const isVideo = isVideoUrl;
 
+  const isActiveGrab = isPanning || !!draggingTokenId;
+  const stageCursor = activeTool === 'measure'
+    ? CURSOR_EYE
+    : isActiveGrab
+      ? CURSOR_CLOSED
+      : CURSOR_OPEN;
+
   return (
     <div 
-      className={cn(
-        "flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none",
-        (activeTool === 'move' || activeTool === 'multi-move') ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
-      )}
+      className="flex-1 relative overflow-hidden bg-[#050505] touch-none overscroll-none"
+      style={{ cursor: stageCursor }}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -657,6 +677,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       onPointerLeave={handlePointerUp}
       ref={stageRef}
     >
+
       <div 
         ref={containerRef}
         className="absolute inset-0 origin-top-left stage-bg"

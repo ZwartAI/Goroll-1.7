@@ -173,11 +173,12 @@ export const Token = memo(function Token({
       onPointerCancel={handlePointerUp}
       onDragStart={(e) => e.preventDefault()}
       className={cn(
-        "absolute z-10 cursor-grab active:cursor-grabbing group pointer-events-auto select-none",
+        "absolute z-10 group pointer-events-auto select-none",
         !token.is_visible && "opacity-50 grayscale",
-        (localDragging || isDraggingProp) && "cursor-grabbing z-50",
+        (localDragging || isDraggingProp) && "z-50",
         className
       )}
+
       style={{ 
         width: gridSize,
         height: gridSize,
