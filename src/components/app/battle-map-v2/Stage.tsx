@@ -421,18 +421,21 @@ export const Stage = forwardRef<StageHandle, Props>(({
 
       const coords = screenToWorld(e.clientX, e.clientY);
       let snappedCoords = coords;
-      
-      if (measureSnap && activeScene) {
+
+      // Snap end to cell centers when grid is enabled (always for line mode
+      // so the distance is reported in whole 5-ft increments).
+      const shouldSnap = activeScene && activeScene.grid_enabled && (measureSnap || measureMode === 'line');
+      if (shouldSnap) {
         const gridSize = activeScene.grid_size;
         const offsetX = (activeScene.grid_offset_x || 0) + (gridSize / 2);
         const offsetY = (activeScene.grid_offset_y || 0) + (gridSize / 2);
-        
+
         snappedCoords = {
           x: Math.round((coords.x - offsetX) / gridSize) * gridSize + offsetX,
           y: Math.round((coords.y - offsetY) / gridSize) * gridSize + offsetY
         };
       }
-      
+
       // Throttle state update to avoid heavy useMemo re-calc on every frame
       if (Date.now() - lastMeasureTime.current > 32) {
         setRulerEnd(snappedCoords);
