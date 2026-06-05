@@ -780,7 +780,7 @@ export const es = {
     pickPlayer: "— elige jugador —",
     keepVault: "— guardar en vault —",
     sendTo: "Enviar a {name}",
-    vault: "Vault",
+    vault: "Baúl",
     send: "Enviar",
     sentLog: "envió",
     sentTo: "a",
