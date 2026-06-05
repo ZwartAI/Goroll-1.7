@@ -60,6 +60,8 @@ export function Toolbar({
   showToolbar = true,
   selectedTokensCount = 0,
   onClearSelection,
+  hasMeasurements = false,
+  onClearMeasurements,
 }: Props) {
   const { t } = useT();
   const [pencilMenuOpen, setPencilMenuOpen] = useState(false);
