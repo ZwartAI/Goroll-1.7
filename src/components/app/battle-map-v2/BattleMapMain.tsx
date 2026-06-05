@@ -257,6 +257,13 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
             if (isDM) battleMap.clearMeasurements?.({ all: true });
             else if (character?.id) battleMap.clearMeasurements?.({ authorId: character.id });
           }}
+          weatherEffect={(battleMap.activeScene as any)?.weather_effect || 'none'}
+          weatherIntensity={(battleMap.activeScene as any)?.weather_intensity || 'medium'}
+          canChangeWeather={isDM}
+          onChangeWeather={(effect, intensity) => {
+            if (!isDM) return;
+            battleMap.updateScene({ weather_effect: effect as any, weather_intensity: intensity as any });
+          }}
         />
 
 
