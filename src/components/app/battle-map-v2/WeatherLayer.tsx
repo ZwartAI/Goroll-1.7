@@ -15,6 +15,7 @@ export type WeatherIntensity = 'low' | 'medium' | 'high';
 interface Props {
   effect: WeatherEffect;
   intensity?: WeatherIntensity;
+  layer?: 'all' | 'filter' | 'particles';
 }
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -30,7 +31,7 @@ const COUNTS: Record<Exclude<WeatherEffect, 'none'>, Record<WeatherIntensity, nu
   snow:      { low: 35, medium: 70, high: 110 },
 };
 
-export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
+export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Props) {
   const particles = useMemo(() => {
     if (effect === 'none') return null;
     const count = COUNTS[effect][intensity];
@@ -79,8 +80,8 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
 
   return (
     <div className={`battle-weather battle-weather--${effect} battle-weather--${intensity}`} aria-hidden>
-      <div className="battle-weather__filter" />
-      {(effect === 'rain' || effect === 'storm') && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'filter') && <div className="battle-weather__filter" />}
+      {(layer === 'all' || layer === 'particles') && (effect === 'rain' || effect === 'storm') && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-rain-drop"
@@ -92,7 +93,7 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
           }}
         />
       ))}
-      {effect === 'snow' && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'particles') && effect === 'snow' && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-snowflake"
@@ -106,7 +107,7 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
           }}
         />
       ))}
-      {effect === 'radiation' && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'particles') && effect === 'radiation' && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-radiation-particle"
@@ -119,7 +120,7 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
           }}
         />
       ))}
-      {effect === 'volcanic' && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'particles') && effect === 'volcanic' && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-ember"
@@ -132,7 +133,7 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
           }}
         />
       ))}
-      {effect === 'night' && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'particles') && effect === 'night' && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-night-star"
@@ -144,7 +145,7 @@ export function WeatherLayer({ effect, intensity = 'medium' }: Props) {
           }}
         />
       ))}
-      {effect === 'sunny' && particles.map((p: any) => (
+      {(layer === 'all' || layer === 'particles') && effect === 'sunny' && particles.map((p: any) => (
         <div
           key={p.i}
           className="weather-sun-ray"

@@ -742,11 +742,11 @@ export const Stage = forwardRef<StageHandle, Props>(({
           </div>
         )}
 
-        {/* Weather visual layer — particles render above tokens/drawings; UI (toolbar/sidebar) is outside the world container and stays on top */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 100, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
           <WeatherLayer
             effect={(activeScene?.weather_effect as any) || 'none'}
             intensity={(activeScene?.weather_intensity as any) || 'medium'}
+            layer="filter"
           />
         </div>
 
@@ -1029,6 +1029,14 @@ export const Stage = forwardRef<StageHandle, Props>(({
             }}
           />
         )}
+      </div>
+
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
+        <WeatherLayer
+          effect={(activeScene?.weather_effect as any) || 'none'}
+          intensity={(activeScene?.weather_intensity as any) || 'medium'}
+          layer="particles"
+        />
       </div>
 
 
