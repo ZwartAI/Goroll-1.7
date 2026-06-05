@@ -19,8 +19,8 @@ export function Log({ logs, expanded, onToggle, nameOverrides, onOpenChar }: Pro
       initial={false}
       animate={{ height: expanded ? 300 : 80 }}
       className={cn(
-        "absolute bottom-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-lg border-t border-[var(--gold)]/30 flex flex-col transition-all duration-300",
-        expanded ? "rounded-t-2xl" : ""
+        "absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-lg border-t border-[var(--gold)]/30 flex flex-col transition-all duration-300",
+        expanded ? "rounded-t-2xl z-50" : "z-20"
       )}
       data-map-ui="true"
     >
