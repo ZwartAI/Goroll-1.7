@@ -561,3 +561,16 @@ function ToolButton({ icon, label, active, onClick, small, className }: ToolButt
     </button>
   );
 }
+
+function WeatherIcon({ effect }: { effect: string }) {
+  switch (effect) {
+    case 'sunny':     return <Sun className="w-5 h-5" />;
+    case 'rain':      return <CloudRain className="w-5 h-5" />;
+    case 'storm':     return <CloudLightning className="w-5 h-5" />;
+    case 'radiation': return <Radiation className="w-5 h-5" />;
+    case 'volcanic':  return <Flame className="w-5 h-5" />;
+    case 'night':     return <Moon className="w-5 h-5" />;
+    case 'snow':      return <Snowflake className="w-5 h-5" />;
+    default:          return <Cloud className="w-5 h-5" />;
+  }
+}
