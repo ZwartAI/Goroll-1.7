@@ -197,31 +197,24 @@ export function Toolbar({
                       setPencilMenuOpen(false);
                       setMeasureMenuOpen(false);
                     }}
-                    icon={<Trash2 className="w-5 h-5 text-red-400" />}
+                    icon={
+                      <span className="relative inline-flex">
+                        <MousePointerSquareDashed className="w-5 h-5" />
+                        <Trash2 className="w-2.5 h-2.5 text-red-400 absolute -bottom-1 -right-1 bg-black/80 rounded-sm p-[1px]" />
+                      </span>
+                    }
                     label={t('battleMap.tools.multiDelete')}
                     className="border border-red-500/30"
                   />
                   {(activeTool === 'multi-move' || activeTool === 'multi-delete') && selectedTokensCount > 0 && (
-                    <>
-                      <button
-                        onClick={() => { onClearSelection?.(); }}
-                        className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
-                        title={t('battleMap.tools.clearSelection')}
-                      >
-                        <X className="w-3 h-3" />
-                        {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
-                      </button>
-                      {activeTool === 'multi-delete' && (
-                        <button
-                          onClick={() => setShowDeleteManyConfirm(true)}
-                          className="flex items-center gap-1 px-2 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-200 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
-                          title={t('battleMap.tools.deleteSelected')}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          {t('battleMap.tools.deleteSelected')}
-                        </button>
-                      )}
-                    </>
+                    <button
+                      onClick={() => { onClearSelection?.(); }}
+                      className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                      title={t('battleMap.tools.clearSelection')}
+                    >
+                      <X className="w-3 h-3" />
+                      {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
+                    </button>
                   )}
                   <button
                     onClick={() => setMoveMenuOpen(false)}
