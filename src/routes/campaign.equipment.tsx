@@ -135,8 +135,8 @@ function Equipment() {
                 key={s.key}
                 onClick={() => setPicker(s.key)}
                 aria-label={label}
-                title={label}
-                className="absolute group flex flex-col items-center justify-center gap-0.5 p-0.5 transition hover:bg-[var(--gold)]/10"
+                title={it ? `${it.name} — ${label}` : label}
+                className="absolute group flex flex-col items-center justify-center p-0.5 transition hover:bg-[var(--gold)]/10 overflow-hidden"
                 style={{
                   left: `${pos.left}%`,
                   top: `${pos.top}%`,
@@ -146,23 +146,77 @@ function Equipment() {
                   border: EQUIPMENT_LAYOUT_DEBUG ? "1px solid red" : "1px solid transparent",
                   borderRadius: 6,
                   boxShadow: it
-                    ? `0 0 10px ${RARITY_COLOR[it.rarity as Rarity]}, inset 0 0 8px ${RARITY_COLOR[it.rarity as Rarity]}33`
+                    ? `0 0 12px color-mix(in srgb, ${RARITY_COLOR[it.rarity as Rarity]} 50%, transparent), inset 0 0 10px color-mix(in srgb, ${RARITY_COLOR[it.rarity as Rarity]} 30%, transparent)`
                     : undefined,
                 }}
               >
-                {it ? (
-                  <span
-                    className="text-2xl leading-none drop-shadow-[0_0_4px_rgba(0,0,0,0.9)]"
-                    style={{ filter: `drop-shadow(0 0 3px ${RARITY_COLOR[it.rarity as Rarity]})` }}
-                  >
-                    {s.icon}
-                  </span>
-                ) : (
+                {it ? (() => {
+                  const rColor = RARITY_COLOR[it.rarity as Rarity];
+                  const weapon = isWeapon(it.slot as any);
+                  const def = it.defense_bonus || RARITY_BONUS[it.rarity as Rarity].def;
+                  const hp = it.hp_bonus || RARITY_BONUS[it.rarity as Rarity].hp;
+                  const dmg = it.damage_bonus;
+                  return (
+                    <div className="flex flex-col items-center justify-center w-full h-full gap-[1px] px-0.5 leading-none">
+                      <span
+                        className="leading-none"
+                        style={{
+                          fontSize: "clamp(10px, 1.8vw, 16px)",
+                          filter: `drop-shadow(0 0 3px ${rColor})`,
+                          textShadow: "0 1px 2px rgba(0,0,0,0.9)",
+                        }}
+                      >
+                        {s.icon}
+                      </span>
+                      <span
+                        className="font-display font-semibold text-center w-full"
+                        style={{
+                          color: rColor,
+                          fontSize: "clamp(7px, 1.15vw, 10px)",
+                          lineHeight: 1.05,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          wordBreak: "break-word",
+                          textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                        }}
+                      >
+                        {it.name}
+                      </span>
+                      {weapon ? (
+                        <span
+                          className="font-bold tabular-nums leading-none truncate max-w-full"
+                          style={{
+                            color: "#fbbf24",
+                            fontSize: "clamp(7px, 1.1vw, 10px)",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                          }}
+                        >
+                          +{dmg} DMG
+                        </span>
+                      ) : (
+                        <span
+                          className="font-bold tabular-nums leading-none truncate max-w-full"
+                          style={{
+                            fontSize: "clamp(7px, 1.05vw, 10px)",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                          }}
+                        >
+                          <span style={{ color: "#60a5fa" }}>+{def}</span>
+                          <span className="text-white/50 mx-0.5">·</span>
+                          <span style={{ color: "#4ade80" }}>+{hp}</span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })() : (
                   <>
                     <span className="text-base leading-none opacity-40 grayscale group-hover:opacity-80 transition pointer-events-none">
                       {s.icon}
                     </span>
-                    <span className="text-[8px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground/70 group-hover:text-[var(--gold)]/80 text-center px-0.5 truncate max-w-full pointer-events-none">
+                    <span className="text-[8px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground/70 group-hover:text-[var(--gold)]/80 text-center px-0.5 truncate max-w-full pointer-events-none mt-0.5">
                       {label}
                     </span>
                   </>
@@ -172,6 +226,7 @@ function Equipment() {
                 )}
               </button>
             );
+
           })}
         </div>
       </div>
