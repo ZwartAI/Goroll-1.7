@@ -11,10 +11,12 @@ import { SKILL_RARITY_COST, skillNameKey, parseSkillFile } from "@/lib/skillImpo
 import {
   Sparkles, Upload, Plus, Trophy, Dices, AlertTriangle,
   ChevronDown, X, Search, Gem, Zap, FileSpreadsheet, Settings2,
+  TrendingUp,
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
 import { CharacterPortrait } from "./CharacterPortrait";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { LevelAdjustModal } from "./LevelAdjustModal";
 import { backdropProps } from "@/lib/modalBackdrop";
 
 type Props = {
@@ -43,6 +45,7 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [levelOpen, setLevelOpen] = useState(false);
   const target = players.find(p => p.id === targetId) ?? null;
 
   // Persist last selection across remounts (e.g. tab navigation in DM page).
@@ -90,97 +93,21 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         <p className="text-xs text-muted-foreground mt-1">{t("skills.dmIntro")}</p>
       </header>
 
-      {/* Main premium panel */}
-      <div
-        className="ornate-card p-4 sm:p-5 space-y-4"
-        style={{
-          background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--loss) 18%, var(--card)) 0%, var(--card) 100%)",
-          borderColor: "var(--gold)",
-          boxShadow: "0 0 24px color-mix(in oklab, var(--gold) 16%, transparent), inset 0 0 24px color-mix(in oklab, var(--loss) 12%, transparent)",
-        }}
-      >
-        <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 flex items-center gap-2">
-          <Sparkles size={12} /> {t("skills.selectedCharacter")}
-        </p>
-
-        {!target ? (
-          <p className="text-center text-xs text-muted-foreground py-6">
-            {t("skills.pickPlayer")}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] gap-4 items-center">
-            {/* A. Avatar + name + dropdown */}
-            <div className="flex flex-col items-center gap-1.5 min-w-0">
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="relative group"
-                aria-label={t("skills.selectCharacter")}
-              >
-                <div
-                  className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
-                  style={{
-                    border: "2px solid var(--gold)",
-                    boxShadow: "0 0 0 3px color-mix(in oklab, var(--gold) 18%, transparent), 0 0 18px color-mix(in oklab, var(--gold) 35%, transparent)",
-                    background: "color-mix(in oklab, var(--background) 60%, transparent)",
-                  }}
-                >
-                  <CharacterPortrait character={target as any} className="w-full h-full text-2xl" showBorder={false} />
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="inline-flex items-center gap-1 font-display text-lg leading-tight max-w-[10rem] truncate"
-                style={{ color: target.color }}
-              >
-                {target.name}
-                <ChevronDown size={14} className="opacity-70" />
-              </button>
-            </div>
-
-            {/* B. SP + counters */}
-            <div className="flex flex-col items-center text-center">
-              <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80">
-                {t("skills.spAvailable")}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Gem size={22} className="text-[var(--gold)] drop-shadow-[0_0_8px_color-mix(in_oklab,var(--gold)_60%,transparent)]" />
-                <span
-                  className="font-display text-4xl sm:text-5xl leading-none"
-                  style={{
-                    color: "var(--gold)",
-                    textShadow: "0 0 14px color-mix(in oklab, var(--gold) 55%, transparent)",
-                  }}
-                >
-                  {sp}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-3 mt-3 text-center">
-                <Counter label={t("skills.unlockedCount")} value={unlocked} color="var(--gain)" />
-                <Counter label={t("skills.availableCount")} value={available} color="var(--gold)" />
-                <Counter label={t("skills.totalCount")} value={total} color="oklch(0.95 0.02 80)" />
-              </div>
-            </div>
-
-            {/* C. Actions */}
-            <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
-              <PanelAction
-                icon={<FileSpreadsheet size={16} />}
-                label={t("skills.importExcelShort")}
-                onClick={() => setImportOpen(true)}
-                accent="oklch(0.65 0.16 145)"
-              />
-              <PanelAction
-                icon={<Zap size={16} />}
-                label={t("skills.manageSp")}
-                onClick={() => setManageOpen(true)}
-                accent="var(--gold)"
-              />
-            </div>
-          </div>
-        )}
+      {/* Two fixed cards in a row */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
+        <SelectedCharacterCard
+          target={target}
+          sp={sp}
+          onPick={() => setPickerOpen(true)}
+          onImport={() => setImportOpen(true)}
+        />
+        <CharacterInfoCard
+          target={target}
+          unlocked={unlocked}
+          available={available}
+          onLevel={() => setLevelOpen(true)}
+          onSp={() => setManageOpen(true)}
+        />
       </div>
 
       {/* Skills list for the selected character */}
@@ -191,6 +118,8 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
           onPick={setSel}
         />
       )}
+
+
 
       {/* Character picker modal */}
       {pickerOpen && (
@@ -223,6 +152,16 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
             <MassGrant campaignId={campaignId} dm={dm} players={players} onlineIds={onlineIds} />
           </div>
         </Modal>
+      )}
+
+      {/* Level adjust modal */}
+      {levelOpen && target && (
+        <LevelAdjustModal
+          character={target}
+          campaignId={campaignId}
+          editor={dm}
+          onClose={() => setLevelOpen(false)}
+        />
       )}
 
       {sel && target && (
@@ -327,6 +266,201 @@ function PanelAction({ icon, label, onClick, accent }: {
   );
 }
 
+/* ─────────── New DM cards (visual redesign) ─────────── */
+
+function SelectedCharacterCard({
+  target, sp, onPick, onImport,
+}: {
+  target: Character | null;
+  sp: number;
+  onPick: () => void;
+  onImport: () => void;
+}) {
+  const { t } = useT();
+  const accent = "oklch(0.55 0.20 25)"; // deep red
+  return (
+    <div
+      className="ornate-card p-3 flex flex-col items-center text-center overflow-hidden min-w-0"
+      style={{
+        borderColor: "var(--gold)",
+        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 28%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
+        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
+        minHeight: 280,
+      }}
+    >
+      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight">
+        {t("skills.selectedCharacter")}
+      </p>
+
+      {!target ? (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-[11px] text-muted-foreground">{t("skills.pickPlayer")}</p>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onPick}
+            className="mt-2 relative"
+            aria-label={t("skills.selectCharacter")}
+          >
+            <div
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center"
+              style={{
+                border: "2px solid var(--gold)",
+                boxShadow: "0 0 0 2px color-mix(in oklab, var(--gold) 18%, transparent), 0 0 14px color-mix(in oklab, var(--gold) 35%, transparent)",
+                background: "color-mix(in oklab, var(--background) 60%, transparent)",
+              }}
+            >
+              <CharacterPortrait character={target as any} className="w-full h-full text-xl" showBorder={false} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onPick}
+            className="mt-1.5 inline-flex items-center gap-1 font-display text-sm sm:text-base leading-tight max-w-full truncate"
+            style={{ color: target.color }}
+          >
+            <span className="truncate">{target.name}</span>
+            <ChevronDown size={12} className="opacity-70 shrink-0" />
+          </button>
+
+          <p className="mt-2 text-[8.5px] uppercase tracking-widest text-[var(--gold)]/80 leading-tight px-1">
+            {t("skills.spAvailable")}
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Gem size={16} className="text-[var(--gold)]" />
+            <span
+              className="font-display text-3xl sm:text-4xl leading-none"
+              style={{
+                color: "var(--gold)",
+                textShadow: "0 0 10px color-mix(in oklab, var(--gold) 55%, transparent)",
+              }}
+            >
+              {sp}
+            </span>
+          </div>
+
+          <div className="flex-1" />
+
+          <button
+            type="button"
+            onClick={onImport}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] truncate"
+            style={{
+              border: `1.5px solid oklch(0.65 0.16 145)`,
+              background: `color-mix(in oklab, oklch(0.65 0.16 145) 14%, transparent)`,
+              color: "oklch(0.78 0.16 145)",
+            }}
+          >
+            <FileSpreadsheet size={12} className="shrink-0" />
+            <span className="truncate">{t("skills.importExcelShort")}</span>
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CharacterInfoCard({
+  target, unlocked, available, onLevel, onSp,
+}: {
+  target: Character | null;
+  unlocked: number;
+  available: number;
+  onLevel: () => void;
+  onSp: () => void;
+}) {
+  const { t } = useT();
+  const accent = "oklch(0.50 0.16 245)"; // deep blue
+  const disabled = !target;
+
+  const rows: { label: string; value: string | number }[] = target ? [
+    { label: t("skills.statLevel"), value: (target as any).level ?? 1 },
+    { label: t("skills.statMaxHp"), value: (target as any).base_hp ?? 0 },
+    { label: t("skills.statUnlocked"), value: unlocked },
+    { label: t("skills.statAvailable"), value: available },
+    { label: t("skills.statAttack"), value: (target as any).damage_boost ?? 0 },
+    { label: t("skills.statDefense"), value: (target as any).base_defense ?? 0 },
+    { label: t("skills.statSpeed"), value: (target as any).velocity ?? 0 },
+    { label: t("skills.statMoney"), value: (target as any).coins ?? 0 },
+    { label: t("skills.statConnections"), value: "—" },
+    { label: t("skills.statBoosters"), value: "—" },
+    { label: t("skills.statExp"), value: "—" },
+  ] : [];
+
+  return (
+    <div
+      className="ornate-card p-3 flex flex-col overflow-hidden min-w-0"
+      style={{
+        borderColor: "var(--gold)",
+        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 26%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
+        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
+        minHeight: 280,
+      }}
+    >
+      <p
+        className="font-display text-sm sm:text-base leading-tight truncate text-center"
+        style={{ color: target?.color ?? "var(--gold)" }}
+      >
+        {target?.name ?? "—"}
+      </p>
+      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 text-center leading-tight">
+        {t("skills.infoTitle")}
+      </p>
+
+      <ul className="mt-2 flex-1 space-y-[2px] text-[10px] sm:text-[11px] overflow-hidden">
+        {!target && (
+          <li className="text-center text-muted-foreground py-4">
+            {t("skills.pickPlayer")}
+          </li>
+        )}
+        {rows.map(r => (
+          <li
+            key={r.label}
+            className="flex items-baseline justify-between gap-2 border-b border-[color-mix(in_oklab,var(--gold)_15%,transparent)] py-[1px]"
+          >
+            <span className="text-muted-foreground uppercase tracking-wider text-[9px] truncate">{r.label}</span>
+            <span className="font-display text-[var(--gold)] tabular-nums shrink-0">{r.value}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-2 grid grid-cols-2 gap-1.5">
+        <button
+          type="button"
+          onClick={onLevel}
+          disabled={disabled}
+          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            border: `1.5px solid var(--gold)`,
+            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
+            color: "var(--gold)",
+          }}
+        >
+          <TrendingUp size={12} className="shrink-0" />
+          <span className="truncate">{t("skills.btnLevel")}</span>
+        </button>
+        <button
+          type="button"
+          onClick={onSp}
+          disabled={disabled}
+          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            border: `1.5px solid var(--gold)`,
+            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
+            color: "var(--gold)",
+          }}
+        >
+          <Zap size={12} className="shrink-0" />
+          <span className="truncate">{t("skills.btnSp")}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div
@@ -410,7 +544,14 @@ function SkillsListPanel({
   }, [skills, query, filter, rarity]);
 
   return (
-    <div className="ornate-card p-3 space-y-2.5">
+    <div
+      className="ornate-card p-3 space-y-2.5"
+      style={{
+        borderColor: "var(--gold)",
+        background: "linear-gradient(180deg, color-mix(in oklab, var(--rarity-purple) 22%, var(--card)) 0%, color-mix(in oklab, var(--rarity-purple) 8%, var(--card)) 100%)",
+        boxShadow: "0 0 18px color-mix(in oklab, var(--rarity-purple) 22%, transparent), inset 0 0 18px color-mix(in oklab, var(--rarity-purple) 12%, transparent)",
+      }}
+    >
       <p className="font-display text-sm text-[var(--gold)]">
         {t("skills.characterSkills", { character: characterName })}{" "}
         <span className="text-muted-foreground text-xs">({skills.length})</span>
