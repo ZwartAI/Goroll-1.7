@@ -51,7 +51,8 @@ type Props = {
 export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenChar, onOpenItem, onOpenBooster, onOpenImage, dmCharacterIds, nameOverrides, showLog = true, speakingIds, hideCombatTab }: Props) {
   const [openOffline, setOpenOffline] = useState(false);
   const [showBattleMap, setShowBattleMap] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
+  const [battleMapImgFailed, setBattleMapImgFailed] = useState(false);
   const { combat, character } = useGameData();
   const isDM = character?.role === "dm";
   const combatActive = combat.encounter?.status === "active";
