@@ -15,32 +15,31 @@ import plantillaMujerAsset from "@/assets/equipment/plantilla-mujer.png.asset.js
 
 export const Route = createFileRoute("/campaign/equipment")({ component: Equipment });
 
-const DEBUG_SLOTS = false;
+const EQUIPMENT_LAYOUT_DEBUG = false;
 
-// Template aspect ratio: 941 / 1672 ≈ 0.5628
-const TEMPLATE_ASPECT = 941 / 1672;
-
-// Slot frame positions as percentages of the template image (left, top of frame box; width/height of frame).
-// Same coords for both templates since frames share composition.
-const FRAME_W = 17;
-const FRAME_H = 9.6;
+// Template natural size: 941 x 1672. Frame boxes measured from the asset.
+// Frame interior dims as % of the template image.
+const FRAME_W = 21;
+const FRAME_H = 12;
 type Pos = { left: number; top: number };
+// Positions are TOP-LEFT of the slot box, as % of the template image.
+// Each slot is centered inside its golden frame interior.
 const SLOT_POS: Record<Slot, Pos> = {
-  // Center column (over body): head → chest → belt → legs → feet
-  casco:          { left: 50 - FRAME_W / 2, top: 12.0 },
-  pecho:          { left: 50 - FRAME_W / 2, top: 32.5 },
-  cinturon:       { left: 50 - FRAME_W / 2, top: 47.0 },
-  pantalon:       { left: 50 - FRAME_W / 2, top: 61.5 },
-  botas:          { left: 50 - FRAME_W / 2, top: 82.0 },
-  // Right column (weapons)
-  arma_principal:   { left: 78.5, top: 41.5 },
-  arma_secundaria:  { left: 78.5, top: 65.0 },
-  // Left column (5 frames)
-  accesorio1:  { left: 5.0, top: 9.5 },
-  guantes:     { left: 5.0, top: 24.0 },
-  accesorio2:  { left: 5.0, top: 38.5 },
-  mochila:     { left: 5.0, top: 53.0 },
-  aditamento:  { left: 5.0, top: 82.0 },
+  // Center column (head → chest → belt → legs → feet)
+  casco:           { left: 40.83, top: 14.10 },
+  pecho:           { left: 40.83, top: 34.37 },
+  cinturon:        { left: 40.83, top: 50.82 },
+  pantalon:        { left: 40.83, top: 66.91 },
+  botas:           { left: 40.83, top: 81.74 },
+  // Right column (2 weapon frames)
+  arma_principal:  { left: 71.75, top: 45.08 },
+  arma_secundaria: { left: 71.75, top: 69.00 },
+  // Left column (5 frames top → bottom)
+  accesorio1:      { left: 9.27,  top: 8.89  },
+  guantes:         { left: 9.27,  top: 27.37 },
+  accesorio2:      { left: 9.27,  top: 44.30 },
+  mochila:         { left: 9.27,  top: 61.64 },
+  aditamento:      { left: 9.27,  top: 78.45 },
 };
 
 const TEMPLATE_KEY_PREFIX = "equipTemplate:";
