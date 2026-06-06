@@ -219,7 +219,13 @@ export const Token = memo(function Token({
             src={token.image_url} 
             alt={token.name || 'Token'} 
             draggable="false"
-            className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+            className={cn(
+              "absolute inset-0 w-full h-full select-none pointer-events-none",
+              // Match the framing semantics used by each entity's image editor:
+              // - Players use object-cover (face editor in campaign.profile)
+              // - Enemies & NPCs use object-contain (EnemyImageEditor)
+              token.token_type === 'player' ? "object-cover" : "object-contain"
+            )}
             style={{ 
               transform: `translate(${(token.image_offset_x ?? 50) - 50}%, ${(token.image_offset_y ?? 50) - 50}%) scale(${token.image_scale || 1})`,
               transformOrigin: 'center center'
