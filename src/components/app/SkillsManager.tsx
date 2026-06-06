@@ -266,6 +266,201 @@ function PanelAction({ icon, label, onClick, accent }: {
   );
 }
 
+/* ─────────── New DM cards (visual redesign) ─────────── */
+
+function SelectedCharacterCard({
+  target, sp, onPick, onImport,
+}: {
+  target: Character | null;
+  sp: number;
+  onPick: () => void;
+  onImport: () => void;
+}) {
+  const { t } = useT();
+  const accent = "oklch(0.55 0.20 25)"; // deep red
+  return (
+    <div
+      className="ornate-card p-3 flex flex-col items-center text-center overflow-hidden min-w-0"
+      style={{
+        borderColor: "var(--gold)",
+        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 28%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
+        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
+        minHeight: 280,
+      }}
+    >
+      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight">
+        {t("skills.selectedCharacter")}
+      </p>
+
+      {!target ? (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-[11px] text-muted-foreground">{t("skills.pickPlayer")}</p>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onPick}
+            className="mt-2 relative"
+            aria-label={t("skills.selectCharacter")}
+          >
+            <div
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center"
+              style={{
+                border: "2px solid var(--gold)",
+                boxShadow: "0 0 0 2px color-mix(in oklab, var(--gold) 18%, transparent), 0 0 14px color-mix(in oklab, var(--gold) 35%, transparent)",
+                background: "color-mix(in oklab, var(--background) 60%, transparent)",
+              }}
+            >
+              <CharacterPortrait character={target as any} className="w-full h-full text-xl" showBorder={false} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onPick}
+            className="mt-1.5 inline-flex items-center gap-1 font-display text-sm sm:text-base leading-tight max-w-full truncate"
+            style={{ color: target.color }}
+          >
+            <span className="truncate">{target.name}</span>
+            <ChevronDown size={12} className="opacity-70 shrink-0" />
+          </button>
+
+          <p className="mt-2 text-[8.5px] uppercase tracking-widest text-[var(--gold)]/80 leading-tight px-1">
+            {t("skills.spAvailable")}
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Gem size={16} className="text-[var(--gold)]" />
+            <span
+              className="font-display text-3xl sm:text-4xl leading-none"
+              style={{
+                color: "var(--gold)",
+                textShadow: "0 0 10px color-mix(in oklab, var(--gold) 55%, transparent)",
+              }}
+            >
+              {sp}
+            </span>
+          </div>
+
+          <div className="flex-1" />
+
+          <button
+            type="button"
+            onClick={onImport}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] truncate"
+            style={{
+              border: `1.5px solid oklch(0.65 0.16 145)`,
+              background: `color-mix(in oklab, oklch(0.65 0.16 145) 14%, transparent)`,
+              color: "oklch(0.78 0.16 145)",
+            }}
+          >
+            <FileSpreadsheet size={12} className="shrink-0" />
+            <span className="truncate">{t("skills.importExcelShort")}</span>
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CharacterInfoCard({
+  target, unlocked, available, onLevel, onSp,
+}: {
+  target: Character | null;
+  unlocked: number;
+  available: number;
+  onLevel: () => void;
+  onSp: () => void;
+}) {
+  const { t } = useT();
+  const accent = "oklch(0.50 0.16 245)"; // deep blue
+  const disabled = !target;
+
+  const rows: { label: string; value: string | number }[] = target ? [
+    { label: t("skills.statLevel"), value: (target as any).level ?? 1 },
+    { label: t("skills.statMaxHp"), value: (target as any).base_hp ?? 0 },
+    { label: t("skills.statUnlocked"), value: unlocked },
+    { label: t("skills.statAvailable"), value: available },
+    { label: t("skills.statAttack"), value: (target as any).damage_boost ?? 0 },
+    { label: t("skills.statDefense"), value: (target as any).base_defense ?? 0 },
+    { label: t("skills.statSpeed"), value: (target as any).velocity ?? 0 },
+    { label: t("skills.statMoney"), value: (target as any).coins ?? 0 },
+    { label: t("skills.statConnections"), value: "—" },
+    { label: t("skills.statBoosters"), value: "—" },
+    { label: t("skills.statExp"), value: "—" },
+  ] : [];
+
+  return (
+    <div
+      className="ornate-card p-3 flex flex-col overflow-hidden min-w-0"
+      style={{
+        borderColor: "var(--gold)",
+        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 26%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
+        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
+        minHeight: 280,
+      }}
+    >
+      <p
+        className="font-display text-sm sm:text-base leading-tight truncate text-center"
+        style={{ color: target?.color ?? "var(--gold)" }}
+      >
+        {target?.name ?? "—"}
+      </p>
+      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 text-center leading-tight">
+        {t("skills.infoTitle")}
+      </p>
+
+      <ul className="mt-2 flex-1 space-y-[2px] text-[10px] sm:text-[11px] overflow-hidden">
+        {!target && (
+          <li className="text-center text-muted-foreground py-4">
+            {t("skills.pickPlayer")}
+          </li>
+        )}
+        {rows.map(r => (
+          <li
+            key={r.label}
+            className="flex items-baseline justify-between gap-2 border-b border-[color-mix(in_oklab,var(--gold)_15%,transparent)] py-[1px]"
+          >
+            <span className="text-muted-foreground uppercase tracking-wider text-[9px] truncate">{r.label}</span>
+            <span className="font-display text-[var(--gold)] tabular-nums shrink-0">{r.value}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-2 grid grid-cols-2 gap-1.5">
+        <button
+          type="button"
+          onClick={onLevel}
+          disabled={disabled}
+          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            border: `1.5px solid var(--gold)`,
+            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
+            color: "var(--gold)",
+          }}
+        >
+          <TrendingUp size={12} className="shrink-0" />
+          <span className="truncate">{t("skills.btnLevel")}</span>
+        </button>
+        <button
+          type="button"
+          onClick={onSp}
+          disabled={disabled}
+          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            border: `1.5px solid var(--gold)`,
+            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
+            color: "var(--gold)",
+          }}
+        >
+          <Zap size={12} className="shrink-0" />
+          <span className="truncate">{t("skills.btnSp")}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div
