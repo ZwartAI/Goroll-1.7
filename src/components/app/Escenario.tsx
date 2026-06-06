@@ -11,6 +11,8 @@ import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { HpShieldBar } from "@/components/app/HpShieldBar";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { Map as MapIcon } from "lucide-react";
+import battleMapEsAsset from "@/assets/battle-map/mapa-de-batalla.png.asset.json";
+import battleMapEnAsset from "@/assets/battle-map/battle-map.png.asset.json";
 
 
 // FASE 1: Lazy loading del BattleMap
