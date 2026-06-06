@@ -79,11 +79,13 @@ export function Toolbar({
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
   const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [showDeleteManyConfirm, setShowDeleteManyConfirm] = useState(false);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isMoveActive = activeTool === 'move' || activeTool === 'multi-move';
+  const isMoveActive = activeTool === 'move' || activeTool === 'multi-move' || activeTool === 'multi-delete';
 
   // Long-press detection for the Move button
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
