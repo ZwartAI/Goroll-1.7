@@ -82,13 +82,29 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
           const isEn = lang === "en";
           const asset = isEn ? battleMapEnAsset : battleMapEsAsset;
           const label = isEn ? "Battle Map" : "Mapa de Batalla";
-          const [imgFailed, setImgFailed] = [false, () => {}]; // placeholder; real state below
           return (
-            <BattleMapAssetButton
-              src={asset.url}
-              label={label}
+            <button
+              type="button"
+              aria-label={label}
               onClick={() => setShowBattleMap(true)}
-            />
+              className="group relative block bg-transparent border-0 p-0 active:scale-[0.97] transition-transform duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] rounded-md"
+              style={{ width: "min(100%, 28rem)" }}
+            >
+              {!battleMapImgFailed ? (
+                <img
+                  src={asset.url}
+                  alt=""
+                  draggable={false}
+                  onError={() => setBattleMapImgFailed(true)}
+                  className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-[0_0_18px_rgba(234,179,8,0.18)] group-hover:drop-shadow-[0_0_24px_rgba(234,179,8,0.35)] transition"
+                />
+              ) : (
+                <span className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/60 rounded-md font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)]">
+                  <MapIcon className="w-5 h-5" />
+                  {label}
+                </span>
+              )}
+            </button>
           );
         })()}
       </div>
