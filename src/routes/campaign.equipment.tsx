@@ -157,13 +157,13 @@ function Equipment() {
                   const hp = it.hp_bonus || RARITY_BONUS[it.rarity as Rarity].hp;
                   const dmg = it.damage_bonus;
                   return (
-                    <div className="flex flex-col items-center justify-center w-full h-full gap-[1px] px-0.5 leading-none">
+                  <div className="flex flex-col items-center justify-center w-full h-full gap-[2px] px-0.5 leading-none">
                       <span
                         className="leading-none"
                         style={{
-                          fontSize: "clamp(10px, 1.8vw, 16px)",
-                          filter: `drop-shadow(0 0 3px ${rColor})`,
-                          textShadow: "0 1px 2px rgba(0,0,0,0.9)",
+                          fontSize: "clamp(18px, 3.5vw, 28px)",
+                          filter: `drop-shadow(0 0 4px ${rColor})`,
+                          textShadow: "0 1px 3px rgba(0,0,0,0.95)",
                         }}
                       >
                         {s.icon}
@@ -172,15 +172,15 @@ function Equipment() {
                         className="font-display font-semibold text-center w-full"
                         style={{
                           color: rColor,
-                          fontSize: "clamp(7px, 1.15vw, 10px)",
-                          lineHeight: 1.05,
+                          fontSize: "clamp(10px, 2vw, 13px)",
+                          lineHeight: 1.1,
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           wordBreak: "break-word",
-                          textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                          textShadow: "0 1px 3px rgba(0,0,0,0.95)",
                         }}
                       >
                         {it.name}
@@ -190,8 +190,8 @@ function Equipment() {
                           className="font-bold tabular-nums leading-none truncate max-w-full"
                           style={{
                             color: "#fbbf24",
-                            fontSize: "clamp(7px, 1.1vw, 10px)",
-                            textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                            fontSize: "clamp(9px, 1.8vw, 12px)",
+                            textShadow: "0 1px 3px rgba(0,0,0,0.95)",
                           }}
                         >
                           +{dmg} DMG
@@ -200,8 +200,8 @@ function Equipment() {
                         <span
                           className="font-bold tabular-nums leading-none truncate max-w-full"
                           style={{
-                            fontSize: "clamp(7px, 1.05vw, 10px)",
-                            textShadow: "0 1px 2px rgba(0,0,0,0.95)",
+                            fontSize: "clamp(9px, 1.7vw, 11px)",
+                            textShadow: "0 1px 3px rgba(0,0,0,0.95)",
                           }}
                         >
                           <span style={{ color: "#60a5fa" }}>+{def}</span>
