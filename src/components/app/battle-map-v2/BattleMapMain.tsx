@@ -250,6 +250,27 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
           hasBackground={!!battleMap.activeScene?.background_url}
           selectedTokensCount={selectedTokensCount}
           onClearSelection={() => stageRef.current?.clearMultiSelection()}
+          onDeleteSelected={async () => {
+            const ids = stageRef.current?.getSelectedIds() || [];
+            if (ids.length === 0) return;
+            const snapshot = battleMap.tokens.filter((t: MapToken) => ids.includes(t.id));
+            if (snapshot.length === 0) return;
+            await Promise.all(snapshot.map((t: MapToken) => battleMap.removeToken(t.id)));
+            stageRef.current?.clearMultiSelection();
+            toast.success(t('battleMap.confirm.deletedCount', { n: String(snapshot.length) }), {
+              action: {
+                label: t('battleMap.confirm.undo'),
+                onClick: async () => {
+                  for (const tk of snapshot) {
+                    const { id, campaign_id, scene_id, size, ...rest } = tk as any;
+                    await battleMap.addToken(rest);
+                  }
+                  toast.success(t('battleMap.confirm.undone'));
+                },
+              },
+              duration: 8000,
+            });
+          }}
           hasMeasurements={(battleMap.measurements?.length || 0) > 0 && (
             isDM ? true : (battleMap.measurements || []).some((m: any) => m.author_character_id === character?.id)
           )}
