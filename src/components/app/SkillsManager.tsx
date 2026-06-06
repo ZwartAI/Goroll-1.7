@@ -154,6 +154,16 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         </Modal>
       )}
 
+      {/* Level adjust modal */}
+      {levelOpen && target && (
+        <LevelAdjustModal
+          character={target}
+          campaignId={campaignId}
+          editor={dm}
+          onClose={() => setLevelOpen(false)}
+        />
+      )}
+
       {sel && target && (
         <SkillDetailModal skill={sel}
           onClose={() => setSel(null)}
