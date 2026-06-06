@@ -151,11 +151,7 @@ function Equipment() {
                 }}
               >
                 {it ? (
-                  it.image_url ? (
-                    <img src={it.image_url} alt={it.name} className="w-full h-full object-contain pointer-events-none" />
-                  ) : (
-                    <span className="text-xl leading-none" style={{ color: RARITY_COLOR[it.rarity as Rarity] }}>{s.icon}</span>
-                  )
+                  <span className="text-2xl leading-none drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]" style={{ filter: `drop-shadow(0 0 3px ${RARITY_COLOR[it.rarity as Rarity]})` }}>{s.icon}</span>
                 ) : (
                   <span className="text-lg opacity-50 group-hover:opacity-90 transition pointer-events-none">{s.icon}</span>
                 )}
