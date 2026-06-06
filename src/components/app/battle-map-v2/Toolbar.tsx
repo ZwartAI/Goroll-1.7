@@ -3,6 +3,7 @@ import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Tr
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
+import { ConfirmDialog } from '../ConfirmDialog';
 
 export type MapTool = 'move' | 'multi-move' | 'multi-delete' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
