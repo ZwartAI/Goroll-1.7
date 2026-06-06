@@ -475,6 +475,7 @@ export const en: Dict = {
     noItemsForSlot: "You have no items for this slot.",
     damagePlus: "Damage +{n}",
     defHpPlus: "Def +{def} · Max HP +{hp}",
+    toggleTemplate: "Change equipment template",
   },
   boosters: {
     title: "Boosters",

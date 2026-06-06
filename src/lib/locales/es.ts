@@ -477,6 +477,7 @@ export const es = {
     noItemsForSlot: "No tienes objetos para esta ranura.",
     damagePlus: "Daño +{n}",
     defHpPlus: "Def +{def} · Vida Máx. +{hp}",
+    toggleTemplate: "Cambiar plantilla de equipamiento",
   },
   boosters: {
     title: "Potenciadores",

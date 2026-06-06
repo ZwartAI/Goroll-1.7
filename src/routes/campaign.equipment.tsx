@@ -1,22 +1,78 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useGameData } from "@/lib/useGame";
 import { PageFrame } from "@/components/app/Frame";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Venus, Mars } from "lucide-react";
 import { SLOTS, RARITY_COLOR, RARITY_BONUS, isWeapon, type Slot, type Item, type Rarity } from "@/lib/game";
 import { pushLog } from "@/lib/log";
 import { equipItem, unequipItem, getSlotKind } from "@/lib/inventory";
 import { RarityBadge } from "@/components/app/RarityBadge";
 import { ItemView } from "@/components/app/ItemView";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useT } from "@/lib/i18n";
 import { backdropProps } from "@/lib/modalBackdrop";
+import plantillaHombreAsset from "@/assets/equipment/plantilla-hombre.png.asset.json";
+import plantillaMujerAsset from "@/assets/equipment/plantilla-mujer.png.asset.json";
 
 export const Route = createFileRoute("/campaign/equipment")({ component: Equipment });
+
+const DEBUG_SLOTS = false;
+
+// Template aspect ratio: 941 / 1672 ≈ 0.5628
+const TEMPLATE_ASPECT = 941 / 1672;
+
+// Slot frame positions as percentages of the template image (left, top of frame box; width/height of frame).
+// Same coords for both templates since frames share composition.
+const FRAME_W = 17;
+const FRAME_H = 9.6;
+type Pos = { left: number; top: number };
+const SLOT_POS: Record<Slot, Pos> = {
+  // Center column (over body): head → chest → belt → legs → feet
+  casco:          { left: 50 - FRAME_W / 2, top: 12.0 },
+  pecho:          { left: 50 - FRAME_W / 2, top: 32.5 },
+  cinturon:       { left: 50 - FRAME_W / 2, top: 47.0 },
+  pantalon:       { left: 50 - FRAME_W / 2, top: 61.5 },
+  botas:          { left: 50 - FRAME_W / 2, top: 82.0 },
+  // Right column (weapons)
+  arma_principal:   { left: 78.5, top: 41.5 },
+  arma_secundaria:  { left: 78.5, top: 65.0 },
+  // Left column (5 frames)
+  accesorio1:  { left: 5.0, top: 9.5 },
+  guantes:     { left: 5.0, top: 24.0 },
+  accesorio2:  { left: 5.0, top: 38.5 },
+  mochila:     { left: 5.0, top: 53.0 },
+  aditamento:  { left: 5.0, top: 82.0 },
+};
+
+const TEMPLATE_KEY_PREFIX = "equipTemplate:";
 
 function Equipment() {
   const { character, items, campaign, loading } = useGameData();
   const [picker, setPicker] = useState<Slot | null>(null);
   const { t } = useT();
+
+  const [template, setTemplate] = useState<"male" | "female">("male");
+  useEffect(() => {
+    if (!character) return;
+    const saved = typeof window !== "undefined" ? localStorage.getItem(TEMPLATE_KEY_PREFIX + character.id) : null;
+    if (saved === "male" || saved === "female") {
+      setTemplate(saved);
+    } else {
+      // Try infer from character gender field if present
+      const g = (character as any).gender || (character as any).sex;
+      if (typeof g === "string" && /fem|muj|female/i.test(g)) setTemplate("female");
+      else setTemplate("male");
+    }
+  }, [character?.id]);
+
+  function toggleTemplate() {
+    setTemplate(prev => {
+      const next = prev === "male" ? "female" : "male";
+      if (character && typeof window !== "undefined") {
+        localStorage.setItem(TEMPLATE_KEY_PREFIX + character.id, next);
+      }
+      return next;
+    });
+  }
 
   if (loading || !character || !campaign) return <PageFrame><p className="text-center text-muted-foreground">{t("common.loading")}</p></PageFrame>;
 
@@ -44,23 +100,68 @@ function Equipment() {
     setPicker(null);
   }
 
+  const bgUrl = template === "female" ? plantillaMujerAsset.url : plantillaHombreAsset.url;
+  const toggleLabel = t("equipment.toggleTemplate");
+
   return (
     <PageFrame title={t("equipment.title")} subtitle={character.name} right={<Link to="/campaign/profile" className="text-muted-foreground"><ArrowLeft size={20}/></Link>}>
-      <div className="grid grid-cols-3 gap-2">
-        {SLOTS.map(s => {
-          const it = equipped(s.key);
-          return (
-            <button key={s.key} onClick={() => setPicker(s.key)}
-              className={`ornate-card aspect-square flex flex-col items-center justify-center p-2 relative ${it ? "" : "opacity-60"}`}
-              style={it
-                ? { borderColor: RARITY_COLOR[it.rarity as Rarity], boxShadow: `0 0 12px ${RARITY_COLOR[it.rarity as Rarity]}` }
-                : { background: "color-mix(in oklab, black 55%, var(--card))", filter: "saturate(0)" }}>
-              <span className={`text-2xl mb-1 ${it ? "" : "grayscale opacity-50"}`}>{s.icon}</span>
-              <span className="text-[9px] uppercase text-muted-foreground text-center leading-tight">{t(`slots.${s.key}`)}</span>
-              {it && <span className="text-[9px] mt-1 text-center font-display truncate w-full" style={{ color: RARITY_COLOR[it.rarity as Rarity] }}>{it.name}</span>}
-            </button>
-          );
-        })}
+      <div className="w-full flex justify-center overflow-x-auto">
+        <div
+          className="equipment-paper-layout relative mx-auto"
+          style={{
+            width: "min(100%, 440px)",
+            aspectRatio: `${941} / ${1672}`,
+            backgroundImage: `url(${bgUrl})`,
+            backgroundSize: "100% 100%",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center top",
+          }}
+        >
+          <button
+            type="button"
+            onClick={toggleTemplate}
+            aria-label={toggleLabel}
+            title={toggleLabel}
+            className="absolute z-20 top-2 right-2 w-9 h-9 rounded-full border border-[var(--gold)]/70 bg-black/60 backdrop-blur-sm flex items-center justify-center text-[var(--gold)] hover:bg-black/80 hover:shadow-[0_0_10px_rgba(234,179,8,0.5)] active:scale-95 transition"
+          >
+            {template === "male" ? <Mars size={16} /> : <Venus size={16} />}
+          </button>
+
+          {SLOTS.map(s => {
+            const pos = SLOT_POS[s.key];
+            const it = equipped(s.key);
+            return (
+              <button
+                key={s.key}
+                onClick={() => setPicker(s.key)}
+                aria-label={t(`slots.${s.key}`)}
+                title={t(`slots.${s.key}`)}
+                className="absolute group flex flex-col items-center justify-center p-0.5 transition"
+                style={{
+                  left: `${pos.left}%`,
+                  top: `${pos.top}%`,
+                  width: `${FRAME_W}%`,
+                  height: `${FRAME_H}%`,
+                  background: "transparent",
+                  border: DEBUG_SLOTS ? "1px solid red" : "1px solid transparent",
+                  borderRadius: 6,
+                  boxShadow: it
+                    ? `0 0 10px ${RARITY_COLOR[it.rarity as Rarity]}, inset 0 0 8px ${RARITY_COLOR[it.rarity as Rarity]}33`
+                    : undefined,
+                }}
+              >
+                {it ? (
+                  <span className="text-2xl leading-none drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]" style={{ filter: `drop-shadow(0 0 3px ${RARITY_COLOR[it.rarity as Rarity]})` }}>{s.icon}</span>
+                ) : (
+                  <span className="text-lg opacity-50 group-hover:opacity-90 transition pointer-events-none">{s.icon}</span>
+                )}
+                {DEBUG_SLOTS && (
+                  <span className="absolute -bottom-3 left-0 text-[8px] text-red-400 whitespace-nowrap">{s.key}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {picker && (
