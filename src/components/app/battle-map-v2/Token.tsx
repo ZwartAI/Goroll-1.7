@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { MapToken } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
-import { Trash2 } from 'lucide-react';
 import { throttle } from 'lodash';
 
 interface Props {
@@ -116,7 +115,7 @@ export const Token = memo(function Token({
     e.stopPropagation();
 
     // Multi-move: a tap (no significant movement) toggles selection instead of moving
-    if (activeTool === 'multi-move' && !movedRef.current) {
+    if ((activeTool === 'multi-move' || activeTool === 'multi-delete') && !movedRef.current) {
       setLocalDragging(false);
       pointerStartRef.current = null;
       // Reset to original position
@@ -250,19 +249,7 @@ export const Token = memo(function Token({
         )}
       </div>
 
-      {/* Control Buttons (Only trash as requested) */}
-      {(isDM || canMove) && (
-        <div className="absolute -top-3 -right-3 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-[60]">
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-colors hover:scale-110 active:scale-95"
-            title="Eliminar token"
-            data-map-ui="true"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      {/* Per-token trash removed: use the unsummon tool with confirmation instead. */}
     </div>
   );
 });

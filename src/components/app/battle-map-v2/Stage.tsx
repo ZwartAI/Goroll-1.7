@@ -40,6 +40,7 @@ export interface StageHandle {
   centerView: () => void;
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
   clearMultiSelection: () => void;
+  getSelectedIds: () => string[];
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
@@ -83,9 +84,9 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const marqueeActive = useRef(false);
 
 
-  // Clear selection when leaving multi-move mode
+  // Clear selection when leaving multi-move/multi-delete modes
   useEffect(() => {
-    if (activeTool !== 'multi-move' && selectedIds.size > 0) {
+    if (activeTool !== 'multi-move' && activeTool !== 'multi-delete' && selectedIds.size > 0) {
       setSelectedIds(new Set());
     }
   }, [activeTool]);
@@ -228,6 +229,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
     centerView,
     screenToWorld,
     clearMultiSelection: () => setSelectedIds(new Set()),
+    getSelectedIds: () => Array.from(selectedIds),
   }));
 
   // Persistence: Save view position
@@ -339,7 +341,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'multi-move') {
+    } else if (activeTool === 'multi-move' || activeTool === 'multi-delete') {
       if (tokenId) return;
 
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {

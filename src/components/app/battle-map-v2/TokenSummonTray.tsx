@@ -30,19 +30,25 @@ export const TokenSummonTray: React.FC<Props> = ({ queue, setQueue, stageRef, gr
 
   if (queue.length === 0) return null;
 
-  const handleDrop = async (token: QueuedToken, point: { x: number; y: number }) => {
+  const handleDrop = async (token: QueuedToken, e: any, point: { x: number; y: number }) => {
     if (!stageRef.current) return;
+    // Prefer native pointer coords; framer's info.point can include scroll
+    // depending on browser, which throws the drop off when the page or any
+    // ancestor is scrolled or transformed.
+    const px = typeof e?.clientX === 'number' ? e.clientX : point.x;
+    const py = typeof e?.clientY === 'number' ? e.clientY : point.y;
+
     const stageElement = document.querySelector('.stage-bg');
     if (!stageElement) return;
     const stageRect = stageElement.parentElement!.getBoundingClientRect();
     const isInside =
-      point.x >= stageRect.left &&
-      point.x <= stageRect.right &&
-      point.y >= stageRect.top &&
-      point.y <= stageRect.bottom;
+      px >= stageRect.left &&
+      px <= stageRect.right &&
+      py >= stageRect.top &&
+      py <= stageRect.bottom;
     if (!isInside) return;
 
-    const world = stageRef.current.screenToWorld(point.x, point.y);
+    const world = stageRef.current.screenToWorld(px, py);
     let finalX = world.x - gridSize / 2;
     let finalY = world.y - gridSize / 2;
     if (snapToGrid) {
@@ -96,7 +102,7 @@ export const TokenSummonTray: React.FC<Props> = ({ queue, setQueue, stageRef, gr
                   dragSnapToOrigin
                   dragMomentum={false}
                   whileDrag={{ scale: 1.15, zIndex: 200 }}
-                  onDragEnd={(_e, info) => handleDrop(token, info.point)}
+                  onDragEnd={(e, info) => handleDrop(token, e, info.point)}
                   className="cursor-grab active:cursor-grabbing relative shrink-0 group"
                   title={token.name || ''}
                 >

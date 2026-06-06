@@ -3,8 +3,9 @@ import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Tr
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
+import { ConfirmDialog } from '../ConfirmDialog';
 
-export type MapTool = 'move' | 'multi-move' | 'measure' | 'pencil' | 'eraser';
+export type MapTool = 'move' | 'multi-move' | 'multi-delete' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
@@ -31,6 +32,7 @@ interface Props {
   showToolbar?: boolean;
   selectedTokensCount?: number;
   onClearSelection?: () => void;
+  onDeleteSelected?: () => void;
   hasMeasurements?: boolean;
   onClearMeasurements?: () => void;
   weatherEffect?: string;
@@ -64,6 +66,7 @@ export function Toolbar({
   showToolbar = true,
   selectedTokensCount = 0,
   onClearSelection,
+  onDeleteSelected,
   hasMeasurements = false,
   onClearMeasurements,
   weatherEffect = 'none',
@@ -77,11 +80,13 @@ export function Toolbar({
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
   const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
   const [showClearModal, setShowClearModal] = useState<'mine' | 'all' | 'player' | null>(null);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [showDeleteManyConfirm, setShowDeleteManyConfirm] = useState(false);
 
   const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const isPencilActive = activeTool === 'pencil' || activeTool === 'eraser';
-  const isMoveActive = activeTool === 'move' || activeTool === 'multi-move';
+  const isMoveActive = activeTool === 'move' || activeTool === 'multi-move' || activeTool === 'multi-delete';
 
   // Long-press detection for the Move button
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -155,8 +160,11 @@ export function Toolbar({
             </div>
 
             {/* Selected count badge */}
-            {activeTool === 'multi-move' && selectedTokensCount > 0 && (
-              <div className="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--gold)] text-black text-[9px] font-bold flex items-center justify-center shadow-lg pointer-events-none">
+            {(activeTool === 'multi-move' || activeTool === 'multi-delete') && selectedTokensCount > 0 && (
+              <div className={cn(
+                "absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center shadow-lg pointer-events-none",
+                activeTool === 'multi-delete' ? "bg-red-500 text-white" : "bg-[var(--gold)] text-black"
+              )}>
                 {selectedTokensCount}
               </div>
             )}
@@ -181,15 +189,39 @@ export function Toolbar({
                     icon={<MousePointerSquareDashed className="w-5 h-5" />}
                     label={t('battleMap.tools.multiMove')}
                   />
-                  {activeTool === 'multi-move' && selectedTokensCount > 0 && (
-                    <button
-                      onClick={() => { onClearSelection?.(); }}
-                      className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
-                      title={t('battleMap.tools.clearSelection')}
-                    >
-                      <X className="w-3 h-3" />
-                      {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
-                    </button>
+                  <ToolButton
+                    active={activeTool === 'multi-delete'}
+                    onClick={() => {
+                      setActiveTool('multi-delete');
+                      setMoveMenuOpen(false);
+                      setPencilMenuOpen(false);
+                      setMeasureMenuOpen(false);
+                    }}
+                    icon={<Trash2 className="w-5 h-5 text-red-400" />}
+                    label={t('battleMap.tools.multiDelete')}
+                    className="border border-red-500/30"
+                  />
+                  {(activeTool === 'multi-move' || activeTool === 'multi-delete') && selectedTokensCount > 0 && (
+                    <>
+                      <button
+                        onClick={() => { onClearSelection?.(); }}
+                        className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                        title={t('battleMap.tools.clearSelection')}
+                      >
+                        <X className="w-3 h-3" />
+                        {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
+                      </button>
+                      {activeTool === 'multi-delete' && (
+                        <button
+                          onClick={() => setShowDeleteManyConfirm(true)}
+                          className="flex items-center gap-1 px-2 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-200 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                          title={t('battleMap.tools.deleteSelected')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {t('battleMap.tools.deleteSelected')}
+                        </button>
+                      )}
+                    </>
                   )}
                   <button
                     onClick={() => setMoveMenuOpen(false)}
@@ -474,7 +506,7 @@ export function Toolbar({
             active={false}
             onClick={() => {
               if (hasMyToken) {
-                onInvokeToken();
+                setShowWithdrawConfirm(true);
               } else {
                 onInvokeToken({
                   character_id: null,
@@ -484,7 +516,7 @@ export function Toolbar({
               }
             }}
             icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
-            label={hasMyToken ? (t('battleMap.tools.withdraw') || 'Retirar') : (t('battleMap.tools.invoke') || 'Invocar')}
+            label={hasMyToken ? t('battleMap.tools.withdraw') : t('battleMap.tools.invoke')}
             className={hasMyToken ? "border border-red-500/30" : "border border-green-500/30"}
           />
 
@@ -553,6 +585,34 @@ export function Toolbar({
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={showWithdrawConfirm}
+        title={t('battleMap.confirm.unsummonTitle')}
+        description={t('battleMap.confirm.unsummonMessage')}
+        cancelLabel={t('battleMap.confirm.cancel')}
+        confirmLabel={t('battleMap.confirm.unsummonConfirm')}
+        variant="danger"
+        onCancel={() => setShowWithdrawConfirm(false)}
+        onConfirm={() => {
+          setShowWithdrawConfirm(false);
+          onInvokeToken();
+        }}
+      />
+
+      <ConfirmDialog
+        open={showDeleteManyConfirm}
+        title={t('battleMap.confirm.deleteManyTitle')}
+        description={t('battleMap.confirm.deleteManyMessage', { n: String(selectedTokensCount) })}
+        cancelLabel={t('battleMap.confirm.cancel')}
+        confirmLabel={t('battleMap.confirm.deleteManyConfirm')}
+        variant="danger"
+        onCancel={() => setShowDeleteManyConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteManyConfirm(false);
+          onDeleteSelected?.();
+        }}
+      />
     </>
   );
 }
