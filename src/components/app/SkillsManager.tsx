@@ -45,6 +45,7 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [levelOpen, setLevelOpen] = useState(false);
   const target = players.find(p => p.id === targetId) ?? null;
 
   // Persist last selection across remounts (e.g. tab navigation in DM page).
