@@ -143,7 +143,7 @@ function Equipment() {
                   width: `${FRAME_W}%`,
                   height: `${FRAME_H}%`,
                   background: "transparent",
-                  border: DEBUG_SLOTS ? "1px solid red" : "1px solid transparent",
+                  border: EQUIPMENT_LAYOUT_DEBUG ? "1px solid red" : "1px solid transparent",
                   borderRadius: 6,
                   boxShadow: it
                     ? `0 0 10px ${RARITY_COLOR[it.rarity as Rarity]}, inset 0 0 8px ${RARITY_COLOR[it.rarity as Rarity]}33`
@@ -167,7 +167,7 @@ function Equipment() {
                     </span>
                   </>
                 )}
-                {DEBUG_SLOTS && (
+                {EQUIPMENT_LAYOUT_DEBUG && (
                   <span className="absolute -bottom-3 left-0 text-[8px] text-red-400 whitespace-nowrap">{s.key}</span>
                 )}
               </button>
