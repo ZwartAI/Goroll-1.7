@@ -83,9 +83,9 @@ export const Stage = forwardRef<StageHandle, Props>(({
   const marqueeActive = useRef(false);
 
 
-  // Clear selection when leaving multi-move mode
+  // Clear selection when leaving multi-move/multi-delete modes
   useEffect(() => {
-    if (activeTool !== 'multi-move' && selectedIds.size > 0) {
+    if (activeTool !== 'multi-move' && activeTool !== 'multi-delete' && selectedIds.size > 0) {
       setSelectedIds(new Set());
     }
   }, [activeTool]);
