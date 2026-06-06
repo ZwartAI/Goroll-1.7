@@ -40,6 +40,7 @@ export interface StageHandle {
   centerView: () => void;
   screenToWorld: (clientX: number, clientY: number) => { x: number, y: number };
   clearMultiSelection: () => void;
+  getSelectedIds: () => string[];
 }
 
 export const Stage = forwardRef<StageHandle, Props>(({ 
