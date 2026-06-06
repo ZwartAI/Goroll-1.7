@@ -115,7 +115,7 @@ export const Token = memo(function Token({
     e.stopPropagation();
 
     // Multi-move: a tap (no significant movement) toggles selection instead of moving
-    if (activeTool === 'multi-move' && !movedRef.current) {
+    if ((activeTool === 'multi-move' || activeTool === 'multi-delete') && !movedRef.current) {
       setLocalDragging(false);
       pointerStartRef.current = null;
       // Reset to original position
