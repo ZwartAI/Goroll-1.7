@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
 
-export type MapTool = 'move' | 'multi-move' | 'measure' | 'pencil' | 'eraser';
+export type MapTool = 'move' | 'multi-move' | 'multi-delete' | 'measure' | 'pencil' | 'eraser';
 export type MeasureMode = 'line' | 'cone' | 'circle';
 
 interface Props {
