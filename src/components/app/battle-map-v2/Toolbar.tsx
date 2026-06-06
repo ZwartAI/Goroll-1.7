@@ -31,6 +31,7 @@ interface Props {
   showToolbar?: boolean;
   selectedTokensCount?: number;
   onClearSelection?: () => void;
+  onDeleteSelected?: () => void;
   hasMeasurements?: boolean;
   onClearMeasurements?: () => void;
   weatherEffect?: string;
