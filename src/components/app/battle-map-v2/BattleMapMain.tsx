@@ -319,43 +319,40 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
                 <motion.div
                   drag
                   dragSnapToOrigin
+                  dragMomentum={false}
+                  whileDrag={{ scale: 1.1, zIndex: 200 }}
                   onDragEnd={(e, info) => {
-                    if (stageRef.current) {
-                      const stageElement = document.querySelector('.stage-bg');
-                      if (stageElement) {
-                        const stageRect = stageElement.parentElement!.getBoundingClientRect();
-                        const isInside = (
-                          info.point.x >= stageRect.left &&
-                          info.point.x <= stageRect.right &&
-                          info.point.y >= stageRect.top &&
-                          info.point.y <= stageRect.bottom
-                        );
+                    if (!stageRef.current) return;
+                    // Prefer the native pointer event coords; framer's info.point
+                    // can include scroll on some browsers which throws the drop
+                    // off when the page has scroll or zoom transforms above.
+                    const native: any = (e as any);
+                    const px = typeof native.clientX === 'number' ? native.clientX : info.point.x;
+                    const py = typeof native.clientY === 'number' ? native.clientY : info.point.y;
 
-                        if (isInside) {
-                          const worldCoords = stageRef.current.screenToWorld(info.point.x, info.point.y);
-                          
-                          // Adjust for token center (roughly)
-                          const gridSize = battleMap.activeScene?.grid_size || 70;
-                          let finalX = worldCoords.x - (gridSize / 2);
-                          let finalY = worldCoords.y - (gridSize / 2);
+                    const stageElement = document.querySelector('.stage-bg');
+                    if (!stageElement) return;
+                    const stageRect = stageElement.parentElement!.getBoundingClientRect();
+                    const isInside = (
+                      px >= stageRect.left && px <= stageRect.right &&
+                      py >= stageRect.top && py <= stageRect.bottom
+                    );
+                    if (!isInside) return;
 
-                          // Snap to grid if enabled
-                          if (battleMap.activeScene?.snap_to_grid) {
-                            const offsetX = battleMap.activeScene.grid_offset_x || 0;
-                            const offsetY = battleMap.activeScene.grid_offset_y || 0;
-                            finalX = Math.round((finalX - offsetX) / gridSize) * gridSize + offsetX;
-                            finalY = Math.round((finalY - offsetY) / gridSize) * gridSize + offsetY;
-                          }
+                    const worldCoords = stageRef.current.screenToWorld(px, py);
+                    const gridSize = battleMap.activeScene?.grid_size || 70;
+                    let finalX = worldCoords.x - (gridSize / 2);
+                    let finalY = worldCoords.y - (gridSize / 2);
 
-                          battleMap.addToken({
-                            ...tokenToPlace,
-                            x: finalX,
-                            y: finalY
-                          });
-                          setTokenToPlace(null);
-                        }
-                      }
+                    if (battleMap.activeScene?.snap_to_grid) {
+                      const offsetX = battleMap.activeScene.grid_offset_x || 0;
+                      const offsetY = battleMap.activeScene.grid_offset_y || 0;
+                      finalX = Math.round((finalX - offsetX) / gridSize) * gridSize + offsetX;
+                      finalY = Math.round((finalY - offsetY) / gridSize) * gridSize + offsetY;
                     }
+
+                    battleMap.addToken({ ...tokenToPlace, x: finalX, y: finalY });
+                    setTokenToPlace(null);
                   }}
                   className="cursor-grab active:cursor-grabbing relative group"
                 >
