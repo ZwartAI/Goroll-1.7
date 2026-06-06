@@ -130,13 +130,14 @@ function Equipment() {
           {SLOTS.map(s => {
             const pos = SLOT_POS[s.key];
             const it = equipped(s.key);
+            const label = t(`slots.${s.key}`);
             return (
               <button
                 key={s.key}
                 onClick={() => setPicker(s.key)}
-                aria-label={t(`slots.${s.key}`)}
-                title={t(`slots.${s.key}`)}
-                className="absolute group flex flex-col items-center justify-center p-0.5 transition"
+                aria-label={label}
+                title={label}
+                className="absolute group flex flex-col items-center justify-center gap-0.5 p-0.5 transition hover:bg-[var(--gold)]/10"
                 style={{
                   left: `${pos.left}%`,
                   top: `${pos.top}%`,
@@ -151,9 +152,21 @@ function Equipment() {
                 }}
               >
                 {it ? (
-                  <span className="text-2xl leading-none drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]" style={{ filter: `drop-shadow(0 0 3px ${RARITY_COLOR[it.rarity as Rarity]})` }}>{s.icon}</span>
+                  <span
+                    className="text-2xl leading-none drop-shadow-[0_0_4px_rgba(0,0,0,0.9)]"
+                    style={{ filter: `drop-shadow(0 0 3px ${RARITY_COLOR[it.rarity as Rarity]})` }}
+                  >
+                    {s.icon}
+                  </span>
                 ) : (
-                  <span className="text-lg opacity-50 group-hover:opacity-90 transition pointer-events-none">{s.icon}</span>
+                  <>
+                    <span className="text-base leading-none opacity-40 grayscale group-hover:opacity-80 transition pointer-events-none">
+                      {s.icon}
+                    </span>
+                    <span className="text-[8px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground/70 group-hover:text-[var(--gold)]/80 text-center px-0.5 truncate max-w-full pointer-events-none">
+                      {label}
+                    </span>
+                  </>
                 )}
                 {DEBUG_SLOTS && (
                   <span className="absolute -bottom-3 left-0 text-[8px] text-red-400 whitespace-nowrap">{s.key}</span>
