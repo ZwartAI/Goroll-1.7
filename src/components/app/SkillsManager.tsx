@@ -544,7 +544,14 @@ function SkillsListPanel({
   }, [skills, query, filter, rarity]);
 
   return (
-    <div className="ornate-card p-3 space-y-2.5">
+    <div
+      className="ornate-card p-3 space-y-2.5"
+      style={{
+        borderColor: "var(--gold)",
+        background: "linear-gradient(180deg, color-mix(in oklab, var(--rarity-purple) 22%, var(--card)) 0%, color-mix(in oklab, var(--rarity-purple) 8%, var(--card)) 100%)",
+        boxShadow: "0 0 18px color-mix(in oklab, var(--rarity-purple) 22%, transparent), inset 0 0 18px color-mix(in oklab, var(--rarity-purple) 12%, transparent)",
+      }}
+    >
       <p className="font-display text-sm text-[var(--gold)]">
         {t("skills.characterSkills", { character: characterName })}{" "}
         <span className="text-muted-foreground text-xs">({skills.length})</span>
