@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { MapToken } from '@/hooks/useBattleMap';
 import { cn } from '@/lib/utils';
-import { Trash2 } from 'lucide-react';
 import { throttle } from 'lodash';
 
 interface Props {
