@@ -249,19 +249,7 @@ export const Token = memo(function Token({
         )}
       </div>
 
-      {/* Control Buttons (Only trash as requested) */}
-      {(isDM || canMove) && (
-        <div className="absolute -top-3 -right-3 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-[60]">
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-colors hover:scale-110 active:scale-95"
-            title="Eliminar token"
-            data-map-ui="true"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      {/* Per-token trash removed: use the unsummon tool with confirmation instead. */}
     </div>
   );
 });
