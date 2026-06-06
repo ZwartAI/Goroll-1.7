@@ -11,6 +11,8 @@ import { useEncounterShields } from "@/hooks/useEncounterShields";
 import { HpShieldBar } from "@/components/app/HpShieldBar";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { Map as MapIcon } from "lucide-react";
+import battleMapEsAsset from "@/assets/battle-map/mapa-de-batalla.png.asset.json";
+import battleMapEnAsset from "@/assets/battle-map/battle-map.png.asset.json";
 
 
 // FASE 1: Lazy loading del BattleMap
@@ -49,7 +51,8 @@ type Props = {
 export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenChar, onOpenItem, onOpenBooster, onOpenImage, dmCharacterIds, nameOverrides, showLog = true, speakingIds, hideCombatTab }: Props) {
   const [openOffline, setOpenOffline] = useState(false);
   const [showBattleMap, setShowBattleMap] = useState(false);
-  const { t } = useT();
+  const { t, lang } = useT();
+  const [battleMapImgFailed, setBattleMapImgFailed] = useState(false);
   const { combat, character } = useGameData();
   const isDM = character?.role === "dm";
   const combatActive = combat.encounter?.status === "active";
@@ -75,19 +78,35 @@ export function Escenario({ characters, items, onlineIds, logs, selfId, onOpenCh
   return (
     <>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 mt-2">
-        {ENABLE_BATTLE_MAP && (
-          <button
-            onClick={() => setShowBattleMap(true)}
-            className="btn-fantasy group relative flex items-center gap-3 px-8 py-3 bg-black/40 border border-[var(--gold)]/40 hover:border-[var(--gold)] hover:bg-[var(--gold)]/10 transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.1)] active:scale-95"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <MapIcon className="w-5 h-5 text-[var(--gold)] group-hover:rotate-6 transition-transform" />
-            <span className="font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)] shadow-sm">
-              {t("battleMap.openMap")}
-            </span>
-            <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/50 to-transparent" />
-          </button>
-        )}
+        {ENABLE_BATTLE_MAP && (() => {
+          const isEn = lang === "en";
+          const asset = isEn ? battleMapEnAsset : battleMapEsAsset;
+          const label = isEn ? "Battle Map" : "Mapa de Batalla";
+          return (
+            <button
+              type="button"
+              aria-label={label}
+              onClick={() => setShowBattleMap(true)}
+              className="group relative block bg-transparent border-0 p-0 active:scale-[0.97] transition-transform duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] rounded-md"
+              style={{ width: "min(100%, 28rem)" }}
+            >
+              {!battleMapImgFailed ? (
+                <img
+                  src={asset.url}
+                  alt=""
+                  draggable={false}
+                  onError={() => setBattleMapImgFailed(true)}
+                  className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-[0_0_18px_rgba(234,179,8,0.18)] group-hover:drop-shadow-[0_0_24px_rgba(234,179,8,0.35)] transition"
+                />
+              ) : (
+                <span className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/60 rounded-md font-display text-xs uppercase tracking-[0.2em] text-[var(--gold)]">
+                  <MapIcon className="w-5 h-5" />
+                  {label}
+                </span>
+              )}
+            </button>
+          );
+        })()}
       </div>
 
       <div className="ornate-card p-3 mb-4">
