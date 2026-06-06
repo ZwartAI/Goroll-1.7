@@ -585,6 +585,34 @@ export function Toolbar({
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={showWithdrawConfirm}
+        title={t('battleMap.confirm.unsummonTitle')}
+        description={t('battleMap.confirm.unsummonMessage')}
+        cancelLabel={t('battleMap.confirm.cancel')}
+        confirmLabel={t('battleMap.confirm.unsummonConfirm')}
+        variant="danger"
+        onCancel={() => setShowWithdrawConfirm(false)}
+        onConfirm={() => {
+          setShowWithdrawConfirm(false);
+          onInvokeToken();
+        }}
+      />
+
+      <ConfirmDialog
+        open={showDeleteManyConfirm}
+        title={t('battleMap.confirm.deleteManyTitle')}
+        description={t('battleMap.confirm.deleteManyMessage', { n: String(selectedTokensCount) })}
+        cancelLabel={t('battleMap.confirm.cancel')}
+        confirmLabel={t('battleMap.confirm.deleteManyConfirm')}
+        variant="danger"
+        onCancel={() => setShowDeleteManyConfirm(false)}
+        onConfirm={() => {
+          setShowDeleteManyConfirm(false);
+          onDeleteSelected?.();
+        }}
+      />
     </>
   );
 }
