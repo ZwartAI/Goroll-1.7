@@ -93,97 +93,21 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         <p className="text-xs text-muted-foreground mt-1">{t("skills.dmIntro")}</p>
       </header>
 
-      {/* Main premium panel */}
-      <div
-        className="ornate-card p-4 sm:p-5 space-y-4"
-        style={{
-          background:
-            "linear-gradient(180deg, color-mix(in oklab, var(--loss) 18%, var(--card)) 0%, var(--card) 100%)",
-          borderColor: "var(--gold)",
-          boxShadow: "0 0 24px color-mix(in oklab, var(--gold) 16%, transparent), inset 0 0 24px color-mix(in oklab, var(--loss) 12%, transparent)",
-        }}
-      >
-        <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 flex items-center gap-2">
-          <Sparkles size={12} /> {t("skills.selectedCharacter")}
-        </p>
-
-        {!target ? (
-          <p className="text-center text-xs text-muted-foreground py-6">
-            {t("skills.pickPlayer")}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto] gap-4 items-center">
-            {/* A. Avatar + name + dropdown */}
-            <div className="flex flex-col items-center gap-1.5 min-w-0">
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="relative group"
-                aria-label={t("skills.selectCharacter")}
-              >
-                <div
-                  className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
-                  style={{
-                    border: "2px solid var(--gold)",
-                    boxShadow: "0 0 0 3px color-mix(in oklab, var(--gold) 18%, transparent), 0 0 18px color-mix(in oklab, var(--gold) 35%, transparent)",
-                    background: "color-mix(in oklab, var(--background) 60%, transparent)",
-                  }}
-                >
-                  <CharacterPortrait character={target as any} className="w-full h-full text-2xl" showBorder={false} />
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                className="inline-flex items-center gap-1 font-display text-lg leading-tight max-w-[10rem] truncate"
-                style={{ color: target.color }}
-              >
-                {target.name}
-                <ChevronDown size={14} className="opacity-70" />
-              </button>
-            </div>
-
-            {/* B. SP + counters */}
-            <div className="flex flex-col items-center text-center">
-              <p className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80">
-                {t("skills.spAvailable")}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Gem size={22} className="text-[var(--gold)] drop-shadow-[0_0_8px_color-mix(in_oklab,var(--gold)_60%,transparent)]" />
-                <span
-                  className="font-display text-4xl sm:text-5xl leading-none"
-                  style={{
-                    color: "var(--gold)",
-                    textShadow: "0 0 14px color-mix(in oklab, var(--gold) 55%, transparent)",
-                  }}
-                >
-                  {sp}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-3 mt-3 text-center">
-                <Counter label={t("skills.unlockedCount")} value={unlocked} color="var(--gain)" />
-                <Counter label={t("skills.availableCount")} value={available} color="var(--gold)" />
-                <Counter label={t("skills.totalCount")} value={total} color="oklch(0.95 0.02 80)" />
-              </div>
-            </div>
-
-            {/* C. Actions */}
-            <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
-              <PanelAction
-                icon={<FileSpreadsheet size={16} />}
-                label={t("skills.importExcelShort")}
-                onClick={() => setImportOpen(true)}
-                accent="oklch(0.65 0.16 145)"
-              />
-              <PanelAction
-                icon={<Zap size={16} />}
-                label={t("skills.manageSp")}
-                onClick={() => setManageOpen(true)}
-                accent="var(--gold)"
-              />
-            </div>
-          </div>
-        )}
+      {/* Two fixed cards in a row */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
+        <SelectedCharacterCard
+          target={target}
+          sp={sp}
+          onPick={() => setPickerOpen(true)}
+          onImport={() => setImportOpen(true)}
+        />
+        <CharacterInfoCard
+          target={target}
+          unlocked={unlocked}
+          available={available}
+          onLevel={() => setLevelOpen(true)}
+          onSp={() => setManageOpen(true)}
+        />
       </div>
 
       {/* Skills list for the selected character */}
@@ -194,6 +118,8 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
           onPick={setSel}
         />
       )}
+
+
 
       {/* Character picker modal */}
       {pickerOpen && (
