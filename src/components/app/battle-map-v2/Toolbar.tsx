@@ -506,7 +506,7 @@ export function Toolbar({
             active={false}
             onClick={() => {
               if (hasMyToken) {
-                onInvokeToken();
+                setShowWithdrawConfirm(true);
               } else {
                 onInvokeToken({
                   character_id: null,
@@ -516,7 +516,7 @@ export function Toolbar({
               }
             }}
             icon={hasMyToken ? <UserMinus className="w-5 h-5 text-red-400" /> : <UserPlus className="w-5 h-5 text-green-400" />}
-            label={hasMyToken ? (t('battleMap.tools.withdraw') || 'Retirar') : (t('battleMap.tools.invoke') || 'Invocar')}
+            label={hasMyToken ? t('battleMap.tools.withdraw') : t('battleMap.tools.invoke')}
             className={hasMyToken ? "border border-red-500/30" : "border border-green-500/30"}
           />
 
