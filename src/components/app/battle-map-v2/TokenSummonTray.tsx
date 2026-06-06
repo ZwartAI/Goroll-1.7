@@ -102,7 +102,7 @@ export const TokenSummonTray: React.FC<Props> = ({ queue, setQueue, stageRef, gr
                   dragSnapToOrigin
                   dragMomentum={false}
                   whileDrag={{ scale: 1.15, zIndex: 200 }}
-                  onDragEnd={(_e, info) => handleDrop(token, info.point)}
+                  onDragEnd={(e, info) => handleDrop(token, e, info.point)}
                   className="cursor-grab active:cursor-grabbing relative shrink-0 group"
                   title={token.name || ''}
                 >
