@@ -159,8 +159,11 @@ export function Toolbar({
             </div>
 
             {/* Selected count badge */}
-            {activeTool === 'multi-move' && selectedTokensCount > 0 && (
-              <div className="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--gold)] text-black text-[9px] font-bold flex items-center justify-center shadow-lg pointer-events-none">
+            {(activeTool === 'multi-move' || activeTool === 'multi-delete') && selectedTokensCount > 0 && (
+              <div className={cn(
+                "absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center shadow-lg pointer-events-none",
+                activeTool === 'multi-delete' ? "bg-red-500 text-white" : "bg-[var(--gold)] text-black"
+              )}>
                 {selectedTokensCount}
               </div>
             )}
@@ -185,15 +188,39 @@ export function Toolbar({
                     icon={<MousePointerSquareDashed className="w-5 h-5" />}
                     label={t('battleMap.tools.multiMove')}
                   />
-                  {activeTool === 'multi-move' && selectedTokensCount > 0 && (
-                    <button
-                      onClick={() => { onClearSelection?.(); }}
-                      className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
-                      title={t('battleMap.tools.clearSelection')}
-                    >
-                      <X className="w-3 h-3" />
-                      {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
-                    </button>
+                  <ToolButton
+                    active={activeTool === 'multi-delete'}
+                    onClick={() => {
+                      setActiveTool('multi-delete');
+                      setMoveMenuOpen(false);
+                      setPencilMenuOpen(false);
+                      setMeasureMenuOpen(false);
+                    }}
+                    icon={<Trash2 className="w-5 h-5 text-red-400" />}
+                    label={t('battleMap.tools.multiDelete')}
+                    className="border border-red-500/30"
+                  />
+                  {(activeTool === 'multi-move' || activeTool === 'multi-delete') && selectedTokensCount > 0 && (
+                    <>
+                      <button
+                        onClick={() => { onClearSelection?.(); }}
+                        className="flex items-center gap-1 px-2 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                        title={t('battleMap.tools.clearSelection')}
+                      >
+                        <X className="w-3 h-3" />
+                        {t('battleMap.tools.selected', { n: String(selectedTokensCount) })}
+                      </button>
+                      {activeTool === 'multi-delete' && (
+                        <button
+                          onClick={() => setShowDeleteManyConfirm(true)}
+                          className="flex items-center gap-1 px-2 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-200 hover:text-white text-[9px] uppercase tracking-tight transition-colors"
+                          title={t('battleMap.tools.deleteSelected')}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {t('battleMap.tools.deleteSelected')}
+                        </button>
+                      )}
+                    </>
                   )}
                   <button
                     onClick={() => setMoveMenuOpen(false)}
