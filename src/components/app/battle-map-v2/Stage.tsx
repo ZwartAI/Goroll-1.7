@@ -339,7 +339,7 @@ export const Stage = forwardRef<StageHandle, Props>(({
       if (stageRef.current) {
         stageRef.current.setPointerCapture(e.pointerId);
       }
-    } else if (activeTool === 'multi-move') {
+    } else if (activeTool === 'multi-move' || activeTool === 'multi-delete') {
       if (tokenId) return;
 
       if (target.classList.contains('stage-bg') || target.closest('[data-map-background="true"]')) {
