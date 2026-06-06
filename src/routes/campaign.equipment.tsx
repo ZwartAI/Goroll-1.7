@@ -36,8 +36,8 @@ const SLOT_POS: Record<Slot, Pos> = {
   arma_secundaria: { left: 71.75, top: 69.00 },
   // Left column (5 frames top → bottom)
   accesorio1:      { left: 9.27,  top: 8.89  },
-  guantes:         { left: 9.27,  top: 27.37 },
-  accesorio2:      { left: 9.27,  top: 44.30 },
+  accesorio2:      { left: 9.27,  top: 27.37 },
+  guantes:         { left: 9.27,  top: 44.30 },
   mochila:         { left: 9.27,  top: 61.64 },
   aditamento:      { left: 9.27,  top: 78.45 },
 };
