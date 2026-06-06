@@ -65,6 +65,7 @@ export function Toolbar({
   showToolbar = true,
   selectedTokensCount = 0,
   onClearSelection,
+  onDeleteSelected,
   hasMeasurements = false,
   onClearMeasurements,
   weatherEffect = 'none',
