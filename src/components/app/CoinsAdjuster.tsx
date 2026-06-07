@@ -140,7 +140,7 @@ export function CoinsPurseModal({
             className="btn-fantasy flex items-center justify-center gap-1.5 font-display"
             style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
             disabled={!validSpend}
-            onClick={() => apply(-n)}
+            onClick={() => { playSfx(sfxMonedero); apply(-n); }}
           >
             <Minus size={14} /> {t("purse.spend")}
           </button>
@@ -148,7 +148,7 @@ export function CoinsPurseModal({
             className="btn-fantasy flex items-center justify-center gap-1.5 font-display"
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
             disabled={!validAdd}
-            onClick={() => apply(n)}
+            onClick={() => { playSfx(sfxMonedero); apply(n); }}
           >
             <Plus size={14} /> {t("purse.add")}
           </button>
