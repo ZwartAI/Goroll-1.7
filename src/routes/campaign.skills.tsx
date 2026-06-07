@@ -109,14 +109,14 @@ function Skills() {
         >
           <div className="flex items-center gap-2">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center"
+              className="w-11 h-11 rounded-full flex items-center justify-center"
               style={{
                 background: "radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--gold) 55%, transparent), transparent 70%)",
                 border: "1px solid var(--gold)",
                 boxShadow: "0 0 10px color-mix(in oklab, var(--gold) 50%, transparent)",
               }}
             >
-              <SpIcon size={22} />
+              <SpIcon size={28} />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none">{t("skills.spBalance")}</span>
