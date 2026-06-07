@@ -57,6 +57,20 @@ export function CampaignMembersEditor({ campaign, onBack, onDeleted }: { campaig
 
   useEffect(() => { reload(); }, [reload]);
 
+  // Refetch the latest campaign flags so toggles reflect saved state
+  // when the editor is reopened (the `campaign` prop may be stale).
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any).from("campaigns")
+        .select("single_dm_only,lock_character_names,player_join_mode")
+        .eq("id", campaign.id).maybeSingle();
+      if (!data) return;
+      setSingleDmOnly(!!data.single_dm_only);
+      setLockNames(!!data.lock_character_names);
+      setJoinMode((data.player_join_mode as "request" | "closed") || "request");
+    })();
+  }, [campaign.id]);
+
   async function setRole(m: Member, next: "player" | "dm") {
     if (m.role === next) return;
     setBusy(true);
