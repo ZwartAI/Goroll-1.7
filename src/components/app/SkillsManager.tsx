@@ -331,7 +331,7 @@ function SelectedCharacterCard({
             {t("skills.spAvailable")}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <SpIcon size={20} />
+            <SpIcon size={28} />
             <span
               className="font-display text-3xl sm:text-4xl leading-none"
               style={{
