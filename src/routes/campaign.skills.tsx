@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useGameData } from "@/lib/useGame";
-import { ArrowLeft, ScrollText, Gem, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ScrollText, ShoppingBag } from "lucide-react";
+import { SpIcon } from "@/components/app/SpIcon";
 import { SkillCard, type CharacterSkill } from "@/components/app/SkillCard";
 import { SkillAcquireModal } from "@/components/app/SkillAcquireModal";
 import { PlayerCombatSkillsPanel } from "@/components/app/PlayerCombatSkillsPanel";
@@ -115,7 +116,7 @@ function Skills() {
                 boxShadow: "0 0 10px color-mix(in oklab, var(--gold) 50%, transparent)",
               }}
             >
-              <Gem size={18} className="text-[var(--gold)]" />
+              <SpIcon size={22} />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none">{t("skills.spBalance")}</span>
