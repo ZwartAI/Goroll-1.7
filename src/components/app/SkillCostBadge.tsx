@@ -1,4 +1,4 @@
-import { Gem } from "lucide-react";
+import { SpIcon } from "./SpIcon";
 
 export function SkillCostBadge({ cost, dim = false }: { cost: number; dim?: boolean }) {
   return (
@@ -8,9 +8,10 @@ export function SkillCostBadge({ cost, dim = false }: { cost: number; dim?: bool
         color: dim ? "var(--muted-foreground)" : "var(--gold)",
         border: `1px solid color-mix(in oklab, var(--gold) ${dim ? 25 : 55}%, transparent)`,
         background: `color-mix(in oklab, var(--gold) ${dim ? 6 : 12}%, transparent)`,
+        opacity: dim ? 0.7 : 1,
       }}
     >
-      <Gem size={12} />
+      <SpIcon size={14} />
       {cost}
     </span>
   );

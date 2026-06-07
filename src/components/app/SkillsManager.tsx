@@ -10,7 +10,7 @@ import type { CharacterSkill } from "./SkillCard";
 import { SKILL_RARITY_COST, skillNameKey, parseSkillFile } from "@/lib/skillImport";
 import {
   Sparkles, Upload, Plus, Trophy, Dices, AlertTriangle,
-  ChevronDown, X, Search, Gem, Zap, FileSpreadsheet, Settings2,
+  ChevronDown, X, Search, Zap, FileSpreadsheet, Settings2,
   TrendingUp,
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
@@ -18,6 +18,7 @@ import { CharacterPortrait } from "./CharacterPortrait";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { LevelAdjustModal } from "./LevelAdjustModal";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { SpIcon } from "./SpIcon";
 
 type Props = {
   campaignId: string;
@@ -330,7 +331,7 @@ function SelectedCharacterCard({
             {t("skills.spAvailable")}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <Gem size={16} className="text-[var(--gold)]" />
+            <SpIcon size={20} />
             <span
               className="font-display text-3xl sm:text-4xl leading-none"
               style={{
