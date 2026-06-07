@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { Coins, Minus, Plus, X } from "lucide-react";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { playSfx } from "@/lib/sound";
+import sfxMonedero from "@/assets/sounds/Monedero.mp3";
 
 /** Legacy inline coin adjuster — kept for DM character sheet modal. */
 export function CoinsAdjuster({ onApply }: { onApply: (delta: number) => void | Promise<void> }) {
@@ -138,7 +140,7 @@ export function CoinsPurseModal({
             className="btn-fantasy flex items-center justify-center gap-1.5 font-display"
             style={{ background: "var(--gradient-blood, var(--loss))", color: "white" }}
             disabled={!validSpend}
-            onClick={() => apply(-n)}
+            onClick={() => { playSfx(sfxMonedero); apply(-n); }}
           >
             <Minus size={14} /> {t("purse.spend")}
           </button>
@@ -146,7 +148,7 @@ export function CoinsPurseModal({
             className="btn-fantasy flex items-center justify-center gap-1.5 font-display"
             style={{ background: "var(--gradient-gold)", color: "oklch(0.15 0.03 25)" }}
             disabled={!validAdd}
-            onClick={() => apply(n)}
+            onClick={() => { playSfx(sfxMonedero); apply(n); }}
           >
             <Plus size={14} /> {t("purse.add")}
           </button>
