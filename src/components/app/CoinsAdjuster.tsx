@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { Coins, Minus, Plus, X } from "lucide-react";
 import { backdropProps } from "@/lib/modalBackdrop";
+import { playSfx } from "@/lib/sound";
+import sfxMonedero from "@/assets/sounds/Monedero.mp3";
 
 /** Legacy inline coin adjuster — kept for DM character sheet modal. */
 export function CoinsAdjuster({ onApply }: { onApply: (delta: number) => void | Promise<void> }) {
