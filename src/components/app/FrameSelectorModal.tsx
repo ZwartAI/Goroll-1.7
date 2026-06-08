@@ -23,6 +23,10 @@ import frame18 from "@/assets/character-sheet/frames/frame-18.png";
 import frame19 from "@/assets/character-sheet/frames/frame-19.png";
 import frame20 from "@/assets/character-sheet/frames/frame-20.png";
 import frame21 from "@/assets/character-sheet/frames/frame-21.png";
+import frame22 from "@/assets/character-sheet/frames/frame-22.png";
+import frame23 from "@/assets/character-sheet/frames/frame-23.png";
+import frame24 from "@/assets/character-sheet/frames/frame-24.png";
+import frame25 from "@/assets/character-sheet/frames/frame-25.png";
 import { backdropProps } from "@/lib/modalBackdrop";
 
 const FRAMES: { id: string; url: string | null; label: string }[] = [
@@ -47,6 +51,10 @@ const FRAMES: { id: string; url: string | null; label: string }[] = [
   { id: "frame-19", url: frame19, label: "" },
   { id: "frame-20", url: frame20, label: "" },
   { id: "frame-21", url: frame21, label: "" },
+  { id: "frame-22", url: frame22, label: "" },
+  { id: "frame-23", url: frame23, label: "" },
+  { id: "frame-24", url: frame24, label: "" },
+  { id: "frame-25", url: frame25, label: "" },
 ];
 
 export function FrameSelectorModal({
