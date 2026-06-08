@@ -8,7 +8,12 @@ export type WeatherEffect =
   | 'radiation'
   | 'volcanic'
   | 'night'
-  | 'snow';
+  | 'snow'
+  | 'freeze'
+  | 'sandstorm'
+  | 'bloodmoon'
+  | 'dimensional'
+  | 'aurora';
 
 export type WeatherIntensity = 'low' | 'medium' | 'high';
 
@@ -22,7 +27,12 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 // Stable seeded counts per effect+intensity
 const COUNTS: Record<Exclude<WeatherEffect, 'none'>, Record<WeatherIntensity, number>> = {
-  sunny:     { low: 3,  medium: 5,  high: 7 },
+  sunny:       { low: 3,  medium: 5,  high: 7 },
+  freeze:      { low: 25, medium: 45, high: 75 },
+  sandstorm:   { low: 40, medium: 80, high: 130 },
+  bloodmoon:   { low: 15, medium: 28, high: 45 },
+  dimensional: { low: 12, medium: 22, high: 36 },
+  aurora:      { low: 4,  medium: 6,  high: 9 },
   rain:      { low: 60, medium: 90, high: 130 },
   storm:     { low: 60, medium: 100, high: 140 },
   radiation: { low: 20, medium: 35, high: 55 },
