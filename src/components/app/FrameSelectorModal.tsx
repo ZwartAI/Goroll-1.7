@@ -13,6 +13,16 @@ import frame8 from "@/assets/character-sheet/frames/frame-8.png";
 import frame9 from "@/assets/character-sheet/frames/frame-9.png";
 import frame10 from "@/assets/character-sheet/frames/frame-10.png";
 import frame11 from "@/assets/character-sheet/frames/frame-11.png";
+import frame12 from "@/assets/character-sheet/frames/frame-12.png";
+import frame13 from "@/assets/character-sheet/frames/frame-13.png";
+import frame14 from "@/assets/character-sheet/frames/frame-14.png";
+import frame15 from "@/assets/character-sheet/frames/frame-15.png";
+import frame16 from "@/assets/character-sheet/frames/frame-16.png";
+import frame17 from "@/assets/character-sheet/frames/frame-17.png";
+import frame18 from "@/assets/character-sheet/frames/frame-18.png";
+import frame19 from "@/assets/character-sheet/frames/frame-19.png";
+import frame20 from "@/assets/character-sheet/frames/frame-20.png";
+import frame21 from "@/assets/character-sheet/frames/frame-21.png";
 import { backdropProps } from "@/lib/modalBackdrop";
 
 const FRAMES: { id: string; url: string | null; label: string }[] = [
@@ -27,6 +37,16 @@ const FRAMES: { id: string; url: string | null; label: string }[] = [
   { id: "frame-9", url: frame9, label: "" },
   { id: "frame-10", url: frame10, label: "" },
   { id: "frame-11", url: frame11, label: "" },
+  { id: "frame-12", url: frame12, label: "" },
+  { id: "frame-13", url: frame13, label: "" },
+  { id: "frame-14", url: frame14, label: "" },
+  { id: "frame-15", url: frame15, label: "" },
+  { id: "frame-16", url: frame16, label: "" },
+  { id: "frame-17", url: frame17, label: "" },
+  { id: "frame-18", url: frame18, label: "" },
+  { id: "frame-19", url: frame19, label: "" },
+  { id: "frame-20", url: frame20, label: "" },
+  { id: "frame-21", url: frame21, label: "" },
 ];
 
 export function FrameSelectorModal({
