@@ -797,7 +797,6 @@ async function importSkillsFromFile({
     toast.error(e?.message || t("skills.importFailed"));
   }
 }
-}
 
 export function ManualCreate({ campaignId, target, dm, players, onDone, hideToggle = false }: {
   campaignId: string; target: Character; dm: { id: string; name: string; color: string }; players: Character[]; onDone?: () => void; hideToggle?: boolean;
