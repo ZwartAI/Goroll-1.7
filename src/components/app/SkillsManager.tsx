@@ -106,7 +106,27 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         unlocked={unlocked}
         available={available}
         onPick={() => setPickerOpen(true)}
-        onImport={() => setImportOpen(true)}
+        onImportFile={async (file) => {
+          if (!target || importBusy) return;
+          setImportBusy(true);
+          try {
+            await importSkillsFromFile({
+              file,
+              campaignId,
+              target,
+              dm,
+              existingCount: skills.filter(s => s.is_unlocked).length,
+              t,
+              setProgress: setImportProgress,
+            });
+            reload();
+          } finally {
+            setImportBusy(false);
+            setImportProgress({ done: 0, total: 0 });
+          }
+        }}
+        importBusy={importBusy}
+        importProgress={importProgress}
         onLevel={() => setLevelOpen(true)}
         onSp={() => setManageOpen(true)}
       />
@@ -120,8 +140,6 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         />
       )}
 
-
-
       {/* Character picker modal */}
       {pickerOpen && (
         <CharacterPickerModal
@@ -130,19 +148,6 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
           onClose={() => setPickerOpen(false)}
           onPick={(id) => { setTargetId(id); setPickerOpen(false); }}
         />
-      )}
-
-      {/* Import modal */}
-      {importOpen && target && (
-        <Modal onClose={() => setImportOpen(false)} title={t("skills.importTitle")}>
-          <ImportSection
-            campaignId={campaignId}
-            target={target}
-            dm={dm}
-            existingCount={skills.filter(s => s.is_unlocked).length}
-            onDone={() => { reload(); }}
-          />
-        </Modal>
       )}
 
       {/* Manage SP modal (individual + mass) */}
