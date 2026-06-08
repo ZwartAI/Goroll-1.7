@@ -10,8 +10,7 @@ import type { CharacterSkill } from "./SkillCard";
 import { SKILL_RARITY_COST, skillNameKey, parseSkillFile } from "@/lib/skillImport";
 import {
   Sparkles, Upload, Plus, Trophy, Dices, AlertTriangle,
-  ChevronDown, X, Search, Zap, FileSpreadsheet, Settings2,
-  TrendingUp,
+  ChevronDown, X, Search, Settings2,
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
 import { CharacterPortrait } from "./CharacterPortrait";
