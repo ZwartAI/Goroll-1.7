@@ -48,7 +48,8 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
   const [lockConfirm, setLockConfirm] = useState<CharacterSkill | null>(null);
   const [lockBusy, setLockBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
   const [manageOpen, setManageOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
   const target = players.find(p => p.id === targetId) ?? null;
@@ -105,7 +106,27 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         unlocked={unlocked}
         available={available}
         onPick={() => setPickerOpen(true)}
-        onImport={() => setImportOpen(true)}
+        onImportFile={async (file) => {
+          if (!target || importBusy) return;
+          setImportBusy(true);
+          try {
+            await importSkillsFromFile({
+              file,
+              campaignId,
+              target,
+              dm,
+              existingCount: skills.filter(s => s.is_unlocked).length,
+              t,
+              setProgress: setImportProgress,
+            });
+            reload();
+          } finally {
+            setImportBusy(false);
+            setImportProgress({ done: 0, total: 0 });
+          }
+        }}
+        importBusy={importBusy}
+        importProgress={importProgress}
         onLevel={() => setLevelOpen(true)}
         onSp={() => setManageOpen(true)}
       />
@@ -119,8 +140,6 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         />
       )}
 
-
-
       {/* Character picker modal */}
       {pickerOpen && (
         <CharacterPickerModal
@@ -129,19 +148,6 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
           onClose={() => setPickerOpen(false)}
           onPick={(id) => { setTargetId(id); setPickerOpen(false); }}
         />
-      )}
-
-      {/* Import modal */}
-      {importOpen && target && (
-        <Modal onClose={() => setImportOpen(false)} title={t("skills.importTitle")}>
-          <ImportSection
-            campaignId={campaignId}
-            target={target}
-            dm={dm}
-            existingCount={skills.filter(s => s.is_unlocked).length}
-            onDone={() => { reload(); }}
-          />
-        </Modal>
       )}
 
       {/* Manage SP modal (individual + mass) */}
@@ -269,14 +275,16 @@ function PanelAction({ icon, label, onClick, accent }: {
 /* ─────────── New DM combined panels (visual redesign) ─────────── */
 
 function SkillsDmPanels({
-  target, sp, unlocked, available, onPick, onImport, onLevel, onSp,
+  target, sp, unlocked, available, onPick, onImportFile, importBusy, importProgress, onLevel, onSp,
 }: {
   target: Character | null;
   sp: number;
   unlocked: number;
   available: number;
   onPick: () => void;
-  onImport: () => void;
+  onImportFile: (file: File) => void;
+  importBusy: boolean;
+  importProgress: { done: number; total: number };
   onLevel: () => void;
   onSp: () => void;
 }) {
@@ -393,12 +401,11 @@ function SkillsDmPanels({
 
           <div className="flex-1" />
 
-          {/* Import Excel button (asset image) — lifted up to align with Level/SP center */}
-          <button
-            type="button"
-            onClick={onImport}
+          {/* Import Excel button — picks file directly (no extra modal) */}
+          <label
             aria-label={t("skills.importExcelShort")}
-            className="mb-[6%] w-[85%] max-w-[190px] block transition-transform active:scale-[0.97] disabled:opacity-50"
+            aria-disabled={!target || importBusy}
+            className={`mb-[6%] w-[85%] max-w-[190px] block transition-transform active:scale-[0.97] ${(!target || importBusy) ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
             style={{ aspectRatio: "342 / 64" }}
           >
             <img
@@ -408,7 +415,29 @@ function SkillsDmPanels({
               className="w-full h-full select-none"
               style={{ objectFit: "contain" }}
             />
-          </button>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              disabled={!target || importBusy}
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (f) onImportFile(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {importBusy && importProgress.total > 0 && (
+            <div className="w-[85%] max-w-[190px] h-1.5 rounded bg-secondary overflow-hidden border border-border -mt-[3%] mb-[3%]">
+              <div
+                className="h-full transition-all duration-150"
+                style={{
+                  width: `${Math.round((importProgress.done / importProgress.total) * 100)}%`,
+                  background: "var(--gradient-gold)",
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* RIGHT panel: character info + level/sp buttons */}
@@ -693,102 +722,80 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ImportSection({ campaignId, target, dm, existingCount, onDone }: {
-  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; existingCount: number; onDone: () => void;
+async function importSkillsFromFile({
+  file, campaignId, target, dm, existingCount, t, setProgress,
+}: {
+  file: File;
+  campaignId: string;
+  target: Character;
+  dm: { id: string; name: string; color: string };
+  existingCount: number;
+  t: (k: string, v?: any) => string;
+  setProgress?: (p: { done: number; total: number }) => void;
 }) {
-  const { t } = useT();
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  setProgress?.({ done: 0, total: 0 });
+  try {
+    const { rows, warnings, errors } = await parseSkillFile(file);
+    if (errors.length) { toast.error(errors[0].message); return; }
+    if (!rows.length) { toast.error(t("skills.importEmpty")); return; }
 
-  async function handle(file: File) {
-    setBusy(true);
-    setProgress({ done: 0, total: 0 });
-    try {
-      const { rows, warnings, errors } = await parseSkillFile(file);
-      if (errors.length) { toast.error(errors[0].message); return; }
-      if (!rows.length) { toast.error(t("skills.importEmpty")); return; }
+    const { data: existing } = await (supabase as any).from("character_skills")
+      .select("name_key, order_index").eq("character_id", target.id);
+    const existingKeys = new Set<string>(((existing || []) as any[]).map(r => r.name_key));
+    const maxOrder = ((existing || []) as any[]).reduce((m: number, r: any) => Math.max(m, r.order_index ?? 0), 0);
 
-      const { data: existing } = await (supabase as any).from("character_skills")
-        .select("name_key, order_index").eq("character_id", target.id);
-      const existingKeys = new Set<string>(((existing || []) as any[]).map(r => r.name_key));
-      const maxOrder = ((existing || []) as any[]).reduce((m: number, r: any) => Math.max(m, r.order_index ?? 0), 0);
+    let unlockedSoFar = existingCount;
+    const toInsert: any[] = [];
+    let order = maxOrder;
+    let skipped = 0;
+    for (const r of rows) {
+      const key = skillNameKey(r.name);
+      if (existingKeys.has(key)) { skipped++; continue; }
+      existingKeys.add(key);
+      const shouldUnlock = unlockedSoFar < FREE_UNLOCK_THRESHOLD;
+      if (shouldUnlock) unlockedSoFar++;
+      order++;
+      toInsert.push({
+        campaign_id: campaignId,
+        character_id: target.id,
+        name: r.name,
+        name_key: key,
+        rarity: r.rarity,
+        type: r.type,
+        effect: r.effect,
+        dice: r.dice,
+        range_targets: r.range_targets,
+        visual_brief: r.visual_brief,
+        cost: SKILL_RARITY_COST[r.rarity],
+        is_unlocked: shouldUnlock,
+        source: "excel",
+        order_index: order,
+        imported_row_index: r.imported_row_index,
+        unlocked_at: shouldUnlock ? new Date().toISOString() : null,
+      });
+    }
 
-      let unlockedSoFar = existingCount;
-      const toInsert: any[] = [];
-      let order = maxOrder;
-      let skipped = 0;
-      for (const r of rows) {
-        const key = skillNameKey(r.name);
-        if (existingKeys.has(key)) { skipped++; continue; }
-        existingKeys.add(key);
-        const shouldUnlock = unlockedSoFar < FREE_UNLOCK_THRESHOLD;
-        if (shouldUnlock) unlockedSoFar++;
-        order++;
-        toInsert.push({
-          campaign_id: campaignId,
-          character_id: target.id,
-          name: r.name,
-          name_key: key,
-          rarity: r.rarity,
-          type: r.type,
-          effect: r.effect,
-          dice: r.dice,
-          range_targets: r.range_targets,
-          visual_brief: r.visual_brief,
-          cost: SKILL_RARITY_COST[r.rarity],
-          is_unlocked: shouldUnlock,
-          source: "excel",
-          order_index: order,
-          imported_row_index: r.imported_row_index,
-          unlocked_at: shouldUnlock ? new Date().toISOString() : null,
-        });
-      }
+    setProgress?.({ done: 0, total: toInsert.length });
+    let created = 0;
+    for (let i = 0; i < toInsert.length; i += 50) {
+      const slice = toInsert.slice(i, i + 50);
+      const { error } = await (supabase as any).from("character_skills").insert(slice);
+      if (error) { toast.error(error.message); break; }
+      created += slice.length;
+      setProgress?.({ done: created, total: toInsert.length });
+    }
 
-      setProgress({ done: 0, total: toInsert.length });
-      let created = 0;
-      for (let i = 0; i < toInsert.length; i += 50) {
-        const slice = toInsert.slice(i, i + 50);
-        const { error } = await (supabase as any).from("character_skills").insert(slice);
-        if (error) { toast.error(error.message); break; }
-        created += slice.length;
-        setProgress({ done: created, total: toInsert.length });
-      }
-
-      if (created) {
-        await pushLog(campaignId, [
-          { t: "char", v: dm.name, color: dm.color, id: dm.id },
-          { t: "text", v: t("skills.logImported", { n: created }) },
-          { t: "char", v: target.name, color: target.color, id: target.id },
-        ]);
-      }
-      toast.success(t("skills.importDone", { created, skipped }) + (warnings.length ? ` · ${warnings.length} ⚠️` : ""));
-      onDone();
-    } catch (e: any) {
-      toast.error(e?.message || t("skills.importFailed"));
-    } finally { setBusy(false); setProgress({ done: 0, total: 0 }); }
+    if (created) {
+      await pushLog(campaignId, [
+        { t: "char", v: dm.name, color: dm.color, id: dm.id },
+        { t: "text", v: t("skills.logImported", { n: created }) },
+        { t: "char", v: target.name, color: target.color, id: target.id },
+      ]);
+    }
+    toast.success(t("skills.importDone", { created, skipped }) + (warnings.length ? ` · ${warnings.length} ⚠️` : ""));
+  } catch (e: any) {
+    toast.error(e?.message || t("skills.importFailed"));
   }
-
-  const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
-  return (
-    <div className="space-y-2">
-      <p className="text-xs">
-        <span className="text-muted-foreground">{t("skills.targetCharacter")}: </span>
-        <span className="font-display" style={{ color: target.color }}>{target.name}</span>
-      </p>
-      <p className="text-[11px] text-muted-foreground flex items-start gap-1">
-        <Upload size={12} className="mt-0.5 shrink-0" />
-        {t("skills.importHint")}
-      </p>
-      <input type="file" accept=".xlsx,.xls" disabled={busy}
-        onChange={e => { const f = e.target.files?.[0]; if (f) { handle(f); e.target.value = ""; } }}
-        className="text-xs text-muted-foreground w-full file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-secondary file:text-foreground file:text-xs" />
-      {busy && (
-        <div className="h-2 w-full rounded bg-secondary overflow-hidden border border-border">
-          <div className="h-full transition-all duration-150" style={{ width: `${pct}%`, background: "var(--gradient-gold)" }} />
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function ManualCreate({ campaignId, target, dm, players, onDone, hideToggle = false }: {
