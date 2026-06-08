@@ -19,6 +19,11 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { LevelAdjustModal } from "./LevelAdjustModal";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { SpIcon } from "./SpIcon";
+import skillsPanelsAsset from "@/assets/skills-dm/skills-panels.png.asset.json";
+import skillsFrameAsset from "@/assets/skills-dm/skills-frame.png.asset.json";
+import btnImportExcelAsset from "@/assets/skills-dm/btn-import-excel.png.asset.json";
+import btnLevelAsset from "@/assets/skills-dm/btn-level.png.asset.json";
+import btnSpAsset from "@/assets/skills-dm/btn-sp.png.asset.json";
 
 type Props = {
   campaignId: string;
