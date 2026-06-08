@@ -358,15 +358,36 @@
 
 @layer components {
   .ornate-card {
-    background: var(--gradient-frame);
-    /* Cleaner, flatter look: subtle neutral border instead of the gold/mustard
-       outline and removed inner red frame. Keeps dark-fantasy palette via
-       --gradient-frame background, but reads as a modern responsive panel. */
-    border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
     position: relative;
+    background:
+      var(--panel-inner-glow),
+      var(--panel-bg-soft),
+      var(--panel-bg);
+    border: var(--panel-border);
+    border-radius: var(--panel-radius);
+    box-shadow: var(--panel-shadow);
+    isolation: isolate;
   }
+  .ornate-card::after {
+    /* Very subtle top sheen — adds depth without competing with assets. */
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--foreground) 5%, transparent) 0%,
+      transparent 18%,
+      transparent 100%
+    );
+    z-index: 0;
+  }
+  .ornate-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .gem-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
