@@ -1817,6 +1817,14 @@ export const es = {
     noConfigured: "Sin contenido configurado",
     typeLabel: "Tipo: {type}",
   },
+  diceCast: {
+    rolling: "{name} está lanzando…",
+    total: "Resultado Total",
+    breakdown: "Desglose",
+    critSuccess: "¡Crítico!",
+    critFail: "¡Pifia!",
+    close: "Cerrar",
+  },
 };
 
 export type Dict = typeof es;

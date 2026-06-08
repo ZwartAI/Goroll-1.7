@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGameData } from '@/lib/useGame';
+import { useT } from '@/lib/i18n';
 
 export interface DieRoll {
   id: string;
@@ -21,64 +23,149 @@ interface SharedDiceRoll {
   character_color?: string;
 }
 
-const RouletteNumber = ({ sides }: { sides: number }) => {
-  const [num, setNum] = useState(1);
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNum(Math.floor(Math.random() * sides) + 1);
-    }, 80);
-    return () => clearInterval(interval);
-  }, [sides]);
+type Phase = 'rolling' | 'result';
 
-  return <span className="blur-[1px] opacity-60">{num}</span>;
+// ── SVG dice shapes (one symbol per die type) ──────────────────────────────────
+const DiceShape: React.FC<{ sides: number; color: string; children: React.ReactNode }> = ({
+  sides,
+  color,
+  children,
+}) => {
+  const stroke = color;
+  const fill = `color-mix(in oklab, ${color} 18%, #0a0a0c 82%)`;
+  const inner = `color-mix(in oklab, ${color} 35%, transparent)`;
+
+  const path = (() => {
+    switch (sides) {
+      case 4: // triangle
+        return 'M50 6 L94 86 L6 86 Z';
+      case 6: // square
+        return 'M14 14 H86 V86 H14 Z';
+      case 8: // rhombus
+        return 'M50 4 L92 50 L50 96 L8 50 Z';
+      case 10: // pentagon
+        return 'M50 6 L94 36 L78 88 L22 88 L6 36 Z';
+      case 12: // hexagon
+        return 'M50 4 L90 26 L90 74 L50 96 L10 74 L10 26 Z';
+      case 20: // icosahedron silhouette (hex + inner triangle)
+        return 'M50 4 L90 28 L90 72 L50 96 L10 72 L10 28 Z';
+      case 100: // double decagon
+        return 'M50 4 L80 14 L94 40 L88 72 L62 94 L38 94 L12 72 L6 40 L20 14 Z';
+      default:
+        return 'M14 14 H86 V86 H14 Z';
+    }
+  })();
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]">
+      <defs>
+        <radialGradient id={`g-${sides}`} cx="35%" cy="30%" r="80%">
+          <stop offset="0%" stopColor={inner} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={fill} stopOpacity="1" />
+        </radialGradient>
+      </defs>
+      <path d={path} fill={`url(#g-${sides})`} stroke={stroke} strokeWidth="2.5" strokeLinejoin="round" />
+      {sides === 20 && (
+        <path
+          d="M50 18 L78 70 L22 70 Z"
+          fill="none"
+          stroke={stroke}
+          strokeOpacity="0.45"
+          strokeWidth="1.2"
+        />
+      )}
+      {sides === 12 && (
+        <path
+          d="M50 22 L74 36 L74 64 L50 78 L26 64 L26 36 Z"
+          fill="none"
+          stroke={stroke}
+          strokeOpacity="0.35"
+          strokeWidth="1"
+        />
+      )}
+      <foreignObject x="0" y="0" width="100" height="100">
+        <div
+          // @ts-expect-error xmlns for foreignObject
+          xmlns="http://www.w3.org/1999/xhtml"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--font-display, serif)',
+            fontWeight: 900,
+            fontSize: sides === 100 ? 22 : 30,
+            color,
+            textShadow: `0 0 12px ${color}80`,
+          }}
+        >
+          {children}
+        </div>
+      </foreignObject>
+    </svg>
+  );
+};
+
+const RouletteNumber: React.FC<{ sides: number }> = ({ sides }) => {
+  const [num, setNum] = useState(1);
+  useEffect(() => {
+    const id = setInterval(() => setNum(Math.floor(Math.random() * sides) + 1), 70);
+    return () => clearInterval(id);
+  }, [sides]);
+  return <span style={{ filter: 'blur(0.5px)', opacity: 0.85 }}>{num}</span>;
+};
+
+const sidesOf = (type: string): number => {
+  const n = parseInt(String(type).replace(/[^0-9]/g, ''), 10);
+  return Number.isFinite(n) && n > 0 ? n : 20;
+};
+
+const groupBreakdown = (dice: DieRoll[]) => {
+  const groups: Record<string, number> = {};
+  dice.forEach((d) => {
+    const key = d.type?.toLowerCase() || `d${d.sides}`;
+    groups[key] = (groups[key] || 0) + 1;
+  });
+  return Object.entries(groups)
+    .map(([k, v]) => `${v}${k}`)
+    .join(' + ');
 };
 
 export const SharedDiceAnimationOverlay: React.FC = () => {
   const { campaign, characters } = useGameData();
+  const { t } = useT();
   const [activeRoll, setActiveRoll] = useState<SharedDiceRoll | null>(null);
-  const [phase, setPhase] = useState<'rolling' | 'result'>('rolling');
+  const [phase, setPhase] = useState<Phase>('rolling');
 
   useEffect(() => {
     if (!campaign?.id) return;
-
     const channel = supabase
       .channel('shared-dice-rolls')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'dice_rolls',
-          filter: `campaign_id=eq.${campaign.id}`,
-        },
-        async (payload) => {
-          const newRoll = payload.new;
-          
-          // Find character info for the name/color display
-          const char = characters.find(c => c.id === newRoll.character_id);
-          
+        { event: 'INSERT', schema: 'public', table: 'dice_rolls', filter: `campaign_id=eq.${campaign.id}` },
+        (payload) => {
+          const newRoll = payload.new as any;
+          const char = characters.find((c) => c.id === newRoll.character_id);
           const rollData: SharedDiceRoll = {
             id: newRoll.id,
             character_id: newRoll.character_id,
-            dice_data: newRoll.dice_data as DieRoll[],
+            dice_data: (newRoll.dice_data as DieRoll[]).map((d) => ({ ...d, sides: d.sides || sidesOf(d.type) })),
             total: newRoll.total,
-            character_name: char?.name || 'Alguien',
+            character_name: char?.name || '—',
             character_color: char?.color || 'var(--gold)',
           };
 
-          // Trigger animation
           setPhase('rolling');
           setActiveRoll(rollData);
 
-          // Phase transition
-          setTimeout(() => {
-            setPhase('result');
-            // Auto-clear after showing result
-            setTimeout(() => {
-              setActiveRoll(null);
-            }, 4000);
-          }, 1500);
+          const t1 = setTimeout(() => setPhase('result'), 1400);
+          const t2 = setTimeout(() => setActiveRoll(null), 5200);
+          return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+          };
         }
       )
       .subscribe();
@@ -90,92 +177,190 @@ export const SharedDiceAnimationOverlay: React.FC = () => {
 
   if (!activeRoll) return null;
 
+  const color = activeRoll.character_color || 'var(--gold)';
+  const dice = activeRoll.dice_data;
+  const count = dice.length;
+
+  // Detect crit on a single d20 roll
+  const isSingleD20 = count === 1 && dice[0].sides === 20;
+  const isCrit = isSingleD20 && dice[0].result === 20;
+  const isFumble = isSingleD20 && dice[0].result === 1;
+
   return (
-    <div className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center overflow-hidden bg-black/20 backdrop-blur-[2px]">
-      <div className="relative w-full h-full max-w-2xl mx-auto flex items-center justify-center">
-        
-        {/* Character Name Tag */}
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="absolute top-24 px-4 py-1.5 rounded-full bg-black/80 border border-white/10 backdrop-blur-xl flex items-center gap-2 shadow-2xl"
-          style={{ borderColor: `${activeRoll.character_color}40` }}
+    <AnimatePresence>
+      <motion.div
+        key={activeRoll.id}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.35 }}
+        className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center overflow-hidden"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0.95) 100%)',
+          backdropFilter: 'blur(3px)',
+        }}
+      >
+        {/* Close (local only) */}
+        <button
+          onClick={() => setActiveRoll(null)}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/70 border border-white/15 text-white/80 hover:text-white hover:scale-110 transition pointer-events-auto flex items-center justify-center"
+          aria-label={t('diceCast.close')}
         >
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: activeRoll.character_color }} />
-          <span className="font-display text-[10px] uppercase tracking-[0.2em] text-white/90">
-            {activeRoll.character_name} lanzando...
+          <X size={16} />
+        </button>
+
+        {/* Caster tag */}
+        <motion.div
+          initial={{ y: -30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="absolute top-16 px-5 py-2 rounded-full bg-black/85 backdrop-blur-xl flex items-center gap-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.6)]"
+          style={{ border: `1px solid ${color}55` }}
+        >
+          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: color }} />
+          <span
+            className="font-display text-[11px] uppercase tracking-[0.22em] text-white/95"
+            style={{ textShadow: `0 0 8px ${color}50` }}
+          >
+            {t('diceCast.rolling', { name: activeRoll.character_name || '—' })}
           </span>
         </motion.div>
 
-        {/* Dice Animation */}
-        <div className="relative w-full h-full">
-          <AnimatePresence>
-            {activeRoll.dice_data.map((die) => (
+        {/* Aura behind dice */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{
+            scale: phase === 'result' ? 1.15 : 1,
+            opacity: phase === 'result' ? 0.5 : 0.3,
+          }}
+          transition={{ duration: 0.6 }}
+          className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
+          style={{
+            background: `radial-gradient(circle, ${isCrit ? 'var(--gold,#eab308)' : isFumble ? '#ef4444' : color} 0%, transparent 65%)`,
+            filter: 'blur(40px)',
+          }}
+        />
+
+        {/* Dice cluster */}
+        <div className="relative flex items-center justify-center gap-3 flex-wrap max-w-[80vw] px-4">
+          {dice.map((die, idx) => {
+            const angle = (idx - (count - 1) / 2) * 14;
+            return (
               <motion.div
                 key={die.id}
-                initial={{ scale: 0, opacity: 0, rotate: -360 }}
-                animate={{ 
-                  scale: phase === 'rolling' ? 1.1 : 1, 
-                  opacity: 1, 
-                  rotate: phase === 'rolling' ? [0, 90, 180, 270, 360] : 0,
-                  x: die.x * 0.8,
-                  y: die.y * 0.8 
+                initial={{
+                  scale: 0,
+                  opacity: 0,
+                  y: -180,
+                  x: (idx % 2 === 0 ? -1 : 1) * (120 + idx * 40),
+                  rotate: -540,
                 }}
-                transition={{ 
-                  rotate: phase === 'rolling' ? { repeat: Infinity, duration: 0.5, ease: "linear" } : { type: "spring" }
+                animate={{
+                  scale: phase === 'rolling' ? 1 : 1.05,
+                  opacity: 1,
+                  y: 0,
+                  x: 0,
+                  rotate: phase === 'rolling' ? [0, 180, 360, 540, 720] : angle,
                 }}
-                className="absolute left-1/2 top-1/2 -ml-8 -mt-8 w-16 h-16 flex flex-col items-center justify-center"
+                transition={{
+                  delay: idx * 0.08,
+                  duration: phase === 'rolling' ? 1.3 : 0.5,
+                  rotate:
+                    phase === 'rolling'
+                      ? { repeat: Infinity, duration: 0.55, ease: 'linear' }
+                      : { type: 'spring', stiffness: 220, damping: 14 },
+                  scale: { type: 'spring', stiffness: 180, damping: 12 },
+                }}
+                className="relative"
+                style={{ width: count > 4 ? 76 : 96, height: count > 4 ? 76 : 96 }}
               >
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/90 rounded-2xl border border-[var(--gold)]/50 shadow-[0_0_20px_rgba(234,179,8,0.3)] backdrop-blur-md" 
-                       style={{ borderColor: `${activeRoll.character_color}80` }} />
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl" />
-                  
-                  <div className="relative z-10 font-display text-2xl font-black text-[var(--gold)] drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]"
-                       style={{ color: activeRoll.character_color }}>
-                    {phase === 'rolling' ? (
-                      <RouletteNumber sides={die.sides} />
-                    ) : (
-                      <motion.span
-                        initial={{ scale: 1.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                      >
-                        {die.result}
-                      </motion.span>
-                    )}
-                  </div>
-                  
-                  <div className="absolute -bottom-1.5 px-1.5 py-0.5 bg-black border border-white/10 text-[var(--gold)] rounded font-display text-[6px] font-bold uppercase tracking-[0.2em] z-20">
-                    {die.type}
-                  </div>
+                <DiceShape sides={die.sides} color={color}>
+                  {phase === 'rolling' ? (
+                    <RouletteNumber sides={die.sides} />
+                  ) : (
+                    <motion.span
+                      initial={{ scale: 1.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 12 }}
+                    >
+                      {die.result}
+                    </motion.span>
+                  )}
+                </DiceShape>
+
+                {/* Type badge */}
+                <div
+                  className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-black/90 rounded text-[8px] font-display font-bold uppercase tracking-[0.18em]"
+                  style={{ color, border: `1px solid ${color}40` }}
+                >
+                  {die.type || `d${die.sides}`}
                 </div>
               </motion.div>
-            ))}
-          </AnimatePresence>
+            );
+          })}
         </div>
 
-        {/* Total Result */}
-        {phase === 'result' && (
-          <motion.div
-            initial={{ y: 30, opacity: 0, scale: 0.8 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            className="absolute bottom-32 left-0 right-0 flex flex-col items-center gap-1"
-          >
-            <span className="font-display text-[9px] uppercase tracking-[0.4em] text-[var(--gold)] opacity-70"
-                  style={{ color: activeRoll.character_color }}>
-              Resultado Total
-            </span>
-            <div className="bg-black/95 backdrop-blur-2xl border border-[var(--gold)]/40 px-10 py-3 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_30px_rgba(234,179,8,0.15)]"
-                 style={{ borderColor: `${activeRoll.character_color}60` }}>
-              <span className="font-display text-5xl font-black text-[var(--gold)] drop-shadow-[0_0_20px_rgba(234,179,8,0.5)]"
-                    style={{ color: activeRoll.character_color }}>
-                {activeRoll.total}
+        {/* Result section */}
+        <AnimatePresence>
+          {phase === 'result' && (
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.15, type: 'spring', stiffness: 240, damping: 18 }}
+              className="absolute bottom-20 left-0 right-0 flex flex-col items-center gap-2"
+            >
+              {(isCrit || isFumble) && (
+                <motion.span
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="font-display text-[11px] uppercase tracking-[0.4em] font-bold"
+                  style={{
+                    color: isCrit ? 'var(--gold, #eab308)' : '#ef4444',
+                    textShadow: `0 0 14px ${isCrit ? '#eab308' : '#ef4444'}99`,
+                  }}
+                >
+                  {isCrit ? t('diceCast.critSuccess') : t('diceCast.critFail')}
+                </motion.span>
+              )}
+
+              <span
+                className="font-display text-[9px] uppercase tracking-[0.45em] opacity-80"
+                style={{ color }}
+              >
+                {t('diceCast.total')}
               </span>
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
+
+              <div
+                className="bg-black/95 backdrop-blur-2xl px-12 py-3 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.9)]"
+                style={{
+                  border: `1px solid ${color}70`,
+                  boxShadow: `0 20px 60px rgba(0,0,0,0.9), 0 0 30px ${color}30`,
+                }}
+              >
+                <span
+                  className="font-display text-6xl font-black tabular-nums"
+                  style={{ color, textShadow: `0 0 24px ${color}80` }}
+                >
+                  {activeRoll.total}
+                </span>
+              </div>
+
+              {count > 1 && (
+                <div className="mt-1 flex flex-col items-center gap-0.5">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-white/50 font-display">
+                    {groupBreakdown(dice)}
+                  </span>
+                  <span className="text-[10px] text-white/70 font-mono">
+                    {dice.map((d) => d.result).join(' + ')} = {activeRoll.total}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>
   );
 };
