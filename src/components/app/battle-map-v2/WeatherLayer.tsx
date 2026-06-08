@@ -8,7 +8,12 @@ export type WeatherEffect =
   | 'radiation'
   | 'volcanic'
   | 'night'
-  | 'snow';
+  | 'snow'
+  | 'freeze'
+  | 'sandstorm'
+  | 'bloodmoon'
+  | 'dimensional'
+  | 'aurora';
 
 export type WeatherIntensity = 'low' | 'medium' | 'high';
 
@@ -22,7 +27,12 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 // Stable seeded counts per effect+intensity
 const COUNTS: Record<Exclude<WeatherEffect, 'none'>, Record<WeatherIntensity, number>> = {
-  sunny:     { low: 3,  medium: 5,  high: 7 },
+  sunny:       { low: 3,  medium: 5,  high: 7 },
+  freeze:      { low: 25, medium: 45, high: 75 },
+  sandstorm:   { low: 40, medium: 80, high: 130 },
+  bloodmoon:   { low: 15, medium: 28, high: 45 },
+  dimensional: { low: 12, medium: 22, high: 36 },
+  aurora:      { low: 4,  medium: 6,  high: 9 },
   rain:      { low: 60, medium: 90, high: 130 },
   storm:     { low: 60, medium: 100, high: 140 },
   radiation: { low: 20, medium: 35, high: 55 },
@@ -71,6 +81,39 @@ export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Pr
           const rot = rand(8, 28);
           const leftRay = rand(-10, 80);
           return { i, left: leftRay, delay, duration, rot };
+        }
+        case 'freeze': {
+          const size = rand(4, 10);
+          const top = rand(0, 100);
+          const duration = rand(3.5, 7);
+          const opacity = rand(0.4, 0.9);
+          const rot = rand(0, 360);
+          return { i, left, top, delay, duration, size, opacity, rot };
+        }
+        case 'sandstorm': {
+          const duration = rand(1.2, 2.6);
+          const top = rand(0, 100);
+          const size = rand(40, 110);
+          const opacity = rand(0.25, 0.7);
+          return { i, left, top, delay, duration, size, opacity };
+        }
+        case 'bloodmoon': {
+          const duration = rand(6, 14);
+          const size = rand(2, 5);
+          return { i, left, delay, duration, size };
+        }
+        case 'dimensional': {
+          const duration = rand(5, 11);
+          const top = rand(5, 95);
+          const size = rand(10, 28);
+          const rot = rand(0, 360);
+          return { i, left, top, delay, duration, size, rot };
+        }
+        case 'aurora': {
+          const duration = rand(14, 24);
+          const top = rand(0, 55);
+          const hue = rand(-20, 40);
+          return { i, left, top, delay, duration, hue };
         }
       }
     });
@@ -152,6 +195,77 @@ export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Pr
           style={{
             left: `${p.left}%`,
             transform: `rotate(${p.rot}deg)`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'freeze' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-ice-crystal"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            opacity: p.opacity,
+            ['--rot' as any]: `${p.rot}deg`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'sandstorm' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-sand-streak"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            opacity: p.opacity,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'bloodmoon' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-blood-mote"
+          style={{
+            left: `${p.left}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'dimensional' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-rift-glyph"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            transform: `rotate(${p.rot}deg)`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'aurora' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-aurora-band"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            filter: `hue-rotate(${p.hue}deg)`,
             animationDuration: `${p.duration}s`,
             animationDelay: `${p.delay}s`,
           }}

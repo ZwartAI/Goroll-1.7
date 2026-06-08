@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X, Cloud, Sun, CloudRain, CloudLightning, Radiation, Flame, Moon, Snowflake, CloudOff } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X, Cloud, Sun, CloudRain, CloudLightning, Radiation, Flame, Moon, Snowflake, CloudOff, CloudSnow, Wind, MoonStar, Atom, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
@@ -470,7 +470,12 @@ export function Toolbar({
                       { id: 'radiation', icon: <Radiation className="w-4 h-4" />,       label: t('battleMap.weather.radiation') || 'Radiación' },
                       { id: 'volcanic',  icon: <Flame className="w-4 h-4" />,           label: t('battleMap.weather.volcanic') || 'Glow Volcánico' },
                       { id: 'night',     icon: <Moon className="w-4 h-4" />,            label: t('battleMap.weather.night') || 'Nocturno' },
-                      { id: 'snow',      icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
+                      { id: 'snow',        icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
+                      { id: 'freeze',      icon: <CloudSnow className="w-4 h-4" />,       label: t('battleMap.weather.freeze') || 'Frío extremo' },
+                      { id: 'sandstorm',   icon: <Wind className="w-4 h-4" />,            label: t('battleMap.weather.sandstorm') || 'Tormenta de arena' },
+                      { id: 'bloodmoon',   icon: <MoonStar className="w-4 h-4" />,        label: t('battleMap.weather.bloodmoon') || 'Luna de sangre' },
+                      { id: 'dimensional', icon: <Atom className="w-4 h-4" />,            label: t('battleMap.weather.dimensional') || 'Distorsión dimensional' },
+                      { id: 'aurora',      icon: <Sparkles className="w-4 h-4" />,        label: t('battleMap.weather.aurora') || 'Aurora mágica' },
                     ] as const).map(opt => (
                       <button
                         key={opt.id}
@@ -678,7 +683,12 @@ function WeatherIcon({ effect }: { effect: string }) {
     case 'radiation': return <Radiation className="w-5 h-5" />;
     case 'volcanic':  return <Flame className="w-5 h-5" />;
     case 'night':     return <Moon className="w-5 h-5" />;
-    case 'snow':      return <Snowflake className="w-5 h-5" />;
-    default:          return <Cloud className="w-5 h-5" />;
+    case 'snow':        return <Snowflake className="w-5 h-5" />;
+    case 'freeze':      return <CloudSnow className="w-5 h-5" />;
+    case 'sandstorm':   return <Wind className="w-5 h-5" />;
+    case 'bloodmoon':   return <MoonStar className="w-5 h-5" />;
+    case 'dimensional': return <Atom className="w-5 h-5" />;
+    case 'aurora':      return <Sparkles className="w-5 h-5" />;
+    default:            return <Cloud className="w-5 h-5" />;
   }
 }

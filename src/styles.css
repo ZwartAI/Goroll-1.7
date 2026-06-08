@@ -693,6 +693,217 @@
   100% { transform: translate3d(8vw, 115vh, 0); opacity: 0; }
 }
 
+/* FREEZE / Frío extremo */
+.battle-weather--freeze .battle-weather__filter {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(180, 230, 255, 0.10), transparent 55%),
+    linear-gradient(to bottom, rgba(120, 190, 255, 0.22), rgba(190, 230, 255, 0.18));
+  backdrop-filter: blur(0.4px) saturate(0.85);
+  animation: freezePulse 6s ease-in-out infinite;
+}
+.battle-weather--freeze::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at top left, rgba(220, 240, 255, 0.35), transparent 35%),
+    radial-gradient(ellipse at bottom right, rgba(180, 220, 255, 0.28), transparent 38%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+.battle-weather--layer-particles.battle-weather--freeze::before { display: none; }
+@keyframes freezePulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.weather-ice-crystal {
+  position: absolute;
+  border-radius: 2px;
+  background: linear-gradient(135deg, rgba(220, 245, 255, 0.95), rgba(140, 200, 255, 0.55));
+  box-shadow: 0 0 8px rgba(190, 230, 255, 0.7);
+  transform: rotate(var(--rot, 0deg));
+  will-change: transform, opacity;
+  animation-name: iceDrift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes iceDrift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)) scale(0.85); opacity: 0.4; }
+  50% { transform: translate3d(3vw, -2vh, 0) rotate(calc(var(--rot, 0deg) + 30deg)) scale(1.05); opacity: 0.95; }
+}
+
+/* SANDSTORM / Tormenta de arena */
+.battle-weather--sandstorm .battle-weather__filter {
+  background:
+    linear-gradient(to right, rgba(180, 120, 50, 0.32), rgba(220, 170, 90, 0.22) 50%, rgba(180, 120, 50, 0.32)),
+    linear-gradient(to bottom, rgba(140, 90, 30, 0.18), rgba(120, 70, 20, 0.28));
+  animation: sandHaze 4s ease-in-out infinite;
+}
+@keyframes sandHaze {
+  0%, 100% { opacity: 0.85; filter: hue-rotate(-4deg); }
+  50% { opacity: 1; filter: hue-rotate(8deg); }
+}
+.weather-sand-streak {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(to right, transparent, rgba(230, 190, 110, 0.85), transparent);
+  filter: blur(0.6px);
+  will-change: transform, opacity;
+  animation-name: sandBlow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes sandBlow {
+  0%   { transform: translate3d(-30vw, 0, 0); opacity: 0; }
+  10%  { opacity: 0.9; }
+  100% { transform: translate3d(140vw, 0, 0); opacity: 0; }
+}
+
+/* BLOOD MOON / Luna de sangre */
+.battle-weather--bloodmoon .battle-weather__filter {
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 60, 50, 0.55), rgba(120, 0, 0, 0.25) 14%, transparent 26%),
+    radial-gradient(circle at 50% 50%, transparent 30%, rgba(40, 0, 0, 0.55) 100%),
+    linear-gradient(to bottom, rgba(50, 0, 0, 0.6), rgba(20, 0, 0, 0.7));
+  animation: bloodPulse 5s ease-in-out infinite;
+}
+@keyframes bloodPulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; filter: brightness(1.08); }
+}
+.battle-weather--bloodmoon::before {
+  content: "";
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: 14vmin;
+  height: 14vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 110, 90, 0.95), rgba(180, 20, 10, 0.85) 55%, rgba(80, 0, 0, 0.4) 80%, transparent);
+  box-shadow:
+    0 0 60px 20px rgba(220, 30, 20, 0.45),
+    0 0 140px 40px rgba(180, 0, 0, 0.3);
+  pointer-events: none;
+  animation: bloodMoonGlow 6s ease-in-out infinite;
+}
+.battle-weather--layer-particles.battle-weather--bloodmoon::before { display: none; }
+@keyframes bloodMoonGlow {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.04); filter: brightness(1.15); }
+}
+.weather-blood-mote {
+  position: absolute;
+  bottom: -8%;
+  border-radius: 999px;
+  background: rgba(255, 60, 40, 0.85);
+  box-shadow: 0 0 10px rgba(220, 30, 20, 0.85);
+  will-change: transform, opacity;
+  animation-name: bloodMoteRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes bloodMoteRise {
+  0%   { transform: translate3d(0, 0, 0) scale(0.6); opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { transform: translate3d(4vw, -120vh, 0) scale(1.1); opacity: 0; }
+}
+
+/* DIMENSIONAL / Distorsión dimensional */
+.battle-weather--dimensional .battle-weather__filter {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(160, 80, 255, 0.28), transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(60, 220, 220, 0.25), transparent 42%),
+    linear-gradient(135deg, rgba(40, 0, 70, 0.45), rgba(0, 40, 70, 0.35));
+  animation: dimensionalShift 5s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes dimensionalShift {
+  0%, 100% { opacity: 0.7; filter: hue-rotate(0deg); }
+  50% { opacity: 1; filter: hue-rotate(40deg) saturate(1.2); }
+}
+.battle-weather--dimensional::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 6px, rgba(180, 120, 255, 0.05) 6px 7px),
+    repeating-linear-gradient(90deg, transparent 0 8px, rgba(80, 220, 220, 0.04) 8px 9px);
+  animation: dimensionalScan 7s linear infinite;
+}
+.battle-weather--layer-particles.battle-weather--dimensional::after { display: none; }
+@keyframes dimensionalScan {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, 60px, 0); }
+}
+.weather-rift-glyph {
+  position: absolute;
+  border: 1px solid rgba(200, 140, 255, 0.85);
+  border-radius: 4px;
+  background: radial-gradient(circle, rgba(180, 110, 255, 0.35), transparent 70%);
+  box-shadow: 0 0 14px rgba(160, 80, 255, 0.75), inset 0 0 8px rgba(80, 220, 220, 0.6);
+  will-change: transform, opacity;
+  animation-name: riftFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes riftFloat {
+  0%, 100% { opacity: 0; transform: rotate(0deg) scale(0.6); }
+  40%, 60% { opacity: 0.9; transform: rotate(180deg) scale(1.1); }
+}
+
+/* AURORA / Aurora mágica */
+.battle-weather--aurora .battle-weather__filter {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 10, 30, 0.55) 100%),
+    linear-gradient(to bottom, rgba(8, 12, 30, 0.55), rgba(0, 0, 10, 0.55));
+}
+.battle-weather--aurora::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(180, 230, 255, 0.22), transparent 16%),
+    radial-gradient(circle at 75% 8%, rgba(200, 220, 255, 0.18), transparent 14%),
+    radial-gradient(circle at 42% 4%, rgba(160, 200, 255, 0.16), transparent 12%);
+  opacity: 0.9;
+  animation: starsTwinkleAurora 5s ease-in-out infinite;
+}
+.battle-weather--layer-particles.battle-weather--aurora::before { display: none; }
+@keyframes starsTwinkleAurora {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.weather-aurora-band {
+  position: absolute;
+  width: 70vmax;
+  height: 28vmin;
+  margin-left: -35vmax;
+  border-radius: 50%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(80, 255, 170, 0.0) 10%,
+    rgba(80, 255, 170, 0.35) 30%,
+    rgba(120, 180, 255, 0.45) 50%,
+    rgba(200, 120, 255, 0.4) 70%,
+    rgba(80, 255, 170, 0.0) 90%,
+    transparent 100%);
+  filter: blur(22px);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  will-change: transform, opacity;
+  animation-name: auroraWave;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes auroraWave {
+  0%   { transform: translate3d(-10vw, 0, 0) skewX(-8deg) scaleY(0.9); opacity: 0.4; }
+  50%  { transform: translate3d(10vw, 4vh, 0) skewX(8deg)  scaleY(1.15); opacity: 0.95; }
+  100% { transform: translate3d(-10vw, 0, 0) skewX(-8deg) scaleY(0.9); opacity: 0.4; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .battle-weather *,
   .battle-weather *::before,
