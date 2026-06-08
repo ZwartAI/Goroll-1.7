@@ -48,7 +48,8 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
   const [lockConfirm, setLockConfirm] = useState<CharacterSkill | null>(null);
   const [lockBusy, setLockBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+  const [importBusy, setImportBusy] = useState(false);
+  const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
   const [manageOpen, setManageOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
   const target = players.find(p => p.id === targetId) ?? null;
