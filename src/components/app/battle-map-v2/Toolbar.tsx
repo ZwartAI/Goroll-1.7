@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X, Cloud, Sun, CloudRain, CloudLightning, Radiation, Flame, Moon, Snowflake, CloudOff } from 'lucide-react';
+import { MousePointer2, Ruler, Pencil, UserPlus, UserMinus, Settings, Layers, Trash2, Crosshair, Eraser, ChevronRight, Box, Circle, Triangle, LineChart, Magnet, MousePointerSquareDashed, X, Cloud, Sun, CloudRain, CloudLightning, Radiation, Flame, Moon, Snowflake, CloudOff, CloudSnow, Wind, MoonStar, Atom, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useT } from '@/lib/i18n';
