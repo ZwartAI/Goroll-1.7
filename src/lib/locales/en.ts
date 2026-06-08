@@ -1815,6 +1815,14 @@ export const en: Dict = {
     noConfigured: "No content configured",
     typeLabel: "Type: {type}",
   },
+  diceCast: {
+    rolling: "{name} is rolling…",
+    total: "Total Result",
+    breakdown: "Breakdown",
+    critSuccess: "Critical!",
+    critFail: "Fumble!",
+    close: "Close",
+  },
 };
 
 
