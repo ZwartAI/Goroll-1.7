@@ -722,102 +722,81 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ImportSection({ campaignId, target, dm, existingCount, onDone }: {
-  campaignId: string; target: Character; dm: { id: string; name: string; color: string }; existingCount: number; onDone: () => void;
+async function importSkillsFromFile({
+  file, campaignId, target, dm, existingCount, t, setProgress,
+}: {
+  file: File;
+  campaignId: string;
+  target: Character;
+  dm: { id: string; name: string; color: string };
+  existingCount: number;
+  t: (k: string, v?: any) => string;
+  setProgress?: (p: { done: number; total: number }) => void;
 }) {
-  const { t } = useT();
-  const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  setProgress?.({ done: 0, total: 0 });
+  try {
+    const { rows, warnings, errors } = await parseSkillFile(file);
+    if (errors.length) { toast.error(errors[0].message); return; }
+    if (!rows.length) { toast.error(t("skills.importEmpty")); return; }
 
-  async function handle(file: File) {
-    setBusy(true);
-    setProgress({ done: 0, total: 0 });
-    try {
-      const { rows, warnings, errors } = await parseSkillFile(file);
-      if (errors.length) { toast.error(errors[0].message); return; }
-      if (!rows.length) { toast.error(t("skills.importEmpty")); return; }
+    const { data: existing } = await (supabase as any).from("character_skills")
+      .select("name_key, order_index").eq("character_id", target.id);
+    const existingKeys = new Set<string>(((existing || []) as any[]).map(r => r.name_key));
+    const maxOrder = ((existing || []) as any[]).reduce((m: number, r: any) => Math.max(m, r.order_index ?? 0), 0);
 
-      const { data: existing } = await (supabase as any).from("character_skills")
-        .select("name_key, order_index").eq("character_id", target.id);
-      const existingKeys = new Set<string>(((existing || []) as any[]).map(r => r.name_key));
-      const maxOrder = ((existing || []) as any[]).reduce((m: number, r: any) => Math.max(m, r.order_index ?? 0), 0);
+    let unlockedSoFar = existingCount;
+    const toInsert: any[] = [];
+    let order = maxOrder;
+    let skipped = 0;
+    for (const r of rows) {
+      const key = skillNameKey(r.name);
+      if (existingKeys.has(key)) { skipped++; continue; }
+      existingKeys.add(key);
+      const shouldUnlock = unlockedSoFar < FREE_UNLOCK_THRESHOLD;
+      if (shouldUnlock) unlockedSoFar++;
+      order++;
+      toInsert.push({
+        campaign_id: campaignId,
+        character_id: target.id,
+        name: r.name,
+        name_key: key,
+        rarity: r.rarity,
+        type: r.type,
+        effect: r.effect,
+        dice: r.dice,
+        range_targets: r.range_targets,
+        visual_brief: r.visual_brief,
+        cost: SKILL_RARITY_COST[r.rarity],
+        is_unlocked: shouldUnlock,
+        source: "excel",
+        order_index: order,
+        imported_row_index: r.imported_row_index,
+        unlocked_at: shouldUnlock ? new Date().toISOString() : null,
+      });
+    }
 
-      let unlockedSoFar = existingCount;
-      const toInsert: any[] = [];
-      let order = maxOrder;
-      let skipped = 0;
-      for (const r of rows) {
-        const key = skillNameKey(r.name);
-        if (existingKeys.has(key)) { skipped++; continue; }
-        existingKeys.add(key);
-        const shouldUnlock = unlockedSoFar < FREE_UNLOCK_THRESHOLD;
-        if (shouldUnlock) unlockedSoFar++;
-        order++;
-        toInsert.push({
-          campaign_id: campaignId,
-          character_id: target.id,
-          name: r.name,
-          name_key: key,
-          rarity: r.rarity,
-          type: r.type,
-          effect: r.effect,
-          dice: r.dice,
-          range_targets: r.range_targets,
-          visual_brief: r.visual_brief,
-          cost: SKILL_RARITY_COST[r.rarity],
-          is_unlocked: shouldUnlock,
-          source: "excel",
-          order_index: order,
-          imported_row_index: r.imported_row_index,
-          unlocked_at: shouldUnlock ? new Date().toISOString() : null,
-        });
-      }
+    setProgress?.({ done: 0, total: toInsert.length });
+    let created = 0;
+    for (let i = 0; i < toInsert.length; i += 50) {
+      const slice = toInsert.slice(i, i + 50);
+      const { error } = await (supabase as any).from("character_skills").insert(slice);
+      if (error) { toast.error(error.message); break; }
+      created += slice.length;
+      setProgress?.({ done: created, total: toInsert.length });
+    }
 
-      setProgress({ done: 0, total: toInsert.length });
-      let created = 0;
-      for (let i = 0; i < toInsert.length; i += 50) {
-        const slice = toInsert.slice(i, i + 50);
-        const { error } = await (supabase as any).from("character_skills").insert(slice);
-        if (error) { toast.error(error.message); break; }
-        created += slice.length;
-        setProgress({ done: created, total: toInsert.length });
-      }
-
-      if (created) {
-        await pushLog(campaignId, [
-          { t: "char", v: dm.name, color: dm.color, id: dm.id },
-          { t: "text", v: t("skills.logImported", { n: created }) },
-          { t: "char", v: target.name, color: target.color, id: target.id },
-        ]);
-      }
-      toast.success(t("skills.importDone", { created, skipped }) + (warnings.length ? ` · ${warnings.length} ⚠️` : ""));
-      onDone();
-    } catch (e: any) {
-      toast.error(e?.message || t("skills.importFailed"));
-    } finally { setBusy(false); setProgress({ done: 0, total: 0 }); }
+    if (created) {
+      await pushLog(campaignId, [
+        { t: "char", v: dm.name, color: dm.color, id: dm.id },
+        { t: "text", v: t("skills.logImported", { n: created }) },
+        { t: "char", v: target.name, color: target.color, id: target.id },
+      ]);
+    }
+    toast.success(t("skills.importDone", { created, skipped }) + (warnings.length ? ` · ${warnings.length} ⚠️` : ""));
+  } catch (e: any) {
+    toast.error(e?.message || t("skills.importFailed"));
   }
-
-  const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
-  return (
-    <div className="space-y-2">
-      <p className="text-xs">
-        <span className="text-muted-foreground">{t("skills.targetCharacter")}: </span>
-        <span className="font-display" style={{ color: target.color }}>{target.name}</span>
-      </p>
-      <p className="text-[11px] text-muted-foreground flex items-start gap-1">
-        <Upload size={12} className="mt-0.5 shrink-0" />
-        {t("skills.importHint")}
-      </p>
-      <input type="file" accept=".xlsx,.xls" disabled={busy}
-        onChange={e => { const f = e.target.files?.[0]; if (f) { handle(f); e.target.value = ""; } }}
-        className="text-xs text-muted-foreground w-full file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-secondary file:text-foreground file:text-xs" />
-      {busy && (
-        <div className="h-2 w-full rounded bg-secondary overflow-hidden border border-border">
-          <div className="h-full transition-all duration-150" style={{ width: `${pct}%`, background: "var(--gradient-gold)" }} />
-        </div>
-      )}
-    </div>
-  );
+}
 }
 
 export function ManualCreate({ campaignId, target, dm, players, onDone, hideToggle = false }: {
