@@ -470,7 +470,12 @@ export function Toolbar({
                       { id: 'radiation', icon: <Radiation className="w-4 h-4" />,       label: t('battleMap.weather.radiation') || 'Radiación' },
                       { id: 'volcanic',  icon: <Flame className="w-4 h-4" />,           label: t('battleMap.weather.volcanic') || 'Glow Volcánico' },
                       { id: 'night',     icon: <Moon className="w-4 h-4" />,            label: t('battleMap.weather.night') || 'Nocturno' },
-                      { id: 'snow',      icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
+                      { id: 'snow',        icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
+                      { id: 'freeze',      icon: <CloudSnow className="w-4 h-4" />,       label: t('battleMap.weather.freeze') || 'Frío extremo' },
+                      { id: 'sandstorm',   icon: <Wind className="w-4 h-4" />,            label: t('battleMap.weather.sandstorm') || 'Tormenta de arena' },
+                      { id: 'bloodmoon',   icon: <MoonStar className="w-4 h-4" />,        label: t('battleMap.weather.bloodmoon') || 'Luna de sangre' },
+                      { id: 'dimensional', icon: <Atom className="w-4 h-4" />,            label: t('battleMap.weather.dimensional') || 'Distorsión dimensional' },
+                      { id: 'aurora',      icon: <Sparkles className="w-4 h-4" />,        label: t('battleMap.weather.aurora') || 'Aurora mágica' },
                     ] as const).map(opt => (
                       <button
                         key={opt.id}
