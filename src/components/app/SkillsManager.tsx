@@ -316,7 +316,9 @@ function SkillsDmPanels({
       <div className="absolute inset-0 grid grid-cols-2">
         {/* LEFT panel: selected character + SP + import excel */}
         <div className="relative flex flex-col items-center text-center px-[9%] pt-[11%] pb-[11%] min-w-0">
+          <div className="flex-1" />
           <p className="text-[8.5px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/90 leading-tight">
+
             {t("skills.selectedCharacter")}
           </p>
 
