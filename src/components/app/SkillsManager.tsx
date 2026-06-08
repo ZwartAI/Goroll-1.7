@@ -441,7 +441,7 @@ function SkillsDmPanels({
         </div>
 
         {/* RIGHT panel: character info + level/sp buttons */}
-        <div className="relative flex flex-col px-[9%] pt-[10%] pb-[11%] min-w-0">
+        <div className="relative flex flex-col px-[9%] pt-[14%] pb-[11%] min-w-0">
           <p
             className="font-display text-sm sm:text-lg leading-tight truncate text-center"
             style={{ color: target?.color ?? "var(--gold)" }}
