@@ -683,7 +683,12 @@ function WeatherIcon({ effect }: { effect: string }) {
     case 'radiation': return <Radiation className="w-5 h-5" />;
     case 'volcanic':  return <Flame className="w-5 h-5" />;
     case 'night':     return <Moon className="w-5 h-5" />;
-    case 'snow':      return <Snowflake className="w-5 h-5" />;
-    default:          return <Cloud className="w-5 h-5" />;
+    case 'snow':        return <Snowflake className="w-5 h-5" />;
+    case 'freeze':      return <CloudSnow className="w-5 h-5" />;
+    case 'sandstorm':   return <Wind className="w-5 h-5" />;
+    case 'bloodmoon':   return <MoonStar className="w-5 h-5" />;
+    case 'dimensional': return <Atom className="w-5 h-5" />;
+    case 'aurora':      return <Sparkles className="w-5 h-5" />;
+    default:            return <Cloud className="w-5 h-5" />;
   }
 }
