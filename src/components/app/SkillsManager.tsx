@@ -275,14 +275,16 @@ function PanelAction({ icon, label, onClick, accent }: {
 /* ─────────── New DM combined panels (visual redesign) ─────────── */
 
 function SkillsDmPanels({
-  target, sp, unlocked, available, onPick, onImport, onLevel, onSp,
+  target, sp, unlocked, available, onPick, onImportFile, importBusy, importProgress, onLevel, onSp,
 }: {
   target: Character | null;
   sp: number;
   unlocked: number;
   available: number;
   onPick: () => void;
-  onImport: () => void;
+  onImportFile: (file: File) => void;
+  importBusy: boolean;
+  importProgress: { done: number; total: number };
   onLevel: () => void;
   onSp: () => void;
 }) {
