@@ -461,7 +461,7 @@ export function Toolbar({
                   <div className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 px-1 pb-1 border-b border-[var(--gold)]/15">
                     {t('battleMap.weather.title') || 'Clima'}
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-3 gap-1.5 max-h-[170px] overflow-y-auto pr-1">
                     {([
                       { id: 'none',      icon: <CloudOff className="w-4 h-4" />,        label: t('battleMap.weather.none') || 'Ninguno' },
                       { id: 'sunny',     icon: <Sun className="w-4 h-4" />,             label: t('battleMap.weather.sunny') || 'Soleado' },
