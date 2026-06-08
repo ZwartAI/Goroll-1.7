@@ -401,12 +401,11 @@ function SkillsDmPanels({
 
           <div className="flex-1" />
 
-          {/* Import Excel button (asset image) — lifted up to align with Level/SP center */}
-          <button
-            type="button"
-            onClick={onImport}
+          {/* Import Excel button — picks file directly (no extra modal) */}
+          <label
             aria-label={t("skills.importExcelShort")}
-            className="mb-[6%] w-[85%] max-w-[190px] block transition-transform active:scale-[0.97] disabled:opacity-50"
+            aria-disabled={!target || importBusy}
+            className={`mb-[6%] w-[85%] max-w-[190px] block transition-transform active:scale-[0.97] ${(!target || importBusy) ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
             style={{ aspectRatio: "342 / 64" }}
           >
             <img
@@ -416,7 +415,29 @@ function SkillsDmPanels({
               className="w-full h-full select-none"
               style={{ objectFit: "contain" }}
             />
-          </button>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              disabled={!target || importBusy}
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (f) onImportFile(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {importBusy && importProgress.total > 0 && (
+            <div className="w-[85%] max-w-[190px] h-1.5 rounded bg-secondary overflow-hidden border border-border -mt-[3%] mb-[3%]">
+              <div
+                className="h-full transition-all duration-150"
+                style={{
+                  width: `${Math.round((importProgress.done / importProgress.total) * 100)}%`,
+                  background: "var(--gradient-gold)",
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* RIGHT panel: character info + level/sp buttons */}
