@@ -99,22 +99,17 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         <p className="text-xs text-muted-foreground mt-1">{t("skills.dmIntro")}</p>
       </header>
 
-      {/* Two fixed cards in a row */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
-        <SelectedCharacterCard
-          target={target}
-          sp={sp}
-          onPick={() => setPickerOpen(true)}
-          onImport={() => setImportOpen(true)}
-        />
-        <CharacterInfoCard
-          target={target}
-          unlocked={unlocked}
-          available={available}
-          onLevel={() => setLevelOpen(true)}
-          onSp={() => setManageOpen(true)}
-        />
-      </div>
+      {/* Combined visual panels (red + blue in one asset) */}
+      <SkillsDmPanels
+        target={target}
+        sp={sp}
+        unlocked={unlocked}
+        available={available}
+        onPick={() => setPickerOpen(true)}
+        onImport={() => setImportOpen(true)}
+        onLevel={() => setLevelOpen(true)}
+        onSp={() => setManageOpen(true)}
+      />
 
       {/* Skills list for the selected character */}
       {target && (
