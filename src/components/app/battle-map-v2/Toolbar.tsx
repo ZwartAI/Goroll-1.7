@@ -456,26 +456,26 @@ export function Toolbar({
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2 bg-black/85 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[180px]"
+                  className="absolute right-full mr-3 top-0 flex flex-col gap-2 p-2.5 bg-black/85 backdrop-blur-xl border border-[var(--gold)]/30 rounded-xl shadow-2xl min-w-[220px]"
                 >
                   <div className="text-[10px] uppercase tracking-widest text-[var(--gold)]/80 px-1 pb-1 border-b border-[var(--gold)]/15">
                     {t('battleMap.weather.title') || 'Clima'}
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="grid grid-cols-3 gap-1.5">
                     {([
                       { id: 'none',      icon: <CloudOff className="w-4 h-4" />,        label: t('battleMap.weather.none') || 'Ninguno' },
                       { id: 'sunny',     icon: <Sun className="w-4 h-4" />,             label: t('battleMap.weather.sunny') || 'Soleado' },
                       { id: 'rain',      icon: <CloudRain className="w-4 h-4" />,       label: t('battleMap.weather.rain') || 'Lluvioso' },
                       { id: 'storm',     icon: <CloudLightning className="w-4 h-4" />,  label: t('battleMap.weather.storm') || 'Tormenta' },
                       { id: 'radiation', icon: <Radiation className="w-4 h-4" />,       label: t('battleMap.weather.radiation') || 'Radiación' },
-                      { id: 'volcanic',  icon: <Flame className="w-4 h-4" />,           label: t('battleMap.weather.volcanic') || 'Glow Volcánico' },
+                      { id: 'volcanic',  icon: <Flame className="w-4 h-4" />,           label: t('battleMap.weather.volcanic') || 'Volcánico' },
                       { id: 'night',     icon: <Moon className="w-4 h-4" />,            label: t('battleMap.weather.night') || 'Nocturno' },
                       { id: 'snow',        icon: <Snowflake className="w-4 h-4" />,       label: t('battleMap.weather.snow') || 'Nevado' },
-                      { id: 'freeze',      icon: <CloudSnow className="w-4 h-4" />,       label: t('battleMap.weather.freeze') || 'Frío extremo' },
-                      { id: 'sandstorm',   icon: <Wind className="w-4 h-4" />,            label: t('battleMap.weather.sandstorm') || 'Tormenta de arena' },
-                      { id: 'bloodmoon',   icon: <MoonStar className="w-4 h-4" />,        label: t('battleMap.weather.bloodmoon') || 'Luna de sangre' },
-                      { id: 'dimensional', icon: <Atom className="w-4 h-4" />,            label: t('battleMap.weather.dimensional') || 'Distorsión dimensional' },
-                      { id: 'aurora',      icon: <Sparkles className="w-4 h-4" />,        label: t('battleMap.weather.aurora') || 'Aurora mágica' },
+                      { id: 'freeze',      icon: <CloudSnow className="w-4 h-4" />,       label: t('battleMap.weather.freeze') || 'Frío' },
+                      { id: 'sandstorm',   icon: <Wind className="w-4 h-4" />,            label: t('battleMap.weather.sandstorm') || 'Arena' },
+                      { id: 'bloodmoon',   icon: <MoonStar className="w-4 h-4" />,        label: t('battleMap.weather.bloodmoon') || 'Sangre' },
+                      { id: 'dimensional', icon: <Atom className="w-4 h-4" />,            label: t('battleMap.weather.dimensional') || 'Dimensión' },
+                      { id: 'aurora',      icon: <Sparkles className="w-4 h-4" />,        label: t('battleMap.weather.aurora') || 'Aurora' },
                     ] as const).map(opt => (
                       <button
                         key={opt.id}
@@ -485,15 +485,16 @@ export function Toolbar({
                           setWeatherMenuOpen(false);
                         }}
                         className={cn(
-                          "flex items-center gap-2 px-2 py-1.5 rounded transition-colors text-left",
+                          "flex flex-col items-center justify-center gap-1 p-1.5 rounded-lg transition-colors text-center aspect-square",
                           weatherEffect === opt.id
-                            ? "bg-[var(--gold)]/20 text-[var(--gold)]"
-                            : "text-white/70 hover:bg-white/5 hover:text-white",
+                            ? "bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/30"
+                            : "text-white/70 hover:bg-white/5 hover:text-white border border-transparent",
                           !canChangeWeather && "opacity-60 cursor-not-allowed"
                         )}
+                        title={opt.label}
                       >
                         {opt.icon}
-                        <span className="text-[10px] uppercase tracking-tight flex-1">{opt.label}</span>
+                        <span className="text-[8px] uppercase tracking-tight leading-tight">{opt.label}</span>
                       </button>
                     ))}
                   </div>
