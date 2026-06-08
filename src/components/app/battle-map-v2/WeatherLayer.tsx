@@ -200,6 +200,77 @@ export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Pr
           }}
         />
       ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'freeze' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-ice-crystal"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            opacity: p.opacity,
+            ['--rot' as any]: `${p.rot}deg`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'sandstorm' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-sand-streak"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            opacity: p.opacity,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'bloodmoon' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-blood-mote"
+          style={{
+            left: `${p.left}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'dimensional' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-rift-glyph"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            transform: `rotate(${p.rot}deg)`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+      {(layer === 'all' || layer === 'particles') && effect === 'aurora' && particles.map((p: any) => (
+        <div
+          key={p.i}
+          className="weather-aurora-band"
+          style={{
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            filter: `hue-rotate(${p.hue}deg)`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
     </div>
   );
 }
