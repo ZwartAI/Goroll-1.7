@@ -315,7 +315,7 @@ function SkillsDmPanels({
       {/* Content grid overlaid on top of the asset */}
       <div className="absolute inset-0 grid grid-cols-2">
         {/* LEFT panel: selected character + SP + import excel */}
-        <div className="relative flex flex-col items-center text-center px-[6%] pt-[10%] pb-[6%] min-w-0">
+        <div className="relative flex flex-col items-center text-center px-[9%] pt-[11%] pb-[11%] min-w-0">
           <p className="text-[8.5px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/90 leading-tight">
             {t("skills.selectedCharacter")}
           </p>
@@ -324,8 +324,8 @@ function SkillsDmPanels({
           <button
             type="button"
             onClick={onPick}
-            className="relative mt-2 transition-transform active:scale-[0.98]"
-            style={{ width: "74%", aspectRatio: "1 / 1" }}
+            className="relative mt-1.5 transition-transform active:scale-[0.98]"
+            style={{ width: "68%", aspectRatio: "1 / 1" }}
             aria-label={t("skills.selectCharacter")}
           >
             {target ? (
@@ -365,7 +365,7 @@ function SkillsDmPanels({
             <button
               type="button"
               onClick={onPick}
-              className="mt-1.5 inline-flex items-center gap-1 font-display text-sm sm:text-lg leading-tight max-w-full truncate"
+              className="mt-1 inline-flex items-center gap-1 font-display text-sm sm:text-lg leading-tight max-w-full truncate"
               style={{ color: target.color }}
             >
               <span className="truncate">{target.name}</span>
@@ -373,13 +373,13 @@ function SkillsDmPanels({
             </button>
           )}
 
-          <p className="mt-2 text-[8px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight px-1">
+          <p className="mt-1.5 text-[8px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight px-1">
             {t("skills.spAvailable")}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <SpIcon size={26} />
+            <SpIcon size={24} />
             <span
-              className="font-display text-2xl sm:text-4xl leading-none"
+              className="font-display text-2xl sm:text-3xl leading-none"
               style={{
                 color: "var(--gold)",
                 textShadow: "0 0 10px color-mix(in oklab, var(--gold) 55%, transparent)",
@@ -391,12 +391,12 @@ function SkillsDmPanels({
 
           <div className="flex-1" />
 
-          {/* Import Excel button (asset image) */}
+          {/* Import Excel button (asset image) — lifted up to align with Level/SP center */}
           <button
             type="button"
             onClick={onImport}
             aria-label={t("skills.importExcelShort")}
-            className="mt-2 w-full max-w-[210px] block transition-transform active:scale-[0.97] disabled:opacity-50"
+            className="mb-[6%] w-[85%] max-w-[190px] block transition-transform active:scale-[0.97] disabled:opacity-50"
             style={{ aspectRatio: "342 / 64" }}
           >
             <img
@@ -410,7 +410,7 @@ function SkillsDmPanels({
         </div>
 
         {/* RIGHT panel: character info + level/sp buttons */}
-        <div className="relative flex flex-col px-[6%] pt-[8%] pb-[6%] min-w-0">
+        <div className="relative flex flex-col px-[9%] pt-[10%] pb-[11%] min-w-0">
           <p
             className="font-display text-sm sm:text-lg leading-tight truncate text-center"
             style={{ color: target?.color ?? "var(--gold)" }}
@@ -421,7 +421,7 @@ function SkillsDmPanels({
             {t("skills.infoTitle")}
           </p>
 
-          <ul className="mt-1.5 flex-1 space-y-[1px] text-[9px] sm:text-[11px] overflow-hidden">
+          <ul className="mt-1.5 flex-1 space-y-0 text-[8px] sm:text-[10px] overflow-hidden">
             {!target && (
               <li className="text-center text-muted-foreground py-4">
                 {t("skills.pickPlayer")}
@@ -432,20 +432,20 @@ function SkillsDmPanels({
                 key={r.label}
                 className="flex items-baseline justify-between gap-2 border-b border-[color-mix(in_oklab,var(--gold)_15%,transparent)] py-[1px]"
               >
-                <span className="text-muted-foreground uppercase tracking-wider text-[8.5px] sm:text-[9.5px] truncate">{r.label}</span>
-                <span className="font-display text-[var(--gold)] tabular-nums shrink-0">{r.value}</span>
+                <span className="text-muted-foreground uppercase tracking-wider text-[7.5px] sm:text-[9px] truncate">{r.label}</span>
+                <span className="font-display text-[var(--gold)] tabular-nums shrink-0 text-[9px] sm:text-[11px]">{r.value}</span>
               </li>
             ))}
           </ul>
 
-          {/* Level + SP buttons (asset images) */}
-          <div className="mt-2 grid grid-cols-2 gap-1.5 items-center justify-items-center">
+          {/* Level + SP buttons (asset images) — smaller and lifted from frame border */}
+          <div className="mt-1.5 mb-[4%] grid grid-cols-2 gap-1.5 items-center justify-items-center">
             <button
               type="button"
               onClick={onLevel}
               disabled={disabled}
               aria-label={t("skills.btnLevel")}
-              className="w-full max-w-[140px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-[88%] max-w-[110px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ aspectRatio: "176 / 110" }}
             >
               <img
@@ -461,7 +461,7 @@ function SkillsDmPanels({
               onClick={onSp}
               disabled={disabled}
               aria-label={t("skills.btnSp")}
-              className="w-full max-w-[140px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-[88%] max-w-[110px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ aspectRatio: "176 / 110" }}
             >
               <img
@@ -474,6 +474,7 @@ function SkillsDmPanels({
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
