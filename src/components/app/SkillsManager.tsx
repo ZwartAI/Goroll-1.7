@@ -10,8 +10,7 @@ import type { CharacterSkill } from "./SkillCard";
 import { SKILL_RARITY_COST, skillNameKey, parseSkillFile } from "@/lib/skillImport";
 import {
   Sparkles, Upload, Plus, Trophy, Dices, AlertTriangle,
-  ChevronDown, X, Search, Zap, FileSpreadsheet, Settings2,
-  TrendingUp,
+  ChevronDown, X, Search, Settings2,
 } from "lucide-react";
 import { SkillIconMedallion, SKILL_ICON_OPTIONS } from "./SkillIconMedallion";
 import { CharacterPortrait } from "./CharacterPortrait";
@@ -19,6 +18,11 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { LevelAdjustModal } from "./LevelAdjustModal";
 import { backdropProps } from "@/lib/modalBackdrop";
 import { SpIcon } from "./SpIcon";
+import skillsPanelsAsset from "@/assets/skills-dm/skills-panels.png.asset.json";
+import skillsFrameAsset from "@/assets/skills-dm/skills-frame.png.asset.json";
+import btnImportExcelAsset from "@/assets/skills-dm/btn-import-excel.png.asset.json";
+import btnLevelAsset from "@/assets/skills-dm/btn-level.png.asset.json";
+import btnSpAsset from "@/assets/skills-dm/btn-sp.png.asset.json";
 
 type Props = {
   campaignId: string;
@@ -94,22 +98,17 @@ export function SkillsManager({ campaignId, dm, players, onlineIds }: Props) {
         <p className="text-xs text-muted-foreground mt-1">{t("skills.dmIntro")}</p>
       </header>
 
-      {/* Two fixed cards in a row */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
-        <SelectedCharacterCard
-          target={target}
-          sp={sp}
-          onPick={() => setPickerOpen(true)}
-          onImport={() => setImportOpen(true)}
-        />
-        <CharacterInfoCard
-          target={target}
-          unlocked={unlocked}
-          available={available}
-          onLevel={() => setLevelOpen(true)}
-          onSp={() => setManageOpen(true)}
-        />
-      </div>
+      {/* Combined visual panels (red + blue in one asset) */}
+      <SkillsDmPanels
+        target={target}
+        sp={sp}
+        unlocked={unlocked}
+        available={available}
+        onPick={() => setPickerOpen(true)}
+        onImport={() => setImportOpen(true)}
+        onLevel={() => setLevelOpen(true)}
+        onSp={() => setManageOpen(true)}
+      />
 
       {/* Skills list for the selected character */}
       {target && (
@@ -267,114 +266,21 @@ function PanelAction({ icon, label, onClick, accent }: {
   );
 }
 
-/* ─────────── New DM cards (visual redesign) ─────────── */
+/* ─────────── New DM combined panels (visual redesign) ─────────── */
 
-function SelectedCharacterCard({
-  target, sp, onPick, onImport,
+function SkillsDmPanels({
+  target, sp, unlocked, available, onPick, onImport, onLevel, onSp,
 }: {
   target: Character | null;
   sp: number;
-  onPick: () => void;
-  onImport: () => void;
-}) {
-  const { t } = useT();
-  const accent = "oklch(0.55 0.20 25)"; // deep red
-  return (
-    <div
-      className="ornate-card p-3 flex flex-col items-center text-center overflow-hidden min-w-0"
-      style={{
-        borderColor: "var(--gold)",
-        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 28%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
-        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
-        minHeight: 280,
-      }}
-    >
-      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight">
-        {t("skills.selectedCharacter")}
-      </p>
-
-      {!target ? (
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-[11px] text-muted-foreground">{t("skills.pickPlayer")}</p>
-        </div>
-      ) : (
-        <>
-          <button
-            type="button"
-            onClick={onPick}
-            className="mt-2 relative"
-            aria-label={t("skills.selectCharacter")}
-          >
-            <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center"
-              style={{
-                border: "2px solid var(--gold)",
-                boxShadow: "0 0 0 2px color-mix(in oklab, var(--gold) 18%, transparent), 0 0 14px color-mix(in oklab, var(--gold) 35%, transparent)",
-                background: "color-mix(in oklab, var(--background) 60%, transparent)",
-              }}
-            >
-              <CharacterPortrait character={target as any} className="w-full h-full text-xl" showBorder={false} />
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={onPick}
-            className="mt-1.5 inline-flex items-center gap-1 font-display text-sm sm:text-base leading-tight max-w-full truncate"
-            style={{ color: target.color }}
-          >
-            <span className="truncate">{target.name}</span>
-            <ChevronDown size={12} className="opacity-70 shrink-0" />
-          </button>
-
-          <p className="mt-2 text-[8.5px] uppercase tracking-widest text-[var(--gold)]/80 leading-tight px-1">
-            {t("skills.spAvailable")}
-          </p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <SpIcon size={28} />
-            <span
-              className="font-display text-3xl sm:text-4xl leading-none"
-              style={{
-                color: "var(--gold)",
-                textShadow: "0 0 10px color-mix(in oklab, var(--gold) 55%, transparent)",
-              }}
-            >
-              {sp}
-            </span>
-          </div>
-
-          <div className="flex-1" />
-
-          <button
-            type="button"
-            onClick={onImport}
-            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] truncate"
-            style={{
-              border: `1.5px solid oklch(0.65 0.16 145)`,
-              background: `color-mix(in oklab, oklch(0.65 0.16 145) 14%, transparent)`,
-              color: "oklch(0.78 0.16 145)",
-            }}
-          >
-            <FileSpreadsheet size={12} className="shrink-0" />
-            <span className="truncate">{t("skills.importExcelShort")}</span>
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
-function CharacterInfoCard({
-  target, unlocked, available, onLevel, onSp,
-}: {
-  target: Character | null;
   unlocked: number;
   available: number;
+  onPick: () => void;
+  onImport: () => void;
   onLevel: () => void;
   onSp: () => void;
 }) {
   const { t } = useT();
-  const accent = "oklch(0.50 0.16 245)"; // deep blue
   const disabled = !target;
 
   const rows: { label: string; value: string | number }[] = target ? [
@@ -393,70 +299,181 @@ function CharacterInfoCard({
 
   return (
     <div
-      className="ornate-card p-3 flex flex-col overflow-hidden min-w-0"
-      style={{
-        borderColor: "var(--gold)",
-        background: `linear-gradient(180deg, color-mix(in oklab, ${accent} 26%, var(--card)) 0%, color-mix(in oklab, ${accent} 10%, var(--card)) 100%)`,
-        boxShadow: `0 0 18px color-mix(in oklab, ${accent} 22%, transparent), inset 0 0 18px color-mix(in oklab, ${accent} 14%, transparent)`,
-        minHeight: 280,
-      }}
+      className="relative w-full"
+      style={{ aspectRatio: "882 / 720" }}
     >
-      <p
-        className="font-display text-sm sm:text-base leading-tight truncate text-center"
-        style={{ color: target?.color ?? "var(--gold)" }}
-      >
-        {target?.name ?? "—"}
-      </p>
-      <p className="text-[9px] uppercase tracking-widest text-[var(--gold)]/85 text-center leading-tight">
-        {t("skills.infoTitle")}
-      </p>
+      {/* Background asset containing both panels */}
+      <img
+        src={skillsPanelsAsset.url}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="absolute inset-0 w-full h-full pointer-events-none select-none"
+        style={{ objectFit: "fill" }}
+      />
 
-      <ul className="mt-2 flex-1 space-y-[2px] text-[10px] sm:text-[11px] overflow-hidden">
-        {!target && (
-          <li className="text-center text-muted-foreground py-4">
-            {t("skills.pickPlayer")}
-          </li>
-        )}
-        {rows.map(r => (
-          <li
-            key={r.label}
-            className="flex items-baseline justify-between gap-2 border-b border-[color-mix(in_oklab,var(--gold)_15%,transparent)] py-[1px]"
+      {/* Content grid overlaid on top of the asset */}
+      <div className="absolute inset-0 grid grid-cols-2">
+        {/* LEFT panel: selected character + SP + import excel */}
+        <div className="relative flex flex-col items-center text-center px-[6%] pt-[10%] pb-[6%] min-w-0">
+          <p className="text-[8.5px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/90 leading-tight">
+            {t("skills.selectedCharacter")}
+          </p>
+
+          {/* Portrait inside ornate circular frame */}
+          <button
+            type="button"
+            onClick={onPick}
+            className="relative mt-2 transition-transform active:scale-[0.98]"
+            style={{ width: "74%", aspectRatio: "1 / 1" }}
+            aria-label={t("skills.selectCharacter")}
           >
-            <span className="text-muted-foreground uppercase tracking-wider text-[9px] truncate">{r.label}</span>
-            <span className="font-display text-[var(--gold)] tabular-nums shrink-0">{r.value}</span>
-          </li>
-        ))}
-      </ul>
+            {target ? (
+              <div
+                className="absolute rounded-full overflow-hidden"
+                style={{ inset: "12%" }}
+              >
+                <CharacterPortrait
+                  character={target as any}
+                  className="w-full h-full text-xl"
+                  showBorder={false}
+                />
+              </div>
+            ) : (
+              <div
+                className="absolute rounded-full flex items-center justify-center text-[10px] text-muted-foreground"
+                style={{
+                  inset: "12%",
+                  background: "color-mix(in oklab, var(--background) 70%, transparent)",
+                }}
+              >
+                {t("skills.pickPlayer")}
+              </div>
+            )}
+            {/* Ornate gold/emerald frame overlay */}
+            <img
+              src={skillsFrameAsset.url}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="absolute inset-0 w-full h-full pointer-events-none select-none"
+              style={{ objectFit: "contain" }}
+            />
+          </button>
 
-      <div className="mt-2 grid grid-cols-2 gap-1.5">
-        <button
-          type="button"
-          onClick={onLevel}
-          disabled={disabled}
-          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            border: `1.5px solid var(--gold)`,
-            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
-            color: "var(--gold)",
-          }}
-        >
-          <TrendingUp size={12} className="shrink-0" />
-          <span className="truncate">{t("skills.btnLevel")}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onSp}
-          disabled={disabled}
-          className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-display text-[10px] sm:text-xs uppercase tracking-wider transition-transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            border: `1.5px solid var(--gold)`,
-            background: `color-mix(in oklab, var(--gold) 14%, transparent)`,
-            color: "var(--gold)",
-          }}
-        >
-          <Zap size={12} className="shrink-0" />
-          <span className="truncate">{t("skills.btnSp")}</span>
-        </button>
+          {target && (
+            <button
+              type="button"
+              onClick={onPick}
+              className="mt-1.5 inline-flex items-center gap-1 font-display text-sm sm:text-lg leading-tight max-w-full truncate"
+              style={{ color: target.color }}
+            >
+              <span className="truncate">{target.name}</span>
+              <ChevronDown size={12} className="opacity-70 shrink-0" />
+            </button>
+          )}
+
+          <p className="mt-2 text-[8px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/85 leading-tight px-1">
+            {t("skills.spAvailable")}
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <SpIcon size={26} />
+            <span
+              className="font-display text-2xl sm:text-4xl leading-none"
+              style={{
+                color: "var(--gold)",
+                textShadow: "0 0 10px color-mix(in oklab, var(--gold) 55%, transparent)",
+              }}
+            >
+              {sp}
+            </span>
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Import Excel button (asset image) */}
+          <button
+            type="button"
+            onClick={onImport}
+            aria-label={t("skills.importExcelShort")}
+            className="mt-2 w-full max-w-[210px] block transition-transform active:scale-[0.97] disabled:opacity-50"
+            style={{ aspectRatio: "342 / 64" }}
+          >
+            <img
+              src={btnImportExcelAsset.url}
+              alt={t("skills.importExcelShort")}
+              draggable={false}
+              className="w-full h-full select-none"
+              style={{ objectFit: "contain" }}
+            />
+          </button>
+        </div>
+
+        {/* RIGHT panel: character info + level/sp buttons */}
+        <div className="relative flex flex-col px-[6%] pt-[8%] pb-[6%] min-w-0">
+          <p
+            className="font-display text-sm sm:text-lg leading-tight truncate text-center"
+            style={{ color: target?.color ?? "var(--gold)" }}
+          >
+            {target?.name ?? "—"}
+          </p>
+          <p className="text-[8.5px] sm:text-[10px] uppercase tracking-widest text-[var(--gold)]/85 text-center leading-tight">
+            {t("skills.infoTitle")}
+          </p>
+
+          <ul className="mt-1.5 flex-1 space-y-[1px] text-[9px] sm:text-[11px] overflow-hidden">
+            {!target && (
+              <li className="text-center text-muted-foreground py-4">
+                {t("skills.pickPlayer")}
+              </li>
+            )}
+            {rows.map(r => (
+              <li
+                key={r.label}
+                className="flex items-baseline justify-between gap-2 border-b border-[color-mix(in_oklab,var(--gold)_15%,transparent)] py-[1px]"
+              >
+                <span className="text-muted-foreground uppercase tracking-wider text-[8.5px] sm:text-[9.5px] truncate">{r.label}</span>
+                <span className="font-display text-[var(--gold)] tabular-nums shrink-0">{r.value}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Level + SP buttons (asset images) */}
+          <div className="mt-2 grid grid-cols-2 gap-1.5 items-center justify-items-center">
+            <button
+              type="button"
+              onClick={onLevel}
+              disabled={disabled}
+              aria-label={t("skills.btnLevel")}
+              className="w-full max-w-[140px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ aspectRatio: "176 / 110" }}
+            >
+              <img
+                src={btnLevelAsset.url}
+                alt={t("skills.btnLevel")}
+                draggable={false}
+                className="w-full h-full select-none"
+                style={{ objectFit: "contain" }}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={onSp}
+              disabled={disabled}
+              aria-label={t("skills.btnSp")}
+              className="w-full max-w-[140px] block transition-transform active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ aspectRatio: "176 / 110" }}
+            >
+              <img
+                src={btnSpAsset.url}
+                alt={t("skills.btnSp")}
+                draggable={false}
+                className="w-full h-full select-none"
+                style={{ objectFit: "contain" }}
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
