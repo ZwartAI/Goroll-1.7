@@ -82,6 +82,39 @@ export function WeatherLayer({ effect, intensity = 'medium', layer = 'all' }: Pr
           const leftRay = rand(-10, 80);
           return { i, left: leftRay, delay, duration, rot };
         }
+        case 'freeze': {
+          const size = rand(4, 10);
+          const top = rand(0, 100);
+          const duration = rand(3.5, 7);
+          const opacity = rand(0.4, 0.9);
+          const rot = rand(0, 360);
+          return { i, left, top, delay, duration, size, opacity, rot };
+        }
+        case 'sandstorm': {
+          const duration = rand(1.2, 2.6);
+          const top = rand(0, 100);
+          const size = rand(40, 110);
+          const opacity = rand(0.25, 0.7);
+          return { i, left, top, delay, duration, size, opacity };
+        }
+        case 'bloodmoon': {
+          const duration = rand(6, 14);
+          const size = rand(2, 5);
+          return { i, left, delay, duration, size };
+        }
+        case 'dimensional': {
+          const duration = rand(5, 11);
+          const top = rand(5, 95);
+          const size = rand(10, 28);
+          const rot = rand(0, 360);
+          return { i, left, top, delay, duration, size, rot };
+        }
+        case 'aurora': {
+          const duration = rand(14, 24);
+          const top = rand(0, 55);
+          const hue = rand(-20, 40);
+          return { i, left, top, delay, duration, hue };
+        }
       }
     });
   }, [effect, intensity]);
