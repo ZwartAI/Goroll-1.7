@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Gift, BookOpen, Users, HeartPulse, X, ScrollText, Sparkles, Box } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
-import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+// SharedDiceAnimationOverlay is mounted globally in /campaign route
 import { BattleMapAdminSidebar } from '../battle-map/BattleMapAdminSidebar';
 import { CreationGridModal } from '../CreationGridModal';
 import { RewardSackManager } from '../reward-sacks/RewardSackManager';
