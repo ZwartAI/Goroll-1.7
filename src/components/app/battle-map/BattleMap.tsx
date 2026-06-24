@@ -1019,11 +1019,7 @@ const BattleMap: React.FC<Props> = ({ onBack, logs, nameOverrides, onOpenChar })
           />
         )}
 
-        {/* Dice Animation */}
-        {activeDiceRolls && (
-          <SharedDiceAnimationOverlay />
-
-        )}
+        {/* Dice Animation is mounted globally in /campaign route */}
 
         {/* Chalk Controls */}
         {isChalkMode && isDM && (
