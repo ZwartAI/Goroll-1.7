@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Gift, BookOpen, Users, HeartPulse, X, ScrollText, Sparkles, Box } from 'lucide-react';
 import { pushLog } from '@/lib/log';
 import { supabase } from '@/integrations/supabase/client';
-import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+// SharedDiceAnimationOverlay is mounted globally in /campaign route
 import { BattleMapAdminSidebar } from '../battle-map/BattleMapAdminSidebar';
 import { CreationGridModal } from '../CreationGridModal';
 import { RewardSackManager } from '../reward-sacks/RewardSackManager';
@@ -167,7 +167,7 @@ export default function BattleMapMain({ onBack, logs, nameOverrides, onOpenChar 
 
   return (
     <div className="fixed inset-0 z-[110] bg-[#0a0a0a] flex flex-col overflow-hidden text-white font-sans">
-      <SharedDiceAnimationOverlay />
+      {/* Dice Animation is mounted globally in /campaign route */}
 
       {/* Header */}
       <Header 
