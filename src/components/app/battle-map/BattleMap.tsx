@@ -24,7 +24,7 @@ import { BattleMapChalkControls, type ChalkTool, type ChalkColor, type ChalkSize
 import { type ChalkLine, type ChalkNote } from './BattleMapChalkLayer';
 import { BattleMapScenesPanel, type BattleMapScene } from './BattleMapScenesPanel';
 import { BattleMapDicePanel, type DieSelection } from './BattleMapDicePanel';
-import { SharedDiceAnimationOverlay } from '../SharedDiceAnimationOverlay';
+// SharedDiceAnimationOverlay is mounted globally in /campaign route
 import { BattleMapToolbar } from './BattleMapToolbar';
 import { BattleMapBottomBar } from './BattleMapBottomBar';
 
